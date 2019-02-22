@@ -37,7 +37,7 @@ static constexpr float MIN_BTAG_DISC{0.8838};
 static constexpr unsigned MIN_BJETS{1};
 static constexpr unsigned MAX_BJETS{2};
 
-static constexpr double W_MASS{80.385};
+static constexpr float W_MASS{80.385};
 static constexpr float W_MASS_CUT{20};
 
 auto deltaR (float eta1, float phi1, float eta2, float phi2)
