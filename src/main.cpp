@@ -2,6 +2,8 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <stdexcept>
+#include <string>
 
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/conversion/cast.hpp> 
@@ -12,6 +14,7 @@
 #include "TLorentzVector.h"
 
 static constexpr double MIN_ELE_PT{15};
+static constexpr float MIN_ELE_LEADING_PT{35};
 static constexpr double MAX_ELE_ETA{2.5};
 static constexpr double ENDCAP_MIN_ETA{1.655};
 static constexpr double BARREL_MAX_ETA{1.4442};
@@ -19,9 +22,6 @@ static constexpr double BARREL_MAX_ETA{1.4442};
 static constexpr double MIN_MU_PT{20};
 static constexpr float MIN_MU_LEADING_PT{26};
 static constexpr double MAX_MU_ETA{2.4};
-
-static constexpr short N_MU{2};
-static constexpr short N_E{0};
 
 static constexpr float Z_MASS{91.1876};
 static constexpr float Z_MASS_CUT{20};
@@ -39,6 +39,8 @@ static constexpr unsigned MAX_BJETS{2};
 
 static constexpr float W_MASS{80.385};
 static constexpr float W_MASS_CUT{20};
+
+enum class channels {ee, mumu};
 
 auto deltaR (float eta1, float phi1, float eta2, float phi2)
 {
@@ -60,16 +62,44 @@ int main(int argc, char* argv[])
     using bools = ROOT::VecOps::RVec<bool>;
     using chars = ROOT::VecOps::RVec<UChar_t>;  // aka 1 byte ints
 
+    auto channel = channels::ee;
+
     ROOT::EnableImplicitMT();
     ROOT::RDataFrame d("Events", "/scratch/data/tZqSkimsRun2017/tZq_eta/*.root");
 
     // Trigger cuts
-    auto d_trig = d.Filter("HLT_IsoMu27 || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8", "trigger cut");
+    auto get_triggers = [channel]() {
+        switch (channel)
+        {
+            case channels::ee:
+                return "HLT_Ele35_WPTight_Gsf || HLT_Ele32_WPTight_Gsf_L1DoubleEG || HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL";
+            case channels::mumu:
+                return "HLT_IsoMu27 || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8";
+            default:
+                throw std::runtime_error("Unknown channel");
+        }
+    };
+
+    auto d_trig = d.Filter(get_triggers(), "trigger cut");
 
     // MET filters
     auto d_met = d_trig.Filter("!(Flag_HBHENoiseFilter <= 0 || Flag_HBHENoiseIsoFilter <= 0 || Flag_globalTightHalo2016Filter <= 0 || Flag_EcalDeadCellTriggerPrimitiveFilter <= 0 || Flag_goodVertices <= 0 || Flag_BadPFMuonFilter <= 0|| Flag_BadChargedCandidateFilter <= 0|| Flag_ecalBadCalibFilter <= 0 || Flag_eeBadScFilter <= 0)", "met filter");
 
     // Lepton cuts
+    auto get_nlep = [channel]() -> std::pair<unsigned, unsigned> {
+        switch (channel)
+        {
+            case channels::ee:
+                return {2, 0};
+            case channels::mumu:
+                return {0, 2};
+            default:
+                throw std::runtime_error("Unknown channel");
+        }
+    };
+
+    const auto [N_E, N_MU] = get_nlep();
+
     auto is_good_ele = [](int target_id, bools& isPFs, floats& pts, floats& etas, ints& ids) {
       etas = abs(etas);
       return (isPFs && pts > MIN_ELE_PT
@@ -95,27 +125,69 @@ int main(int argc, char* argv[])
         return is_good_mu(1, 2, isPFs, pts, etas, ids, iso_ids);
     };
 
-    auto lep_cut = [](floats& tight_ele_pts, floats& loose_ele_pts, floats& tight_mu_pts, floats& loose_mu_pts, ints& qs) {
-        bool lead_mu_pt_cut = tight_mu_pts.empty() ? false : *std::max_element(tight_mu_pts.begin(), tight_mu_pts.end()) > MIN_MU_LEADING_PT;
+    // TODO: this os check makes the N_LEP check ofr e in ee/mu in mumu redundant, shorter way to do it?
+    auto is_os = [channel](ints& e_qs, ints& mu_qs)
+    {
+        switch (channel)
+        {
+            case channels::ee:
+                return e_qs.size() == 2 ? std::signbit(e_qs.at(0)) != std::signbit(e_qs.at(1)) : false;
+                break;
+            case channels::mumu:
+                return mu_qs.size() == 2 ? std::signbit(mu_qs.at(0)) != std::signbit(mu_qs.at(1)) : false;
+                break;
+            default:
+                throw std::runtime_error("Unknown channel");
+        }
+    };
+
+    auto lep_cut = [channel, N_E, N_MU](floats& tight_ele_pts, floats& loose_ele_pts, floats& tight_mu_pts, floats& loose_mu_pts, bool os) {
         bool ele_cut = tight_ele_pts.size() == N_E && tight_ele_pts.size() == loose_ele_pts.size();
         bool mu_cut = tight_mu_pts.size() == N_MU && tight_mu_pts.size() == loose_mu_pts.size();
-        return lead_mu_pt_cut && ele_cut && mu_cut && (qs.at(0) * qs.at(1) < 0);
+        bool lead_pt_cut{false};
+        switch (channel)
+        {
+            case channels::ee:
+                lead_pt_cut = tight_ele_pts.empty() ? false : *std::max_element(tight_ele_pts.begin(), tight_ele_pts.end()) > MIN_ELE_LEADING_PT;
+                break;
+            case channels::mumu:
+                lead_pt_cut = tight_mu_pts.empty() ? false : *std::max_element(tight_mu_pts.begin(), tight_mu_pts.end()) > MIN_MU_LEADING_PT;
+                break;
+            default:
+                throw std::runtime_error("Unknown channel");
+        }
+        return os && lead_pt_cut && ele_cut && mu_cut;
     };
 
     auto select = [](ints& mask, floats &a) {return a[mask];};
 
     auto d_lep = d_met.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                      .Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                      .Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
-                      .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
                       .Define("tight_ele_pt", select, {"tight_eles", "Electron_pt"})
+                      .Define("tight_ele_charge", "Electron_charge[tight_eles]")
+                      .Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
                       .Define("loose_ele_pt", select, {"tight_eles", "Electron_pt"})
+                      .Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
                       .Define("tight_mu_pt", select, {"tight_mus", "Muon_pt"})
                       .Define("tight_mu_charge", "Muon_charge[tight_mus]")
+                      .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
                       .Define("loose_mu_pt", select, {"tight_mus", "Muon_pt"})
-                      .Filter(lep_cut, {"tight_ele_pt", "loose_ele_pt", "tight_mu_pt", "loose_mu_pt", "tight_mu_charge"}, "lepton cut");
+                      .Define("os", is_os, {"tight_ele_charge", "tight_mu_charge"})
+                      .Filter(lep_cut, {"tight_ele_pt", "loose_ele_pt", "tight_mu_pt", "loose_mu_pt", "os"}, "lepton cut");
 
     // Z mass cut
+    // TODO: this function is a bit of a hack, is there a better way to get the quantites for the correct lepton?
+    auto get_z_lep_quantity_selector = [channel](const std::string &s) {
+        switch (channel)
+        {
+            case channels::ee:
+                return "Electron_" + s + "[tight_eles]";
+            case channels::mumu:
+                return "Muon_" + s + "[tight_mus]";
+            default:
+                throw std::runtime_error("Unknown channel");
+        }
+    };
+
     auto z_mass = [](floats& pts, floats& etas, floats& phis, floats& ms)
     {
         // TOYNBEE IDEA
@@ -133,10 +205,11 @@ int main(int argc, char* argv[])
         return std::abs(z_mass - Z_MASS) < Z_MASS_CUT;
     };
 
-    auto d_z = d_lep.Define("tight_mu_eta", "Muon_eta[tight_mus]")
-                    .Define("tight_mu_phi", "Muon_phi[tight_mus]")
-                    .Define("tight_mu_mass", "Muon_mass[tight_mus]")
-                    .Define("z_mass", z_mass, {"tight_mu_pt", "tight_mu_eta", "tight_mu_phi", "tight_mu_mass"})
+    auto d_z = d_lep.Define("z_lep_eta", get_z_lep_quantity_selector("eta"))
+                    .Define("z_lep_phi", get_z_lep_quantity_selector("phi"))
+                    .Define("z_lep_mass", get_z_lep_quantity_selector("mass"))
+                    .Define("z_lep_pt", get_z_lep_quantity_selector("pt"))
+                    .Define("z_mass", z_mass, {"z_lep_pt", "z_lep_eta", "z_lep_phi", "z_lep_mass"})
                     .Filter(z_mass_cut, {"z_mass"}, "Z mass cut");
 
     // Jet cuts
@@ -156,7 +229,7 @@ int main(int argc, char* argv[])
         return njet >= MIN_JETS && njet <= MAX_JETS;
     };
 
-    auto d_jet = d_z.Define("jet_lep_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "tight_mu_eta", "tight_mu_phi"})
+    auto d_jet = d_z.Define("jet_lep_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "z_lep_eta", "z_lep_phi"})
                     .Define("tight_jets", tight_jet_id, {"jet_lep_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
                     .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
