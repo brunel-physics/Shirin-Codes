@@ -276,8 +276,7 @@ void analyse(int argc, char* argv[])
                 jet1.SetPtEtaPhiM(pts.at(i), etas.at(i), phis.at(i), ms.at(i));
                 jet2.SetPtEtaPhiM(pts.at(j), etas.at(j), phis.at(j), ms.at(j));
 
-                double reco_mass = (jet1 + jet2).M();
-                if (std::abs(W_MASS - reco_mass) < std::abs(W_MASS - w_reco_mass))
+                if (double reco_mass =(jet1 + jet2).M(); std::abs(W_MASS - reco_mass) < std::abs(W_MASS - w_reco_mass))
                 {
                     w_reco_mass = reco_mass;
                     jet_index_1 = i;
