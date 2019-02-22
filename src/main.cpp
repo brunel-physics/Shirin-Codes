@@ -58,10 +58,10 @@ int main(int argc, char* argv[])
     using floats = ROOT::VecOps::RVec<float>;
     using ints = ROOT::VecOps::RVec<int>;
     using bools = ROOT::VecOps::RVec<bool>;
-    using chars = ROOT::VecOps::RVec<UChar_t>;
+    using chars = ROOT::VecOps::RVec<UChar_t>;  // aka 1 byte ints
 
     ROOT::EnableImplicitMT();
-    ROOT::RDataFrame d("Events", "~/tZq_nano.root");
+    ROOT::RDataFrame d("Events", "/scratch/data/tZqSkimsRun2017/tZq_eta/*.root");
 
     // Trigger cuts
     auto d_trig = d.Filter("HLT_IsoMu27 || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8", "trigger cut");
