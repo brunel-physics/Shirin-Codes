@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 {
     if (argc < 2)
     {
-        std::cout << "Error, no command provided" << std::endl;
+        std::cout << "Error: no command provided" << std::endl;
         return 1;
     }
 
@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
     }
     else
     {
+        std::cout << "Error: command " << command << " not recognised" << std::endl;
         return 2;
     }
 }
