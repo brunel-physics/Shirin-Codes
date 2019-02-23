@@ -13,32 +13,34 @@
 
 #include "TLorentzVector.h"
 
-static constexpr double MIN_ELE_PT{15};
-static constexpr float MIN_ELE_LEADING_PT{35};
-static constexpr double MAX_ELE_ETA{2.5};
-static constexpr double ENDCAP_MIN_ETA{1.655};
-static constexpr double BARREL_MAX_ETA{1.4442};
+namespace
+{
+constexpr double MIN_ELE_PT{15};
+constexpr float MIN_ELE_LEADING_PT{35};
+constexpr double MAX_ELE_ETA{2.5};
+constexpr double ENDCAP_MIN_ETA{1.655};
+constexpr double BARREL_MAX_ETA{1.4442};
 
-static constexpr double MIN_MU_PT{20};
-static constexpr float MIN_MU_LEADING_PT{26};
-static constexpr double MAX_MU_ETA{2.4};
+constexpr double MIN_MU_PT{20};
+constexpr float MIN_MU_LEADING_PT{26};
+constexpr double MAX_MU_ETA{2.4};
 
-static constexpr float Z_MASS{91.1876};
-static constexpr float Z_MASS_CUT{20};
+constexpr float Z_MASS{91.1876};
+constexpr float Z_MASS_CUT{20};
 
-static constexpr float MAX_JET_ETA{4.7};
-static constexpr float MIN_JET_PT{4.7};
-static constexpr float JET_ISO{0.3};
-static constexpr unsigned MIN_JETS{4};
-static constexpr unsigned MAX_JETS{6};
+constexpr float MAX_JET_ETA{4.7};
+constexpr float MIN_JET_PT{4.7};
+constexpr float JET_ISO{0.3};
+constexpr unsigned MIN_JETS{4};
+constexpr unsigned MAX_JETS{6};
 
-static constexpr float MAX_BJET_ETA{2.4};
-static constexpr float MIN_BTAG_DISC{0.8838};
-static constexpr unsigned MIN_BJETS{1};
-static constexpr unsigned MAX_BJETS{2};
+constexpr float MAX_BJET_ETA{2.4};
+constexpr float MIN_BTAG_DISC{0.8838};
+constexpr unsigned MIN_BJETS{1};
+constexpr unsigned MAX_BJETS{2};
 
-static constexpr float W_MASS{80.385};
-static constexpr float W_MASS_CUT{20};
+constexpr float W_MASS{80.385};
+constexpr float W_MASS_CUT{20};
 
 enum class channels {ee, mumu};
 
@@ -52,6 +54,7 @@ auto deltaR (float eta1, float phi1, float eta2, float phi2)
         dPhi += (dPhi > 0 ? -2 * pi : 2 * pi);
     }
     return std::sqrt(dEta* dEta + dPhi * dPhi);
+}
 }
 
 void analyse(int argc, char* argv[])
