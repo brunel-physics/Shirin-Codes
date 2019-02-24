@@ -24,10 +24,20 @@ CXXFLAGS ?= $(INC_FLAGS) -MMD -MP -std=c++17 -march=native -mtune=native -pipe \
 			-Wlogical-op -Wmissing-declarations -Wmissing-include-dirs \
 			-Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls \
 			-Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel \
-			-Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused \
+			-Wstrict-overflow=5 -Wswitch-default -Wundef \
 			-Wuseless-cast -Wzero-as-null-pointer-constant -Wduplicated-cond \
-			-Wduplicated-branches -Wrestrict -Wnull-dereference \
-			-Wdouble-promotion -Wimplicit-fallthrough=4
+			-Wduplicated-branches -Wrestrict -Wnull-dereference -Wswitch-enum \
+			-Wswitch-bool -Wswitch-unreachable -Wno-coverage-mismatch \
+			-Wdouble-promotion -Wimplicit-fallthrough=5 -Wsync-nand \
+			-Wunknown-pragmas -Wstringop-overflow=4 -Wstringop-truncation \
+			-Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override \
+			-Walloc-zero -Walloca -Wtrampolines -Wfloat-equal \
+			-Wunsafe-loop-optimizations -Wplacement-new=2 -Wunused-macros \
+			-Wconditionally-supported -Wconversion -Wsubobject-linkage \
+			-Wdate-time -Wextra-semi -Wno-aggressive-loop-optimizations \
+			-Wpacked -Winline -Winvalid-pch -Wvector-operation-performance \
+			-Wdisabled-optimization -Wstack-protector -Whsa
+
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $@ $(LDFLAGS)
