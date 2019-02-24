@@ -1,3 +1,5 @@
+#include "analyse.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -16,31 +18,31 @@
 namespace
 {
 constexpr double MIN_ELE_PT{15};
-constexpr float MIN_ELE_LEADING_PT{35};
+constexpr float MIN_ELE_LEADING_PT{35.f};
 constexpr double MAX_ELE_ETA{2.5};
 constexpr double ENDCAP_MIN_ETA{1.655};
 constexpr double BARREL_MAX_ETA{1.4442};
 
 constexpr double MIN_MU_PT{20};
-constexpr float MIN_MU_LEADING_PT{26};
+constexpr float MIN_MU_LEADING_PT{26.f};
 constexpr double MAX_MU_ETA{2.4};
 
-constexpr float Z_MASS{91.1876};
-constexpr float Z_MASS_CUT{20};
+constexpr float Z_MASS{91.1876f};
+constexpr float Z_MASS_CUT{20.f};
 
-constexpr float MAX_JET_ETA{4.7};
-constexpr float MIN_JET_PT{4.7};
-constexpr float JET_ISO{0.3};
+constexpr float MAX_JET_ETA{4.7f};
+constexpr float MIN_JET_PT{4.7f};
+constexpr float JET_ISO{0.3f};
 constexpr unsigned MIN_JETS{4};
 constexpr unsigned MAX_JETS{6};
 
-constexpr float MAX_BJET_ETA{2.4};
-constexpr float MIN_BTAG_DISC{0.8838};
+constexpr float MAX_BJET_ETA{2.4f};
+constexpr float MIN_BTAG_DISC{0.8838f};
 constexpr unsigned MIN_BJETS{1};
 constexpr unsigned MAX_BJETS{2};
 
-constexpr float W_MASS{80.385};
-constexpr float W_MASS_CUT{20};
+constexpr float W_MASS{80.385f};
+constexpr float W_MASS_CUT{20.f};
 
 enum class channels {ee, mumu};
 
@@ -59,7 +61,7 @@ auto deltaR (float eta1, float phi1, float eta2, float phi2)
 
 void analyse(int argc, char* argv[])
 {
-    using doubles = ROOT::VecOps::RVec<double>;
+    // using doubles = ROOT::VecOps::RVec<double>;
     using floats = ROOT::VecOps::RVec<float>;
     using ints = ROOT::VecOps::RVec<int>;
     using bools = ROOT::VecOps::RVec<bool>;
@@ -191,17 +193,13 @@ void analyse(int argc, char* argv[])
         }
     };
 
-    auto z_mass = [](floats& pts, floats& etas, floats& phis, floats& ms)
+    auto pair_mass = [](floats& pts, floats& etas, floats& phis, floats& ms)
     {
-        // TOYNBEE IDEA
-        // IN MOViE `2001
-        // RECONSTRUCT Z
-        // ON PLANET JUPITER
-        auto lep0 = TLorentzVector{};
-        auto lep1 = TLorentzVector{};
-        lep0.SetPtEtaPhiM(pts.at(0), etas.at(0), phis.at(0), ms.at(0));
-        lep1.SetPtEtaPhiM(pts.at(1), etas.at(1), phis.at(1), ms.at(1));
-        return boost::numeric_cast<float>((lep0 + lep1).M());
+        auto vec0 = TLorentzVector{};
+        auto vec1 = TLorentzVector{};
+        vec0.SetPtEtaPhiM(pts.at(0), etas.at(0), phis.at(0), ms.at(0));
+        vec1.SetPtEtaPhiM(pts.at(1), etas.at(1), phis.at(1), ms.at(1));
+        return boost::numeric_cast<float>((vec0 + vec1).M());
     };
 
     auto z_mass_cut = [](float& z_mass) {
@@ -212,7 +210,7 @@ void analyse(int argc, char* argv[])
                     .Define("z_lep_phi", get_z_lep_quantity_selector("phi"))
                     .Define("z_lep_mass", get_z_lep_quantity_selector("mass"))
                     .Define("z_lep_pt", get_z_lep_quantity_selector("pt"))
-                    .Define("z_mass", z_mass, {"z_lep_pt", "z_lep_eta", "z_lep_phi", "z_lep_mass"})
+                    .Define("z_mass", pair_mass, {"z_lep_pt", "z_lep_eta", "z_lep_phi", "z_lep_mass"})
                     .Filter(z_mass_cut, {"z_mass"}, "Z mass cut");
 
     // Jet cuts
@@ -228,7 +226,7 @@ void analyse(int argc, char* argv[])
     };
 
     auto jet_cut = [](ints& tight_jets) {
-        unsigned njet = std::count_if(tight_jets.begin(), tight_jets.end(), [](int i){return i;});
+        auto njet = std::count_if(tight_jets.begin(), tight_jets.end(), [](int i){return i;});
         return njet >= MIN_JETS && njet <= MAX_JETS;
     };
 
@@ -242,7 +240,7 @@ void analyse(int argc, char* argv[])
     };
 
     auto bjet_cut = [](ints& bjets) {
-        unsigned nbjet = std::count_if(bjets.begin(), bjets.end(), [](int i){return i;});
+        auto nbjet = std::count_if(bjets.begin(), bjets.end(), [](int i){return i;});
         return nbjet >= MIN_BJETS && nbjet <= MAX_BJETS;
     };
 
@@ -294,15 +292,6 @@ void analyse(int argc, char* argv[])
         return w_pair;
     };
 
-    auto w_mass = [](floats& pts, floats& etas, floats& phis, floats& ms)
-    {
-        auto jet0 = TLorentzVector{};
-        auto jet1 = TLorentzVector{};
-        jet0.SetPtEtaPhiM(pts.at(0), etas.at(0), phis.at(0), ms.at(0));
-        jet1.SetPtEtaPhiM(pts.at(1), etas.at(1), phis.at(1), ms.at(1));
-        return boost::numeric_cast<float>((jet0 + jet1).M());
-    };
-
     auto w_mass_cut = [](float& w_mass) {
         return std::abs(w_mass - W_MASS) < W_MASS_CUT;
     };
@@ -313,7 +302,7 @@ void analyse(int argc, char* argv[])
                      .Define("w_pair_eta", "Jet_eta[w_reco_jets]")
                      .Define("w_pair_phi", "Jet_phi[w_reco_jets]")
                      .Define("w_pair_mass", "Jet_mass[w_reco_jets]")
-                     .Define("w_mass", w_mass, {"w_pair_pt", "w_pair_eta", "w_pair_phi", "w_pair_mass"})
+                     .Define("w_mass", pair_mass, {"w_pair_pt", "w_pair_eta", "w_pair_phi", "w_pair_mass"})
                      .Filter(w_mass_cut, {"w_mass"}, "W mass cut");
 
     auto allCutsReport = d.Report();
