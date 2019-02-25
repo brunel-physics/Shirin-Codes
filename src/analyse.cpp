@@ -146,7 +146,7 @@ void analyse(int argc, char* argv[])
         }
     };
 
-    auto lep_cut = [channel, N_E, N_MU](floats& tight_ele_pts, floats& loose_ele_pts, floats& tight_mu_pts, floats& loose_mu_pts, bool os) {
+    auto lep_cut = [channel, N_E = N_E, N_MU = N_MU](floats& tight_ele_pts, floats& loose_ele_pts, floats& tight_mu_pts, floats& loose_mu_pts, bool os) {
         bool ele_cut = tight_ele_pts.size() == N_E && tight_ele_pts.size() == loose_ele_pts.size();
         bool mu_cut = tight_mu_pts.size() == N_MU && tight_mu_pts.size() == loose_mu_pts.size();
         bool lead_pt_cut{false};
