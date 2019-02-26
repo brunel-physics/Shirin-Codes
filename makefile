@@ -1,4 +1,4 @@
-CXX = g++
+CXX ?= g++
 
 LDPATH := -L$(shell root-config --libdir) \
 		 -L/cvmfs/sft.cern.ch/lcg/views/LCG_95/x86_64-slc6-gcc8-opt/lib
@@ -19,7 +19,10 @@ INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS)) -isystem${CPATH}
 
 CXXFLAGS ?= $(INC_FLAGS) -MMD -MP -std=c++17 -march=native -mtune=native -pipe \
-			-O3 -Wall -Wextra -Wpedantic -Wcast-align -Wcast-qual \
+			-O3
+
+ifeq ($(CXX),g++)
+  CXXFLAGS += -Wall -Wextra -Wpedantic -Wcast-align -Wcast-qual \
 			-Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self \
 			-Wlogical-op -Wmissing-declarations -Wmissing-include-dirs \
 			-Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls \
@@ -36,8 +39,15 @@ CXXFLAGS ?= $(INC_FLAGS) -MMD -MP -std=c++17 -march=native -mtune=native -pipe \
 			-Wconversion -Wsubobject-linkage -Wdate-time -Wextra-semi \
 			-Wno-aggressive-loop-optimizations -Wpacked -Winline -Winvalid-pch  \
 			-Wvector-operation-performance -Wdisabled-optimization \
-			-Wstack-protector -Whsa
-
+			-Wstack-protector -Whsa -Wsuggest-attribute=const \
+			-Wsuggest-attribute=pure -Wsuggest-attribute=noreturn \
+            -Wsuggest-attribute=format -Wsuggest-attribute=cold
+else ifeq ($(CXX),clang++)
+  CXXFLAGS += -Weverything -Wno-c++98-compat -Wno-double-promotion \
+			  -Wno-covered-switch-default
+else
+  CXXFLAGS += $(UNKNOWN_CXXFLAGS)
+endif
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $@ $(LDFLAGS)
