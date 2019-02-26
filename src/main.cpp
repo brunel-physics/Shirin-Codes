@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    if (auto command = std::string_view(argv[1]); command == "analyse")
+    if (const auto command{std::string_view(argv[1])}; command == "analyse")
     {
         analyse(argc, argv);
     }
