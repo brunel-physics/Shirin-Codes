@@ -137,15 +137,14 @@ void analyse(int argc, char* argv[])
         {
             case channels::ee:
                 return e_qs.size() == 2 ? std::signbit(e_qs.at(0)) != std::signbit(e_qs.at(1)) : false;
-                break;
             case channels::mumu:
                 return mu_qs.size() == 2 ? std::signbit(mu_qs.at(0)) != std::signbit(mu_qs.at(1)) : false;
-                break;
             default:
                 throw std::runtime_error("Unknown channel");
         }
     };
 
+    // Because N_E and N_MU were declared in a structured binding we need to change them from names into local variables. C++ is very bad.
     auto lep_cut = [channel, N_E = N_E, N_MU = N_MU](floats& tight_ele_pts, floats& loose_ele_pts, floats& tight_mu_pts, floats& loose_mu_pts, bool os) {
         bool ele_cut = tight_ele_pts.size() == N_E && tight_ele_pts.size() == loose_ele_pts.size();
         bool mu_cut = tight_mu_pts.size() == N_MU && tight_mu_pts.size() == loose_mu_pts.size();
@@ -236,7 +235,7 @@ void analyse(int argc, char* argv[])
 
     // B jet cut
     auto bjet_id = [](ints& tight_jets, floats& btags, floats& etas) {
-        return tight_jets && (btags > MIN_BTAG_DISC) && (etas < 2.4);
+        return tight_jets && (btags > MIN_BTAG_DISC) && (etas < MAX_BJET_ETA);
     };
 
     auto bjet_cut = [](ints& bjets) {
@@ -250,7 +249,7 @@ void analyse(int argc, char* argv[])
     // W mass cut
     auto find_lead_mask = [](ints& mask, floats &vals) {
         auto masked_vals = mask * vals;
-        size_t max_idx = std::distance(masked_vals.begin(), max_element(masked_vals.begin(), masked_vals.end()));
+        auto max_idx = boost::numeric_cast<size_t>(std::distance(masked_vals.begin(), max_element(masked_vals.begin(), masked_vals.end())));
         ints lead_mask(masked_vals.size(), 0);
         lead_mask.at(max_idx) = 1;
         return lead_mask;
