@@ -15,6 +15,12 @@
 
 #include "TLorentzVector.h"
 
+// using doubles = ROOT::VecOps::RVec<double>;
+using floats = ROOT::VecOps::RVec<float>;
+using ints = ROOT::VecOps::RVec<int>;
+using bools = ROOT::VecOps::RVec<bool>;
+using chars = ROOT::VecOps::RVec<UChar_t>;  // aka 1 byte ints
+
 namespace
 {
 constexpr double MIN_ELE_PT{15};
@@ -46,7 +52,7 @@ constexpr float W_MASS_CUT{20.f};
 
 enum class channels {ee, mumu};
 
-[[gnu::const]] auto deltaR (const float eta1, const float phi1, const float eta2, const float phi2)
+[[gnu::const]] auto deltaR(const float eta1, const float phi1, const float eta2, const float phi2)
 {
     const auto pi{boost::math::constants::pi<float>()};
     const float dEta{eta1 - eta2};
@@ -57,15 +63,43 @@ enum class channels {ee, mumu};
     }
     return std::sqrt(dEta* dEta + dPhi * dPhi);
 }
+
+template <typename T, typename U>
+[[gnu::const]] bool all_equal(const T &t, const U &u)
+{
+    return t == u;
+}
+
+template <typename T, typename U, typename... Types>
+[[gnu::const]] bool all_equal(const T &t, const U &u, Types const &... args)
+{
+    return t == u && all_equal(u, args...);
+}
+
+[[gnu::const]] auto inv_mass(const floats& pts, const floats& etas, const floats& phis, const floats& ms)
+{
+    if (!all_equal(pts.size(), etas.size(), phis.size(), ms.size()))
+    {
+        throw std::logic_error("Collections must be the same size");
+    }
+    else if (pts.empty())
+    {
+        throw std::logic_error("Collections must not be empty");
+    }
+
+    TLorentzVector vec{};
+    for (size_t i{0}; i < pts.size(); i++)
+    {
+        TLorentzVector p{};
+        p.SetPtEtaPhiM(pts[i], etas[i], phis[i], ms[i]);
+        vec += p;
+    }
+    return boost::numeric_cast<float>(vec.M());
+}
 }
 
 void analyse(int argc, char* argv[])
 {
-    // using doubles = ROOT::VecOps::RVec<double>;
-    using floats = ROOT::VecOps::RVec<float>;
-    using ints = ROOT::VecOps::RVec<int>;
-    using bools = ROOT::VecOps::RVec<bool>;
-    using chars = ROOT::VecOps::RVec<UChar_t>;  // aka 1 byte ints
 
     ROOT::EnableImplicitMT();
     ROOT::RDataFrame d{"Events", "/scratch/data/tZqSkimsRun2017/tZq_eta/*.root"};
@@ -192,15 +226,6 @@ void analyse(int argc, char* argv[])
         }
     }};
 
-    auto pair_mass{[](const floats& pts, const floats& etas, const floats& phis, const floats& ms)
-    {
-        auto vec0{TLorentzVector{}};
-        auto vec1{TLorentzVector{}};
-        vec0.SetPtEtaPhiM(pts.at(0), etas.at(0), phis.at(0), ms.at(0));
-        vec1.SetPtEtaPhiM(pts.at(1), etas.at(1), phis.at(1), ms.at(1));
-        return boost::numeric_cast<float>((vec0 + vec1).M());
-    }};
-
     auto z_mass_cut{[](const float& z_mass) {
         return std::abs(z_mass - Z_MASS) < Z_MASS_CUT;
     }};
@@ -209,7 +234,7 @@ void analyse(int argc, char* argv[])
                   .Define("z_lep_phi", get_z_lep_quantity_selector("phi"))
                   .Define("z_lep_mass", get_z_lep_quantity_selector("mass"))
                   .Define("z_lep_pt", get_z_lep_quantity_selector("pt"))
-                  .Define("z_mass", pair_mass, {"z_lep_pt", "z_lep_eta", "z_lep_phi", "z_lep_mass"})
+                  .Define("z_mass", inv_mass, {"z_lep_pt", "z_lep_eta", "z_lep_phi", "z_lep_mass"})
                   .Filter(z_mass_cut, {"z_mass"}, "Z mass cut")};
 
     // Jet cuts
@@ -301,7 +326,7 @@ void analyse(int argc, char* argv[])
                    .Define("w_pair_eta", "Jet_eta[w_reco_jets]")
                    .Define("w_pair_phi", "Jet_phi[w_reco_jets]")
                    .Define("w_pair_mass", "Jet_mass[w_reco_jets]")
-                   .Define("w_mass", pair_mass, {"w_pair_pt", "w_pair_eta", "w_pair_phi", "w_pair_mass"})
+                   .Define("w_mass", inv_mass, {"w_pair_pt", "w_pair_eta", "w_pair_phi", "w_pair_mass"})
                    .Filter(w_mass_cut, {"w_mass"}, "W mass cut")};
 
     auto allCutsReport{d.Report()};
