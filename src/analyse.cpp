@@ -96,6 +96,12 @@ template <typename T, typename U, typename... Types>
     }
     return boost::numeric_cast<float>(vec.M());
 }
+
+template <typename T>
+[[gnu::const]] T select(const ints& mask, const T& a)
+{
+    return a[mask];
+}
 }
 
 void analyse(int argc, char* argv[])
@@ -197,18 +203,16 @@ void analyse(int argc, char* argv[])
         return os && lead_pt_cut && ele_cut && mu_cut;
     }};
 
-    auto select{[](const ints& mask, const floats &a) {return a[mask];}};
-
     auto d_lep{d_met.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                    .Define("tight_ele_pt", select, {"tight_eles", "Electron_pt"})
-                    .Define("tight_ele_charge", "Electron_charge[tight_eles]")
+                    .Define("tight_ele_pt", select<floats>, {"tight_eles", "Electron_pt"})
+                    .Define("tight_ele_charge", select<ints>, {"Electron_charge", "tight_eles"})
                     .Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                    .Define("loose_ele_pt", select, {"tight_eles", "Electron_pt"})
+                    .Define("loose_ele_pt", select<floats>, {"tight_eles", "Electron_pt"})
                     .Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
-                    .Define("tight_mu_pt", select, {"tight_mus", "Muon_pt"})
-                    .Define("tight_mu_charge", "Muon_charge[tight_mus]")
+                    .Define("tight_mu_pt", select<floats>, {"tight_mus", "Muon_pt"})
+                    .Define("tight_mu_charge", select<ints>, {"Muon_charge", "tight_mus"})
                     .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
-                    .Define("loose_mu_pt", select, {"tight_mus", "Muon_pt"})
+                    .Define("loose_mu_pt", select<floats>, {"tight_mus", "Muon_pt"})
                     .Define("os", is_os, {"tight_ele_charge", "tight_mu_charge"})
                     .Filter(lep_cut, {"tight_ele_pt", "loose_ele_pt", "tight_mu_pt", "loose_mu_pt", "os"}, "lepton cut")};
 
@@ -322,16 +326,17 @@ void analyse(int argc, char* argv[])
 
     auto d_w{d_bjet.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
                    .Define("w_reco_jets", find_w_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "tight_jets", "lead_bjet"})
-                   .Define("w_pair_pt", "Jet_pt[w_reco_jets]")
-                   .Define("w_pair_eta", "Jet_eta[w_reco_jets]")
-                   .Define("w_pair_phi", "Jet_phi[w_reco_jets]")
-                   .Define("w_pair_mass", "Jet_mass[w_reco_jets]")
+                   .Define("w_pair_pt", select<floats>, {"Jet_pt", "w_reco_jets"})
+                   .Define("w_pair_eta", select<floats>, {"Jet_eta", "w_reco_jets"})
+                   .Define("w_pair_phi", select<floats>, {"Jet_phi", "w_reco_jets"})
+                   .Define("w_pair_mass", select<floats>, {"Jet_mass", "w_reco_jets"})
                    .Define("w_mass", inv_mass, {"w_pair_pt", "w_pair_eta", "w_pair_phi", "w_pair_mass"})
                    .Filter(w_mass_cut, {"w_mass"}, "W mass cut")};
 
     auto allCutsReport{d.Report()};
     std::cout << "Name\t\tAll\tPass\tEfficiency" << std::endl;
-    for (auto&& cutInfo : allCutsReport) {
-      std::cout << cutInfo.GetName() << '\t' << cutInfo.GetAll() << '\t' << cutInfo.GetPass() << '\t' << cutInfo.GetEff() << " %" << std::endl;
+    for (auto&& cutInfo : allCutsReport)
+    {
+        std::cout << cutInfo.GetName() << '\t' << cutInfo.GetAll() << '\t' << cutInfo.GetPass() << '\t' << cutInfo.GetEff() << " %" << std::endl;
     }
 }
