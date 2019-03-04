@@ -1,25 +1,23 @@
 #include "analyse.hpp"
 
+#include "TLorentzVector.h"
+
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
 #include <algorithm>
+#include <boost/math/constants/constants.hpp>
+#include <boost/numeric/conversion/cast.hpp>
 #include <cmath>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <string>
 
-#include <boost/math/constants/constants.hpp>
-#include <boost/numeric/conversion/cast.hpp> 
-
-#include <ROOT/RDataFrame.hxx>
-#include <ROOT/RVec.hxx>
-
-#include "TLorentzVector.h"
-
 // using doubles = ROOT::VecOps::RVec<double>;
 using floats = ROOT::VecOps::RVec<float>;
 using ints = ROOT::VecOps::RVec<int>;
 using bools = ROOT::VecOps::RVec<bool>;
-using chars = ROOT::VecOps::RVec<UChar_t>;  // aka 1 byte ints
+using chars = ROOT::VecOps::RVec<UChar_t>; // aka 1 byte ints
 
 namespace
 {
@@ -50,7 +48,11 @@ constexpr unsigned MAX_BJETS{2};
 constexpr float W_MASS{80.385f};
 constexpr float W_MASS_CUT{20.f};
 
-enum class channels {ee, mumu};
+enum class channels
+{
+    ee,
+    mumu
+};
 
 [[gnu::const]] auto deltaR(const float eta1, const float phi1, const float eta2, const float phi2)
 {
@@ -61,17 +63,17 @@ enum class channels {ee, mumu};
     {
         dPhi += (dPhi > 0 ? -2 * pi : 2 * pi);
     }
-    return std::sqrt(dEta* dEta + dPhi * dPhi);
+    return std::sqrt(dEta * dEta + dPhi * dPhi);
 }
 
-template <typename T, typename U>
-[[gnu::const]] bool all_equal(const T &t, const U &u)
+template<typename T, typename U>
+[[gnu::const]] bool all_equal(const T& t, const U& u)
 {
     return t == u;
 }
 
-template <typename T, typename U, typename... Types>
-[[gnu::const]] bool all_equal(const T &t, const U &u, Types const &... args)
+template<typename T, typename U, typename... Types>
+[[gnu::const]] bool all_equal(const T& t, const U& u, Types const&... args)
 {
     return t == u && all_equal(u, args...);
 }
@@ -97,16 +99,15 @@ template <typename T, typename U, typename... Types>
     return boost::numeric_cast<float>(vec.M());
 }
 
-template <typename T>
+template<typename T>
 [[gnu::const]] T select(const ints& mask, const T& a)
 {
     return a[mask];
 }
-}
+} // namespace
 
 void analyse(int argc, char* argv[])
 {
-
     ROOT::EnableImplicitMT();
     ROOT::RDataFrame d{"Events", "/scratch/data/tZqSkimsRun2017/tZq_eta/*.root"};
 
@@ -146,10 +147,10 @@ void analyse(int argc, char* argv[])
     const auto [N_E, N_MU]{get_nlep()};
 
     auto is_good_ele{[](const int target_id, const bools& isPFs, const floats& pts, const floats& etas, const ints& ids) {
-      const auto abs_etas{abs(etas)};
-      return (isPFs && pts > MIN_ELE_PT
-              && ((abs_etas < MAX_ELE_ETA && abs_etas > ENDCAP_MIN_ETA) || (abs_etas < BARREL_MAX_ETA))
-              && ids >= target_id);
+        const auto abs_etas{abs(etas)};
+        return (isPFs && pts > MIN_ELE_PT
+                && ((abs_etas < MAX_ELE_ETA && abs_etas > ENDCAP_MIN_ETA) || (abs_etas < BARREL_MAX_ETA))
+                && ids >= target_id);
     }};
     auto is_good_tight_ele{[&is_good_ele](const bools& isPFs, const floats& pts, const floats& etas, const ints& ids) {
         return is_good_ele(4, isPFs, pts, etas, ids);
@@ -160,8 +161,8 @@ void analyse(int argc, char* argv[])
 
     // TODO: No muon cut-based ID? Use "MVA ID" for now...
     auto is_good_mu{[](const int target_id, const int target_iso_id, const bools& isPFs, const floats& pts, const floats& etas, const chars& ids, const chars& iso_ids) {
-      auto abs_etas{abs(etas)};
-      return (isPFs && pts > MIN_MU_PT && abs_etas < MAX_MU_ETA && ids >= target_id && iso_ids >= target_iso_id);
+        auto abs_etas{abs(etas)};
+        return (isPFs && pts > MIN_MU_PT && abs_etas < MAX_MU_ETA && ids >= target_id && iso_ids >= target_iso_id);
     }};
     auto is_good_tight_mu{[is_good_mu](const bools& isPFs, const floats& pts, const floats& etas, const chars& ids, const chars& iso_ids) {
         return is_good_mu(3, 4, isPFs, pts, etas, ids, iso_ids);
@@ -171,8 +172,7 @@ void analyse(int argc, char* argv[])
     }};
 
     // TODO: this os check makes the N_LEP check for e in ee/mu in mumu redundant, shorter way to do it?
-    auto is_os{[channel](const ints& e_qs, const ints& mu_qs)
-    {
+    auto is_os{[channel](const ints& e_qs, const ints& mu_qs) {
         switch (channel)
         {
             case channels::ee:
@@ -204,21 +204,21 @@ void analyse(int argc, char* argv[])
     }};
 
     auto d_lep{d_met.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                    .Define("tight_ele_pt", select<floats>, {"tight_eles", "Electron_pt"})
-                    .Define("tight_ele_charge", select<ints>, {"Electron_charge", "tight_eles"})
-                    .Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                    .Define("loose_ele_pt", select<floats>, {"tight_eles", "Electron_pt"})
-                    .Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
-                    .Define("tight_mu_pt", select<floats>, {"tight_mus", "Muon_pt"})
-                    .Define("tight_mu_charge", select<ints>, {"Muon_charge", "tight_mus"})
-                    .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
-                    .Define("loose_mu_pt", select<floats>, {"tight_mus", "Muon_pt"})
-                    .Define("os", is_os, {"tight_ele_charge", "tight_mu_charge"})
-                    .Filter(lep_cut, {"tight_ele_pt", "loose_ele_pt", "tight_mu_pt", "loose_mu_pt", "os"}, "lepton cut")};
+                   .Define("tight_ele_pt", select<floats>, {"tight_eles", "Electron_pt"})
+                   .Define("tight_ele_charge", select<ints>, {"Electron_charge", "tight_eles"})
+                   .Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
+                   .Define("loose_ele_pt", select<floats>, {"tight_eles", "Electron_pt"})
+                   .Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
+                   .Define("tight_mu_pt", select<floats>, {"tight_mus", "Muon_pt"})
+                   .Define("tight_mu_charge", select<ints>, {"Muon_charge", "tight_mus"})
+                   .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
+                   .Define("loose_mu_pt", select<floats>, {"tight_mus", "Muon_pt"})
+                   .Define("os", is_os, {"tight_ele_charge", "tight_mu_charge"})
+                   .Filter(lep_cut, {"tight_ele_pt", "loose_ele_pt", "tight_mu_pt", "loose_mu_pt", "os"}, "lepton cut")};
 
     // Z mass cut
     // TODO: this function is a bit of a hack, is there a better way to get the quantites for the correct lepton?
-    auto get_z_lep_quantity_selector{[channel](const std::string &s) {
+    auto get_z_lep_quantity_selector{[channel](const std::string& s) {
         switch (channel)
         {
             case channels::ee:
@@ -235,32 +235,32 @@ void analyse(int argc, char* argv[])
     }};
 
     auto d_z{d_lep.Define("z_lep_eta", get_z_lep_quantity_selector("eta"))
-                  .Define("z_lep_phi", get_z_lep_quantity_selector("phi"))
-                  .Define("z_lep_mass", get_z_lep_quantity_selector("mass"))
-                  .Define("z_lep_pt", get_z_lep_quantity_selector("pt"))
-                  .Define("z_mass", inv_mass, {"z_lep_pt", "z_lep_eta", "z_lep_phi", "z_lep_mass"})
-                  .Filter(z_mass_cut, {"z_mass"}, "Z mass cut")};
+                 .Define("z_lep_phi", get_z_lep_quantity_selector("phi"))
+                 .Define("z_lep_mass", get_z_lep_quantity_selector("mass"))
+                 .Define("z_lep_pt", get_z_lep_quantity_selector("pt"))
+                 .Define("z_mass", inv_mass, {"z_lep_pt", "z_lep_eta", "z_lep_phi", "z_lep_mass"})
+                 .Filter(z_mass_cut, {"z_mass"}, "Z mass cut")};
 
     // Jet cuts
     // TODO: Smearing
-    auto tight_jet_id{[](const floats& jet_lep_min_dRs, const floats& pts, const floats& etas, const ints &ids) {
+    auto tight_jet_id{[](const floats& jet_lep_min_dRs, const floats& pts, const floats& etas, const ints& ids) {
         return (pts > MIN_JET_PT) && (etas < MAX_JET_ETA) && (jet_lep_min_dRs > JET_ISO) && (ids >= 2);
     }};
 
     auto jet_lep_min_deltaR{[](const floats& jet_etas, const floats& jet_phis, const floats& lep_etas, const floats& lep_phis) {
         floats min_dRs{};
-        std::transform(jet_etas.begin(), jet_etas.end(), jet_phis.begin(), std::back_inserter(min_dRs), [&](float jet_eta, float jet_phi) {return std::min(deltaR(jet_eta, jet_phi, lep_etas.at(0), lep_phis.at(0)), deltaR(jet_eta, jet_phi, lep_etas.at(1), lep_phis.at(1)));});
+        std::transform(jet_etas.begin(), jet_etas.end(), jet_phis.begin(), std::back_inserter(min_dRs), [&](float jet_eta, float jet_phi) { return std::min(deltaR(jet_eta, jet_phi, lep_etas.at(0), lep_phis.at(0)), deltaR(jet_eta, jet_phi, lep_etas.at(1), lep_phis.at(1))); });
         return min_dRs;
     }};
 
     auto jet_cut{[](const ints& tight_jets) {
-        auto njet{std::count_if(tight_jets.begin(), tight_jets.end(), [](int i){return i;})};
+        auto njet{std::count_if(tight_jets.begin(), tight_jets.end(), [](int i) { return i; })};
         return njet >= MIN_JETS && njet <= MAX_JETS;
     }};
 
     auto d_jet{d_z.Define("jet_lep_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "z_lep_eta", "z_lep_phi"})
-                  .Define("tight_jets", tight_jet_id, {"jet_lep_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
-                  .Filter(jet_cut, {"tight_jets"}, "Jet cut   ")};
+                   .Define("tight_jets", tight_jet_id, {"jet_lep_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
+                   .Filter(jet_cut, {"tight_jets"}, "Jet cut   ")};
 
     // B jet cut
     auto bjet_id{[](const ints& tight_jets, const floats& btags, const floats& etas) {
@@ -268,15 +268,15 @@ void analyse(int argc, char* argv[])
     }};
 
     auto bjet_cut{[](const ints& bjets) {
-        const auto nbjet{std::count_if(bjets.begin(), bjets.end(), [](int i){return i;})};
+        const auto nbjet{std::count_if(bjets.begin(), bjets.end(), [](int i) { return i; })};
         return nbjet >= MIN_BJETS && nbjet <= MAX_BJETS;
     }};
 
     auto d_bjet{d_jet.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
-                     .Filter(bjet_cut, {"bjets"}, "b jet cut  ")};
+                    .Filter(bjet_cut, {"bjets"}, "b jet cut  ")};
 
     // W mass cut
-    auto find_lead_mask{[](const ints& mask, const floats &vals) {
+    auto find_lead_mask{[](const ints& mask, const floats& vals) {
         const auto masked_vals{mask * vals};
         const auto max_idx{boost::numeric_cast<size_t>(std::distance(masked_vals.begin(), max_element(masked_vals.begin(), masked_vals.end())))};
         ints lead_mask(masked_vals.size(), 0); // must be ()
@@ -284,7 +284,7 @@ void analyse(int argc, char* argv[])
         return lead_mask;
     }};
 
-    auto find_w_pair{[](const floats &pts, const floats &etas, const floats &phis, const floats &ms, const ints& tight_jets, const ints& lead_bjet) {
+    auto find_w_pair{[](const floats& pts, const floats& etas, const floats& phis, const floats& ms, const ints& tight_jets, const ints& lead_bjet) {
         double w_reco_mass{std::numeric_limits<double>::infinity()};
         size_t jet_index_1{std::numeric_limits<size_t>::max()};
         size_t jet_index_2{std::numeric_limits<size_t>::max()};
@@ -295,7 +295,7 @@ void analyse(int argc, char* argv[])
             for (size_t j{i + 1}; j < njets; ++j)
             {
                 if (tight_jets[i] != 0 && tight_jets[j] != 0
-                        && lead_bjet[i] != 1 && lead_bjet[j] != 1)
+                    && lead_bjet[i] != 1 && lead_bjet[j] != 1)
                 {
                     continue;
                 }
@@ -325,17 +325,17 @@ void analyse(int argc, char* argv[])
     }};
 
     auto d_w{d_bjet.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
-                   .Define("w_reco_jets", find_w_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "tight_jets", "lead_bjet"})
-                   .Define("w_pair_pt", select<floats>, {"Jet_pt", "w_reco_jets"})
-                   .Define("w_pair_eta", select<floats>, {"Jet_eta", "w_reco_jets"})
-                   .Define("w_pair_phi", select<floats>, {"Jet_phi", "w_reco_jets"})
-                   .Define("w_pair_mass", select<floats>, {"Jet_mass", "w_reco_jets"})
-                   .Define("w_mass", inv_mass, {"w_pair_pt", "w_pair_eta", "w_pair_phi", "w_pair_mass"})
-                   .Filter(w_mass_cut, {"w_mass"}, "W mass cut")};
+                 .Define("w_reco_jets", find_w_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "tight_jets", "lead_bjet"})
+                 .Define("w_pair_pt", select<floats>, {"Jet_pt", "w_reco_jets"})
+                 .Define("w_pair_eta", select<floats>, {"Jet_eta", "w_reco_jets"})
+                 .Define("w_pair_phi", select<floats>, {"Jet_phi", "w_reco_jets"})
+                 .Define("w_pair_mass", select<floats>, {"Jet_mass", "w_reco_jets"})
+                 .Define("w_mass", inv_mass, {"w_pair_pt", "w_pair_eta", "w_pair_phi", "w_pair_mass"})
+                 .Filter(w_mass_cut, {"w_mass"}, "W mass cut")};
 
     auto allCutsReport{d.Report()};
     std::cout << "Name\t\tAll\tPass\tEfficiency" << std::endl;
-    for (auto&& cutInfo : allCutsReport)
+    for (auto&& cutInfo: allCutsReport)
     {
         std::cout << cutInfo.GetName() << '\t' << cutInfo.GetAll() << '\t' << cutInfo.GetPass() << '\t' << cutInfo.GetEff() << " %" << std::endl;
     }

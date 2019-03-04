@@ -1,8 +1,8 @@
-#include <iostream>
-#include <string>
-
 #include "analyse.hpp"
 #include "dedupe.hpp"
+
+#include <iostream>
+#include <string>
 
 int main(int argc, char* argv[])
 {

@@ -1,14 +1,12 @@
 #include "dedupe.hpp"
 
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <boost/functional/hash.hpp>
 #include <mutex>
 #include <unordered_set>
 #include <utility>
 #include <vector>
-
-#include <boost/functional/hash.hpp>
-
-#include <ROOT/RDataFrame.hxx>
-#include <ROOT/RVec.hxx>
 
 namespace
 {
@@ -20,7 +18,7 @@ bool seen(const unsigned run, const ULong64_t event)
     std::scoped_lock lock{mtx};
     return seen_events.emplace(run, event).second;
 }
-}
+} // namespace
 
 void dedupe(int argc, char* argv[])
 {
