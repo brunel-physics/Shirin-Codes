@@ -109,7 +109,7 @@ template<typename T>
 void analyse(int argc, char* argv[])
 {
     ROOT::EnableImplicitMT();
-    ROOT::RDataFrame d{"Events", "/scratch/data/tZqSkimsRun2017/tZq_eta/*.root"};
+    ROOT::RDataFrame d{"Events", "/data/nanoAOD_2017/tZq_ll/*.root"};
 
     const auto channel{channels::ee};
 

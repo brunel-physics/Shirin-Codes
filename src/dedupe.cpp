@@ -26,8 +26,8 @@ void dedupe(int argc, char* argv[])
     // Bottleneck as only one thread can access the map at a time
     // ROOT::EnableImplicitMT();
 
-    const std::vector<std::string> files{"/scratch/data/tZqSkimsRun2017/mumuRun2017B_eta/*.root",
-                                         "/scratch/data/tZqSkimsRun2017/muRun2017B_eta/*.root"};
+    const std::vector<std::string> files{"/data/nanoAOD_2017/mumuRun2017B/*.root",
+                                         "/data/nanoAOD_2017/muRun2017B/*.root"};
     ROOT::RDataFrame d{"Events", files};
 
     auto d_dup = d.Filter(seen, {"run", "event"}, "Event deduplicator");
