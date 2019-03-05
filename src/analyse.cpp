@@ -100,7 +100,7 @@ template<typename T, typename U, typename... Types>
 }
 
 template<typename T>
-[[gnu::const]] T select(const ints& mask, const T& a)
+[[gnu::const]] T select(const T& a, const ints& mask)
 {
     return a[mask];
 }
@@ -204,15 +204,15 @@ void analyse(int argc, char* argv[])
     }};
 
     auto d_lep{d_met.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                   .Define("tight_ele_pt", select<floats>, {"tight_eles", "Electron_pt"})
+                   .Define("tight_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
                    .Define("tight_ele_charge", select<ints>, {"Electron_charge", "tight_eles"})
                    .Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                   .Define("loose_ele_pt", select<floats>, {"tight_eles", "Electron_pt"})
+                   .Define("loose_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
                    .Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
-                   .Define("tight_mu_pt", select<floats>, {"tight_mus", "Muon_pt"})
+                   .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
                    .Define("tight_mu_charge", select<ints>, {"Muon_charge", "tight_mus"})
                    .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
-                   .Define("loose_mu_pt", select<floats>, {"tight_mus", "Muon_pt"})
+                   .Define("loose_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
                    .Define("os", is_os, {"tight_ele_charge", "tight_mu_charge"})
                    .Filter(lep_cut, {"tight_ele_pt", "loose_ele_pt", "tight_mu_pt", "loose_mu_pt", "os"}, "lepton cut")};
 
