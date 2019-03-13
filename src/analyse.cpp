@@ -24,7 +24,7 @@ namespace
 constexpr double MIN_ELE_PT{15};
 constexpr float MIN_ELE_LEADING_PT{35.f};
 constexpr double MAX_ELE_ETA{2.5};
-constexpr double ENDCAP_MIN_ETA{1.655};
+constexpr double ENDCAP_MIN_ETA{1.566};
 constexpr double BARREL_MAX_ETA{1.4442};
 
 constexpr double MIN_MU_PT{20};
