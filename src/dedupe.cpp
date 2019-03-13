@@ -1,7 +1,9 @@
 #include "dedupe.hpp"
+#include "util.hpp"
 
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
+#include <ROOT/RSnapshotOptions.hxx>
 #include <boost/functional/hash.hpp>
 #include <mutex>
 #include <unordered_set>
@@ -32,8 +34,10 @@ void dedupe(int argc, char* argv[])
 
     auto d_dup = d.Filter(seen, {"run", "event"}, "Event deduplicator");
 
-    // TODO: Trying to save the tree currently causes a crash, figure out why
-    // foo.Snapshot("Events", "deduplicated.root");
+    ROOT::RDF::RSnapshotOptions opts;
+    opts.fCompressionAlgorithm = ROOT::kLZ4;
+    opts.fCompressionLevel = 4;
+    d_dup.Snapshot("Events", "deduplicated.root", util::apply_blacklist(d_dup.GetColumnNames()), opts);
 
     auto allCutsReport{d.Report()};
     const auto cut{allCutsReport->At("Event deduplicator")};

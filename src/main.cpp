@@ -1,4 +1,5 @@
 #include "analyse.hpp"
+#include "badbranches.hpp"
 #include "dedupe.hpp"
 
 #include <iostream>
@@ -15,6 +16,10 @@ int main(int argc, char* argv[])
     if (const auto command{std::string_view(argv[1])}; command == "analyse")
     {
         analyse(argc, argv);
+    }
+    else if (command == "badbranches")
+    {
+        badbranches(argc, argv);
     }
     else if (command == "dedupe")
     {
