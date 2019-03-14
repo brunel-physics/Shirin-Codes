@@ -56,7 +56,7 @@ enum class channels
 
 [[gnu::const]] auto deltaR(const float eta1, const float phi1, const float eta2, const float phi2)
 {
-    const auto pi{boost::math::constants::pi<float>()};
+    constexpr auto pi{boost::math::constants::pi<float>()};
     const float dEta{eta1 - eta2};
     float dPhi{phi1 - phi2};
     while (std::abs(dPhi) > pi)
