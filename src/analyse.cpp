@@ -35,7 +35,7 @@ constexpr float Z_MASS{91.1876f};
 constexpr float Z_MASS_CUT{20.f};
 
 constexpr float MAX_JET_ETA{4.7f};
-constexpr float MIN_JET_PT{4.7f};
+constexpr float MIN_JET_PT{30.f};
 constexpr float JET_ISO{0.3f};
 constexpr unsigned MIN_JETS{4};
 constexpr unsigned MAX_JETS{6};
