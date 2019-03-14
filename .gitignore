@@ -39,3 +39,6 @@ compile_commands.json
 
 # ROOT files
 *.root
+
+# Plist
+*.plist
