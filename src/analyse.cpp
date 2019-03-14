@@ -115,12 +115,16 @@ void analyse(int argc, char* argv[])
 
     // Trigger cuts
     auto get_triggers{[channel]() {
+        const std::string e_trig{"(HLT_Ele35_WPTight_Gsf || HLT_Ele32_WPTight_Gsf_L1DoubleEG)"};
+        const std::string ee_trig{"(HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL)"};
+        const std::string mu_trig{"(HLT_IsoMu27)"};
+        const std::string mumu_trig{"(HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8)"};
         switch (channel)
         {
             case channels::ee:
-                return "HLT_Ele35_WPTight_Gsf || HLT_Ele32_WPTight_Gsf_L1DoubleEG || HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL";
+                return e_trig + "&&" + ee_trig + "&&!" + mu_trig + "&&!" + mumu_trig;
             case channels::mumu:
-                return "HLT_IsoMu27 || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8";
+                return mu_trig + "&&" + mumu_trig + "&&!" + e_trig + "&&!" + ee_trig;
             default:
                 throw std::runtime_error("Unknown channel");
         }
