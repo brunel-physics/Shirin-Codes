@@ -119,12 +119,13 @@ void analyse(int argc, char* argv[])
         const std::string ee_trig{"(HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL)"};
         const std::string mu_trig{"(HLT_IsoMu27)"};
         const std::string mumu_trig{"(HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8)"};
+        const std::string emu_trig{"(HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL || HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ)"};
         switch (channel)
         {
             case channels::ee:
-                return e_trig + "&&" + ee_trig + "&&!" + mu_trig + "&&!" + mumu_trig;
+                return "(" + e_trig + "||" + ee_trig + ")" + "&&!" + mu_trig + "&&!" + mumu_trig + "&&!" + emu_trig;
             case channels::mumu:
-                return mu_trig + "&&" + mumu_trig + "&&!" + e_trig + "&&!" + ee_trig;
+                return "(" + mu_trig + "||" + mumu_trig + ")" + "&&!" + e_trig + "&&!" + ee_trig + "&&!" + emu_trig;
             default:
                 throw std::runtime_error("Unknown channel");
         }
@@ -133,7 +134,7 @@ void analyse(int argc, char* argv[])
     auto d_trig{d.Filter(get_triggers(), "trigger cut")};
 
     // MET filters
-    auto d_met{d_trig.Filter("!(Flag_HBHENoiseFilter <= 0 || Flag_HBHENoiseIsoFilter <= 0 || Flag_globalTightHalo2016Filter <= 0 || Flag_EcalDeadCellTriggerPrimitiveFilter <= 0 || Flag_goodVertices <= 0 || Flag_BadPFMuonFilter <= 0|| Flag_BadChargedCandidateFilter <= 0|| Flag_ecalBadCalibFilter <= 0 || Flag_eeBadScFilter <= 0)", "met filter")};
+    auto d_met{d_trig.Filter("!(Flag_HBHENoiseFilter <= 0 || Flag_HBHENoiseIsoFilter <= 0 || Flag_globalTightHalo2016Filter <= 0 || Flag_EcalDeadCellTriggerPrimitiveFilter <= 0 || Flag_goodVertices <= 0 || Flag_BadPFMuonFilter <= 0 || Flag_BadChargedCandidateFilter <= 0|| Flag_ecalBadCalibFilter <= 0 || Flag_eeBadScFilter <= 0)", "met filter")};
 
     // Lepton cuts
     auto get_nlep{[channel]() -> std::pair<unsigned, unsigned> {
