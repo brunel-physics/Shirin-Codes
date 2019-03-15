@@ -162,16 +162,15 @@ void analyse(int argc, char* argv[])
         return is_good_ele(1, isPFs, pts, etas, ids);
     }};
 
-    // TODO: No muon cut-based ID? Use "MVA ID" for now...
-    auto is_good_mu{[](const int target_id, const int target_iso_id, const bools& isPFs, const floats& pts, const floats& etas, const chars& ids, const chars& iso_ids) {
+    auto is_good_mu{[](const int target_iso_id, const bools& isPFs, const floats& pts, const floats& etas, const bools& ids, const chars& iso_ids) {
         auto abs_etas{abs(etas)};
-        return (isPFs && pts > MIN_MU_PT && abs_etas < MAX_MU_ETA && ids >= target_id && iso_ids >= target_iso_id);
+        return (isPFs && pts > MIN_MU_PT && abs_etas < MAX_MU_ETA && ids && iso_ids >= target_iso_id);
     }};
-    auto is_good_tight_mu{[is_good_mu](const bools& isPFs, const floats& pts, const floats& etas, const chars& ids, const chars& iso_ids) {
-        return is_good_mu(3, 4, isPFs, pts, etas, ids, iso_ids);
+    auto is_good_tight_mu{[is_good_mu](const bools& isPFs, const floats& pts, const floats& etas, const bools& ids, const chars& iso_ids) {
+        return is_good_mu(4, isPFs, pts, etas, ids, iso_ids);
     }};
-    auto is_good_loose_mu{[is_good_mu](const bools& isPFs, const floats& pts, const floats& etas, const chars& ids, const chars& iso_ids) {
-        return is_good_mu(1, 2, isPFs, pts, etas, ids, iso_ids);
+    auto is_good_loose_mu{[is_good_mu](const bools& isPFs, const floats& pts, const floats& etas, const bools& ids, const chars& iso_ids) {
+        return is_good_mu(2, isPFs, pts, etas, ids, iso_ids);
     }};
 
     // TODO: this os check makes the N_LEP check for e in ee/mu in mumu redundant, shorter way to do it?
@@ -211,10 +210,10 @@ void analyse(int argc, char* argv[])
                    .Define("tight_ele_charge", select<ints>, {"Electron_charge", "tight_eles"})
                    .Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
                    .Define("loose_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
-                   .Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
+                   .Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfIsoId"})
                    .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
                    .Define("tight_mu_charge", select<ints>, {"Muon_charge", "tight_mus"})
-                   .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_mvaId", "Muon_pfIsoId"})
+                   .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_softId", "Muon_pfIsoId"})
                    .Define("loose_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
                    .Define("os", is_os, {"tight_ele_charge", "tight_mu_charge"})
                    .Filter(lep_cut, {"tight_ele_pt", "loose_ele_pt", "tight_mu_pt", "loose_mu_pt", "os"}, "lepton cut")};
