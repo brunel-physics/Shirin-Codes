@@ -5,13 +5,13 @@
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
 #include <algorithm>
-#include <boost/math/constants/constants.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 #include <cmath>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <vdt/vdtMath.h>
 
 // using doubles = ROOT::VecOps::RVec<double>;
 using floats = ROOT::VecOps::RVec<float>;
@@ -54,16 +54,14 @@ enum class channels
     mumu
 };
 
+[[gnu::const]] auto delta_phi(const float phi1, const float phi2)
+{
+    return vdt::fast_atan2f(vdt::fast_sinf(phi1 - phi2), vdt::fast_cosf(phi1 - phi2));
+}
+
 [[gnu::const]] auto deltaR(const float eta1, const float phi1, const float eta2, const float phi2)
 {
-    constexpr auto pi{boost::math::constants::pi<float>()};
-    const float dEta{eta1 - eta2};
-    float dPhi{phi1 - phi2};
-    while (std::abs(dPhi) > pi)
-    {
-        dPhi += (dPhi > 0 ? -2 * pi : 2 * pi);
-    }
-    return std::sqrt(dEta * dEta + dPhi * dPhi);
+    return std::sqrt(std::pow(eta1 - eta2, 2) + std::pow(delta_phi(phi1, phi2), 2));
 }
 
 template<typename T, typename U>
