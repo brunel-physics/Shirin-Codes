@@ -1,6 +1,8 @@
 #include "analyse.hpp"
 
 #include "TLorentzVector.h"
+#include "sf.hpp"
+#include <TCanvas.h>
 
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
@@ -111,7 +113,7 @@ void analyse(int argc, char* argv[])
     ROOT::EnableImplicitMT();
     ROOT::RDataFrame d{"Events", "/data/nanoAOD_2017/tZq_ll/*.root"};
 
-    const auto channel{channels::ee};
+    const auto channel{channels::mumu};
 
     // Trigger cuts
     auto get_triggers{[channel]() {
@@ -337,8 +339,24 @@ void analyse(int argc, char* argv[])
                  .Define("w_mass", inv_mass, {"w_pair_pt", "w_pair_eta", "w_pair_phi", "w_pair_mass"})
                  .Filter(w_mass_cut, {"w_mass"}, "W mass cut")};
 
+    // Get scale factors
+    auto get_lep_sf{[channel](const floats& pt, const floats& eta) {
+        switch (channel)
+        {
+            case channels::ee:
+                return 1.0f;
+            case channels::mumu:
+                return sf::muon_id(pt.at(0), eta.at(0)) * sf::muon_id(pt.at(1), eta.at(1)) * sf::muon_iso(pt.at(0), eta.at(0)) * sf::muon_iso(pt.at(1), eta.at(1));
+            default:
+                throw std::runtime_error("Unknown channel");
+        }
+    }};
+
+    auto d_sf{d_w.Define("lep_sf", get_lep_sf, {"z_lep_pt", "z_lep_eta"})};
+
+
+    // Print cut report
     auto allCutsReport{d.Report()};
-    std::cout << "Name\t\tAll\tPass\tEfficiency" << std::endl;
     for (auto&& cutInfo: allCutsReport)
     {
         std::cout << cutInfo.GetName() << '\t' << cutInfo.GetAll() << '\t' << cutInfo.GetPass() << '\t' << cutInfo.GetEff() << " %" << std::endl;
