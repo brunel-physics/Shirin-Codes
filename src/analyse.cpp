@@ -1,8 +1,11 @@
 #include "analyse.hpp"
-
+#include <algorithm>
 #include "TLorentzVector.h"
 #include "sf.hpp"
 #include <TCanvas.h>
+#include <TText.h>
+#include <THStack.h>
+#include <TTreeReaderArray.h>
 
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
@@ -14,15 +17,22 @@
 #include <stdexcept>
 #include <string>
 #include <vdt/vdtMath.h>
+#include <numeric>
 
-// using doubles = ROOT::VecOps::RVec<double>;
+
+using namespace std;
+
+using doubles = ROOT::VecOps::RVec<double>;
 using floats = ROOT::VecOps::RVec<float>;
 using ints = ROOT::VecOps::RVec<int>;
 using bools = ROOT::VecOps::RVec<bool>;
 using chars = ROOT::VecOps::RVec<UChar_t>; // aka 1 byte ints
+double pi = 3.14;
 
 namespace
 {
+
+
 constexpr double MIN_ELE_PT{15};
 constexpr float MIN_ELE_LEADING_PT{35.f};
 constexpr double MAX_ELE_ETA{2.5};
@@ -47,15 +57,16 @@ constexpr unsigned MAX_JETS{6};
 constexpr float MAX_BJET_ETA{2.4f};
 constexpr float MIN_BTAG_DISC{0.8838f};
 constexpr unsigned MIN_BJETS{1};
-constexpr unsigned MAX_BJETS{2};
+constexpr unsigned MAX_BJETS{3};
 
 constexpr float W_MASS{80.385f};
 constexpr float W_MASS_CUT{20.f};
 
+
 enum class channels
 {
-    ee,
-    mumu
+    enu,
+    mnu
 };
 
 [[gnu::const]] auto delta_phi(const float phi1, const float phi2)
@@ -97,8 +108,12 @@ template<typename T, typename U, typename... Types>
         TLorentzVector p{};
         p.SetPtEtaPhiM(pts[i], etas[i], phis[i], ms[i]);
         vec += p;
+	std:: cout<<"pt size "<<pts.size()<<std::endl;
     }
-    return boost::numeric_cast<float>(vec.M());
+	std::cout<<"z mass being passed is "<< boost::numeric_cast<float>(vec.M())<<std::endl;
+    	std::cout<<"size of vector vec "<< vec.size()<<std::endl;
+	//if(boost::numeric_cast<float>(vec.M()) > 0 && boost::numeric_cast<float>(vec.M()) <= 100)
+	return boost::numeric_cast<float>(vec.M());
 }
 
 template<typename T>
@@ -110,255 +125,544 @@ template<typename T>
 
 void analyse(int argc, char* argv[])
 {
-    ROOT::EnableImplicitMT();
-    ROOT::RDataFrame d{"Events", "/data/nanoAOD_2017/tZq_ll/*.root"};
+       //ROOT::EnableImplicitMT();
 
-    const auto channel{channels::mumu};
+        std::cout << "I am starting"<<std::endl;
 
-    // Trigger cuts
-    auto get_triggers{[channel]() {
-        const std::string e_trig{"(HLT_Ele35_WPTight_Gsf || HLT_Ele32_WPTight_Gsf_L1DoubleEG)"};
-        const std::string ee_trig{"(HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL)"};
-        const std::string mu_trig{"(HLT_IsoMu27)"};
-        const std::string mumu_trig{"(HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 || HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8)"};
-        const std::string emu_trig{"(HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL || HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ)"};
-        switch (channel)
-        {
-            case channels::ee:
-                return "(" + e_trig + "||" + ee_trig + ")" + "&&!" + mu_trig + "&&!" + mumu_trig + "&&!" + emu_trig;
-            case channels::mumu:
-                return "(" + mu_trig + "||" + mumu_trig + ")" + "&&!" + e_trig + "&&!" + ee_trig + "&&!" + emu_trig;
-            default:
-                throw std::runtime_error("Unknown channel");
-        }
-    }};
+   	ROOT::RDataFrame d{"Events", "/data/nanoAOD_2017/tZqlvqq/*.root"};
+	//ROOT::RDataFrame dc{"Events", "/data/nanoAOD_2017/tZqlvqq/388C7D88-9042-E811-9999-FA163E1CC0EA.root"};
+	//auto d = dc.Range(0, 100);
+	std::cout << "I have looked up the dataset"<<std::endl;
+/////////////////////////////////////////////////////////////////////////// Number of Particles Per Event /////////////////////////////////////////////////////////////////////
+/*	std::cout << " gonna do particle statistics"<<std::endl;
+	auto countZ = [](const ints ids) -> int {return std::count(ids.begin(),ids.end(),23);};//  writing a function with constant integer input as id and function called countZ and i am saying read from start of ids to ends of ids and find all the ids with number 23 and count them all
+        auto Znum = d.Define("numZ",countZ,{"GenPart_pdgId"}) // making pointer Znum which its column is filled with numZ that is the GenPArt_pdgId and it uses the countZ function
+			.Filter([](int numZ){return numZ >= 1;},{"numZ"}) //setting filters for the numZ to exist in my events
+                        .Count(); // count them all
+//////////////////////////////////////////////////////////////// Mean Number of Particles //////////////////////////////////////////////////////////////////////////
+	 std::cout << "a quick mean calculation"<<std::endl;
+         auto bnumMean = d.Define("numb",countb,{"GenPart_pdgId"})
+                         .Filter([](int numb){return numb >= 1;},{"numb"})
+                         .Mean("numb"); // in here instead of counting sum of all events with numb (number of b per event), I am taking a mean of how many bs r per event
 
-    auto d_trig{d.Filter(get_triggers(), "trigger cut")};
+////////////////////////////////////////////////////////////////// Histograms of cross sections  //////////////////////////////////////////////////////////////////////////////////////
+	 std::cout << "historgram plotting"<<std::endl;
+	 auto bnumHist = d.Define("numb",countb,{"GenPart_pdgId"})
+                         .Filter([](int numb){return numb >= 1;},{"numb"})
+                         .Histo1D({"numb","Number of b quarks per event",2,0,10},"numb"); // This is how a histogtam is done, saying show me the dist. of numb
+	 auto bHist = new TCanvas("Number of b quarks per event", "Number of b quarks per event",10,10,700,700);
+	 bnumHist->DrawClone();
+	 bHist->SaveAs("bnumHist.root"); // this is how u make a canvas out of it for bnumHist defined earlier :D
 
-    // MET filters
-    auto d_met{d_trig.Filter("!(Flag_HBHENoiseFilter <= 0 || Flag_HBHENoiseIsoFilter <= 0 || Flag_globalTightHalo2016Filter <= 0 || Flag_EcalDeadCellTriggerPrimitiveFilter <= 0 || Flag_goodVertices <= 0 || Flag_BadPFMuonFilter <= 0 || Flag_BadChargedCandidateFilter <= 0|| Flag_ecalBadCalibFilter <= 0 || Flag_eeBadScFilter <= 0)", "met filter")};
+/////////////////////////////////////////////////////////////////////////// Pt Histograms ///////////////////////////////////////////////////////
+ 	std::cout << "pt histogram"<<std::endl;
+ 	auto bptfunc = [](const ints id, const floats pts) {return pts[id ==5];};
+ 	auto bptHist = d.Define("bpts",bptfunc,{"GenPart_pdgId","GenPart_pt"})
+                        .Filter([](floats bpts){return std::all_of(bpts.cbegin(), bpts.cend(), [](float pt){return pt >= 20.;});},{"bpts"})
+                         .Histo1D({"bpt","Pt of b quarks per event",15,0,150},"bpts"); // This is how a histogtam is done, sayin$
+         auto bptcanvas = new TCanvas("Pt of b quarks per event", "Pt of b quarks per event",10,10,700,700);
+         bptHist->SetLineColor(kBlue);
+ 	bptHist->DrawClone();
+         bptcanvas->SaveAs("bptHist.root");
 
-    // Lepton cuts
-    auto get_nlep{[channel]() -> std::pair<unsigned, unsigned> {
-        switch (channel)
-        {
-            case channels::ee:
-                return {2, 0};
-            case channels::mumu:
-                return {0, 2};
-            default:
-                throw std::runtime_error("Unknown channel");
-        }
-    }};
 
-    const auto [N_E, N_MU]{get_nlep()};
+// /////////////////////////////////////////////////////////////////// Eta Histograms //////////////////////////////////////////////////////////////////////////////////
+ 	std::cout << "eta histogram"<<std::endl;
+         auto betafunc = [](const ints id, const floats eta) {return eta[id ==5];};
+         auto betaHist = d.Define("betas",betafunc,{"GenPart_pdgId","GenPart_eta"})
+                        .Filter([](floats betas){return std::all_of(betas.cbegin(), betas.cend(), [](float eta){return abs(eta) <= 2.5;});},{"betas"})
+                         .Histo1D({"beta","Eta of b quarks per event",20,-5,5},"betas"); // This is how a histogtam is done, sayin$
+         auto betacanvas = new TCanvas("Eta of b quarks per event", "Eta of b quarks per event",10,10,700,700);
+         betaHist->SetLineColor(kBlue);
+         betaHist->DrawClone();
+         betacanvas->SaveAs("betaHist.root");
 
-    auto is_good_ele{[](const int target_id, const bools& isPFs, const floats& pts, const floats& etas, const ints& ids) {
-        const auto abs_etas{abs(etas)};
-        return (isPFs && pts > MIN_ELE_PT
-                && ((abs_etas < MAX_ELE_ETA && abs_etas > ENDCAP_MIN_ETA) || (abs_etas < BARREL_MAX_ETA))
-                && ids >= target_id);
-    }};
-    auto is_good_tight_ele{[&is_good_ele](const bools& isPFs, const floats& pts, const floats& etas, const ints& ids) {
-        return is_good_ele(4, isPFs, pts, etas, ids);
-    }};
-    auto is_good_loose_ele{[&is_good_ele](bools& isPFs, floats& pts, floats& etas, ints& ids) {
-        return is_good_ele(1, isPFs, pts, etas, ids);
-    }};
 
-    auto is_good_mu{[](const float target_iso, const bools& isPFs, const floats& pts, const floats& etas, const bools& ids, const floats& isos) {
-        auto abs_etas{abs(etas)};
-        return (isPFs && pts > MIN_MU_PT && abs_etas < MAX_MU_ETA && ids && isos <= target_iso);
-    }};
-    auto is_good_tight_mu{[is_good_mu](const bools& isPFs, const floats& pts, const floats& etas, const bools& ids, const floats& isos) {
-        return is_good_mu(MU_TIGHT_ISO, isPFs, pts, etas, ids, isos);
-    }};
-    auto is_good_loose_mu{[is_good_mu](const bools& isPFs, const floats& pts, const floats& etas, const bools& ids, const floats& isos) {
-        return is_good_mu(MU_LOOSE_ISO, isPFs, pts, etas, ids, isos);
-    }};
-
-    // TODO: this os check makes the N_LEP check for e in ee/mu in mumu redundant, shorter way to do it?
-    auto is_os{[channel](const ints& e_qs, const ints& mu_qs) {
-        switch (channel)
-        {
-            case channels::ee:
-                return e_qs.size() == 2 ? std::signbit(e_qs.at(0)) != std::signbit(e_qs.at(1)) : false;
-            case channels::mumu:
-                return mu_qs.size() == 2 ? std::signbit(mu_qs.at(0)) != std::signbit(mu_qs.at(1)) : false;
-            default:
-                throw std::runtime_error("Unknown channel");
-        }
-    }};
-
-    // Because N_E and N_MU were declared in a structured binding we need to change them from names into local variables. C++ is very bad.
-    auto lep_cut{[channel, N_E = N_E, N_MU = N_MU](const floats& tight_ele_pts, const floats& loose_ele_pts, const floats& tight_mu_pts, const floats& loose_mu_pts, const bool os) {
-        const bool ele_cut{tight_ele_pts.size() == N_E && tight_ele_pts.size() == loose_ele_pts.size()};
-        const bool mu_cut{tight_mu_pts.size() == N_MU && tight_mu_pts.size() == loose_mu_pts.size()};
-        bool lead_pt_cut{false};
-        switch (channel)
-        {
-            case channels::ee:
-                lead_pt_cut = tight_ele_pts.empty() ? false : *std::max_element(tight_ele_pts.begin(), tight_ele_pts.end()) > MIN_ELE_LEADING_PT;
-                break;
-            case channels::mumu:
-                lead_pt_cut = tight_mu_pts.empty() ? false : *std::max_element(tight_mu_pts.begin(), tight_mu_pts.end()) > MIN_MU_LEADING_PT;
-                break;
-            default:
-                throw std::runtime_error("Unknown channel");
-        }
-        return os && lead_pt_cut && ele_cut && mu_cut;
-    }};
-
-    auto d_lep{d_met.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                   .Define("tight_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
-                   .Define("tight_ele_charge", select<ints>, {"Electron_charge", "tight_eles"})
-                   .Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                   .Define("loose_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
-                   .Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
-                   .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
-                   .Define("tight_mu_charge", select<ints>, {"Muon_charge", "tight_mus"})
-                   .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_softId", "Muon_pfRelIso04_all"})
-                   .Define("loose_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
-                   .Define("os", is_os, {"tight_ele_charge", "tight_mu_charge"})
-                   .Filter(lep_cut, {"tight_ele_pt", "loose_ele_pt", "tight_mu_pt", "loose_mu_pt", "os"}, "lepton cut")};
-
-    // Z mass cut
-    // TODO: this function is a bit of a hack, is there a better way to get the quantites for the correct lepton?
-    auto get_z_lep_quantity_selector{[channel](const std::string& s) {
-        switch (channel)
-        {
-            case channels::ee:
-                return "Electron_" + s + "[tight_eles]";
-            case channels::mumu:
-                return "Muon_" + s + "[tight_mus]";
-            default:
-                throw std::runtime_error("Unknown channel");
-        }
-    }};
-
-    auto z_mass_cut{[](const float& z_mass) {
-        return std::abs(z_mass - Z_MASS) < Z_MASS_CUT;
-    }};
-
-    auto d_z{d_lep.Define("z_lep_eta", get_z_lep_quantity_selector("eta"))
-                 .Define("z_lep_phi", get_z_lep_quantity_selector("phi"))
-                 .Define("z_lep_mass", get_z_lep_quantity_selector("mass"))
-                 .Define("z_lep_pt", get_z_lep_quantity_selector("pt"))
-                 .Define("z_mass", inv_mass, {"z_lep_pt", "z_lep_eta", "z_lep_phi", "z_lep_mass"})
-                 .Filter(z_mass_cut, {"z_mass"}, "Z mass cut")};
-
-    // Jet cuts
-    // TODO: Smearing
-    auto tight_jet_id{[](const floats& jet_lep_min_dRs, const floats& pts, const floats& etas, const ints& ids) {
-        return (pts > MIN_JET_PT) && (etas < MAX_JET_ETA) && (jet_lep_min_dRs > JET_ISO) && (ids >= 2);
-    }};
-
-    auto jet_lep_min_deltaR{[](const floats& jet_etas, const floats& jet_phis, const floats& lep_etas, const floats& lep_phis) {
-        floats min_dRs{};
-        std::transform(jet_etas.begin(), jet_etas.end(), jet_phis.begin(), std::back_inserter(min_dRs), [&](float jet_eta, float jet_phi) { return std::min(deltaR(jet_eta, jet_phi, lep_etas.at(0), lep_phis.at(0)), deltaR(jet_eta, jet_phi, lep_etas.at(1), lep_phis.at(1))); });
-        return min_dRs;
-    }};
-
-    auto jet_cut{[](const ints& tight_jets) {
-        auto njet{std::count_if(tight_jets.begin(), tight_jets.end(), [](int i) { return i; })};
-        return njet >= MIN_JETS && njet <= MAX_JETS;
-    }};
-
-    auto d_jet{d_z.Define("jet_lep_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "z_lep_eta", "z_lep_phi"})
-                   .Define("tight_jets", tight_jet_id, {"jet_lep_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
-                   .Filter(jet_cut, {"tight_jets"}, "Jet cut   ")};
-
-    // B jet cut
-    auto bjet_id{[](const ints& tight_jets, const floats& btags, const floats& etas) {
-        return tight_jets && (btags > MIN_BTAG_DISC) && (etas < MAX_BJET_ETA);
-    }};
-
-    auto bjet_cut{[](const ints& bjets) {
-        const auto nbjet{std::count_if(bjets.begin(), bjets.end(), [](int i) { return i; })};
-        return nbjet >= MIN_BJETS && nbjet <= MAX_BJETS;
-    }};
-
-    auto d_bjet{d_jet.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
-                    .Filter(bjet_cut, {"bjets"}, "b jet cut  ")};
-
-    // W mass cut
-    auto find_lead_mask{[](const ints& mask, const floats& vals) {
-        const auto masked_vals{mask * vals};
-        const auto max_idx{boost::numeric_cast<size_t>(std::distance(masked_vals.begin(), max_element(masked_vals.begin(), masked_vals.end())))};
-        ints lead_mask(masked_vals.size(), 0); // must be ()
-        lead_mask.at(max_idx) = 1;
-        return lead_mask;
-    }};
-
-    auto find_w_pair{[](const floats& pts, const floats& etas, const floats& phis, const floats& ms, const ints& tight_jets, const ints& lead_bjet) {
-        double w_reco_mass{std::numeric_limits<double>::infinity()};
-        size_t jet_index_1{std::numeric_limits<size_t>::max()};
-        size_t jet_index_2{std::numeric_limits<size_t>::max()};
-        const size_t njets{pts.size()};
-
-        for (size_t i{0}; i < njets; ++i)
-        {
-            for (size_t j{i + 1}; j < njets; ++j)
-            {
-                if (tight_jets[i] != 0 && tight_jets[j] != 0
-                    && lead_bjet[i] != 1 && lead_bjet[j] != 1)
+///////////////////////////////////////////////////////////////// Phi Histogram ////////////////////////////////////////////////////////////////////////////////////
+	std::cout << "Phi Histogram"<<std::endl;
+	auto dphifunc = [](const ints &id, const floats &pt, const floats &eta, const floats &phi)
+	{
+		ROOT::VecOps::RVec<int> index(id.size()); std::iota(index.begin(), index.end(),0);
+		double phi1;
+		for (const auto i : index[id == 1])
                 {
-                    continue;
+                        if(pt.at(i)>= 30 && abs(eta.at(i))<=2.4)
+                        {
+				phi1 = phi.at(i);
+                        }
                 }
 
-                auto jet1{TLorentzVector{}};
-                auto jet2{TLorentzVector{}};
-                jet1.SetPtEtaPhiM(pts.at(i), etas.at(i), phis.at(i), ms.at(i));
-                jet2.SetPtEtaPhiM(pts.at(j), etas.at(j), phis.at(j), ms.at(j));
+		return phi1;
+	};
 
-                if (const double reco_mass{(jet1 + jet2).M()}; std::abs(W_MASS - reco_mass) < std::abs(W_MASS - w_reco_mass))
-                {
-                    w_reco_mass = reco_mass;
-                    jet_index_1 = i;
-                    jet_index_2 = j;
-                }
-            }
-        }
 
-        ints w_pair(njets, 0);
-        w_pair.at(jet_index_1) = 1;
-        w_pair.at(jet_index_2) = 1;
-        return w_pair;
-    }};
 
-    auto w_mass_cut{[](const float& w_mass) {
-        return std::abs(w_mass - W_MASS) < W_MASS_CUT;
-    }};
+	auto dphihist = d.Define("dphis",dphifunc, {"GenPart_pdgId","GenPart_pt","GenPart_eta","GenPart_phi"})
+			 .Histo1D({"dphi","Phi dist. of d quarks",50,-5,5},"dphis");
 
-    auto d_w{d_bjet.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
-                 .Define("w_reco_jets", find_w_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "tight_jets", "lead_bjet"})
-                 .Define("w_pair_pt", select<floats>, {"Jet_pt", "w_reco_jets"})
-                 .Define("w_pair_eta", select<floats>, {"Jet_eta", "w_reco_jets"})
-                 .Define("w_pair_phi", select<floats>, {"Jet_phi", "w_reco_jets"})
-                 .Define("w_pair_mass", select<floats>, {"Jet_mass", "w_reco_jets"})
-                 .Define("w_mass", inv_mass, {"w_pair_pt", "w_pair_eta", "w_pair_phi", "w_pair_mass"})
-                 .Filter(w_mass_cut, {"w_mass"}, "W mass cut")};
+	auto dphicanvas = new TCanvas("d phi dist.","d phi dist.",10,10,700,700);
 
-    // Get scale factors
-    auto get_lep_sf{[channel](const floats& pt, const floats& eta) {
-        switch (channel)
+	dphicanvas ->cd();
+	dphihist->SetLineColor(kRed);
+	dphihist->DrawClone();
+
+*/
+////////////////////////////////////////////////////////////////////////Working Histo 2D Z Reconsturcion/////////////////////////////////////////////////////////////////////////////
+/*        auto dZReconMassCut =[](const ints &id, const floats &pt, const floats &eta, const floats &phi, const floats &mass)
         {
-            case channels::ee:
-                return 1.0f;
-            case channels::mumu:
-                return sf::muon_id(pt.at(0), eta.at(0)) * sf::muon_id(pt.at(1), eta.at(1)) * sf::muon_iso(pt.at(0), eta.at(0)) * sf::muon_iso(pt.at(1), eta.at(1));
-            default:
-                throw std::runtime_error("Unknown channel");
-        }
-    }};
+          	ROOT::VecOps::RVec<int> index(id.size()); std::iota(index.begin(), index.end(),0); //making a RVec to find the index i need for genPArt_Pd
+		double ZmassDs;
+		if(index[id == 1].size() > 0 && index[id == -1].size() > 0)
+		{
+	             	for (const auto i : index[id ==1])
+                	{
+				if(index[id == 5].size()>0 || index[id == -5].size()>0 && pt.at(i)>= 70 && abs(eta.at(i))<=2.4)
+				{
+                       			ZmassD.SetPtEtaPhiM(pt.at(i), eta.at(i), phi.at(i), mass.at(i));// zmassd will fill only for q
+                		}
+				for (const auto y : index[id == -1])
+                		{
+					if(index[id == 5].size()>0 || index[id == -5].size()>0 && pt.at(y)>= 70 && abs(eta.at(y))<=2.4)
+					{
+                       				ZmassDbar.SetPtEtaPhiM(pt.at(y), eta.at(y), phi.at(y), mass.at(y));//Zmassdbar will fill only for q bar
+						ZmassDs = (ZmassD+ZmassDbar).M();
+					}
+					if(ZmassDs>=76 && ZmassDs <= 106)
+					{
+						index1= i;
+						index2= y;
+						return ZmassDs;
+					}
+					else
+					{
+						ZmassDs = 0;
+					}
+				}
+			}
+			if(ZmassDs == 0)
+			{
+				return 0.00;
+			}
+		}
+		else
+		{
+			return 0.00;
+		}
+        }; // function calculating  reconstructed mass of q and q bar
+       std::cout << "Z Recon is done "<<std::endl;
+       std::cout << "Z Histogram"<<std::endl;
+       auto dZReconMassPhiCut =[](const ints &id, const floats &pt, const floats &eta, const floats &phi, const floats &mass)
+       {
+                ROOT::VecOps::RVec<int> index(id.size()); std::iota(index.begin(), index.end(),0); //making a RVec to find the index i need for genPArt_Pd
+		double phi1;
+                double phi2;
+		double deltaphi;
+                if(index[id == 1].size()> 0 && index[id == -1].size()> 0)
+		{
+			for(const auto i: index[id==1])
+                	{
+				if(i == index1)
+				{
+                        			phi1 = phi.at(i);
+				}
+               			for(const auto y:index[id==-1])
+                		{
+					if(y == index2)
+					{
+	                       			phi2 = phi.at(y);
+					}
+				}
+				deltaphi = phi1 - phi2;
+				if(deltaphi > pi)
+				{
+					deltaphi = deltaphi - 2*pi;
+				}
+				else if(deltaphi < -pi)
+				{
+					deltaphi = deltaphi + 2*pi;
+				}
+				else
+				{
+					deltaphi = deltaphi;
+				}
+			}
+			return abs(deltaphi);
+         	}
+		else
+		{
+		return 0.00;
+		}
+	};
+       auto ZReconD2DHist = d.Define("dZReconMass",dZReconMassCut,{"GenPart_pdgId","GenPart_pt","GenPart_eta","GenPart_phi","GenPart_mass"})
+                           .Filter([](double dZReconMass){return dZReconMass > 0;},{"dZReconMass"})
+	                   .Define("dZReconPhi",dZReconMassPhiCut,{"GenPart_pdgId","GenPart_pt","GenPart_eta","GenPart_phi","GenPart_mass"})
+			   .Filter([](double dZReconPhi){return dZReconPhi > 2.26;},{"dZReconPhi"})
+       			   .Histo2D({"ZReconDMassPhiHist","Recon. Z mass of d quarks Vs. delta phi",50,0,10,20,0,200},"dZReconPhi","dZReconMass");
+       	auto dZReconMPhicanvas = new TCanvas("Recon Z  mass of d quarks per event", "Recon Z mass of d quarks per event",10,10,700,700);
+       	ZReconD2DHist->DrawClone("colz");
+       	dZReconMPhicanvas->SaveAs("ZReconDMassPhiHist_bPtEtaPhiCut.root");
+*/
 
-    auto d_sf{d_w.Define("lep_sf", get_lep_sf, {"z_lep_pt", "z_lep_eta"})};
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	auto e_selection_function{[](const unsigned int& nElectron, 
+				     //const ints& Electron_IDCut_Selection, 
+				     const floats& Electron_eta_Selection, 
+				     //const ints& Electron_charge_Selection, 
+				     const floats& Electron_pt_Selection, 
+				     //const bools& Electron_isPFcand_Selection,
+				     const floats& MET_pt_Selection, 
+				     const floats& MET_phi_Selection, 
+				     const floats& MET_E_Selection) -> bool 
+		{
 
+		return 
+
+			nElectron == 1 && 
+			//Electron_IDCut_Selection.at(0) >= 4 && 
+			(abs(Electron_eta_Selection.at(0)) < 2.5 && 
+			(abs(Electron_eta_Selection.at(0)) < 1.4442 ||
+			abs(Electron_eta_Selection.at(0)) > 1.566)) &&
+			//Electron_charge_Selection.at(0) && 
+			Electron_pt_Selection.at(0) > 38 && 
+			//Electron_isPFcand_Selection.at(0) == 1 &&
+			MET_pt_Selection.at(0) >= 0 &&
+                        MET_phi_Selection.at(0) &&
+                        MET_E_Selection.at(0) >= 0 ;
+		}
+				};
+
+	auto mu_selection_function{[](const unsigned int& nMuon, 
+				      //const bools& Muon_tightId_Selection, 
+                                      //const chars& Muon_pfIsoId_Selection, 
+                                      const floats& Muon_eta_Selection, 
+                                      //const ints& Muon_charge_Selection, 
+                                      const floats& Muon_pt_Selection, 
+                                      //const bools& Muon_isPFcand_Selection,
+                                      const floats& MET_pt_Selection, 
+                                      const floats& MET_phi_Selection, 
+                                      const floats& MET_E_Selection) -> bool 
+		{
+
+		return 
+
+			nMuon == 1 && 
+			//Muon_tightId_Selection.at(0)== 1 && 
+			//Muon_pfIsoId_Selection.at(0) >= 4 && 
+			abs(Muon_eta_Selection.at(0)) < 2.4 &&
+			Muon_pt_Selection.at(0) > 29 &&
+			//Muon_isPFcand_Selection.at(0) == 1 &&
+                        MET_pt_Selection.at(0) >= 0 &&
+                      	MET_phi_Selection.at(0) &&
+                        MET_E_Selection.at(0) >= 0 ;
+
+		}
+				};
+
+
+	auto e_or_mu_selection_function{[](const unsigned int& nElectron, 
+				   	   //const ints& Electron_IDCut_Selection, 
+				           const floats& Electron_eta_Selection, 
+				           //const ints& Electron_charge_Selection, 
+				           const floats& Electron_pt_Selection, 
+				           const unsigned int& nMuon, 
+			                   //const bools& Muon_tightId_Selection, 
+				           //const chars& Muon_pfIsoId_Selection, 
+				           const floats& Muon_eta_Selection, 
+				           //const ints& Muon_charge_Selection, 
+				           const floats& Muon_pt_Selection, 
+					   const floats& MET_pt_Selection, 
+					   const floats& MET_phi_Selection, 
+					   const floats& MET_E_Selection 
+				           /*const bools& Electron_isPFcand_Selection, 
+				           const bools& Muon_isPFcand_Selection*/) -> bool 
+						{
+							if(MET_pt_Selection.size()==1)
+							{
+								return 
+
+									(nElectron == 1 || 
+									 nMuon == 1) && 
+									//(Electron_IDCut_Selection.at(0) >= 4 || 
+									//(Muon_tightId_Selection.at(0) == 1 && 
+									//Muon_pfIsoId_Selection.at(0) >= 4)) && 
+									((abs(Electron_eta_Selection.at(0)) < 2.5 &&
+									(abs(Electron_eta_Selection.at(0)) < 1.4442 ||
+									abs(Electron_eta_Selection.at(0)) > 1.566)) ||
+									abs(Muon_eta_Selection.at(0)) < 2.4) &&  
+									(Electron_pt_Selection.at(0) > 25 || 
+									Muon_pt_Selection.at(0) > 25) &&
+									//(Electron_isPFcand_Selection.at(0) == 1 ||
+									//Muon_isPFcand_Selection.at(0) == 1) &&
+									MET_pt_Selection.at(0) >= 0 &&
+									MET_phi_Selection.at(0) &&
+									MET_E_Selection.at(0) >= 0 ;
+							}
+						}
+					};
+	auto deltaphi_e_function{[](const unsigned int& nJet,
+				    const floats& Electron_phi_Selection,
+				    const floats& Jet_phi_Selection)->bool
+					{
+
+						for(int i = 0; i < nJet; i++)
+						{
+
+							const floats delta_phi_e = Electron_phi_Selection - Jet_phi_Selection.at(i);
+							if(-M_PI <= delta_phi_e.at(i) <= M_PI)
+							{
+								return delta_phi_e.at(i);
+
+							}
+
+						}
+
+					}
+				};
+
+	auto deltaphi_mu_function{[](const unsigned int& nJet,
+				     const floats& Muon_phi_Selection,
+                                     const floats& Jet_phi_Selection)->bool
+					{
+						for(int i = 0; i < nJet; i++)
+						{
+
+							const floats delta_phi_mu = Muon_phi_Selection - Jet_phi_Selection.at(i);
+							if(-M_PI <= delta_phi_mu.at(i) <= M_PI)
+							{
+								return delta_phi_mu.at(i);
+							}
+
+						}
+
+					}
+				};
+
+
+
+	auto deltaRcheck_function{[&deltaphi_e_function, &deltaphi_mu_function](const unsigned int& nJet,
+										const floats& Electron_phi_Selection,
+										const floats& Muon_phi_Selection,
+										const floats& Electron_eta_Selection,
+										const floats& Muon_eta_Selection,
+										const floats& Jet_eta_Selection,
+										const floats& Jet_phi_Selection)->bool
+					{
+						for(int i = 0; i < nJet; i++)
+						{
+							const floats delta_eta_e = Electron_eta_Selection - Jet_eta_Selection.at(i);
+							const floats delta_eta_mu = Muon_eta_Selection - Jet_eta_Selection.at(i);
+							bool delta_phi_e = deltaphi_e_function(nJet, Electron_phi_Selection, Jet_phi_Selection);
+							bool delta_phi_mu = deltaphi_e_function(nJet, Muon_phi_Selection, Jet_phi_Selection);
+							floats deltaR_ejet = sqrt(pow(delta_phi_e, 2) + pow(delta_eta_e, 2));
+							floats deltaR_mujet = sqrt(pow(delta_phi_mu, 2) + pow(delta_eta_mu, 2));
+
+							cout << "after delta r calculation" << endl;
+
+							bool deltaRcheck_e = any_of(deltaR_ejet.begin(), deltaR_ejet.end(), [](int j){return j > 0.4;});
+							cout << "after deltaRcheck_e" << endl;
+							bool deltaRcheck_mu = any_of(deltaR_mujet.begin(), deltaR_mujet.end(), [](int k){return k > 0.4;});
+							cout << "after deltaRcheck_mu" << endl;
+							bool deltaRcheck;
+
+							if(deltaRcheck_e == 1 || deltaRcheck_mu == 1)
+							{
+
+        							return
+
+        								Electron_eta_Selection.at(i) &&
+									Muon_eta_Selection.at(i) &&
+									Jet_eta_Selection.at(i) &&
+									Electron_phi_Selection.at(i) &&
+									Muon_phi_Selection.at(i) &&
+									Jet_phi_Selection.at(i);
+
+
+							}
+
+
+						}
+
+					}
+				};
+
+
+
+	auto jet_selection_function{[&deltaRcheck_function](const floats& Jet_pt_Selection, 
+							    const floats& Jet_eta_Selection, 
+							    const floats& Jet_phi_Selection, 
+							    const unsigned int& nJet, 
+							    /*const floats& Electron_pt_Selection, 
+							    const floats& Muon_pt_Selection, 
+							    const floats& Electron_phi_Selection, 
+							    const floats& Muon_phi_Selection, 
+							    const floats& Electron_eta_Selection, 
+							    const floats& Muon_eta_Selection,*/ 
+							    const ints& Jet_jetId_Selection) ->bool 
+					{
+
+						for(int i = 0; i < nJet; i++)
+						{
+							return
+								nJet == 4 &&
+								Jet_pt_Selection.at(i) > 30 &&
+								Jet_eta_Selection.at(i) < 4.7 &&
+								Jet_jetId_Selection.at(i) >= 2; //&&
+						}
+					}
+				};
+
+	auto bjet_id{[](
+			//const ints& tight_jets,
+			const floats& btags,
+			const floats& etas) 
+			{
+				return  (btags > 0.8838f) && (etas < 2.4f);
+					//tight_jets &&
+			}
+		    };
+	auto bjet_cut{[](const ints& bjets) {const auto nbjet{std::count_if(bjets.begin(), bjets.end(), [](int i) { return i; })};
+        					return nbjet >= 1 && nbjet <= 3;
+					    }
+		     };
+	//auto d_bjet{d_jet.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
+        //            	 .Filter(bjet_cut, {"bjets"}, "b jet cut  ")};
+
+	auto find_lead_mask{[](const ints& mask, const floats& vals) 
+				{
+					const auto masked_vals{mask * vals};
+					const auto max_idx{boost::numeric_cast<size_t>(std::distance(masked_vals.begin(), max_element(masked_vals.begin(), masked_vals.end())))};
+					ints lead_mask(masked_vals.size(), 0); // must be ()
+					lead_mask.at(max_idx) = 1;
+					return lead_mask;
+				}
+			   };
+	auto find_z_pair{[](const floats& pts, const floats& etas, const floats& phis, const floats& ms) //const ints& tight_jets, const ints& lead_bjet) 
+				{//re-write my own code for reconstructing Z mass
+					double z_reco_mass{std::numeric_limits<double>::infinity()};
+					size_t jet_index_1{std::numeric_limits<size_t>::max()};
+					size_t jet_index_2{std::numeric_limits<size_t>::max()};
+					const size_t njets{pts.size()};
+					for (size_t i{0}; i < njets; ++i)
+					{
+						for (size_t j{i + 1}; j < njets; ++j)
+            					{
+                					if (abs(phis.at(i) - phis.at(j))>=2.0)
+                					{
+                    						continue;
+                					}
+
+                					auto jet1{TLorentzVector{}};
+                					auto jet2{TLorentzVector{}};
+                					jet1.SetPtEtaPhiM(pts.at(i), etas.at(i), phis.at(i), ms.at(i));
+                					jet2.SetPtEtaPhiM(pts.at(j), etas.at(j), phis.at(j), ms.at(j));
+
+                					if (const double reco_mass{(jet1 + jet2).M()}; std::abs(Z_MASS - reco_mass) < std::abs(Z_MASS - z_reco_mass))
+                					{
+                    						z_reco_mass = reco_mass;
+                    						jet_index_1 = i;
+                    						jet_index_2 = j;
+                					}
+            					}
+        				}
+
+        				ints z_pair(njets, 0);
+        				z_pair.at(jet_index_1) = 1;
+        				z_pair.at(jet_index_2) = 1;
+        				return z_pair;
+				}
+			};
+
+			auto z_mass_cut{[](const float& z_mass) 
+						{
+        						return abs(z_mass - Z_MASS) < Z_MASS_CUT;
+						}
+					};
+	auto event_selection = d.Define("jets_selection",jet_selection_function,{"Jet_pt","Jet_eta","Jet_phi","nJet","Jet_jetId"})
+				.Define("Single_lep",e_or_mu_selection_function,{"nElectron","Electron_eta","Electron_pt","nMuon","Muon_eta","Muon_pt","CaloMET_pt","CaloMET_phi","CaloMET_sumEt"})
+				.Define("b_jets",bjet_id,{"Jet_btagCSVV2", "Jet_eta"})
+				.Filter(bjet_cut, {"b_jets"}, "b jet cut");
+		std::cout<< "Event selection number done "<<std::endl;
+	auto Z_Rec_M = event_selection.Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass"}) //"tight_jets", "lead_bjet"})
+                 			   .Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
+                 	                   .Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
+                 			   .Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
+                 			   .Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
+                 			   .Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
+					   //.Count();
+					   .Histo1D({"ZReconDMassHist","Recon. Z mass of jets",20,0,200},"z_mass");
+                 			//.Filter(w_mass_cut, {"w_mass"}, "W mass cut")};
+ 		//std::cout<<"Event selection number for Z recon "<< *Z_Rec_M <<std::endl;
+	//auto Z_Rec_M_Hist = Z_Rec_M.Histo1D({"ZReconDMassHist","Recon. Z mass of jets",20,0,200},"z_mass");
+	auto ReconZ_massCanvas = new TCanvas("Reconstrcuted mass from jets", "Reconstructed mass from jets",10,10,700,700);
+        //Z_REC_M_Hist->SetLineColor(kBlue);
+	Z_Rec_M->DrawClone();
+        Z_Rec_M->SaveAs("rec_z_mass.root");
+	//ReconZ_massCanvas->SaveAs("rec_z_mass.pdf");
+
+
+/////////////////////////////////////////////////////////////////  Z Recon from U Histo2D /////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TO DO
+// you need correlation of delta phi vs z mass reconstruction.
+//later on W reconstruction : and lepton and MET , delta phi vs w recons, real data : reconstruct trans. mass
+
+///////////////////////////////////////////////////////// THSTACK IN PROGRESS //////////////////////////////////////////////////////////////////////////////////////
+
+
+
+	//auto NumDist = new THStack("NumDist","Quark Dist. Per event");//defining a stack that is made up many histograms
+   	//auto temp_bnumHist = (TH1D*)&bnumHist.GetValue();//need to copy bnumHist on another hist to make it work with thstack
+	//temp_bnumHist->SetFillColor(kRed); // saying to stack use colour red for the histogram
+	//bnumHist->SetFillColor(kRed);
+	//NumDist->Add(TH1 &bnumHist);
+   	//NumDist->Add(temp_bnumHist); //adding the histogram to my stack
+   	//auto temp_cnumHist = (TH1D*)&cnumHist.GetValue();
+	//temp_cnumHist->SetFillColor(kBlue); //adding another one and so on....
+   	//NumDist->Add(temp_cnumHist);
+   	//h3->SetFillColor(kGreen);
+   	//hs->Add(h3);
+   	//auto QDist = new TCanvas("Quark Dist.","Quark Dist",20,20,400,500); //making a canvas for the stack
+   	//auto T = new TText(.5,.5,"TStack");
+	//T->SetTextFont(42); T->SetTextAlign(21);
+   	//QDist->Divide(2,2);
+   	//QDist->cd(2); NumDist->Draw("Quark Dist."); T->DrawTextNDC(.5,.95,"Quark Dist");//this is the stack canvas style used in phd
+	//QDist->SaveAs("QDist.root");// save it
+
+
+	//auto hist1_ptr = (TH1D*)&hist1.GetValue();
+	//hs->Add(hist1_ptr)
+
+
+
+  	// std::cout << "Number of Z Bosons "<<*Znum<<std::endl;
+	// std::cout << "Number of W Bosons "<<*Wnum<<std::endl;
+	// std::cout << "Number of t "<<*tnum<<std::endl;
+	// std::cout << "Number of tbar "<<*tbarnum<<std::endl;
+	// std::cout << "Number of c "<<*cnum<<std::endl;
+	// std::cout << "Number of cbar "<<*cbarnum<<std::endl;
+	// std::cout << "Number of u "<<*unum<<std::endl;
+	// std::cout << "Number of ubar "<<*ubarnum<<std::endl;
+	// std::cout << "Number of b "<<*bnum<<std::endl;
+	// std::cout << "Number of bbar "<<*bbarnum<<std::endl;
+	// std::cout << "Number of d "<<*dnum<<std::endl;
+	// std::cout << "Number of dbar "<<*dbarnum<<std::endl;
+	// std::cout << "Number of s "<<*snum<<std::endl;
+	// std::cout << "Number of sbar "<<*sbarnum<<std::endl;
+	// std::cout << "Number of ele "<<*elenum<<std::endl;
+	// std::cout << "Number of pos "<<*posnum<<std::endl;
+	// std::cout << "Number of muon "<<*muonnum<<std::endl;
+	// std::cout << "Number of muonbar "<<*muonbarnum<<std::endl;
+	// std::cout << "Number of elenu "<<*elenunum<<std::endl;
+	// std::cout << "Number of posnu "<<*posnunum<<std::endl;
+	// std::cout << "Number of muonnu "<<*muonnunum<<std::endl;
+	// std::cout << "Number of muonbarnu "<<*muonbarnunum<<std::endl;
+	//	std::cout << "Number of mean b "<<*bnumMean<<std::endl;
 
     // Print cut report
-    auto allCutsReport{d.Report()};
-    for (auto&& cutInfo: allCutsReport)
-    {
-        std::cout << cutInfo.GetName() << '\t' << cutInfo.GetAll() << '\t' << cutInfo.GetPass() << '\t' << cutInfo.GetEff() << " %" << std::endl;
-    }
+    //auto allCutsReport{d.Report()};
+    //for (auto&& cutInfo: allCutsReport)
+    //{
+    //    std::cout << cutInfo.GetName() << '\t' << cutInfo.GetAll() << '\t' << cutInfo.GetPass() << '\t' << cutInfo.GetEff() << " %" << std::endl;
+    //}
 }
+
