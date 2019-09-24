@@ -110,8 +110,8 @@ template<typename T, typename U, typename... Types>
         vec += p;
 	std:: cout<<"pt size "<<pts.size()<<std::endl;
     }
-	std::cout<<"z mass being passed is "<< boost::numeric_cast<float>(vec.M())<<std::endl;
-    	std::cout<<"size of vector vec "<< vec.size()<<std::endl;
+	//std::cout<<"z mass being passed is "<< boost::numeric_cast<float>(vec.M())<<std::endl;
+    	//std::cout<<"size of vector vec "<< vec.size()<<std::endl;
 	//if(boost::numeric_cast<float>(vec.M()) > 0 && boost::numeric_cast<float>(vec.M()) <= 100)
 	return boost::numeric_cast<float>(vec.M());
 }
@@ -304,98 +304,98 @@ void analyse(int argc, char* argv[])
 */
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	auto e_selection_function{[](const unsigned int& nElectron, 
-				     //const ints& Electron_IDCut_Selection, 
+	auto enu_selection_function{[](const unsigned int& nElectron_Selection, 
+				     const ints& Electron_IDCut_Selection, 
 				     const floats& Electron_eta_Selection, 
-				     //const ints& Electron_charge_Selection, 
+				     const ints& Electron_charge_Selection, 
 				     const floats& Electron_pt_Selection, 
-				     //const bools& Electron_isPFcand_Selection,
-				     const floats& MET_pt_Selection, 
+				     const bools& Electron_isPFcand_Selection, 
+				     const float& MET_pt_Selection, 
 				     const floats& MET_phi_Selection, 
-				     const floats& MET_E_Selection) -> bool 
+				     const floats& MET_sumEt_Selection) -> bool 
 		{
 
 		return 
 
-			nElectron == 1 && 
-			//Electron_IDCut_Selection.at(0) >= 4 && 
+			nElectron_Selection == 1 && 
+			Electron_IDCut_Selection.at(0) >= 4 && 
 			(abs(Electron_eta_Selection.at(0)) < 2.5 && 
 			(abs(Electron_eta_Selection.at(0)) < 1.4442 ||
 			abs(Electron_eta_Selection.at(0)) > 1.566)) &&
-			//Electron_charge_Selection.at(0) && 
+			Electron_charge_Selection.at(0) && 
 			Electron_pt_Selection.at(0) > 38 && 
-			//Electron_isPFcand_Selection.at(0) == 1 &&
-			MET_pt_Selection.at(0) >= 0 &&
+			Electron_isPFcand_Selection.at(0) == 1 &&
+			MET_pt_Selection >= 0 &&
                         MET_phi_Selection.at(0) &&
-                        MET_E_Selection.at(0) >= 0 ;
+                        MET_sumEt_Selection.at(0) >= 0 ;
 		}
 				};
 
-	auto mu_selection_function{[](const unsigned int& nMuon, 
-				      //const bools& Muon_tightId_Selection, 
-                                      //const chars& Muon_pfIsoId_Selection, 
+	auto munu_selection_function{[](const unsigned int& nMuon_Selection, 
+				      const bools& Muon_tightId_Selection, 
+                                      const chars& Muon_pfIsoId_Selection, 
                                       const floats& Muon_eta_Selection, 
-                                      //const ints& Muon_charge_Selection, 
+                                      const ints& Muon_charge_Selection, 
                                       const floats& Muon_pt_Selection, 
-                                      //const bools& Muon_isPFcand_Selection,
-                                      const floats& MET_pt_Selection, 
+                                      const bools& Muon_isPFcand_Selection,
+                                      const float& MET_pt_Selection, 
                                       const floats& MET_phi_Selection, 
-                                      const floats& MET_E_Selection) -> bool 
+                                      const floats& MET_sumEt_Selection) -> bool 
 		{
 
 		return 
 
-			nMuon == 1 && 
-			//Muon_tightId_Selection.at(0)== 1 && 
-			//Muon_pfIsoId_Selection.at(0) >= 4 && 
+			nMuon_Selection == 1 && 
+			Muon_tightId_Selection.at(0)== 1 && 
+			Muon_pfIsoId_Selection.at(0) >= 4 && 
 			abs(Muon_eta_Selection.at(0)) < 2.4 &&
 			Muon_pt_Selection.at(0) > 29 &&
-			//Muon_isPFcand_Selection.at(0) == 1 &&
-                        MET_pt_Selection.at(0) >= 0 &&
+			Muon_isPFcand_Selection.at(0) == 1 &&
+                        MET_pt_Selection >= 0 &&
                       	MET_phi_Selection.at(0) &&
-                        MET_E_Selection.at(0) >= 0 ;
+                        MET_sumEt_Selection.at(0) >= 0 ;
 
 		}
 				};
 
 
-	auto e_or_mu_selection_function{[](const unsigned int& nElectron, 
-				   	   //const ints& Electron_IDCut_Selection, 
+	auto enu_or_munu_selection_function{[](const unsigned int& nElectron_Selection, 
+				   	   const ints& Electron_IDCut_Selection, 
 				           const floats& Electron_eta_Selection, 
-				           //const ints& Electron_charge_Selection, 
+				           const ints& Electron_charge_Selection, 
 				           const floats& Electron_pt_Selection, 
-				           const unsigned int& nMuon, 
-			                   //const bools& Muon_tightId_Selection, 
-				           //const chars& Muon_pfIsoId_Selection, 
+				           const unsigned int& nMuon_Selection, 
+			                   const bools& Muon_tightId_Selection, 
+				           const chars& Muon_pfIsoId_Selection, 
 				           const floats& Muon_eta_Selection, 
-				           //const ints& Muon_charge_Selection, 
+				           const ints& Muon_charge_Selection, 
 				           const floats& Muon_pt_Selection, 
-					   const floats& MET_pt_Selection, 
+					   const float& MET_pt_Selection, 
 					   const floats& MET_phi_Selection, 
-					   const floats& MET_E_Selection 
-				           /*const bools& Electron_isPFcand_Selection, 
-				           const bools& Muon_isPFcand_Selection*/) -> bool 
+					   const floats& MET_sumEt_Selection, 
+				           const bools& Electron_isPFcand_Selection, 
+				           const bools& Muon_isPFcand_Selection) -> bool 
 						{
-							if(MET_pt_Selection.size()==1)
+							if(MET_pt_Selection>=0)
 							{
 								return 
 
-									(nElectron == 1 || 
-									 nMuon == 1) && 
-									//(Electron_IDCut_Selection.at(0) >= 4 || 
-									//(Muon_tightId_Selection.at(0) == 1 && 
-									//Muon_pfIsoId_Selection.at(0) >= 4)) && 
+									(nElectron_Selection == 1 || 
+									 nMuon_Selection == 1) && 
+									(Electron_IDCut_Selection.at(0) >= 4 || 
+									(Muon_tightId_Selection.at(0) == 1 && 
+									Muon_pfIsoId_Selection.at(0) >= 4)) && 
 									((abs(Electron_eta_Selection.at(0)) < 2.5 &&
 									(abs(Electron_eta_Selection.at(0)) < 1.4442 ||
 									abs(Electron_eta_Selection.at(0)) > 1.566)) ||
 									abs(Muon_eta_Selection.at(0)) < 2.4) &&  
 									(Electron_pt_Selection.at(0) > 25 || 
-									Muon_pt_Selection.at(0) > 25) &&
-									//(Electron_isPFcand_Selection.at(0) == 1 ||
-									//Muon_isPFcand_Selection.at(0) == 1) &&
-									MET_pt_Selection.at(0) >= 0 &&
+									Muon_pt_Selection > 25) &&
+									(Electron_isPFcand_Selection.at(0) == 1 ||
+									Muon_isPFcand_Selection.at(0) == 1) &&
+									MET_pt_Selection &&
 									MET_phi_Selection.at(0) &&
-									MET_E_Selection.at(0) >= 0 ;
+									MET_sumEt_Selection.at(0) >= 0 ;
 							}
 						}
 					};
@@ -491,12 +491,12 @@ void analyse(int argc, char* argv[])
 							    const floats& Jet_eta_Selection, 
 							    const floats& Jet_phi_Selection, 
 							    const unsigned int& nJet, 
-							    /*const floats& Electron_pt_Selection, 
+							    const floats& Electron_pt_Selection, 
 							    const floats& Muon_pt_Selection, 
 							    const floats& Electron_phi_Selection, 
 							    const floats& Muon_phi_Selection, 
 							    const floats& Electron_eta_Selection, 
-							    const floats& Muon_eta_Selection,*/ 
+							    const floats& Muon_eta_Selection, 
 							    const ints& Jet_jetId_Selection) ->bool 
 					{
 
@@ -512,20 +512,20 @@ void analyse(int argc, char* argv[])
 				};
 
 	auto bjet_id{[](
-			//const ints& tight_jets,
+			const ints& tight_jets,
 			const floats& btags,
 			const floats& etas) 
 			{
-				return  (btags > 0.8838f) && (etas < 2.4f);
-					//tight_jets &&
+				return  tight_jets && (btags > 0.8838f) && (etas < 2.4f);
 			}
 		    };
 	auto bjet_cut{[](const ints& bjets) {const auto nbjet{std::count_if(bjets.begin(), bjets.end(), [](int i) { return i; })};
         					return nbjet >= 1 && nbjet <= 3;
 					    }
 		     };
-	//auto d_bjet{d_jet.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
-        //            	 .Filter(bjet_cut, {"bjets"}, "b jet cut  ")};
+	
+
+
 
 	auto find_lead_mask{[](const ints& mask, const floats& vals) 
 				{
@@ -536,7 +536,7 @@ void analyse(int argc, char* argv[])
 					return lead_mask;
 				}
 			   };
-	auto find_z_pair{[](const floats& pts, const floats& etas, const floats& phis, const floats& ms) //const ints& tight_jets, const ints& lead_bjet) 
+	auto find_z_pair{[](const floats& pts, const floats& etas, const floats& phis, const floats& ms, const ints& tight_jets, const ints& lead_bjet) 
 				{//re-write my own code for reconstructing Z mass
 					double z_reco_mass{std::numeric_limits<double>::infinity()};
 					size_t jet_index_1{std::numeric_limits<size_t>::max()};
@@ -577,7 +577,111 @@ void analyse(int argc, char* argv[])
         						return abs(z_mass - Z_MASS) < Z_MASS_CUT;
 						}
 					};
-	auto event_selection = d.Define("jets_selection",jet_selection_function,{"Jet_pt","Jet_eta","Jet_phi","nJet","Jet_jetId"})
+	vector<string> enu_strings = {"nElectron_Selection", 
+				     "Electron_IDCut_Selection", 
+                                     "Electron_eta_Selection", 
+                                     "Electron_charge_Selection", 
+                                     "Electron_pt_Selection", 
+                                     "Electron_isPFcand_Selection",
+				     "MET_pt_Selection", 
+                                     "MET_phi_Selection",
+				     "MET_sumEt_Selection"};
+	vector<string> munu_strings = {"nMuon_Selection", 
+				       "Muon_tightId_Selection", 
+				       "Muon_pfIsoId_Selection", 
+                                       "Muon_eta_Selection", 
+                                       "Muon_charge_Selection", 
+                                       "Muon_pt_Selection", 
+                                       "Muon_isPFcand_Selection",
+				       "MET_pt_Selection", 
+                                       "MET_phi_Selection",
+                                       "MET_sumEt_Selection"};
+	vector<string> enumunu_strings = {"nElectron", 
+				      "Electron_IDCut_Selection", 
+				      "Electron_eta_Selection", 
+                                      "Electron_charge_Selection", 
+				      "Electron_pt_Selection", 
+				      "nMuon", 
+				      "Muon_tightId_Selection", 
+                                      "Muon_pfIsoId_Selection", 
+                                      "Muon_eta_Selection", 
+                                      "Muon_charge_Selection", 
+                                      "Muon_pt_Selection",
+				      "MET_pt_Selection", 
+                                      "MET_phi_Selection",
+                                      "MET_sumEt_Selection", 
+                                      "Electron_isPFcand_Selection", 
+                                      "Muon_isPFcand_Selection"};
+	vector<string> jet_strings = {"Jet_pt_Selection",
+				      "Jet_eta_Selection", 
+				      "Jet_phi_Selection",
+				      "nJet",
+				      "Electron_pt_Selection",
+				      "Muon_pt_Selection",
+                                      "Electron_phi_Selection", 
+				      "Muon_phi_Selection",
+				      "Electron_eta_Selection", 
+				      "Muon_eta_Selection",
+				      "Jet_jetId_Selection"};
+
+	vector<string> z_pair_strings = {"Jet_pt_Selection",
+					 "Jet_eta_Selection",
+                                         "Jet_phi_Selection",
+                                         "Jet_mass",
+                                         "Jet_jetId_Selection",
+                                         "lead_bjet"};
+
+	vector<string> b_mass_strings = {"Jet_jetId_Selection", "Jet_CSVv2_Selection", "Jet_eta", "Jet_mass", "nJet"};
+	vector<string> b_eta_strings = {"Jet_jetId_Selection", "Jet_CSVv2_Selection", "Jet_eta", "nJet"};
+	vector<string> b_pt_strings = {"Jet_jetId_Selection", "Jet_CSVv2_Selection", "Jet_eta", "Jet_pt", "nJet"};
+	vector<string> b_phi_strings = {"Jet_jetId_Selection", "Jet_CSVv2_Selection", "Jet_eta", "Jet_phi", "nJet"};
+
+
+
+	auto d_enu_event_selection = d.Define("nElectron_Selection",{"nElectron"})
+					.Define("Electron_pt_Selection", {"Electron_pt"})
+                                	.Define("Electron_eta_Selection", {"Electron_eta"})
+                                	.Define("Electron_charge_Selection", {"Electron_charge"})
+                                	.Define("Electron_IDCut_Selection", {"Electron_cutBased"})
+					.Define("Electron_isPFcand_Selection", {"Electron_isPFcand"})
+					.Define("MET_pt_Selection",{"MET_pt"})
+					.Define("MET_phi_Selection",{"MET_phi"})
+					.Define("MET_sumEt_Selection",{"MET_sumEt"})
+                                	.Filter(enu_selection_function, enu_strings);
+
+	auto d_enu_jets_selection = d_enu_event_selection.Define("Jet_pt_Selection", {"Jet_pt"})
+					 		.Define("Jet_eta_Selection", {"Jet_eta"})
+					 		.Define("Jet_phi_Selection", {"Jet_phi"})
+					 		.Define("Muon_pt_Selection", {"Muon_pt"})
+                                         		.Define("Muon_eta_Selection", {"Muon_eta"})
+					 		.Define("Electron_phi_Selection", {"Electron_phi"})
+					 		.Define("Muon_phi_Selection", {"Muon_phi"})
+					 		.Define("Jet_jetId_Selection", {"Jet_jetId"})
+					 		.Define("deltaRcheck", deltaRcheck_function, {"nJet", "Electron_phi", "Electron_eta", "Muon_phi", "Muon_eta", "Jet_phi", "Jet_eta"})
+				         		.Filter(jet_selection_function, jet_strings);
+
+	auto d_enu_jets_bjets_selection = d_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+                    						.Filter(bjet_cut, {"bjets"}, "b jet cut");
+
+	auto d_enu_z_rec_selection = d_enu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
+                 						.Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "Jet_jetId", "lead_bjet"})
+                 						.Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
+                 						.Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
+                 						.Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
+                 						.Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
+                 						.Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
+                 						.Filter(z_mass_cut, {"z_mass"}, "z mass cut")
+								.Histo1D({"ZReconMassHist_enu_Channel","Recon. Z mass of jets",20,0,200},"z_mass");
+
+ 	auto ReconZ_massCanvas = new TCanvas("Reconstrcuted mass from jets", "Reconstructed mass from jets",10,10,700,700);
+        d_enu_z_rec_selection->SetLineColor(kBlue);
+        d_enu_z_rec_selection->DrawClone();
+        d_enu_z_rec_selection->SaveAs("rec_z_mass.root");
+        //ReconZ_massCanvas->SaveAs("rec_z_mass.pdf");
+
+		//std::cout<<"Z mass is "<< *z_mass<<endl;
+
+				 /*.Define("jets_selection",jet_selection_function,{"Jet_pt","Jet_eta","Jet_phi","nJet","Jet_jetId"})
 				.Define("Single_lep",e_or_mu_selection_function,{"nElectron","Electron_eta","Electron_pt","nMuon","Muon_eta","Muon_pt","CaloMET_pt","CaloMET_phi","CaloMET_sumEt"})
 				.Define("b_jets",bjet_id,{"Jet_btagCSVV2", "Jet_eta"})
 				.Filter(bjet_cut, {"b_jets"}, "b jet cut");
@@ -596,7 +700,7 @@ void analyse(int argc, char* argv[])
 	auto ReconZ_massCanvas = new TCanvas("Reconstrcuted mass from jets", "Reconstructed mass from jets",10,10,700,700);
         //Z_REC_M_Hist->SetLineColor(kBlue);
 	Z_Rec_M->DrawClone();
-        Z_Rec_M->SaveAs("rec_z_mass.root");
+        Z_Rec_M->SaveAs("rec_z_mass.root");*/
 	//ReconZ_massCanvas->SaveAs("rec_z_mass.pdf");
 
 
