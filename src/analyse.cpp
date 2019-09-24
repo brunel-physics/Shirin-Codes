@@ -108,11 +108,7 @@ template<typename T, typename U, typename... Types>
         TLorentzVector p{};
         p.SetPtEtaPhiM(pts[i], etas[i], phis[i], ms[i]);
         vec += p;
-	std:: cout<<"pt size "<<pts.size()<<std::endl;
     }
-	//std::cout<<"z mass being passed is "<< boost::numeric_cast<float>(vec.M())<<std::endl;
-    	//std::cout<<"size of vector vec "<< vec.size()<<std::endl;
-	//if(boost::numeric_cast<float>(vec.M()) > 0 && boost::numeric_cast<float>(vec.M()) <= 100)
 	return boost::numeric_cast<float>(vec.M());
 }
 
@@ -309,27 +305,19 @@ void analyse(int argc, char* argv[])
 				     const floats& Electron_eta_Selection, 
 				     const ints& Electron_charge_Selection, 
 				     const floats& Electron_pt_Selection, 
-				     const bools& Electron_isPFcand_Selection, 
-				     const float& MET_pt_Selection, 
-				     const floats& MET_phi_Selection, 
-				     const floats& MET_sumEt_Selection) -> bool 
-		{
-
-		return 
-
-			nElectron_Selection == 1 && 
-			Electron_IDCut_Selection.at(0) >= 4 && 
-			(abs(Electron_eta_Selection.at(0)) < 2.5 && 
-			(abs(Electron_eta_Selection.at(0)) < 1.4442 ||
-			abs(Electron_eta_Selection.at(0)) > 1.566)) &&
-			Electron_charge_Selection.at(0) && 
-			Electron_pt_Selection.at(0) > 38 && 
-			Electron_isPFcand_Selection.at(0) == 1 &&
-			MET_pt_Selection >= 0 &&
-                        MET_phi_Selection.at(0) &&
-                        MET_sumEt_Selection.at(0) >= 0 ;
+				     const bools& Electron_isPFcand_Selection) 
+		{ 
+				return
+					nElectron_Selection == 1 && 
+					Electron_IDCut_Selection.at(0) >= 4 && 
+					(abs(Electron_eta_Selection.at(0)) < 2.5 && 
+					(abs(Electron_eta_Selection.at(0)) < 1.4442 ||
+					abs(Electron_eta_Selection.at(0)) > 1.566)) &&
+					Electron_charge_Selection.at(0) && 
+					Electron_pt_Selection.at(0) > 38 && 
+					Electron_isPFcand_Selection.at(0) == 1;
 		}
-				};
+					};
 
 	auto munu_selection_function{[](const unsigned int& nMuon_Selection, 
 				      const bools& Muon_tightId_Selection, 
@@ -337,11 +325,8 @@ void analyse(int argc, char* argv[])
                                       const floats& Muon_eta_Selection, 
                                       const ints& Muon_charge_Selection, 
                                       const floats& Muon_pt_Selection, 
-                                      const bools& Muon_isPFcand_Selection,
-                                      const float& MET_pt_Selection, 
-                                      const floats& MET_phi_Selection, 
-                                      const floats& MET_sumEt_Selection) -> bool 
-		{
+                                      const bools& Muon_isPFcand_Selection) 
+               {
 
 		return 
 
@@ -350,10 +335,7 @@ void analyse(int argc, char* argv[])
 			Muon_pfIsoId_Selection.at(0) >= 4 && 
 			abs(Muon_eta_Selection.at(0)) < 2.4 &&
 			Muon_pt_Selection.at(0) > 29 &&
-			Muon_isPFcand_Selection.at(0) == 1 &&
-                        MET_pt_Selection >= 0 &&
-                      	MET_phi_Selection.at(0) &&
-                        MET_sumEt_Selection.at(0) >= 0 ;
+			Muon_isPFcand_Selection.at(0) == 1;
 
 		}
 				};
@@ -370,15 +352,10 @@ void analyse(int argc, char* argv[])
 				           const floats& Muon_eta_Selection, 
 				           const ints& Muon_charge_Selection, 
 				           const floats& Muon_pt_Selection, 
-					   const float& MET_pt_Selection, 
-					   const floats& MET_phi_Selection, 
-					   const floats& MET_sumEt_Selection, 
-				           const bools& Electron_isPFcand_Selection, 
-				           const bools& Muon_isPFcand_Selection) -> bool 
-						{
-							if(MET_pt_Selection>=0)
-							{
-								return 
+					   const bools& Electron_isPFcand_Selection, 
+				           const bools& Muon_isPFcand_Selection)  
+			{
+                        		return 
 
 									(nElectron_Selection == 1 || 
 									 nMuon_Selection == 1) && 
@@ -392,16 +369,12 @@ void analyse(int argc, char* argv[])
 									(Electron_pt_Selection.at(0) > 25 || 
 									Muon_pt_Selection > 25) &&
 									(Electron_isPFcand_Selection.at(0) == 1 ||
-									Muon_isPFcand_Selection.at(0) == 1) &&
-									MET_pt_Selection &&
-									MET_phi_Selection.at(0) &&
-									MET_sumEt_Selection.at(0) >= 0 ;
-							}
-						}
+									Muon_isPFcand_Selection.at(0) == 1);
+			}
 					};
 	auto deltaphi_e_function{[](const unsigned int& nJet,
 				    const floats& Electron_phi_Selection,
-				    const floats& Jet_phi_Selection)->bool
+				    const floats& Jet_phi_Selection)
 					{
 
 						for(int i = 0; i < nJet; i++)
@@ -445,7 +418,7 @@ void analyse(int argc, char* argv[])
 										const floats& Electron_eta_Selection,
 										const floats& Muon_eta_Selection,
 										const floats& Jet_eta_Selection,
-										const floats& Jet_phi_Selection)->bool
+										const floats& Jet_phi_Selection)
 					{
 						for(int i = 0; i < nJet; i++)
 						{
@@ -582,20 +555,14 @@ void analyse(int argc, char* argv[])
                                      "Electron_eta_Selection", 
                                      "Electron_charge_Selection", 
                                      "Electron_pt_Selection", 
-                                     "Electron_isPFcand_Selection",
-				     "MET_pt_Selection", 
-                                     "MET_phi_Selection",
-				     "MET_sumEt_Selection"};
+                                     "Electron_isPFcand_Selection"};
 	vector<string> munu_strings = {"nMuon_Selection", 
 				       "Muon_tightId_Selection", 
 				       "Muon_pfIsoId_Selection", 
                                        "Muon_eta_Selection", 
                                        "Muon_charge_Selection", 
                                        "Muon_pt_Selection", 
-                                       "Muon_isPFcand_Selection",
-				       "MET_pt_Selection", 
-                                       "MET_phi_Selection",
-                                       "MET_sumEt_Selection"};
+                                       "Muon_isPFcand_Selection"};
 	vector<string> enumunu_strings = {"nElectron", 
 				      "Electron_IDCut_Selection", 
 				      "Electron_eta_Selection", 
@@ -606,10 +573,7 @@ void analyse(int argc, char* argv[])
                                       "Muon_pfIsoId_Selection", 
                                       "Muon_eta_Selection", 
                                       "Muon_charge_Selection", 
-                                      "Muon_pt_Selection",
-				      "MET_pt_Selection", 
-                                      "MET_phi_Selection",
-                                      "MET_sumEt_Selection", 
+                                      "Muon_pt_Selection", 
                                       "Electron_isPFcand_Selection", 
                                       "Muon_isPFcand_Selection"};
 	vector<string> jet_strings = {"Jet_pt_Selection",
@@ -644,10 +608,13 @@ void analyse(int argc, char* argv[])
                                 	.Define("Electron_charge_Selection", {"Electron_charge"})
                                 	.Define("Electron_IDCut_Selection", {"Electron_cutBased"})
 					.Define("Electron_isPFcand_Selection", {"Electron_isPFcand"})
+					.Filter(enu_selection_function, enu_strings)
 					.Define("MET_pt_Selection",{"MET_pt"})
+					//.Filter([](floats pts){return pts.empty() ? false : std::all_of(pts.cbegin(),pts.cend(), [](float pt){return pt > 0.00;});},{"MET_pt_Selection"})
+					//.Filter([](const floats pts){return pts.empty() ? false : std::all_of(pts.cbegin(),pts.cend(), [](float pt){return pt > 0.;});},{"MET_pt_Selection"})
 					.Define("MET_phi_Selection",{"MET_phi"})
-					.Define("MET_sumEt_Selection",{"MET_sumEt"})
-                                	.Filter(enu_selection_function, enu_strings);
+					.Define("MET_sumEt_Selection",{"MET_sumEt"});
+					//.Filter([](const floats Ets){return Ets.empty() ? false : std::all_of(Ets.cbegin(),Ets.cend(), [](float E){return E > 0.;});},{"MET_sumEt_Selection"});
 
 	auto d_enu_jets_selection = d_enu_event_selection.Define("Jet_pt_Selection", {"Jet_pt"})
 					 		.Define("Jet_eta_Selection", {"Jet_eta"})
