@@ -311,11 +311,11 @@ void analyse(int argc, char* argv[])
 				return
 					nElectron_Selection == 1 && 
 					Electron_IDCut_Selection.at(0) >= 4 && 
-					abs(Electron_eta_Selection.at(0)) < 2.5 && //< 2.5 && 
-					//(abs(Electron_eta_Selection.at(0)) < 1.4442 ||
-					//abs(Electron_eta_Selection.at(0)) > 1.566)) &&
+					(abs(Electron_eta_Selection.at(0)) < 2.5 && //< 2.5 && 
+					(abs(Electron_eta_Selection.at(0)) < 1.4442 ||
+					abs(Electron_eta_Selection.at(0)) > 1.566)) &&
 					Electron_charge_Selection.at(0) && 
-					Electron_pt_Selection.at(0) > 38 && //> 38 && 
+					//Electron_pt_Selection.at(0) > 38 && //> 38 && 
 					Electron_isPFcand_Selection.at(0) == 1;
 		}
 					};
@@ -337,7 +337,7 @@ void analyse(int argc, char* argv[])
 			Muon_tightId_Selection.at(0)== 1 && 
 			Muon_pfIsoId_Selection.at(0) >= 4 && 
 			abs(Muon_eta_Selection.at(0)) < 2.4 &&//< 2.4 &&
-			Muon_pt_Selection.at(0) > 29 && //> 29 &&
+			//Muon_pt_Selection.at(0) > 50 && //> 29 &&
 			Muon_isPFcand_Selection.at(0) == 1;
 
 		}
@@ -480,9 +480,9 @@ void analyse(int argc, char* argv[])
 						{
 							return
 								nJet == 4 &&
-								Jet_pt_Selection.at(i) > 30 && //> 30 &&
+								//Jet_pt_Selection.at(i) > 30 && //> 30 &&
 								Jet_eta_Selection.at(i) < 4.7 && //< 4.7 &&
-								Jet_jetId_Selection.at(i) >= 2; //&&
+								Jet_jetId_Selection.at(i) >= 2; 
 						}
 					}
 				};
