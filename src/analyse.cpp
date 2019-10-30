@@ -6,6 +6,8 @@
 #include <TText.h>
 #include <THStack.h>
 #include <TTreeReaderArray.h>
+#include <TLegend.h>
+#include <TStyle.h>
 
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
@@ -32,14 +34,15 @@ double pi = 3.14;
 namespace
 {
 
-
-constexpr double MIN_ELE_PT{15};
+constexpr double MAX_ELE_NUM{1};
+constexpr double MIN_ELE_PT{12}; //{15}
 constexpr float MIN_ELE_LEADING_PT{35.f};
 constexpr double MAX_ELE_ETA{2.5};
 constexpr double ENDCAP_MIN_ETA{1.566};
 constexpr double BARREL_MAX_ETA{1.4442};
 
-constexpr double MIN_MU_PT{20};
+constexpr double MAX_MU_NUM{1};
+constexpr double MIN_MU_PT{33};
 constexpr float MIN_MU_LEADING_PT{26.f};
 constexpr double MAX_MU_ETA{2.4};
 constexpr float MU_LOOSE_ISO{0.15f};
@@ -49,7 +52,7 @@ constexpr float Z_MASS{91.1876f};
 constexpr float Z_MASS_CUT{20.f};
 
 constexpr float MAX_JET_ETA{4.7f};
-constexpr float MIN_JET_PT{30.f};
+constexpr float MIN_JET_PT{0.f};//{30.f};
 constexpr float JET_ISO{0.4f};
 constexpr unsigned MIN_JETS{4};
 constexpr unsigned MAX_JETS{6};
@@ -73,6 +76,14 @@ enum class channels
 {
     return vdt::fast_atan2f(vdt::fast_sinf(phi1 - phi2), vdt::fast_cosf(phi1 - phi2));
 }
+/*
+	auto delta_phi_cut{[](const floats phi1, const floats phi2) ->bool
+	{
+		if(-M_PI < vdt::fast_atan2f(vdt::fast_sinf(phi1 - phi2), vdt::fast_cosf(phi1 - phi2))< M_PI)
+    			return phi1 && phi2;
+	}};
+
+*/
 
 [[gnu::const]] auto deltaR(const float eta1, const float phi1, const float eta2, const float phi2)
 {
@@ -125,8 +136,7 @@ void analyse(int argc, char* argv[])
 
         std::cout << "I am starting"<<std::endl;
 
-   	//ROOT::RDataFrame d{"Events", "/data/nanoAOD_2017/tZqlvqq/*.root"};
-	ROOT::RDataFrame d{"Events", "/tmp/*.root"};
+   	ROOT::RDataFrame d{"Events", "/data/nanoAOD_2017/tZqlvqq/tZqlvqq/*.root"};
 	//ROOT::RDataFrame dc{"Events", "/data/nanoAOD_2017/tZqlvqq/388C7D88-9042-E811-9999-FA163E1CC0EA.root"};
 	//auto d = dc.Range(0, 100);
 	std::cout << "I have looked up the dataset"<<std::endl;
@@ -306,16 +316,18 @@ void analyse(int argc, char* argv[])
 				     const floats& Electron_eta_Selection, 
 				     const ints& Electron_charge_Selection, 
 				     const floats& Electron_pt_Selection, 
-				     const bools& Electron_isPFcand_Selection) 
-		{ 
+				     const bools& Electron_isPFcand_Selection)  
+		{
+
+					//std::cout<<"electron pt is "<<Electron_pt_Selection.at(0)<<std::endl; 
 				return
-					nElectron_Selection == 1 && 
+					nElectron_Selection == MAX_ELE_NUM && 
 					Electron_IDCut_Selection.at(0) >= 4 && 
-					(abs(Electron_eta_Selection.at(0)) < 2.5 && //< 2.5 && 
-					(abs(Electron_eta_Selection.at(0)) < 1.4442 ||
-					abs(Electron_eta_Selection.at(0)) > 1.566)) &&
-					Electron_charge_Selection.at(0) && 
-					//Electron_pt_Selection.at(0) > 38 && //> 38 && 
+					(abs(Electron_eta_Selection.at(0)) < MAX_ELE_ETA && //< 2.5 && 
+					(abs(Electron_eta_Selection.at(0)) < BARREL_MAX_ETA ||
+					abs(Electron_eta_Selection.at(0)) > ENDCAP_MIN_ETA)) &&
+					//Electron_charge_Selection.at(0) && 
+					Electron_pt_Selection.at(0) > MIN_ELE_PT && //> 38 && 12 is min , AP. = 45 
 					Electron_isPFcand_Selection.at(0) == 1;
 		}
 					};
@@ -333,159 +345,43 @@ void analyse(int argc, char* argv[])
 
 		return 
 
-			nMuon_Selection == 1 && 
+			nMuon_Selection == MAX_MU_NUM && 
 			Muon_tightId_Selection.at(0)== 1 && 
 			Muon_pfIsoId_Selection.at(0) >= 4 && 
-			abs(Muon_eta_Selection.at(0)) < 2.4 &&//< 2.4 &&
-			//Muon_pt_Selection.at(0) > 50 && //> 29 &&
+			abs(Muon_eta_Selection.at(0)) < MAX_MU_ETA &&//< 2.4 &&
+			Muon_pt_Selection.at(0) > MIN_MU_PT && //> 29 && 33 is min AP. 40
 			Muon_isPFcand_Selection.at(0) == 1;
 
 		}
 				};
 
 
-	auto enu_or_munu_selection_function{[](const unsigned int& nElectron_Selection, 
-				   	   const ints& Electron_IDCut_Selection, 
-				           const floats& Electron_eta_Selection, 
-				           const ints& Electron_charge_Selection, 
-				           const floats& Electron_pt_Selection, 
-				           const unsigned int& nMuon_Selection, 
-			                   const bools& Muon_tightId_Selection, 
-				           const chars& Muon_pfIsoId_Selection, 
-				           const floats& Muon_eta_Selection, 
-				           const ints& Muon_charge_Selection, 
-				           const floats& Muon_pt_Selection, 
-					   const bools& Electron_isPFcand_Selection, 
-				           const bools& Muon_isPFcand_Selection)  
-			{
-                        		return 
-
-									(nElectron_Selection == 1 || 
-									 nMuon_Selection == 1) && 
-									(Electron_IDCut_Selection.at(0) >= 4 || 
-									(Muon_tightId_Selection.at(0) == 1 && 
-									Muon_pfIsoId_Selection.at(0) >= 4)) && 
-									((abs(Electron_eta_Selection.at(0)) < 2.5 &&
-									(abs(Electron_eta_Selection.at(0)) < 1.4442 ||
-									abs(Electron_eta_Selection.at(0)) > 1.566)) ||
-									abs(Muon_eta_Selection.at(0)) < 2.4) &&  
-									(Electron_pt_Selection.at(0) > 25 || 
-									Muon_pt_Selection > 25) &&
-									(Electron_isPFcand_Selection.at(0) == 1 ||
-									Muon_isPFcand_Selection.at(0) == 1);
-			}
+	auto ele_met_selection_function{[](const float& MET_electron_pt_Selection) ->bool
+						{
+							return MET_electron_pt_Selection > 80;
+						}
 					};
-	auto deltaphi_e_function{[](const unsigned int& nJet,
-				    const floats& Electron_phi_Selection,
-				    const floats& Jet_phi_Selection)
-					{
 
-						for(int i = 0; i < nJet; i++)
-						{
+        auto mu_met_selection_function{[](const float& MET_muon_pt_Selection) ->bool
+                                                { 
+                                                        return MET_muon_pt_Selection > 40;
+                                                }
+                                        };
 
-							const floats delta_phi_e = Electron_phi_Selection - Jet_phi_Selection.at(i);
-							if(-M_PI <= delta_phi_e.at(i) <= M_PI)
-							{
-								return delta_phi_e.at(i);
+	auto jet_lep_min_deltaR{[](const floats& jet_etas, const floats& jet_phis, const floats& lep_etas, const floats& lep_phis) {
+        	floats min_dRs{};
+        	std::transform(jet_etas.begin(), jet_etas.end(), jet_phis.begin(), std::back_inserter(min_dRs), [&](float jet_eta, float jet_phi) { return std::min(deltaR(jet_eta, jet_phi, lep_etas.at(0), lep_phis.at(0)), deltaR(jet_eta, jet_phi, lep_etas.at(1), lep_phis.at(1))); });
+        	return min_dRs;
+    	}};
 
-							}
+	auto tight_jet_id{[](const floats& jet_lep_min_dRs, const floats& pts, const floats& etas, const ints& ids) {
+        	return (pts > MIN_JET_PT) && (etas < MAX_JET_ETA) && (jet_lep_min_dRs > JET_ISO) && (ids >= 2);
+	}};
 
-						}
-
-					}
-				};
-
-	auto deltaphi_mu_function{[](const unsigned int& nJet,
-				     const floats& Muon_phi_Selection,
-                                     const floats& Jet_phi_Selection)->bool
-					{
-						for(int i = 0; i < nJet; i++)
-						{
-
-							const floats delta_phi_mu = Muon_phi_Selection - Jet_phi_Selection.at(i);
-							if(-M_PI <= delta_phi_mu.at(i) <= M_PI)
-							{
-								return delta_phi_mu.at(i);
-							}
-
-						}
-
-					}
-				};
-
-
-
-	auto deltaRcheck_function{[&deltaphi_e_function, &deltaphi_mu_function](const unsigned int& nJet,
-										const floats& Electron_phi_Selection,
-										const floats& Muon_phi_Selection,
-										const floats& Electron_eta_Selection,
-										const floats& Muon_eta_Selection,
-										const floats& Jet_eta_Selection,
-										const floats& Jet_phi_Selection)
-					{
-						for(int i = 0; i < nJet; i++)
-						{
-							const floats delta_eta_e = Electron_eta_Selection - Jet_eta_Selection.at(i);
-							const floats delta_eta_mu = Muon_eta_Selection - Jet_eta_Selection.at(i);
-							bool delta_phi_e = deltaphi_e_function(nJet, Electron_phi_Selection, Jet_phi_Selection);
-							bool delta_phi_mu = deltaphi_e_function(nJet, Muon_phi_Selection, Jet_phi_Selection);
-							floats deltaR_ejet = sqrt(pow(delta_phi_e, 2) + pow(delta_eta_e, 2));
-							floats deltaR_mujet = sqrt(pow(delta_phi_mu, 2) + pow(delta_eta_mu, 2));
-
-							cout << "after delta r calculation" << endl;
-
-							bool deltaRcheck_e = any_of(deltaR_ejet.begin(), deltaR_ejet.end(), [](int j){return j > 0.4;});
-							cout << "after deltaRcheck_e" << endl;
-							bool deltaRcheck_mu = any_of(deltaR_mujet.begin(), deltaR_mujet.end(), [](int k){return k > 0.4;});
-							cout << "after deltaRcheck_mu" << endl;
-							bool deltaRcheck;
-
-							if(deltaRcheck_e == 1 || deltaRcheck_mu == 1)
-							{
-
-        							return
-
-        								Electron_eta_Selection.at(i) &&
-									Muon_eta_Selection.at(i) &&
-									Jet_eta_Selection.at(i) &&
-									Electron_phi_Selection.at(i) &&
-									Muon_phi_Selection.at(i) &&
-									Jet_phi_Selection.at(i);
-
-
-							}
-
-
-						}
-
-					}
-				};
-
-
-
-	auto jet_selection_function{[&deltaRcheck_function](const floats& Jet_pt_Selection, 
-							    const floats& Jet_eta_Selection, 
-							    const floats& Jet_phi_Selection, 
-							    const unsigned int& nJet, 
-							    const floats& Electron_pt_Selection, 
-							    const floats& Muon_pt_Selection, 
-							    const floats& Electron_phi_Selection, 
-							    const floats& Muon_phi_Selection, 
-							    const floats& Electron_eta_Selection, 
-							    const floats& Muon_eta_Selection, 
-							    const ints& Jet_jetId_Selection) ->bool 
-					{
-
-						for(int i = 0; i < nJet; i++)
-						{
-							return
-								nJet == 4 &&
-								//Jet_pt_Selection.at(i) > 30 && //> 30 &&
-								Jet_eta_Selection.at(i) < 4.7 && //< 4.7 &&
-								Jet_jetId_Selection.at(i) >= 2; 
-						}
-					}
-				};
+        auto jet_cut{[](const ints& tight_jets) {
+        	auto njet{std::count_if(tight_jets.begin(), tight_jets.end(), [](int i) { return i; })};
+        	return njet >= MIN_JETS && njet <= MAX_JETS; // Q: I need exactly 4 jets right so i won't go up to max 6 jets?!
+    	}};
 
 	auto bjet_id{[](
 			const ints& tight_jets,
@@ -566,19 +462,11 @@ void analyse(int argc, char* argv[])
 				        "Muon_tightId_Selection", 
 				        "Muon_pfIsoId_Selection", 
                                         "Muon_isPFcand_Selection"};
-	vector<string> enumunu_strings = {"nElectron", 
-				      "Electron_IDCut_Selection", 
-				      "Electron_eta_Selection", 
-                                      "Electron_charge_Selection", 
-				      "Electron_pt_Selection", 
-				      "nMuon", 
-				      "Muon_tightId_Selection", 
-                                      "Muon_pfIsoId_Selection", 
-                                      "Muon_eta_Selection", 
-                                      "Muon_charge_Selection", 
-                                      "Muon_pt_Selection", 
-                                      "Electron_isPFcand_Selection", 
-                                      "Muon_isPFcand_Selection"};
+	vector<string> MET_electron_pt_strings = {"MET_electron_pt_Selection"};
+	vector<string> MET_muon_pt_strings = {"MET_muon_pt_Selection"};
+
+
+
 	vector<string> jet_strings = {"Jet_pt_Selection",
 				      "Jet_eta_Selection", 
 				      "Jet_phi_Selection",
@@ -611,13 +499,11 @@ void analyse(int argc, char* argv[])
                                 	.Define("Electron_charge_Selection", {"Electron_charge"})
                                 	.Define("Electron_IDCut_Selection", {"Electron_cutBased"})
 					.Define("Electron_isPFcand_Selection", {"Electron_isPFcand"})
-					.Filter(enu_selection_function, enu_strings)
-					.Define("MET_pt_Selection",{"MET_pt"})
-					//.Filter([](float pts){return pts > 0;},{"MET_pt_Selection"})
-					//.Filter([](const floats pts){return pts.empty() ? false : std::all_of(pts.cbegin(),pts.cend(), [](float pt){return pt > 0.;});},{"MET_pt_Selection"})
+					//.Filter(enu_selection_function, enu_strings)
+					.Define("MET_electron_pt_Selection",{"MET_pt"})
+					//.Filter(ele_met_selection_function, MET_electron_pt_strings)
 					.Define("MET_phi_Selection",{"MET_phi"})
 					.Define("MET_sumEt_Selection",{"MET_sumEt"});
-					//.Filter([](const floats Ets){return Ets.empty() ? false : std::all_of(Ets.cbegin(),Ets.cend(), [](float E){return E > 0.;});},{"MET_sumEt_Selection"});
 
 	auto d_munu_event_selection = d.Define("nMuon_Selection",{"nMuon"})
 					.Define("Muon_pt_Selection",{"Muon_pt"})
@@ -626,8 +512,9 @@ void analyse(int argc, char* argv[])
 					.Define("Muon_pfIsoId_Selection",{"Muon_pfIsoId"})
 					.Define("Muon_tightId_Selection",{"Muon_tightId"})
 				   	.Define("Muon_isPFcand_Selection",{"Muon_isPFcand"})
-					.Filter(munu_selection_function,munu_strings)
-					.Define("MET_pt_Selection",{"MET_pt"})
+					//.Filter(munu_selection_function,munu_strings)
+					.Define("MET_muon_pt_Selection",{"MET_pt"})
+					//.Filter(mu_met_selection_function, MET_muon_pt_strings)
 					.Define("MET_phi_Selection",{"MET_phi"})
 					.Define("MET_sumEt_Selection",{"MET_sumEt"});
 
@@ -635,27 +522,22 @@ void analyse(int argc, char* argv[])
 	auto d_enu_jets_selection = d_enu_event_selection.Define("Jet_pt_Selection", {"Jet_pt"})
 					 		.Define("Jet_eta_Selection", {"Jet_eta"})
 					 		.Define("Jet_phi_Selection", {"Jet_phi"})
-					 		.Define("Muon_pt_Selection", {"Muon_pt"})
-                                         		.Define("Muon_eta_Selection", {"Muon_eta"})
-					 		.Define("Electron_phi_Selection", {"Electron_phi"})
-					 		.Define("Muon_phi_Selection", {"Muon_phi"})
+                                         		.Define("Electron_phi_Selection", {"Electron_phi"})
+							//.Filter(delta_phi_cut,{"Electron_phi_Selection","Jet_phi_Selection"})
 					 		.Define("Jet_jetId_Selection", {"Jet_jetId"})
-					 		.Define("deltaRcheck", deltaRcheck_function, {"nJet", "Electron_phi", "Electron_eta", "Muon_phi", "Muon_eta", "Jet_phi", "Jet_eta"})
-				         		.Filter(jet_selection_function, jet_strings);
-
+					 		.Define("jet_e_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "Electron_eta_Selection", "Electron_phi_Selection"})
+                   					.Define("tight_jets", tight_jet_id, {"jet_e_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"});
+                   					//.Filter(jet_cut, {"tight_jets"});
 
 	auto d_munu_jets_selection = d_munu_event_selection.Define("Jet_pt_Selection",{"Jet_pt"})
 							  .Define("Jet_eta_Selection",{"Jet_eta"})
 							  .Define("Jet_phi_Selection",{"Jet_phi"})
-							  .Define("Electron_pt_Selection",{"Electron_pt"})
-							  .Define("Electron_eta_Selection",{"Electron_eta"})
 							  .Define("Muon_phi_Selection",{"Muon_phi"})
-							  .Define("Electron_phi_Selection",{"Electron_phi"})
+							  //.Filter(delta_phi_cut,{"Muon_phi_Selection","Jet_phi_Selection"})
 							  .Define("Jet_jetId_Selection",{"Jet_jetId"})
-							  .Define("deltaRcheck", deltaRcheck_function,{"nJet","Electron_phi","Muon_phi","Electron_eta","Muon_eta","Jet_phi","Jet_eta"})
-							  .Filter(jet_selection_function, jet_strings);
-
-
+							  .Define("jet_mu_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "Muon_eta_Selection", "Muon_phi_Selection"})
+                   					  .Define("tight_jets", tight_jet_id, {"jet_mu_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"});
+                   					  //.Filter(jet_cut, {"tight_jets"});
 
 	auto d_enu_jets_bjets_selection = d_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
                     						.Filter(bjet_cut, {"bjets"}, "b jet cut");
@@ -669,30 +551,264 @@ void analyse(int argc, char* argv[])
                  						.Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
                  						.Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
                  						.Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
-                 						.Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
-                 						.Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
-                 						.Filter(z_mass_cut, {"z_mass"}, "z mass cut")
-								.Histo1D({"ZReconMassHist_enu_Channel","Recon. Z mass of jets",20,0,200},"z_mass");
+                 						.Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"});
+                 						//.Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"});
+                 						//.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
+								//.Histo1D({"ZReconMassHist_enu_Channel","Recon. Z mass of jets in electron-neutrino channel",20,0,150},"z_mass");
+
 
 	auto d_munu_z_rec_selection = d_munu_jets_bjets_selection.Define("lead_bjet",find_lead_mask,{"bjets", "Jet_pt"})
 								.Define("z_reco_jets", find_z_pair, {"Jet_pt","Jet_phi","Jet_eta","Jet_mass", "Jet_jetId","lead_bjet"})								 .Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
                                                                 .Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
                                                                 .Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
                                                                 .Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
-                                                                .Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
-                                                                .Filter(z_mass_cut, {"z_mass"}, "z mass cut")
-                                                                .Histo1D({"ZReconMassHist_munnu_Channel","Recon. Z mass of jets",20,0,200},"z_mass");
+                                                                .Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"});
+                                                                //.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
+                                                                //.Histo1D({"ZReconMassHist_munnu_Channel","Recon. Z mass of jets in muon-neutrino channel",20,0,150},"z_mass");
+
+/////////////////////////////////////////////////////////////////////// E-Nu Channel histograms AND Canvases /////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////PT//////////////////////////////////////////////////////////////////////////////////
+/*        auto h_enu_events_ept = d_enu_z_rec_selection.Histo1D({"electron_pt_enu_Channel","electron pt in electron-neutrino channel",20,0,150},"Electron_pt_Selection");
+				//d_enu_z_rec_selection.Histo1D({"electron_pt_enu_Channel","electron pt in electron-neutrino channel",20,0,150},"Electron_pt_Selection");
+
+        auto h_enu_events_ept_canvas = new TCanvas("Electron pt in enu channel", "electron pt in enu",10,10,900,900);
+        h_enu_events_ept->GetXaxis()->SetTitle("Pt/GeV");
+        h_enu_events_ept->GetYaxis()->SetTitle("Events");
+        h_enu_events_ept->SetLineColor(kRed);
+        h_enu_events_ept->Draw();
+        h_enu_events_ept_canvas->BuildLegend();
+	h_enu_events_ept_canvas->SaveAs("Electron_pt_enu.root");
+
+ 
+        auto h_enu_events_jpt = d_enu_z_rec_selection.Histo1D({"jet_pt_enu_Channel","jet pt in electron-neutrino channel",20,0,150},"Jet_pt_Selection");
+
+        auto h_enu_events_jpt_canvas = new TCanvas("jet pt in enu channel", "jet pt in enu",10,10,900,900);
+        h_enu_events_jpt->GetXaxis()->SetTitle("Pt/GeV");
+        h_enu_events_jpt->GetYaxis()->SetTitle("Events");
+        h_enu_events_jpt->SetLineColor(kRed);
+        h_enu_events_jpt_canvas->BuildLegend();
+        h_enu_events_jpt->Draw();
+        h_enu_events_jpt_canvas->SaveAs("Jet_pt_enu.root");
+/*
+        auto h_enu_events_zpt = d_enu_z_rec_selection.Histo1D({"Z_pt_enu_Channel","Z pt in electron-neutrino channel",20,0,150},"z_pair_pt");
+
+        auto h_enu_events_zpt_canvas = new TCanvas("Z pt in enu channel", "Z pt in enu",10,10,900,900);
+        h_enu_events_zpt->GetXaxis()->SetTitle("Pt/GeV");
+        h_enu_events_zpt->GetYaxis()->SetTitle("Events");
+        h_enu_events_zpt->SetLineColor(kRed);
+        h_enu_events_zpt->SetLineColor(kRed);
+        h_enu_events_zpt_canvas->BuildLegend();
+        h_enu_events_zpt->Draw();
+        h_enu_events_zpt_canvas->SaveAs("Z_pt_enu.root");
 
 
+///////////////////////////////////////////////////////////////////////////ETA //////////////////////////////////////////////////////////////////////////
+        auto h_enu_events_eeta = d_enu_z_rec_selection.Histo1D({"electron_eta_enu_Channel","electron eta in electron-neutrino channel",2,-5,5},"Electron_eta_Selection");
+
+        auto h_enu_events_eeta_canvas = new TCanvas("Electron eta in enu channel", "electron eta in enu",10,10,900,900);
+        h_enu_events_eeta->GetXaxis()->SetTitle("eta");
+        h_enu_events_eeta->GetYaxis()->SetTitle("Events");
+        h_enu_events_eeta->SetLineColor(kRed);
+        h_enu_events_eeta_canvas->BuildLegend();
+        h_enu_events_eeta->Draw();
+        h_enu_events_eeta_canvas->SaveAs("Electron_eta_enu.root");
+
+        auto h_enu_events_jeta = d_enu_z_rec_selection.Histo1D({"jet_eta_enu_Channel","jet eta in electron-neutrino channel",2,-5,5},"Jet_eta_Selection");
+
+        auto h_enu_events_jeta_canvas = new TCanvas("Jet eta in enu channel", "Jet eta in enu",10,10,900,900);
+        h_enu_events_jeta->GetXaxis()->SetTitle("eta");
+        h_enu_events_jeta->GetYaxis()->SetTitle("Events");
+        h_enu_events_jeta->SetLineColor(kRed);
+        h_enu_events_jeta_canvas->BuildLegend();
+        h_enu_events_jeta->Draw();
+        h_enu_events_jeta_canvas->SaveAs("Jet_eta_enu.root");
+/*
+        auto h_enu_events_zeta = d_enu_z_rec_selection.Histo1D({"Z_eta_enu_Channel","Z eta in electron-neutrino channel",2,-5,5},"z_eta_pair");
+
+        auto h_enu_events_zeta_canvas = new TCanvas("Z eta in enu channel", "Z eta in enu",10,10,900,900);
+        h_enu_events_zeta->GetXaxis()->SetTitle("eta");
+        h_enu_events_zeta->GetYaxis()->SetTitle("Events");
+        h_enu_events_zeta->SetLineColor(kRed);
+        h_enu_events_zeta_canvas->BuildLegend();
+        h_enu_events_zeta->Draw();
+        h_enu_events_zeta_canvas->SaveAs("Z_eta_enu.root");
+
+/////////////////////////////////////////////////////////////////////// PHI////////////////////////////////////////////////////////////////////////////////////////
+
+	auto h_enu_events_ephi = d_enu_z_rec_selection.Histo1D({"Electron_phi_enu_Channel","Electron phi in electron-neutrino channel",2,0,8},"Electron_phi_Selection");
+
+        auto h_enu_events_ephi_canvas = new TCanvas("Electron phi in enu channel", "Electrion phi in enu",10,10,900,900);
+        h_enu_events_ephi->GetXaxis()->SetTitle("phi/rad");
+        h_enu_events_ephi->GetYaxis()->SetTitle("Events");
+        h_enu_events_ephi->SetLineColor(kRed);
+        h_enu_events_ephi_canvas->BuildLegend();
+        h_enu_events_ephi->Draw();
+        h_enu_events_ephi_canvas->SaveAs("Electron_phi_enu.root");
+
+        auto h_enu_events_jphi = d_enu_z_rec_selection.Histo1D({"jet_phi_enu_Channel","jet phi in electron-neutrino channel",2,0,8},"Jet_phi_Selection");
+
+        auto h_enu_events_jphi_canvas = new TCanvas("jet phi in enu channel", "jet phi in enu",10,10,900,900);
+        h_enu_events_jphi->GetXaxis()->SetTitle("phi/rad");
+        h_enu_events_jphi->GetYaxis()->SetTitle("Events");
+        h_enu_events_jphi->SetLineColor(kRed);
+        h_enu_events_jphi_canvas->BuildLegend();
+        h_enu_events_jphi->Draw();
+        h_enu_events_jphi_canvas->SaveAs("Jet_phi_enu.root");
+/*
+        auto h_enu_events_zphi = d_enu_z_rec_selection.Histo1D({"z_phi_enu_Channel","z phi in electron-neutrino channel",2,0,8},"z_pair_phi");
+
+        auto h_enu_events_zphi_canvas = new TCanvas("z phi in enu channel", "z phi in enu",10,10,900,900);
+        h_enu_events_zphi->GetXaxis()->SetTitle("phi/rad");
+        h_enu_events_zphi->GetYaxis()->SetTitle("Events");
+        h_enu_events_zphi->SetLineColor(kRed);
+        h_enu_events_zphi_canvas->BuildLegend();
+        h_enu_events_zphi->Draw();
+        h_enu_events_zphi_canvas->SaveAs("Z_phi_enu.root");
+
+///////////////////////////////////////////////////////////////////// MU-NEU CHANNEL Histograms and Canvases ///////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////// PT////////////////////////////////////////////////////////////////////////////////////
+        auto h_munu_events_mupt = d_munu_z_rec_selection.Histo1D({"muon_pt_enu_Channel","muon pt in muon-neutrino channel",20,0,150},"Muon_pt_Selection");
+
+        auto h_munu_events_mupt_canvas = new TCanvas("Muon pt in munu channel", "Muon pt in munu",10,10,900,900);
+        h_munu_events_mupt->GetXaxis()->SetTitle("Pt/GeV");
+        h_munu_events_mupt->GetYaxis()->SetTitle("Events");
+        h_munu_events_mupt->SetLineColor(kRed);
+        h_munu_events_mupt_canvas->BuildLegend();
+        h_munu_events_mupt->Draw();
+        h_munu_events_mupt_canvas->SaveAs("Muon_pt_munu.root");
 
 
- 	auto ReconZ_massCanvas = new TCanvas("Reconstrcuted mass from jets", "Reconstructed mass from jets",10,10,700,700);
+        auto h_munu_events_jpt = d_munu_z_rec_selection.Histo1D({"muon_pt_enu_Channel","muon pt in electron-neutrino channel",20,0,150},"Jet_pt_Selection");
+
+        auto h_munu_events_jpt_canvas = new TCanvas("jet pt in munu channel", "jet pt in munu",10,10,900,900);
+        h_munu_events_jpt->GetXaxis()->SetTitle("Pt/GeV");
+        h_munu_events_jpt->GetYaxis()->SetTitle("Events");
+        h_munu_events_jpt->SetLineColor(kRed);
+        h_munu_events_jpt_canvas->BuildLegend();
+        h_munu_events_jpt->Draw();
+        h_munu_events_jpt_canvas->SaveAs("Jet_pt_munu.root");
+/*
+        auto h_munu_events_zpt = d_munu_z_rec_selection.Histo1D({"Z_pt_munu_Channel","Z pt in muon-neutrino channel",20,0,150},"z_pair_pt");
+
+        auto h_munu_events_zpt_canvas = new TCanvas("Z pt in munu channel", "Z pt in munu",10,10,900,900);
+        h_munu_events_zpt->GetXaxis()->SetTitle("Pt/GeV");
+        h_munu_events_zpt->GetYaxis()->SetTitle("Events");
+        h_munu_events_zpt->SetLineColor(kRed);
+        h_munu_events_zpt_canvas->BuildLegend();
+        h_munu_events_zpt->Draw();
+        h_munu_events_zpt_canvas->SaveAs("Z_pt_munu.root");
+
+
+ ////////////////////////////////////////////////////////////////////////////////////ETA////////////////////////////////////////////////////////////////////////
+
+        auto h_munu_events_mueta = d_munu_z_rec_selection.Histo1D({"muon_eta_munu_Channel","muon eta in Muon-neutrino channel",2,-5,5},"Muon_eta_Selection");
+
+        auto h_munu_events_mueta_canvas = new TCanvas("Muon eta in enu channel", "Muon eta in enu",10,10,900,900);
+        h_munu_events_mueta->GetXaxis()->SetTitle("eta");
+        h_munu_events_mueta->GetYaxis()->SetTitle("Events");
+        h_munu_events_mueta->SetLineColor(kRed);
+        h_munu_events_mueta_canvas->BuildLegend();
+        h_munu_events_mueta->Draw();
+        h_munu_events_mueta_canvas->SaveAs("Muon_eta_munu.root");
+
+        auto h_munu_events_jeta = d_munu_z_rec_selection.Histo1D({"jet_eta_munu_Channel","jet muta in muon-neutrino channel",2,-5,5},"Jet_eta_Selection");
+
+        auto h_munu_events_jeta_canvas = new TCanvas("Jet eta in munu channel", "Jet eta in munu",10,10,900,900);
+        h_munu_events_jeta->GetXaxis()->SetTitle("eta");
+        h_munu_events_jeta->GetYaxis()->SetTitle("Events");
+        h_munu_events_jeta->SetLineColor(kRed);
+        h_munu_events_jeta_canvas->BuildLegend();
+        h_munu_events_jeta->Draw();
+        h_munu_events_jeta_canvas->SaveAs("Jet_eta_munu.root");
+/*
+        auto h_munu_events_zeta = d_munu_z_rec_selection.Histo1D({"Z_eta_munu_Channel","Z eta in muon-neutrino channel",2,-5,5},"z_eta_pair");
+
+        auto h_munu_events_zeta_canvas = new TCanvas("Z eta in munu channel", "Z eta in munu",10,10,900,900);
+        h_munu_events_zeta->GetXaxis()->SetTitle("eta");
+        h_munu_events_zeta->GetYaxis()->SetTitle("Events");
+        h_munu_events_zeta->SetLineColor(kRed);
+        h_munu_events_zeta_canvas->BuildLegend();
+        h_munu_events_zeta->Draw();
+        h_munu_events_zeta_canvas->SaveAs("Z_eta_munu.root");
+
+////////////////////////////////////////////////////////////////////////////PHI////////////////////////////////////////////////////////////////////////////////
+        auto h_munu_events_muphi = d_munu_z_rec_selection.Histo1D({"Muon_phi_enu_Channel","Muon phi in Muon-neutrino channel",2,0,8},"Muon_phi_Selection");
+
+        auto h_munu_events_muphi_canvas = new TCanvas("Muon phi in munu channel", "Muon phi in enu",10,10,900,900);
+        h_munu_events_muphi->GetXaxis()->SetTitle("phi/rad");
+        h_munu_events_muphi->GetYaxis()->SetTitle("Events");
+        h_munu_events_muphi->SetLineColor(kRed);
+        h_munu_events_muphi_canvas->BuildLegend();
+        h_munu_events_muphi->Draw();
+        h_munu_events_muphi_canvas->SaveAs("Muon_phi_munu.root");
+
+        auto h_munu_events_jphi = d_munu_z_rec_selection.Histo1D({"jet_phi_munu_Channel","jet phi in muon-neutrino channel",2,0,8},"Jet_phi_Selection");
+
+        auto h_munu_events_jphi_canvas = new TCanvas("jet phi in munu channel", "jet phi in munu",10,10,900,900);
+        h_munu_events_jphi->GetXaxis()->SetTitle("phi/rad");
+        h_munu_events_jphi->GetYaxis()->SetTitle("Events");
+        h_munu_events_jphi->SetLineColor(kRed);
+        h_munu_events_jphi_canvas->BuildLegend();
+        h_munu_events_jphi->Draw();
+        h_munu_events_jphi_canvas->SaveAs("Jet_phi_munu.root");
+
+/*
+        auto h_munu_events_zphi = d_munu_z_rec_selection.Histo1D({"z_phi_munu_Channel","z phi in Muon-neutrino channel",2,0,8},"z_pair_phi");
+
+        auto h_munu_events_zphi_canvas = new TCanvas("z phi in munu channel", "z phi in munu",10,10,900,900);
+        h_munu_events_zphi->GetXaxis()->SetTitle("phi/rad");
+        h_munu_events_zphi->GetYaxis()->SetTitle("Events");
+        h_munu_events_zphi->SetLineColor(kRed);
+        h_munu_events_zphi_canvas->BuildLegend();
+        h_munu_events_zphi->Draw();
+        h_munu_events_zphi_canvas->SaveAs("Z_phi_munu.root");
+
+*/
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* 	auto ReconZ_massCanvas = new TCanvas("Reconstrcuted mass from jets", "Reconstructed mass from jets",10,10,900,900);
+        d_munu_z_rec_selection->GetXaxis()->SetTitle("GeV/c^2");
+        d_munu_z_rec_selection->GetYaxis()->SetTitle("Events");
+        d_munu_z_rec_selection->SetLineColor(kRed);
+        d_munu_z_rec_selection->Draw();
         d_enu_z_rec_selection->SetLineColor(kBlue);
-        d_enu_z_rec_selection->DrawClone();
-	d_munu_z_rec_selection->SetLineColor(kRed);
-	d_munu_z_rec_selection->DrawClone("SAME");
-        d_enu_z_rec_selection->SaveAs("rec_z_mass_uncut.root");
-        ReconZ_massCanvas->SaveAs("rec_z_mass_uncut.root");
+	d_enu_z_rec_selection->GetXaxis()->SetTitle("GeV/c^2");
+	d_enu_z_rec_selection->GetYaxis()->SetTitle("Events");
+        d_enu_z_rec_selection->DrawClone("SAME");
+	//ReconZ_massCanvas->SetTitle("Reconstructed Z mass from jets in tZq DataSet");
+	gStyle->SetOptTitle(0);
+   	//TPaveLabel *title = new TPaveLabel(.11,.95,.35,.99,"new title","Reconstructed Z mass from jets in tZq DataSet");
+   	//title->Draw(); 
+	//auto legend = new TLegend(0.1,0.7,0.48,0.9);
+        //legend->SetHeader("Reconstructed Z mass for e-nu and mu-nu Channel","C"); // option "C" allows to center the header
+        //legend->AddEntry("d_enu_z_rec_selection","Reconstructed Z mass from electron-neutrino channel","l");
+        //legend->AddEntry("d_munu_z_rec_selection","Reconstructed Z mass fro muon-neutrino channel","l");
+        //legend->Draw();
+	ReconZ_massCanvas->BuildLegend();
+        ReconZ_massCanvas->SaveAs("rec_z_mass_inc_MET_cut.root");
+*/
+
+/*
+        auto d_enu_event_pt_selection = d.Define("nElectron_Selection",{"nElectron"})
+                                        .Define("Electron_pt_Selection", {"Electron_pt"})
+                                        .Define("Electron_eta_Selection", {"Electron_eta"})
+                                        .Define("Electron_charge_Selection", {"Electron_charge"})
+                                        .Define("Electron_IDCut_Selection", {"Electron_cutBased"})
+                                        .Define("Electron_isPFcand_Selection", {"Electron_isPFcand"})
+                                        //.Filter(enu_selection_function, enu_strings)
+                                        .Define("MET_pt_Selection",{"MET_pt"})
+                                        //.Filter([](float pts){return pts > 0;},{"MET_pt_Selection"})
+                                        //.Filter([](const floats pts){return pts.empty() ? false : std::all_of(pts.cbegin(),pts.cend(), [](float pt){return pt > 0.;})$
+                                        .Define("MET_phi_Selection",{"MET_phi"})
+                                        .Define("MET_sumEt_Selection",{"MET_sumEt"})
+                                        .Histo1D({"PTHist_enu_Channel","electron Pt Dist.",20,0,20},"Electron_pt_Selection");
+
+	auto Electron_pt_Canvas = new TCanvas("Electron PT Canvas", "Electron PT Canvas",10,10,700,700);
+        d_enu_event_pt_selection->SetLineColor(kBlue);
+        d_enu_event_pt_selection->DrawClone();
+        Electron_pt_Canvas->SaveAs("Electron_pt_uncut_check.root");
+
+*/
 
 		//std::cout<<"Z mass is "<< *z_mass<<endl;
 
@@ -717,7 +833,26 @@ void analyse(int argc, char* argv[])
 	Z_Rec_M->DrawClone();
         Z_Rec_M->SaveAs("rec_z_mass.root");*/
 	//ReconZ_massCanvas->SaveAs("rec_z_mass.pdf");
+/////////////////////////////////////////////////////////////////////////////// Pt And ETa Test/////////////////////////////////////////////////////////////////
 
+	auto electron_pT = d.Histo1D({"Electron pT","Electron_pT",20,0,200},"Electron_pt");
+	auto electron_pTCanvas = new TCanvas("Electron pT", "Electron_pT",10,10,700,700);
+	electron_pT->GetXaxis()->SetTitle("pT/GeV");
+        electron_pT->GetYaxis()->SetTitle("Events");
+	electron_pT->SetLineColor(kRed);
+        electron_pTCanvas->BuildLegend();
+        electron_pT->Draw();
+	electron_pTCanvas->SaveAs("Pure_electron_pT.root");
+
+
+	auto electron_eta = d.Histo1D({"Electron eta","Electron_eta",20,-5,5},"Electron_eta");
+        auto electron_etaCanvas = new TCanvas("Electron eta", "Electron_eta",10,10,700,700);
+        electron_eta->GetXaxis()->SetTitle("eta");
+        electron_eta->GetYaxis()->SetTitle("Events");
+        electron_eta->SetLineColor(kRed);
+        electron_etaCanvas->BuildLegend();
+        electron_eta->Draw();
+        electron_etaCanvas->SaveAs("Pure_electron_eta.root");
 
 /////////////////////////////////////////////////////////////////  Z Recon from U Histo2D /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
