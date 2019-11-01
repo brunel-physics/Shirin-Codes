@@ -526,6 +526,8 @@ void analyse(int argc, char* argv[])
 					.Define("MET_phi_Selection",{"MET_phi"})
 					.Define("MET_sumEt_Selection",{"MET_sumEt"})
 					.Filter([](unsigned int nElectron){return nElectron > MAX_ELE_NUM;},{"nElectron_Selection"})
+					.Filter([](ints IdCuts){return std::all_of(IdCuts.cbegin(), IdCuts.cend(), [](int IdCut){return IdCut >= 4;});},{"Electron_IDCut_Selection"})
+					.Filter([](bools PFcands){return std::all_of(PFcands.cbegin(), PFcands.cend(), [](bool PFcand){return PFcand == 1;});},{"Electron_isPFcand_Selection"})
 					.Filter([](floats pts){return std::all_of(pts.cbegin(), pts.cend(), [](float pt){return pt > MIN_ELE_PT;});},{"Electron_pt_Selection"})
 					.Filter([](floats etas){return std::all_of(etas.cbegin(), etas.cend(), [](float eta){return (abs(eta) < MAX_ELE_ETA && (abs(eta) < BARREL_MAX_ETA || abs(eta) > ENDCAP_MIN_ETA));});},{"Electron_eta_Selection"});
 
