@@ -353,7 +353,9 @@ void analyse(int argc, char* argv[])
         return lead_pt_cut && ele_cut; 
     	}};
 
-
+	auto get_w_e_quantity_selector{[](const std::string& s) {
+                   return "Electron_" + s + "[tight_eles]";
+        }};
 
 
 
@@ -393,6 +395,29 @@ void analyse(int argc, char* argv[])
                                                         return MET_muon_pt_Selection > 40;
                                                 }
                                         };
+
+	auto transvers_W_mass{[](floats lep_pt,floats lep_phi,float met_pt,float met_phi){
+  					float w_reco_mass{std::numeric_limits<float>::infinity()};
+                                        size_t l_index_1{std::numeric_limits<size_t>::max()};
+
+
+			for(int i{0}; i< lep_pt.size();i++)
+			{
+				const float  reco_mass = sqrt( 2 * lep_pt.at(i) * met_pt * (1 - cos(delta_phi(lep_phi.at(i), met_phi))) );
+
+			if (std::abs(W_MASS - reco_mass) < std::abs(W_MASS - w_reco_mass))
+                                                        {
+                                                                w_reco_mass = reco_mass;
+                                                                l_index_1 = i;
+                                                        }
+			}
+				return w_reco_mass;
+		}};
+	auto w_mass_cut{[](const float& w_mass) {
+        		return std::abs(w_mass - W_MASS) < W_MASS_CUT;
+   	 	}};
+
+
 
 	auto jet_lep_min_deltaR{[](const floats& jet_etas, const floats& jet_phis, const floats& lep_etas, const floats& lep_phis) {
         	floats min_dRs{};
@@ -497,6 +522,13 @@ void analyse(int argc, char* argv[])
         						return abs(z_mass - Z_MASS) < Z_MASS_CUT;
 						}
 					};
+
+
+
+
+
+
+
 	vector<string> enu_strings = {"nElectron_Selection", 
 				     "Electron_IDCut_Selection", 
                                      "Electron_eta_Selection", 
@@ -574,7 +606,17 @@ void analyse(int argc, char* argv[])
                    			.Define("tight_ele_charge", select<ints>, {"Electron_charge", "tight_eles"})
                    			.Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
                    			.Define("loose_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
+					.Define("MET_phi_Selection",{"MET_phi"})
+					.Define("MET_electron_pt_Selection",{"MET_pt"})
+					//.Filter(ele_met_selection_function, MET_electron_pt_strings)
 					.Filter(e_cut, {"tight_ele_pt", "loose_ele_pt"}, "lepton cut");
+
+	auto d_enu_w_selection = d_enu_event_selection.Define("w_lep_eta", get_w_e_quantity_selector("eta"))
+                 					.Define("w_lep_phi", get_w_e_quantity_selector("phi"))
+                 					.Define("w_lep_mass", get_w_e_quantity_selector("mass"))
+                 					.Define("w_lep_pt", get_w_e_quantity_selector("pt"))
+							.Define("w_mass", transvers_W_mass, {"w_lep_pt", "w_lep_phi", "MET_electron_pt_Selection", "MET_phi_Selection"})
+                 					.Filter(w_mass_cut, {"w_mass"}, "W mass cut");
 
 	auto d_munu_event_selection = d.Define("nMuon_Selection",{"nMuon"})
 					.Define("Muon_pt_Selection",{"Muon_pt"})
@@ -644,7 +686,7 @@ void analyse(int argc, char* argv[])
 */
 /////////////////////////////////////////////////////////////////////// E-Nu Channel histograms AND Canvases /////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////PT//////////////////////////////////////////////////////////////////////////////////
-        auto h_enu_events_ept = d_enu_event_selection.Histo1D({"electron_pt_enu_Channel","electron pt in electron-neutrino channel",20,0,150},"tight_ele_pt");
+        auto h_enu_events_ept = d_enu_w_selection.Histo1D({"electron_pt_enu_Channel","electron pt in electron-neutrino channel",20,0,150},"tight_ele_pt");
 				//d_enu_z_rec_selection.Histo1D({"electron_pt_enu_Channel","electron pt in electron-neutrino channel",20,0,150},"Electron_pt_Selection");
 
         auto h_enu_events_ept_canvas = new TCanvas("Electron pt in enu channel", "electron pt in enu",10,10,900,900);
@@ -654,6 +696,20 @@ void analyse(int argc, char* argv[])
         h_enu_events_ept->Draw();
         h_enu_events_ept_canvas->BuildLegend();
 	h_enu_events_ept_canvas->SaveAs("Electron_pt_enu_eSelection.root");
+
+
+        auto h_enu_events_wmass = d_enu_w_selection.Histo1D({"enu_w_mass","electron-neutrino w mass",20,0,120},"w_mass");
+                                //d_enu_z_rec_selection.Histo1D({"electron_pt_enu_Channel","electron pt in electron-neutrino channel",20,0,150},"Electron_pt_Selection"$
+
+        auto h_enu_events_wmass_canvas = new TCanvas("E-nu w mass ", "enu w mass",10,10,900,900);
+        h_enu_events_wmass->GetXaxis()->SetTitle("mass/GeV/C^2");
+        h_enu_events_wmass->GetYaxis()->SetTitle("Events");
+        h_enu_events_wmass->SetLineColor(kRed);
+        h_enu_events_wmass->Draw();
+        h_enu_events_wmass_canvas->BuildLegend();
+        h_enu_events_wmass_canvas->SaveAs("Electron_enu_Wmass.root");
+
+
 /*
  
         auto h_enu_events_jpt = d_enu_jets_selection.Histo1D({"jet_pt_enu_Channel","jet pt in electron-neutrino channel",20,0,150},"Jet_pt_Selection");
