@@ -70,6 +70,10 @@ constexpr float W_MASS_CUT{20.f};
 constexpr float TOP_MASS{172.5f};
 constexpr float TOP_MASS_CUT{20.f};
 
+constexpr float DELTA_R_ZL{1.6f};
+constexpr float DELTA_PHI_ZW{2};
+constexpr float DELTA_PHI_ZMET{2};
+
 enum class channels
 {
     enu,
@@ -80,14 +84,6 @@ enum class channels
 {
     return vdt::fast_atan2f(vdt::fast_sinf(phi1 - phi2), vdt::fast_cosf(phi1 - phi2));
 }
-/*
-	auto delta_phi_cut{[](const floats phi1, const floats phi2) ->bool
-	{
-		if(-M_PI < vdt::fast_atan2f(vdt::fast_sinf(phi1 - phi2), vdt::fast_cosf(phi1 - phi2))< M_PI)
-    			return phi1 && phi2;
-	}};
-
-*/
 
 [[gnu::const]] auto deltaR(const float eta1, const float phi1, const float eta2, const float phi2)
 {
@@ -344,17 +340,18 @@ void analyse(int argc, char* argv[])
 
 	auto e_cut{[](const floats& tight_ele_pts, const floats& loose_ele_pts) {
         	const bool ele_cut{/*tight_ele_pts.size() == N_E &&*/ tight_ele_pts.size() == loose_ele_pts.size()};
-        	bool lead_pt_cut{false};
-        	lead_pt_cut = tight_ele_pts.empty() ? false : *std::max_element(tight_ele_pts.begin(), tight_ele_pts.end()) > MIN_ELE_PT;
-
-        	return lead_pt_cut && ele_cut; 
+        	//bool lead_pt_cut{false};
+        	//lead_pt_cut = tight_ele_pts.empty() ? false : *std::max_element(tight_ele_pts.begin(), tight_ele_pts.end()) > MIN_ELE_PT;
+		return ele_cut;
+        	//return lead_pt_cut && ele_cut;
     	}};
 
 	auto mu_cut{[](const floats& tight_mu_pts, const floats& loose_mu_pts) {
         	const bool mu_cut{/*tight_ele_pts.size() == N_E &&*/ tight_mu_pts.size() == loose_mu_pts.size()};
-        	bool lead_pt_cut{false};
-        	lead_pt_cut = tight_mu_pts.empty() ? false : *std::max_element(tight_mu_pts.begin(), tight_mu_pts.end()) > MIN_MU_PT;
-        	return lead_pt_cut && mu_cut;
+        	//bool lead_pt_cut{false};
+        	//lead_pt_cut = tight_mu_pts.empty() ? false : *std::max_element(tight_mu_pts.begin(), tight_mu_pts.end()) > MIN_MU_PT;
+        	//return lead_pt_cut && mu_cut;
+		return mu_cut;
         }};
 
 	auto get_w_e_quantity_selector{[](const std::string& s){
@@ -428,7 +425,7 @@ void analyse(int argc, char* argv[])
 			{
 				vec.push_back(Jet_variable.at(i));
 			}
-		}
+		} //maybe use select<floats> from the column?
 		return vec;
 	}};
 
@@ -444,21 +441,9 @@ void analyse(int argc, char* argv[])
 		return lead_mask;
 	}};
 
-/*	auto jet_delta_phi_func{[](const floats& phis){
-		floats deltaphi;
-		for(size_t i{0}; i < phis.size(); i++)
-		{
-			for(size_t j{i+1}; j < phis.size(); j++)
-			{
-				deltaphi = abs(delta_phi(phis.at(i), phis.at(j))); // compilation error here...
-			}
-		}
-		return deltaphi;
-	}};
-*/
-	auto jet_delta_phi_cut{[](const floats& deltaphis){
-		return deltaphis >=2;//need to work on this... to say look at each element and pick the ones  >= 2
-	}};
+	/*auto jet_delta_phi_cut{[](const floats& phi1, const floats& phi2){
+		return delta_phis >=2;//need to work on this... to say look at each element and pick the ones  >= 2
+	}};*/
 
 	auto find_z_pair{[](const floats& pts, const floats& etas, const floats& phis, const floats& ms, const ints& tight_jets, const ints& lead_bjet){
 		double z_reco_mass{std::numeric_limits<double>::infinity()};
@@ -471,17 +456,13 @@ void analyse(int argc, char* argv[])
 			cout<<"first loop "<<"size "<<njets<<endl;
 			for (size_t j{i + 1}; j < njets; ++j)
  			{
-				cout<< " i & j "<<i<<" & "<<j<<endl;
-                		/*if (delta_phi(phis.at(i), phis.at(j))<2.0)
-                		{
-					cout<<"i am smaller than 2 rad"<<endl;
-                 			continue;
-                		}*/
+				cout<< " i & j before removal of b jet "<<i<<" & "<<j<<endl; 
 				if (tight_jets[i] != 0 && tight_jets[j] != 0 && lead_bjet[i] != 1 && lead_bjet[j] != 1)
                 		{
                     			continue;
-                		}
-				cout<<"in second loop"<<endl;
+	               		}
+                                cout<< " i & j after removal of b jet "<<i<<" & "<<j<<endl;
+				cout<<"in second loop and passed the jet phi condition"<<endl;
 				auto jet1{TLorentzVector{}};
                 		auto jet2{TLorentzVector{}};
                 		jet1.SetPtEtaPhiM(pts.at(i), etas.at(i), phis.at(i), ms.at(i));
@@ -496,7 +477,7 @@ void analyse(int argc, char* argv[])
 					cout<<"after reco mass "<<"i "<<i<<" j "<<j<<endl;
 					continue;
        				}
-          		}
+        		}
 			cout<<"left loop 2"<<endl;
         	}
 		cout<<"left loop one"<<endl;
@@ -511,6 +492,32 @@ void analyse(int argc, char* argv[])
 	auto z_mass_cut{[](const float& z_mass){
    		return abs(z_mass - Z_MASS) < Z_MASS_CUT;
 	}};
+
+
+	auto deltaR_z_l{[](const floats& deltaRzl){
+		bool deltaRzl_cut{false};
+                deltaRzl_cut = deltaRzl.empty() ? false : *std::max_element(deltaRzl.begin(), deltaRzl.end()) > DELTA_R_ZL;
+	return deltaRzl_cut;
+        }};
+
+        auto ZW_delta_phi_cut{[](const floats& phis1, const floats& phis2){
+                float phi1;
+		float phi2;
+		float deltaphi;
+		for(int i; i < phis1.size(); i++)
+		{
+			phi1 = phis1.at(i);
+			for(int j; j < phis2.size(); j++)
+			{
+				float deltaphi;
+				phi2 = phis2.at(j);
+				deltaphi = abs(delta_phi(phi1, phi2));
+			}
+		}
+		return deltaphi > DELTA_PHI_ZW;
+		//need to work on this... to say look at each elements and pick the ones with delta  >= 2
+        }};
+
 
 	auto TLorentzVectorMass{[](const TLorentzVector& object){
 		const float mass{object.M()};
@@ -541,6 +548,7 @@ void analyse(int argc, char* argv[])
 
 	auto top_reconstruction_function{[](const floats& bjets_pt, const floats& bjets_eta, const floats& bjets_phi, const floats& bjets_mass,
 		const floats& w_pair_pt, const floats& w_pair_eta, const floats& w_pair_phi, const float& w_mass){
+
 		float t_reco_mass{std::numeric_limits<float>::infinity()};
 		const size_t nbjets{bjets_pt.size()};
 		const size_t nWs{w_pair_pt.size()};
@@ -584,6 +592,8 @@ void analyse(int argc, char* argv[])
 ///////////////////////////////////////////////////////////////////////////Electron Channel/////////////////////////////////////////////////////////////////////////
 /*	auto d_enu_event_selection = d.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
                    			.Define("tight_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
+					.Define("tight_ele_eta", select<floats>, {"Electron_eta", "tight_eles"})
+					.Define("tight_ele_phi", select<floats>, {"Electron_phi", "tight_eles"})
                    			.Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
                    			.Define("loose_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
 					.Define("MET_phi_Selection",{"MET_phi"})
@@ -613,6 +623,8 @@ void analyse(int argc, char* argv[])
                  						.Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
                  						.Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
                  						.Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
+                                                                .Define("z_e_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_ele_eta", "tight_ele_phi"})
+							        .Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
                  						.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
 
 
@@ -627,11 +639,13 @@ void analyse(int argc, char* argv[])
 							.Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
 							.Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
 							.Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
-							.Define("Top_Mass", TLorentzVectorMass, {"RecoTop"})
-							.Filter(top_mass_cut, {"Top_Mass"}, "Top mass cut");*/
+							.Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
+*/
 ///////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
         auto d_munu_event_selection = d.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
                                       .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
+				      .Define("tight_mu_eta", select<floats>, {"Muon_eta", "tight_mus"})
+				      .Define("tight_mu_phi", select<floats>, {"Muon_phi", "tight_mus"})
                                       .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_softId", "Muon_pfRelIso04_all"})
                                       .Define("loose_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
                                       .Define("MET_phi_Selection",{"MET_phi"})
@@ -659,7 +673,9 @@ void analyse(int argc, char* argv[])
                                                                 .Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
                                                                 .Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
                                                                 .Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
-								//.Define("deltaJetphi", jet_delta_phi_func, {"Jet_phi"})
+								.Define("z_mu_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_mu_eta", "tight_mu_phi"})
+								.Filter(deltaR_z_l,{"z_mu_min_dR"}, "delta R ZL")
+								.Filter(ZW_delta_phi_cut,{"z_pair_phi","w_mu_phi"})
                                                                 .Filter(z_mass_cut, {"z_mass"}, "z mass cut");
 /*
         auto d_munu_brec_selection = d_munu_z_rec_selection.Define("bjetmass", bjet_variable, bjet_mass_strings)
@@ -673,8 +689,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
                                                         .Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
                                                         .Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
-                                                        .Define("Top_Mass", TLorentzVectorMass, {"RecoTop"})
-                                                        .Filter(top_mass_cut, {"Top_Mass"}, "Top mass cut");
+                                                        .Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
 */
 
 /////////////////////////////////////////////////////////////////////// E-Nu Channel histograms AND Canvases /////////////////////////////////////////////////////////////////////////////
@@ -721,7 +736,7 @@ void analyse(int argc, char* argv[])
 	h_events_jpt_canvas->BuildLegend();
         h_events_jpt_canvas->SaveAs("Jet_pts.root");
 
-        //auto h_enu_events_zmass = d_enu_top_selection.Histo1D({"Z_mass_enu_Channel","Z mass in electron-neutrino channel",20,0,150},"z_mass");
+        //auto h_enu_events_zmass = d_enu_z_rec_selection.Histo1D({"Z_mass_enu_Channel","Z mass in electron-neutrino channel",20,0,150},"z_mass");
 	auto h_munu_events_zmass = d_munu_z_rec_selection.Histo1D({"Z_mass_munu_Channel","Z mass in mu-neutrino channel",20,0,150},"z_mass");
 
         auto h_events_zmass_canvas = new TCanvas("Z mass", "Z mass",10,10,900,900);
