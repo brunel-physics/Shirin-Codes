@@ -29,7 +29,6 @@ using floats = ROOT::VecOps::RVec<float>;
 using ints = ROOT::VecOps::RVec<int>;
 using bools = ROOT::VecOps::RVec<bool>;
 using chars = ROOT::VecOps::RVec<UChar_t>; // aka 1 byte ints
-double pi = 3.14;
 
 namespace
 {
@@ -73,6 +72,8 @@ constexpr float TOP_MASS_CUT{20.f};
 constexpr float DELTA_R_ZL{1.6f};
 constexpr float DELTA_PHI_ZW{2};
 constexpr float DELTA_PHI_ZMET{2};
+
+constexpr double PI{3.14};
 
 enum class channels
 {
@@ -339,7 +340,7 @@ void analyse(int argc, char* argv[])
 
 
 	auto e_cut{[](const floats& tight_ele_pts, const floats& loose_ele_pts) {
-        	const bool ele_cut{/*tight_ele_pts.size() == N_E &&*/ tight_ele_pts.size() == loose_ele_pts.size()};
+        	const bool ele_cut{tight_ele_pts.size() == 1 && tight_ele_pts.size() == loose_ele_pts.size()};
         	//bool lead_pt_cut{false};
         	//lead_pt_cut = tight_ele_pts.empty() ? false : *std::max_element(tight_ele_pts.begin(), tight_ele_pts.end()) > MIN_ELE_PT;
 		return ele_cut;
@@ -347,7 +348,7 @@ void analyse(int argc, char* argv[])
     	}};
 
 	auto mu_cut{[](const floats& tight_mu_pts, const floats& loose_mu_pts) {
-        	const bool mu_cut{/*tight_ele_pts.size() == N_E &&*/ tight_mu_pts.size() == loose_mu_pts.size()};
+        	const bool mu_cut{tight_mu_pts.size() == 1 && tight_mu_pts.size() == loose_mu_pts.size()};
         	//bool lead_pt_cut{false};
         	//lead_pt_cut = tight_mu_pts.empty() ? false : *std::max_element(tight_mu_pts.begin(), tight_mu_pts.end()) > MIN_MU_PT;
         	//return lead_pt_cut && mu_cut;
@@ -441,51 +442,38 @@ void analyse(int argc, char* argv[])
 		return lead_mask;
 	}};
 
-	/*auto jet_delta_phi_cut{[](const floats& phi1, const floats& phi2){
-		return delta_phis >=2;//need to work on this... to say look at each element and pick the ones  >= 2
-	}};*/
+
 
 	auto find_z_pair{[](const floats& pts, const floats& etas, const floats& phis, const floats& ms, const ints& tight_jets, const ints& lead_bjet){
 		double z_reco_mass{std::numeric_limits<double>::infinity()};
 		size_t jet_index_1{std::numeric_limits<size_t>::max()};
 		size_t jet_index_2{std::numeric_limits<size_t>::max()};
 		const size_t njets{pts.size()};
-		cout<<"in Z Loop"<<endl;
 		for (size_t i{0}; i < njets; ++i)
 		{
-			cout<<"first loop "<<"size "<<njets<<endl;
 			for (size_t j{i + 1}; j < njets; ++j)
  			{
-				cout<< " i & j before removal of b jet "<<i<<" & "<<j<<endl; 
-				if (tight_jets[i] != 0 && tight_jets[j] != 0 && lead_bjet[i] != 1 && lead_bjet[j] != 1)
+				if(tight_jets[i] != 0 && tight_jets[j] != 0 && lead_bjet[i] != 1 && lead_bjet[j] != 1)
                 		{
                     			continue;
 	               		}
-                                cout<< " i & j after removal of b jet "<<i<<" & "<<j<<endl;
-				cout<<"in second loop and passed the jet phi condition"<<endl;
-				auto jet1{TLorentzVector{}};
+                                auto jet1{TLorentzVector{}};
                 		auto jet2{TLorentzVector{}};
                 		jet1.SetPtEtaPhiM(pts.at(i), etas.at(i), phis.at(i), ms.at(i));
                 		jet2.SetPtEtaPhiM(pts.at(j), etas.at(j), phis.at(j), ms.at(j));
 
                			if (const double reco_mass{(jet1 + jet2).M()}; std::abs(Z_MASS - reco_mass) < std::abs(Z_MASS - z_reco_mass))
                 		{
-					cout<<"before reco mass"<<endl;
-                    			z_reco_mass = reco_mass;
+					z_reco_mass = reco_mass;
                     			jet_index_1 = i;
                     			jet_index_2 = j;
-					cout<<"after reco mass "<<"i "<<i<<" j "<<j<<endl;
-					continue;
        				}
         		}
-			cout<<"left loop 2"<<endl;
         	}
-		cout<<"left loop one"<<endl;
+
 		ints z_pair(njets, 0);
-		cout<<"z pair defined "<<z_pair<<endl;
-        	z_pair.at(jet_index_1) = 1; cout<<"z pair line 1 "<<z_pair.at(jet_index_1) <<" z pair "<<z_pair<<endl;
-        	z_pair.at(jet_index_2) = 1; cout<<"z pair line 2 "<<z_pair.at(jet_index_2) <<" z pair "<<z_pair<<endl;
-		cout<<"z pair assigned"<<endl;
+        	z_pair.at(jet_index_1) = 1;
+        	z_pair.at(jet_index_2) = 1;
    		return z_pair;
 	}};
 
@@ -495,29 +483,47 @@ void analyse(int argc, char* argv[])
 
 
 	auto deltaR_z_l{[](const floats& deltaRzl){
-		bool deltaRzl_cut{false};
-                deltaRzl_cut = deltaRzl.empty() ? false : *std::max_element(deltaRzl.begin(), deltaRzl.end()) > DELTA_R_ZL;
-	return deltaRzl_cut;
+		float deltaRzl_cut{std::numeric_limits<float>::infinity()};
+		for(int i; i < deltaRzl.size(); i++)
+		{
+			if(abs(PI - deltaRzl.at(i)) < abs(PI - deltaRzl_cut))
+			{
+				deltaRzl_cut =  deltaRzl.at(i);
+			}
+		}
+		return deltaRzl_cut > DELTA_R_ZL;
         }};
 
         auto ZW_delta_phi_cut{[](const floats& phis1, const floats& phis2){
                 float phi1;
 		float phi2;
-		float deltaphi;
+		float deltaphi{std::numeric_limits<float>::infinity()};
 		for(int i; i < phis1.size(); i++)
 		{
 			phi1 = phis1.at(i);
 			for(int j; j < phis2.size(); j++)
 			{
-				float deltaphi;
 				phi2 = phis2.at(j);
-				deltaphi = abs(delta_phi(phi1, phi2));
+				if(const float test{abs(delta_phi(phi1, phi2))}; abs(PI -test ) < abs(PI - deltaphi))
+				{
+					deltaphi = test;
+				}
 			}
 		}
 		return deltaphi > DELTA_PHI_ZW;
-		//need to work on this... to say look at each elements and pick the ones with delta  >= 2
         }};
 
+        auto ZMetpt_delta_phi_cut{[](const floats& z_phi, const float met_pt){
+                float deltaPhiZMet_cut{std::numeric_limits<float>::infinity()};
+                for(int i; i < z_phi.size(); i++)
+                {
+                        if(const float test{abs(delta_phi(z_phi.at(i), met_pt))}; abs(PI - test) < abs(PI - deltaPhiZMet_cut))
+                        {
+                                deltaPhiZMet_cut =  test;
+                        }
+                }
+                return deltaPhiZMet_cut > DELTA_PHI_ZMET;
+        }};
 
 	auto TLorentzVectorMass{[](const TLorentzVector& object){
 		const float mass{object.M()};
@@ -625,6 +631,8 @@ void analyse(int argc, char* argv[])
                  						.Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
                                                                 .Define("z_e_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_ele_eta", "tight_ele_phi"})
 							        .Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
+                                                                .Filter(ZW_delta_phi_cut,{"z_pair_phi","w_e_phi"})
+                                                                .Filter(ZMetpt_delta_phi_cut, {"z_pair_phi", "MET_electron_pt_Selection"})
                  						.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
 
 
@@ -676,8 +684,9 @@ void analyse(int argc, char* argv[])
 								.Define("z_mu_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_mu_eta", "tight_mu_phi"})
 								.Filter(deltaR_z_l,{"z_mu_min_dR"}, "delta R ZL")
 								.Filter(ZW_delta_phi_cut,{"z_pair_phi","w_mu_phi"})
+								.Filter(ZMetpt_delta_phi_cut, {"z_pair_phi", "MET_mu_pt_Selection"})
                                                                 .Filter(z_mass_cut, {"z_mass"}, "z mass cut");
-/*
+
         auto d_munu_brec_selection = d_munu_z_rec_selection.Define("bjetmass", bjet_variable, bjet_mass_strings)
                                                         .Define("bjetpt", bjet_variable, bjet_pt_strings)
                                                         .Define("bjeteta", bjet_variable, bjet_eta_strings)
@@ -685,31 +694,31 @@ void analyse(int argc, char* argv[])
                                                         .Define("nbjets", numberofbjets, {"bjets"})
                                                         .Define("BJets", BLorentzVector, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "nbjets"});
 
-        auto d_munu_top_selection = d_munu_brec_selection .Define("RecoTop", top_reconstruction_function, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "w_mu_pt", "w_mu_eta", "w_mu_phi", "w_mu_mass"})
+        auto d_munu_top_selection = d_munu_brec_selection.Define("RecoTop", top_reconstruction_function, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "w_mu_pt", "w_mu_eta", "w_mu_phi", "w_mu_mass"})
                                                         .Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
                                                         .Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
                                                         .Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
                                                         .Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
-*/
+
 
 /////////////////////////////////////////////////////////////////////// E-Nu Channel histograms AND Canvases /////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////PT//////////////////////////////////////////////////////////////////////////////////
         //auto h_enu_events_ept = d_enu_top_selection.Histo1D({"electron_pt_enu_Channel","electron pt in electron-neutrino channel",20,0,150},"tight_ele_pt");
-	auto h_munu_events_mupt = d_munu_z_rec_selection.Histo1D({"mu_pt_enu_Channel","mu pt in mu-neutrino channel",20,0,150},"tight_mu_pt");
+	auto h_munu_events_mupt = d_munu_top_selection.Histo1D({"mu_pt_enu_Channel","mu pt in mu-neutrino channel",20,0,150},"tight_mu_pt");
 
         auto h_events_lept_canvas = new TCanvas("lepton pt", "lepton pt",10,10,900,900);
         /*h_enu_events_ept->GetXaxis()->SetTitle("Pt/GeV");
         h_enu_events_ept->GetYaxis()->SetTitle("Events");
         h_enu_events_ept->SetLineColor(kRed);*/
 	h_munu_events_mupt->SetLineColor(kBlue);
-        //h_enu_events_ept->Draw();
+       //h_enu_events_ept->Draw();
 	h_munu_events_mupt->DrawClone("SAME");
         h_events_lept_canvas->BuildLegend();
 	h_events_lept_canvas->SaveAs("leptons_pt.root");
 
 
         //auto h_enu_events_wmass = d_enu_top_selection.Histo1D({"enu_w_mass","electron-neutrino w mass",20,0,120},"w_e_mass");
-	auto h_munu_events_wmass = d_munu_z_rec_selection.Histo1D({"munu_w_mass","mu-neutrino w mass",20,0,120},"w_mu_mass");
+	auto h_munu_events_wmass = d_munu_top_selection.Histo1D({"munu_w_mass","mu-neutrino w mass",20,0,120},"w_mu_mass");
 
         auto h_events_wmass_canvas = new TCanvas("leptons w mass ", "leptons w mass",10,10,900,900);
         /*h_enu_events_wmass->GetXaxis()->SetTitle("mass/GeV/C^2");
@@ -724,7 +733,7 @@ void analyse(int argc, char* argv[])
 
 
         //auto h_enu_events_jpt = d_enu_top_selection.Histo1D({"jet_pt_enu_Channel","jet pt in electron-neutrino channel",20,0,150},"Jet_pt");
-	auto h_munu_events_jpt = d_munu_z_rec_selection.Histo1D({"jet_pt_munu_Channel","jet pt in mu-neutrino channel",20,0,150},"Jet_pt");
+	auto h_munu_events_jpt = d_munu_top_selection.Histo1D({"jet_pt_munu_Channel","jet pt in mu-neutrino channel",20,0,150},"Jet_pt");
 
 	auto h_events_jpt_canvas = new TCanvas("jet pt", "jet pt",10,10,900,900);
         /*h_enu_events_jpt->GetXaxis()->SetTitle("Pt/GeV");
@@ -737,7 +746,7 @@ void analyse(int argc, char* argv[])
         h_events_jpt_canvas->SaveAs("Jet_pts.root");
 
         //auto h_enu_events_zmass = d_enu_z_rec_selection.Histo1D({"Z_mass_enu_Channel","Z mass in electron-neutrino channel",20,0,150},"z_mass");
-	auto h_munu_events_zmass = d_munu_z_rec_selection.Histo1D({"Z_mass_munu_Channel","Z mass in mu-neutrino channel",20,0,150},"z_mass");
+	auto h_munu_events_zmass = d_munu_top_selection.Histo1D({"Z_mass_munu_Channel","Z mass in mu-neutrino channel",20,0,150},"z_mass");
 
         auto h_events_zmass_canvas = new TCanvas("Z mass", "Z mass",10,10,900,900);
         /*h_enu_events_zmass->GetXaxis()->SetTitle("mass/GeVC^2");
@@ -748,21 +757,21 @@ void analyse(int argc, char* argv[])
 	h_munu_events_zmass->DrawClone("SAME");
 	h_events_zmass_canvas->BuildLegend();
         h_events_zmass_canvas->SaveAs("Z_mass.root");
-/*
 
-        auto h_enu_events_topmass = d_enu_top_selection.Histo1D({"enu_top_mass","electron-neutrino top mass",20,0,250},"Top_Mass");
+
+        //auto h_enu_events_topmass = d_enu_top_selection.Histo1D({"enu_top_mass","electron-neutrino top mass",20,0,250},"Top_Mass");
         auto h_munu_events_topmass = d_munu_top_selection.Histo1D({"munu_top_mass","mu-neutrino top mass",20,0,250},"Top_Mass");
 
         auto h_events_topmass_canvas = new TCanvas("top mass ", "top mass",10,10,900,900);
-        h_enu_events_topmass->GetXaxis()->SetTitle("mass/GeV/C^2");
-        h_enu_events_topmass->GetYaxis()->SetTitle("Events");
-        h_enu_events_topmass->SetLineColor(kRed);
+        //h_enu_events_topmass->GetXaxis()->SetTitle("mass/GeV/C^2");
+        //h_enu_events_topmass->GetYaxis()->SetTitle("Events");
+        //h_enu_events_topmass->SetLineColor(kRed);
 	h_munu_events_topmass->SetLineColor(kBlue);
-        h_enu_events_topmass->Draw();
+        //h_enu_events_topmass->Draw();
 	h_munu_events_topmass->DrawClone("SAME");
         h_events_topmass_canvas->BuildLegend();
         h_events_topmass_canvas->SaveAs("topmass.root");
-*/
+
 /*
 
 ///////////////////////////////////////////////////////////////////////////ETA //////////////////////////////////////////////////////////////////////////
