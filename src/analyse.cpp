@@ -137,8 +137,11 @@ void analyse(int argc, char* argv[])
 
         std::cout << "I am starting"<<std::endl;
 
-   	ROOT::RDataFrame d{"Events", "/data/nanoAOD_2017/tZqlvqq/tZqlvqq/*.root"};
-	//ROOT::RDataFrame dc{"Events", "/data/nanoAOD_2017/tZqlvqq/388C7D88-9042-E811-9999-FA163E1CC0EA.root"};
+   	ROOT::RDataFrame d{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
+	ROOT::RDataFrame ww{"Events", "/data/disk0/nanoAOD_2017/WWToLNuQQ/*.root"};
+	ROOT::RDataFrame wz{"Events", "/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root"};
+	ROOT::RDataFrame zz{"Events", "/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root"};
+
 	//auto d = dc.Range(0, 100);
 	std::cout << "I have looked up the dataset"<<std::endl;
 /////////////////////////////////////////////////////////////////////////// Number of Particles Per Event /////////////////////////////////////////////////////////////////////
@@ -593,7 +596,7 @@ void analyse(int argc, char* argv[])
 	vector<string> bjet_eta_strings = {"Jet_eta", "nJet", "lead_bjet"};
 	vector<string> bjet_pt_strings = {"Jet_pt", "nJet", "lead_bjet"};
 	vector<string> bjet_phi_strings = {"Jet_phi", "nJet", "lead_bjet"};
-
+//////////////////////////////////////////////////////////////////////////////Signal ////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////Electron Channel/////////////////////////////////////////////////////////////////////////
 	auto d_enu_event_selection = d.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
@@ -701,6 +704,325 @@ void analyse(int argc, char* argv[])
                                                         .Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
 
 
+
+////////////////////////////////////////////////////////////////////////// WW///////////////////////////////////////////////////////////////////////////////////////
+
+	auto ww_enu_event_selection = ww.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
+                   			.Define("tight_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
+					.Define("tight_ele_eta", select<floats>, {"Electron_eta", "tight_eles"})
+					.Define("tight_ele_phi", select<floats>, {"Electron_phi", "tight_eles"})
+                   			.Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
+                   			.Define("loose_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
+					.Define("MET_phi_Selection",{"MET_phi"})
+					.Define("MET_electron_pt_Selection",{"MET_pt"})
+					.Filter(ele_met_selection_function, {"MET_electron_pt_Selection"}, "MET PT CUT")
+					.Filter(e_cut, {"tight_ele_pt", "loose_ele_pt"}, "lepton cut");
+
+	auto ww_enu_w_selection = ww_enu_event_selection.Define("w_e_eta", get_w_e_quantity_selector("eta"))
+                 					.Define("w_e_phi", get_w_e_quantity_selector("phi"))
+                 					.Define("w_e_pt", get_w_e_quantity_selector("pt"))
+							.Define("w_e_mass", transvers_W_mass, {"w_e_pt", "w_e_phi", "MET_electron_pt_Selection", "MET_phi_Selection"});
+                 					//.Filter(w_mass_cut, {"w_e_mass"}, "W mass cut");
+
+
+	auto ww_enu_jets_selection = ww_enu_w_selection.Define("jet_e_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "w_e_eta", "w_e_phi"})
+                   					.Define("tight_jets", tight_jet_id, {"jet_e_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
+                   					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
+
+	auto ww_enu_jets_bjets_selection = ww_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+                    					      .Filter(bjet_cut, {"bjets"}, "b jet cut");
+
+
+	auto ww_enu_z_rec_selection = ww_enu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
+                 						.Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "Jet_jetId", "lead_bjet"})
+                 						.Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
+                 						.Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
+                 						.Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
+                 						.Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
+                 						.Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
+                                                                .Define("z_e_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_ele_eta", "tight_ele_phi"})
+							        .Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
+                                                                .Filter(ZW_delta_phi_cut,{"z_pair_phi","w_e_phi"})
+                                                                .Filter(ZMetpt_delta_phi_cut, {"z_pair_phi", "MET_electron_pt_Selection"})
+                 						.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
+
+
+	auto ww_enu_brec_selection = ww_enu_z_rec_selection.Define("bjetmass", bjet_variable, bjet_mass_strings)
+							.Define("bjetpt", bjet_variable, bjet_pt_strings)
+							.Define("bjeteta", bjet_variable, bjet_eta_strings)
+							.Define("bjetphi", bjet_variable, bjet_phi_strings)
+							.Define("nbjets", numberofbjets, {"bjets"})
+							.Define("BJets", BLorentzVector, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "nbjets"});
+
+	auto ww_enu_top_selection = ww_enu_brec_selection.Define("RecoTop", top_reconstruction_function, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "w_e_pt", "w_e_eta", "w_e_phi", "w_e_mass"})
+							.Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
+							.Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
+							.Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
+							.Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
+
+///////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
+        auto ww_munu_event_selection = ww.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
+                                      .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
+				      .Define("tight_mu_eta", select<floats>, {"Muon_eta", "tight_mus"})
+				      .Define("tight_mu_phi", select<floats>, {"Muon_phi", "tight_mus"})
+                                      .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_softId", "Muon_pfRelIso04_all"})
+                                      .Define("loose_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
+                                      .Define("MET_phi_Selection",{"MET_phi"})
+                                      .Define("MET_mu_pt_Selection",{"MET_pt"})
+                                      .Filter(mu_met_selection_function, {"MET_mu_pt_Selection"}, "MET PT CUT")
+                                      .Filter(e_cut, {"tight_mu_pt", "loose_mu_pt"}, "lepton cut");
+
+        auto ww_munu_w_selection = ww_munu_event_selection.Define("w_mu_eta", get_w_mu_quantity_selector("eta"))
+                                                        .Define("w_mu_phi", get_w_mu_quantity_selector("phi"))
+                                                        .Define("w_mu_pt", get_w_mu_quantity_selector("pt"))
+                                                        .Define("w_mu_mass", transvers_W_mass, {"w_mu_pt", "w_mu_phi", "MET_mu_pt_Selection", "MET_phi_Selection"});
+                                                        //.Filter(w_mass_cut, {"w_mu_mass"}, "W mass cut");
+
+        auto ww_munu_jets_selection = ww_munu_w_selection.Define("jet_mu_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "w_mu_eta", "w_mu_phi"})
+                                                        .Define("tight_jets", tight_jet_id, {"jet_mu_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
+                                                        .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
+
+        auto ww_munu_jets_bjets_selection = ww_munu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+                                                              .Filter(bjet_cut, {"bjets"}, "b jet cut");
+
+  	auto ww_munu_z_rec_selection = ww_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
+                                                                .Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "Jet_jetId", "lead_bjet"})
+                                                                .Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
+                                                                .Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
+                                                                .Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
+                                                                .Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
+                                                                .Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
+								.Define("z_mu_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_mu_eta", "tight_mu_phi"})
+								.Filter(deltaR_z_l,{"z_mu_min_dR"}, "delta R ZL")
+								.Filter(ZW_delta_phi_cut,{"z_pair_phi","w_mu_phi"})
+								.Filter(ZMetpt_delta_phi_cut, {"z_pair_phi", "MET_mu_pt_Selection"})
+                                                                .Filter(z_mass_cut, {"z_mass"}, "z mass cut");
+
+        auto ww_munu_brec_selection = ww_munu_z_rec_selection.Define("bjetmass", bjet_variable, bjet_mass_strings)
+                                                        .Define("bjetpt", bjet_variable, bjet_pt_strings)
+                                                        .Define("bjeteta", bjet_variable, bjet_eta_strings)
+                                                        .Define("bjetphi", bjet_variable, bjet_phi_strings)
+                                                        .Define("nbjets", numberofbjets, {"bjets"})
+                                                        .Define("BJets", BLorentzVector, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "nbjets"});
+
+        auto ww_munu_top_selection = ww_munu_brec_selection.Define("RecoTop", top_reconstruction_function, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "w_mu_pt", "w_mu_eta", "w_mu_phi", "w_mu_mass"})
+                                                        .Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
+                                                        .Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
+                                                        .Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
+                                                        .Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
+
+///////////////////////////////////////////////////////////////////////////Electron Channel/////////////////////////////////////////////////////////////////////////
+	auto wz_enu_event_selection = wz.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
+                   			.Define("tight_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
+					.Define("tight_ele_eta", select<floats>, {"Electron_eta", "tight_eles"})
+					.Define("tight_ele_phi", select<floats>, {"Electron_phi", "tight_eles"})
+                   			.Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
+                   			.Define("loose_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
+					.Define("MET_phi_Selection",{"MET_phi"})
+					.Define("MET_electron_pt_Selection",{"MET_pt"})
+					.Filter(ele_met_selection_function, {"MET_electron_pt_Selection"}, "MET PT CUT")
+					.Filter(e_cut, {"tight_ele_pt", "loose_ele_pt"}, "lepton cut");
+
+	auto wz_enu_w_selection = wz_enu_event_selection.Define("w_e_eta", get_w_e_quantity_selector("eta"))
+                 					.Define("w_e_phi", get_w_e_quantity_selector("phi"))
+                 					.Define("w_e_pt", get_w_e_quantity_selector("pt"))
+							.Define("w_e_mass", transvers_W_mass, {"w_e_pt", "w_e_phi", "MET_electron_pt_Selection", "MET_phi_Selection"});
+                 					//.Filter(w_mass_cut, {"w_e_mass"}, "W mass cut");
+
+
+	auto wz_enu_jets_selection = wz_enu_w_selection.Define("jet_e_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "w_e_eta", "w_e_phi"})
+                   					.Define("tight_jets", tight_jet_id, {"jet_e_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
+                   					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
+
+	auto wz_enu_jets_bjets_selection = wz_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+                    					      .Filter(bjet_cut, {"bjets"}, "b jet cut");
+
+
+	auto wz_enu_z_rec_selection = wz_enu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
+                 						.Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "Jet_jetId", "lead_bjet"})
+                 						.Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
+                 						.Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
+                 						.Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
+                 						.Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
+                 						.Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
+                                                                .Define("z_e_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_ele_eta", "tight_ele_phi"})
+							        .Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
+                                                                .Filter(ZW_delta_phi_cut,{"z_pair_phi","w_e_phi"})
+                                                                .Filter(ZMetpt_delta_phi_cut, {"z_pair_phi", "MET_electron_pt_Selection"})
+                 						.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
+
+
+	auto wz_enu_brec_selection = wz_enu_z_rec_selection.Define("bjetmass", bjet_variable, bjet_mass_strings)
+							.Define("bjetpt", bjet_variable, bjet_pt_strings)
+							.Define("bjeteta", bjet_variable, bjet_eta_strings)
+							.Define("bjetphi", bjet_variable, bjet_phi_strings)
+							.Define("nbjets", numberofbjets, {"bjets"})
+							.Define("BJets", BLorentzVector, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "nbjets"});
+
+	auto wz_enu_top_selection = wz_enu_brec_selection.Define("RecoTop", top_reconstruction_function, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "w_e_pt", "w_e_eta", "w_e_phi", "w_e_mass"})
+							.Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
+							.Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
+							.Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
+							.Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
+
+///////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
+        auto wz_munu_event_selection = wz.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
+                                      .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
+				      .Define("tight_mu_eta", select<floats>, {"Muon_eta", "tight_mus"})
+				      .Define("tight_mu_phi", select<floats>, {"Muon_phi", "tight_mus"})
+                                      .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_softId", "Muon_pfRelIso04_all"})
+                                      .Define("loose_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
+                                      .Define("MET_phi_Selection",{"MET_phi"})
+                                      .Define("MET_mu_pt_Selection",{"MET_pt"})
+                                      .Filter(mu_met_selection_function, {"MET_mu_pt_Selection"}, "MET PT CUT")
+                                      .Filter(e_cut, {"tight_mu_pt", "loose_mu_pt"}, "lepton cut");
+
+        auto wz_munu_w_selection = wz_munu_event_selection.Define("w_mu_eta", get_w_mu_quantity_selector("eta"))
+                                                        .Define("w_mu_phi", get_w_mu_quantity_selector("phi"))
+                                                        .Define("w_mu_pt", get_w_mu_quantity_selector("pt"))
+                                                        .Define("w_mu_mass", transvers_W_mass, {"w_mu_pt", "w_mu_phi", "MET_mu_pt_Selection", "MET_phi_Selection"});
+                                                        //.Filter(w_mass_cut, {"w_mu_mass"}, "W mass cut");
+
+        auto wz_munu_jets_selection = wz_munu_w_selection.Define("jet_mu_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "w_mu_eta", "w_mu_phi"})
+                                                        .Define("tight_jets", tight_jet_id, {"jet_mu_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
+                                                        .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
+
+        auto wz_munu_jets_bjets_selection = wz_munu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+                                                              .Filter(bjet_cut, {"bjets"}, "b jet cut");
+
+  	auto wz_munu_z_rec_selection = wz_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
+                                                                .Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "Jet_jetId", "lead_bjet"})
+                                                                .Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
+                                                                .Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
+                                                                .Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
+                                                                .Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
+                                                                .Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
+								.Define("z_mu_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_mu_eta", "tight_mu_phi"})
+								.Filter(deltaR_z_l,{"z_mu_min_dR"}, "delta R ZL")
+								.Filter(ZW_delta_phi_cut,{"z_pair_phi","w_mu_phi"})
+								.Filter(ZMetpt_delta_phi_cut, {"z_pair_phi", "MET_mu_pt_Selection"})
+                                                                .Filter(z_mass_cut, {"z_mass"}, "z mass cut");
+
+        auto wz_munu_brec_selection = wz_munu_z_rec_selection.Define("bjetmass", bjet_variable, bjet_mass_strings)
+                                                        .Define("bjetpt", bjet_variable, bjet_pt_strings)
+                                                        .Define("bjeteta", bjet_variable, bjet_eta_strings)
+                                                        .Define("bjetphi", bjet_variable, bjet_phi_strings)
+                                                        .Define("nbjets", numberofbjets, {"bjets"})
+                                                        .Define("BJets", BLorentzVector, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "nbjets"});
+
+        auto wz_munu_top_selection = wz_munu_brec_selection.Define("RecoTop", top_reconstruction_function, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "w_mu_pt", "w_mu_eta", "w_mu_phi", "w_mu_mass"})
+                                                        .Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
+                                                        .Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
+                                                        .Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
+                                                        .Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
+
+
+///////////////////////////////////////////////////////////////////////////Electron Channel/////////////////////////////////////////////////////////////////////////
+	auto zz_enu_event_selection = zz.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
+                   			.Define("tight_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
+					.Define("tight_ele_eta", select<floats>, {"Electron_eta", "tight_eles"})
+					.Define("tight_ele_phi", select<floats>, {"Electron_phi", "tight_eles"})
+                   			.Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
+                   			.Define("loose_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
+					.Define("MET_phi_Selection",{"MET_phi"})
+					.Define("MET_electron_pt_Selection",{"MET_pt"})
+					.Filter(ele_met_selection_function, {"MET_electron_pt_Selection"}, "MET PT CUT")
+					.Filter(e_cut, {"tight_ele_pt", "loose_ele_pt"}, "lepton cut");
+
+	auto zz_enu_w_selection = zz_enu_event_selection.Define("w_e_eta", get_w_e_quantity_selector("eta"))
+                 					.Define("w_e_phi", get_w_e_quantity_selector("phi"))
+                 					.Define("w_e_pt", get_w_e_quantity_selector("pt"))
+							.Define("w_e_mass", transvers_W_mass, {"w_e_pt", "w_e_phi", "MET_electron_pt_Selection", "MET_phi_Selection"});
+                 					//.Filter(w_mass_cut, {"w_e_mass"}, "W mass cut");
+
+
+	auto zz_enu_jets_selection = zz_enu_w_selection.Define("jet_e_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "w_e_eta", "w_e_phi"})
+                   					.Define("tight_jets", tight_jet_id, {"jet_e_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
+                   					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
+
+	auto zz_enu_jets_bjets_selection = zz_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+                    					      .Filter(bjet_cut, {"bjets"}, "b jet cut");
+
+
+	auto zz_enu_z_rec_selection = zz_enu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
+                 						.Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "Jet_jetId", "lead_bjet"})
+                 						.Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
+                 						.Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
+                 						.Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
+                 						.Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
+                 						.Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
+                                                                .Define("z_e_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_ele_eta", "tight_ele_phi"})
+							        .Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
+                                                                .Filter(ZW_delta_phi_cut,{"z_pair_phi","w_e_phi"})
+                                                                .Filter(ZMetpt_delta_phi_cut, {"z_pair_phi", "MET_electron_pt_Selection"})
+                 						.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
+
+
+	auto zz_enu_brec_selection = zz_enu_z_rec_selection.Define("bjetmass", bjet_variable, bjet_mass_strings)
+							.Define("bjetpt", bjet_variable, bjet_pt_strings)
+							.Define("bjeteta", bjet_variable, bjet_eta_strings)
+							.Define("bjetphi", bjet_variable, bjet_phi_strings)
+							.Define("nbjets", numberofbjets, {"bjets"})
+							.Define("BJets", BLorentzVector, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "nbjets"});
+
+	auto zz_enu_top_selection = zz_enu_brec_selection.Define("RecoTop", top_reconstruction_function, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "w_e_pt", "w_e_eta", "w_e_phi", "w_e_mass"})
+							.Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
+							.Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
+							.Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
+							.Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
+
+///////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
+        auto zz_munu_event_selection = zz.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
+                                      .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
+				      .Define("tight_mu_eta", select<floats>, {"Muon_eta", "tight_mus"})
+				      .Define("tight_mu_phi", select<floats>, {"Muon_phi", "tight_mus"})
+                                      .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_softId", "Muon_pfRelIso04_all"})
+                                      .Define("loose_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
+                                      .Define("MET_phi_Selection",{"MET_phi"})
+                                      .Define("MET_mu_pt_Selection",{"MET_pt"})
+                                      .Filter(mu_met_selection_function, {"MET_mu_pt_Selection"}, "MET PT CUT")
+                                      .Filter(e_cut, {"tight_mu_pt", "loose_mu_pt"}, "lepton cut");
+
+        auto zz_munu_w_selection = zz_munu_event_selection.Define("w_mu_eta", get_w_mu_quantity_selector("eta"))
+                                                        .Define("w_mu_phi", get_w_mu_quantity_selector("phi"))
+                                                        .Define("w_mu_pt", get_w_mu_quantity_selector("pt"))
+                                                        .Define("w_mu_mass", transvers_W_mass, {"w_mu_pt", "w_mu_phi", "MET_mu_pt_Selection", "MET_phi_Selection"});
+                                                        //.Filter(w_mass_cut, {"w_mu_mass"}, "W mass cut");
+
+        auto zz_munu_jets_selection = zz_munu_w_selection.Define("jet_mu_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "w_mu_eta", "w_mu_phi"})
+                                                        .Define("tight_jets", tight_jet_id, {"jet_mu_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
+                                                        .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
+
+        auto zz_munu_jets_bjets_selection = zz_munu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+                                                              .Filter(bjet_cut, {"bjets"}, "b jet cut");
+
+  	auto zz_munu_z_rec_selection = zz_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
+                                                                .Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "Jet_jetId", "lead_bjet"})
+                                                                .Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
+                                                                .Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
+                                                                .Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
+                                                                .Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
+                                                                .Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
+								.Define("z_mu_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_mu_eta", "tight_mu_phi"})
+								.Filter(deltaR_z_l,{"z_mu_min_dR"}, "delta R ZL")
+								.Filter(ZW_delta_phi_cut,{"z_pair_phi","w_mu_phi"})
+								.Filter(ZMetpt_delta_phi_cut, {"z_pair_phi", "MET_mu_pt_Selection"})
+                                                                .Filter(z_mass_cut, {"z_mass"}, "z mass cut");
+
+        auto zz_munu_brec_selection = zz_munu_z_rec_selection.Define("bjetmass", bjet_variable, bjet_mass_strings)
+                                                        .Define("bjetpt", bjet_variable, bjet_pt_strings)
+                                                        .Define("bjeteta", bjet_variable, bjet_eta_strings)
+                                                        .Define("bjetphi", bjet_variable, bjet_phi_strings)
+                                                        .Define("nbjets", numberofbjets, {"bjets"})
+                                                        .Define("BJets", BLorentzVector, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "nbjets"});
+
+        auto zz_munu_top_selection = zz_munu_brec_selection.Define("RecoTop", top_reconstruction_function, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "w_mu_pt", "w_mu_eta", "w_mu_phi", "w_mu_mass"})
+                                                        .Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
+                                                        .Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
+                                                        .Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
+                                                        .Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
+
+
 /////////////////////////////////////////////////////////////////////// E-Nu Channel histograms AND Canvases /////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////PT//////////////////////////////////////////////////////////////////////////////////
         auto h_enu_events_ept = d_enu_top_selection.Histo1D({"electron_pt_enu_Channel","electron pt in electron-neutrino channel",100,0,150},"tight_ele_pt");
@@ -763,7 +1085,7 @@ void analyse(int argc, char* argv[])
 	h_events_zmass_canvas->BuildLegend();
         h_events_zmass_canvas->SaveAs("Z_mass.root");
 	h_events_zmass_canvas->SaveAs("Z_mass.pdf");
-/*
+ /*
 
         auto h_enu_events_topmass = d_enu_top_selection.Histo1D({"enu_top_mass","electron-neutrino top mass",100,0,250},"Top_Mass");
         auto h_munu_events_topmass = d_munu_top_selection.Histo1D({"munu_top_mass","mu-neutrino top mass",100,0,250},"Top_Mass");
@@ -778,7 +1100,6 @@ void analyse(int argc, char* argv[])
         h_events_topmass_canvas->BuildLegend();
         h_events_topmass_canvas->SaveAs("topmass.root");
 	h_events_topmass_canvas->SaveAs("topmass.pdf");
-/*
 
 ///////////////////////////////////////////////////////////////////////////ETA //////////////////////////////////////////////////////////////////////////
         auto h_enu_events_eeta = d_enu_jets_selection.Histo1D({"electron_eta_enu_Channel","electron eta in electron-neutrino channel",20,-5,5},"Electron_eta_Selection");
@@ -1012,7 +1333,7 @@ void analyse(int argc, char* argv[])
         Z_Rec_M->SaveAs("rec_z_mass.root");*/
 	//ReconZ_massCanvas->SaveAs("rec_z_mass.pdf");
 /////////////////////////////////////////////////////////////////////////////// Pt And ETa Test/////////////////////////////////////////////////////////////////
-
+/*
 	auto electron_pT = d.Histo1D({"Electron pT","Electron_pT",20,0,200},"Electron_pt");
 	auto electron_pTCanvas = new TCanvas("Electron pT", "Electron_pT",10,10,700,700);
 	electron_pT->GetXaxis()->SetTitle("pT/GeV");
@@ -1031,7 +1352,7 @@ void analyse(int argc, char* argv[])
         electron_etaCanvas->BuildLegend();
         electron_eta->Draw();
         electron_etaCanvas->SaveAs("Pure_electron_eta.root");
-
+*/
 /////////////////////////////////////////////////////////////////  Z Recon from U Histo2D /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TO DO
