@@ -402,9 +402,9 @@ void analyse(int argc, char* argv[])
 	}};
 
 
-	auto w_mass_cut{[](const float& w_mass) {
+	/*auto w_mass_cut{[](const floats& w_mass) {;
         	return std::abs(w_mass - W_MASS) < W_MASS_CUT;
-   	}};
+   	}};*/
 
 
 	auto jet_lep_min_deltaR{[](const floats& jet_etas, const floats& jet_phis, const floats& lep_etas, const floats& lep_phis) {
@@ -2099,7 +2099,7 @@ auto se_enu_event_selection = Se.Define("tight_eles", is_good_tight_ele, {"Elect
         h_wz_munu_events_jeta->Draw("SAME");
         h_ttZ_munu_events_jeta->Draw("SAME");
         h_zz_munu_events_jeta->Draw("SAME");
-        //h_se_munu_events_jeta->Draw("SAME");
+        //h_smu_munu_events_jeta->Draw("SAME");
         //h_met_munu_events_jeta->Draw("SAME");
 
         h_munu_events_jeta_canvas->BuildLegend();
@@ -2113,7 +2113,7 @@ auto se_enu_event_selection = Se.Define("tight_eles", is_good_tight_ele, {"Elect
         auto h_wz_munu_events_wmass = wz_munu_top_selection.Histo1D({"WZ munu_w_mass","WZ Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
         auto h_ttZ_munu_events_wmass = ttZ_munu_top_selection.Histo1D({"ttZ munu_w_mass","ttZ Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
         auto h_zz_munu_events_wmass = zz_munu_top_selection.Histo1D({"ZZ munu_w_mass","ZZ Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
-        //auto h_smu_munu_events_wmass = se_munu_top_selection.Histo1D({"Single Muon munu_w_mass","Single Muon Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
+        //auto h_smu_munu_events_wmass = smu_munu_top_selection.Histo1D({"Single Muon munu_w_mass","Single Muon Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
         //auto h_met_munu_events_wmass = met_munu_top_selection.Histo1D({"MET munu_w_mass","MET Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
 
 
@@ -2126,7 +2126,7 @@ auto se_enu_event_selection = Se.Define("tight_eles", is_good_tight_ele, {"Elect
         h_wz_munu_events_wmass->SetLineColor(kOrange);
         h_ttZ_munu_events_wmass->SetLineColor(kYellow);
         h_zz_munu_events_wmass->SetLineColor(kTeal);
-        //h_se_munu_events_wmass->SetLineColor(kViolet);
+        //h_smu_munu_events_wmass->SetLineColor(kViolet);
         //h_met_munu_events_wmass->SetLineColor(kPink);
 
         h_d_munu_events_wmass->Scale(TZQ_W);
