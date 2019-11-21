@@ -1547,7 +1547,7 @@ auto se_enu_event_selection = Se.Define("tight_eles", is_good_tight_ele, {"Elect
         auto h_ww_enu_events_eeta = ww_enu_top_selection.Histo1D({"WW electron_eta_enu_Channel","WW electron eta in electron-neutrino channel",50,0,150},"tight_ele_eta");
         auto h_wz_enu_events_eeta = wz_enu_top_selection.Histo1D({"WZ electron_eta_enu_Channel","WZ electron eta in electron-neutrino channel",50,0,150},"tight_ele_eta");
         auto h_zz_enu_events_eeta = zz_enu_top_selection.Histo1D({"ZZ electron_eta_enu_Channel","ZZ electron eta in electron-neutrino channel",50,0,150},"tight_ele_eta");
-        auto h_ttZ_enu_events_eeta = ttZ_enu_top_selection.Histo1D({"ttZ electron_eta_enu_Channel","ttZ electron eta in electron-neutrino channel",50,0,150},"tight_eta");
+        auto h_ttZ_enu_events_eeta = ttZ_enu_top_selection.Histo1D({"ttZ electron_eta_enu_Channel","ttZ electron eta in electron-neutrino channel",50,0,150},"tight_ele_eta");
         //auto h_se_enu_events_eeta = se_enu_top_selection.Histo1D({"Single Electron electron_eta_enu_Channel","Single Electron electron eta in electron-neutrino channel",50,0,150},"tight_ele_eta");
         //auto h_met_enu_events_eeta = met_enu_top_selection.Histo1D({"MET electron_eta_enu_Channel","MET electron eta in electron-neutrino channel",50,0,150},"tight_ele_eta");
 
@@ -1937,15 +1937,15 @@ auto se_enu_event_selection = Se.Define("tight_eles", is_good_tight_ele, {"Elect
 
 
 //////////////////////////////////////////////////////////////////////// Mu-Nu MCs //////////////////////////////////////////////////////////////////////////////////
-        auto h_d_munu_events_mupt = d_munu_top_selection.Histo1D({"MC Muon_pt_enu_Channel","MC Muon pt in muon-neutrino channel",50,0,150},"tight_mu_pt");
-        auto h_ww_munu_events_mupt = ww_munu_top_selection.Histo1D({"WW Muon_pt_enu_Channel","WW Muon pt in Muon-neutrino channel",50,0,150},"tight_mu_pt");
-        auto h_wz_munu_events_mupt = wz_munu_top_selection.Histo1D({"WZ Muon_pt_enu_Channel","WZ Muon pt in Muon-neutrino channel",50,0,150},"tight_mu_pt");
-        auto h_zz_munu_events_mupt = zz_munu_top_selection.Histo1D({"ZZ Muon_pt_enu_Channel","ZZ Muon pt in Muon-neutrino channel",50,0,150},"tight_mu_pt");
-        auto h_ttZ_munu_events_mupt = ttZ_munu_top_selection.Histo1D({"ttZ Muon_pt_enu_Channel","ttZ Muon pt in Muon-neutrino channel",50,0,150},"tight_mu_pt");
-	//auto h_sm_munu_events_mupt = sm_munu_top_selection.Histo1D({"Single Muon Muon_pt_enu_Channel","Single Muon Muon pt in Muon-neutrino channel",50,0,150},"tight_mu_pt");
-	//auto h_met_munu_events_mupt = met_munu_top_selection.Histo1D({"MET Muon_pt_enu_Channel","MET Muon pt in Muon-neutrino channel",50,0,150},"tight_mu_pt");
+        auto h_d_munu_events_mupt = d_munu_top_selection.Histo1D({"MC muon_pt_munu_Channel","MC muon pt in muon-neutrino channel",50,0,150},"tight_mu_pt");
+        auto h_ww_munu_events_mupt = ww_munu_top_selection.Histo1D({"WW muon_pt_munu_Channel","WW muon pt in muon-neutrino channel",50,0,150},"tight_mu_pt");
+        auto h_wz_munu_events_mupt = wz_munu_top_selection.Histo1D({"WZ muon_pt_munu_Channel","WZ muon pt in muon-neutrino channel",50,0,150},"tight_mu_pt");
+        auto h_zz_munu_events_mupt = zz_munu_top_selection.Histo1D({"ZZ muon_pt_munu_Channel","ZZ muon pt in muon-neutrino channel",50,0,150},"tight_mu_pt");
+        auto h_ttZ_munu_events_mupt = ttZ_munu_top_selection.Histo1D({"ttZ muon_pt_munu_Channel","ttZ muon pt in muon-neutrino channel",50,0,150},"tight_mu_pt");
+	//auto h_smu_munu_events_mupt = se_munu_top_selection.Histo1D({"Single Muon muon_pt_munu_Channel","Single muon muon pt in muon-neutrino channel",50,0,150},"tight_mu_pt");
+	//auto h_met_munu_events_mupt = met_munu_top_selection.Histo1D({"MET muon_pt_munu_Channel","MET muon pt in muon-neutrino channel",50,0,150},"tight_mu_pt");
 
-        auto h_events_mupt_canvas = new TCanvas("Muon pt", "Muon pt",10,10,900,900);
+        auto h_events_mupt_canvas = new TCanvas("muon pt", "muon pt",10,10,900,900);
 
 	h_d_munu_events_mupt->GetXaxis()->SetTitle("Pt/GeV");
         h_d_munu_events_mupt->GetYaxis()->SetTitle("Events");
@@ -1954,11 +1954,15 @@ auto se_enu_event_selection = Se.Define("tight_eles", is_good_tight_ele, {"Elect
         h_ww_munu_events_mupt->SetLineColor(kRed);
         h_wz_munu_events_mupt->SetLineColor(kOrange);
         h_ttZ_munu_events_mupt->SetLineColor(kYellow);
-        h_zz_munu_events_mupt->GetXaxis()->SetTitle("Pt/GeV");
-        h_zz_munu_events_mupt->GetYaxis()->SetTitle("Events");
         h_zz_munu_events_mupt->SetLineColor(kTeal);
-	//h_sm_munu_events_mupt->SetLineColor(kViolet);
+	//h_smu_munu_events_mupt->SetLineColor(kViolet);
 	//h_met_munu_events_mupt->SetLineColor(kPink);
+
+	h_d_munu_events_mupt->Scale(TZQ_W);
+	h_ww_munu_events_mupt->Scale(WWLNQQ_W);
+	h_wz_munu_events_mupt->Scale(WZLNQQ_W);
+	h_ttZ_munu_events_mupt->Scale(TTZQQ_W);
+	h_zz_munu_events_mupt->Scale(ZZLLQQ_W);
 
 
 	h_d_munu_events_mupt->Draw();
@@ -1966,13 +1970,142 @@ auto se_enu_event_selection = Se.Define("tight_eles", is_good_tight_ele, {"Elect
         h_wz_munu_events_mupt->Draw("SAME");
         h_ttZ_munu_events_mupt->Draw("SAME");
         h_zz_munu_events_mupt->Draw("SAME");
-	//h_sm_munu_events_mupt->Draw("SAME");
+	//h_smu_munu_events_mupt->Draw("SAME");
 	//h_met_munu_events_mupt->Draw("SAME");
-
 
         h_events_mupt_canvas->BuildLegend();
 	h_events_mupt_canvas->SaveAs("munu_pt.root");
 	h_events_mupt_canvas->SaveAs("munu_pt.pdf");
+
+
+	auto h_d_munu_events_jpt = d_munu_top_selection.Histo1D({"MC jet_pt_munu_Channel","MC jet pt in muon-neutrino channel",50,0,150},"tight_jets_pt");
+        auto h_ww_munu_events_jpt = ww_munu_top_selection.Histo1D({"WW jet_pt_munu_Channel","WW jet pt in muon-neutrino channel",50,0,150},"tight_jets_pt");
+        auto h_wz_munu_events_jpt = wz_munu_top_selection.Histo1D({"WZ jet_pt_munu_Channel","WZ jet pt in muon-neutrino channel",50,0,150},"tight_jets_pt");
+        auto h_zz_munu_events_jpt = zz_munu_top_selection.Histo1D({"ZZ jet_pt_munu_Channel","ZZ jet pt in muon-neutrino channel",50,0,150},"tight_jets_pt");
+        auto h_ttZ_munu_events_jpt = ttZ_munu_top_selection.Histo1D({"ttZ jet_pt_munu_Channel","ttZ jet pt in muon-neutrino channel",50,0,150},"tight_jets_pt");
+	//auto h_smu_munu_events_jpt = smu_munu_top_selection.Histo1D({"Single muon jet_pt_munu_Channel","ttZ jet pt in muon-neutrino channel",50,0,150},"tight_jets_pt");
+	//auto h_met_munu_events_jpt = met_munu_top_selection.Histo1D({"MET jet_pt_munu_Channel","ttZ jet pt in muon-neutrino channel",50,0,150},"tight_jets_pt");
+
+	auto h_munu_events_jetpt_canvas = new TCanvas("mu nu jet pt ", "munu jet pt",10,10,900,900);
+
+        h_d_munu_events_jpt->GetXaxis()->SetTitle("pt / GeV");
+        h_d_munu_events_jpt->GetYaxis()->SetTitle("Events");
+        h_d_munu_events_jpt->SetLineColor(kBlack);
+        h_ww_munu_events_jpt->SetLineColor(kRed);
+        h_wz_munu_events_jpt->SetLineColor(kOrange);
+        h_ttZ_munu_events_jpt->SetLineColor(kYellow);
+        h_zz_munu_events_jpt->SetLineColor(kTeal);
+        //h_se_munu_events_jpt->SetLineColor(kViolet);
+        //h_met_munu_events_jpt->SetLineColor(kPink);
+
+        h_d_munu_events_jpt->Scale(TZQ_W);
+        h_ww_munu_events_jpt->Scale(WWLNQQ_W);
+        h_wz_munu_events_jpt->Scale(WZLNQQ_W);
+        h_ttZ_munu_events_jpt->Scale(TTZQQ_W);
+        h_zz_munu_events_jpt->Scale(ZZLLQQ_W);
+
+
+
+        h_d_munu_events_jpt->Draw();
+        h_ww_munu_events_jpt->Draw("SAME");
+        h_wz_munu_events_jpt->Draw("SAME");
+        h_ttZ_munu_events_jpt->Draw("SAME");
+        h_zz_munu_events_jpt->Draw("SAME");
+        //h_smu_munu_events_jpt->Draw("SAME");
+        //h_met_munu_events_jpt->Draw("SAME");
+
+        h_munu_events_jetpt_canvas->BuildLegend();
+        h_munu_events_jetpt_canvas->SaveAs("munu_jetpt.root");
+        h_munu_events_jetpt_canvas->SaveAs("munu_jetpt.pdf");
+
+
+
+
+        auto h_d_munu_events_mueta = d_munu_top_selection.Histo1D({"MC muon_eta_enu_Channel","MC muon eta in muon-neutrino channel",50,0,150},"tight_mu_eta");
+        auto h_ww_munu_events_mueta = ww_munu_top_selection.Histo1D({"WW muon_eta_enu_Channel","WW muon eta in muon-neutrino channel",50,0,150},"tight_mu_eta");
+        auto h_wz_munu_events_mueta = wz_munu_top_selection.Histo1D({"WZ muon_eta_enu_Channel","WZ muon eta in muon-neutrino channel",50,0,150},"tight_mu_eta");
+        auto h_zz_munu_events_mueta = zz_munu_top_selection.Histo1D({"ZZ muon_eta_enu_Channel","ZZ muon eta in muon-neutrino channel",50,0,150},"tight_mu_eta");
+        auto h_ttZ_munu_events_mueta = ttZ_munu_top_selection.Histo1D({"ttZ muon_eta_enu_Channel","ttZ muon eta in muon-neutrino channel",50,0,150},"tight_mu_eta");
+        //auto h_smu_munu_events_mueta = smu_munu_top_selection.Histo1D({"Single Muon muon_eta_Channel","Single Muon Muon eta in muon-neutrino channel",50,0,150},"tight_mu_eta");
+        //auto h_met_munu_events_mueta = met_munu_top_selection.Histo1D({"MET Muon_eta_Channel","MET muon eta in muon-neutrino channel",50,0,150},"tight_mu_eta");
+
+
+        auto h_events_mueta_canvas = new TCanvas("Muon eta", "Muon eta",10,10,900,900);
+
+        h_d_munu_events_mueta->GetXaxis()->SetTitle("eta");
+        h_d_munu_events_mueta->GetYaxis()->SetTitle("Events");
+
+        h_d_munu_events_mueta->SetLineColor(kBlack);
+        h_ww_munu_events_mueta->SetLineColor(kRed);
+        h_wz_munu_events_mueta->SetLineColor(kOrange);
+        h_ttZ_munu_events_mueta->SetLineColor(kYellow);
+        h_zz_munu_events_mueta->SetLineColor(kTeal);
+        //h_smu_munu_events_mueta->SetLineColor(kViolet);
+        //h_met_munu_events_mueta->SetLineColor(kPink);
+
+        h_d_munu_events_mueta->Scale(TZQ_W);
+        h_ww_munu_events_mueta->Scale(WWLNQQ_W);
+        h_wz_munu_events_mueta->Scale(WZLNQQ_W);
+        h_ttZ_munu_events_mueta->Scale(TTZQQ_W);
+        h_zz_munu_events_mueta->Scale(ZZLLQQ_W);
+
+
+        h_d_munu_events_mueta->Draw();
+        h_ww_munu_events_mueta->Draw("SAME");
+        h_wz_munu_events_mueta->Draw("SAME");
+        h_ttZ_munu_events_mueta->Draw("SAME");
+        h_zz_munu_events_mueta->Draw("SAME");
+        //h_smu_munu_events_mueta->Draw("SAME");
+        //h_met_munu_events_mueta->Draw("SAME");
+
+        h_events_mueta_canvas->BuildLegend();
+        h_events_mueta_canvas->SaveAs("munu_eta.root");
+        h_events_mueta_canvas->SaveAs("munu_eta.pdf");
+
+
+
+        auto h_d_munu_events_jeta = d_munu_top_selection.Histo1D({"MC jet_eta_munu_Channel","MC jet eta in Muon-neutrino channel",50,0,150},"tight_jets_eta");
+        auto h_ww_munu_events_jeta = ww_munu_top_selection.Histo1D({"WW jet_eta_munu_Channel","WW jet eta in Muon-neutrino channel",50,0,150},"tight_jets_eta");
+        auto h_wz_munu_events_jeta = wz_munu_top_selection.Histo1D({"WZ jet_eta_munu_Channel","WZ jet eta in Muon-neutrino channel",50,0,150},"tight_jets_eta");
+        auto h_zz_munu_events_jeta = zz_munu_top_selection.Histo1D({"ZZ jet_eta_munu_Channel","ZZ jet eta in Muon-neutrino channel",50,0,150},"tight_jets_eta");
+        auto h_ttZ_munu_events_jeta = ttZ_munu_top_selection.Histo1D({"ttZ jet_eta_munu_Channel","ttZ jet eta in Muon-neutrino channel",50,0,150},"tight_jets_eta");
+        //auto h_smu_munu_events_jeta = smu_munu_top_selection.Histo1D({"Single Muon jet_eta_munu_Channel","Single Muon jet eta in Muon-neutrino channels,50,0,150},"tight_jets_eta");
+        //auto h_met_munu_events_jeta = met_munu_top_selection.Histo1D({"MET muon_jet_munu_Channel","MET jet eta in Muon-neutrino channel",50,0,150},"tight_jets_eta");
+
+
+        auto h_munu_events_jeta_canvas = new TCanvas("jet eta", "jet eta",10,10,900,900);
+
+        h_d_munu_events_jeta->GetXaxis()->SetTitle("eta");
+        h_d_munu_events_jeta->GetYaxis()->SetTitle("Events");
+
+        h_d_munu_events_jeta->SetLineColor(kBlack);
+        h_ww_munu_events_jeta->SetLineColor(kRed);
+        h_wz_munu_events_jeta->SetLineColor(kOrange);
+        h_ttZ_munu_events_jeta->SetLineColor(kYellow);
+        h_zz_munu_events_jeta->SetLineColor(kTeal);
+        //h_smu_munu_events_jeta->SetLineColor(kViolet);
+        //h_met_munu_events_jeta->SetLineColor(kPink);
+
+
+        h_d_munu_events_jeta->Scale(TZQ_W);
+        h_ww_munu_events_jeta->Scale(WWLNQQ_W);
+        h_wz_munu_events_jeta->Scale(WZLNQQ_W);
+        h_ttZ_munu_events_jeta->Scale(TTZQQ_W);
+        h_zz_munu_events_jeta->Scale(ZZLLQQ_W);
+
+
+        h_d_munu_events_jeta->Draw();
+        h_ww_munu_events_jeta->Draw("SAME");
+        h_wz_munu_events_jeta->Draw("SAME");
+        h_ttZ_munu_events_jeta->Draw("SAME");
+        h_zz_munu_events_jeta->Draw("SAME");
+        //h_se_munu_events_jeta->Draw("SAME");
+        //h_met_munu_events_jeta->Draw("SAME");
+
+        h_munu_events_jeta_canvas->BuildLegend();
+        h_munu_events_jeta_canvas->SaveAs("munu_jeta.root");
+        h_munu_events_jeta_canvas->SaveAs("munu_jeta.pdf");
+
 
 
         auto h_d_munu_events_wmass = d_munu_top_selection.Histo1D({"MC munu_w_mass","MC Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
@@ -1980,56 +2113,43 @@ auto se_enu_event_selection = Se.Define("tight_eles", is_good_tight_ele, {"Elect
         auto h_wz_munu_events_wmass = wz_munu_top_selection.Histo1D({"WZ munu_w_mass","WZ Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
         auto h_ttZ_munu_events_wmass = ttZ_munu_top_selection.Histo1D({"ttZ munu_w_mass","ttZ Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
         auto h_zz_munu_events_wmass = zz_munu_top_selection.Histo1D({"ZZ munu_w_mass","ZZ Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
-	//auto h_sm_munu_events_wmass = sm_munu_top_selection.Histo1D({"Single Muon munu_w_mass","Single Muon Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
-	//auto h_met_munu_events_wmass = met_munu_top_selection.Histo1D({"MET munu_w_mass","MET Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
+        //auto h_smu_munu_events_wmass = se_munu_top_selection.Histo1D({"Single Muon munu_w_mass","Single Muon Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
+        //auto h_met_munu_events_wmass = met_munu_top_selection.Histo1D({"MET munu_w_mass","MET Muon-neutrino transverse w mass",50,0,120},"w_mu_mass");
 
-        auto h_events_munu_wmass_canvas = new TCanvas("munu w mass ", "munu w mass",10,10,900,900);
+
+        auto h_munu_events_wmass_canvas = new TCanvas("munu w mass ", "munu w mass",10,10,900,900);
 
         h_d_munu_events_wmass->GetXaxis()->SetTitle("mass/GeV/C^2");
         h_d_munu_events_wmass->GetYaxis()->SetTitle("Events");
         h_d_munu_events_wmass->SetLineColor(kBlack);
-        h_ww_munu_events_wmass->GetXaxis()->SetTitle("mass/GeV/C^2");
-        h_ww_munu_events_wmass->GetYaxis()->SetTitle("Events");
         h_ww_munu_events_wmass->SetLineColor(kRed);
-        h_wz_munu_events_wmass->GetXaxis()->SetTitle("mass/GeV/C^2");
-        h_wz_munu_events_wmass->GetYaxis()->SetTitle("Events");
         h_wz_munu_events_wmass->SetLineColor(kOrange);
-        h_ttZ_munu_events_wmass->GetXaxis()->SetTitle("mass/GeV/C^2");
-        h_ttZ_munu_events_wmass->GetYaxis()->SetTitle("Events");
         h_ttZ_munu_events_wmass->SetLineColor(kYellow);
-        h_zz_munu_events_wmass->GetXaxis()->SetTitle("mass/GeV/C^2");
-        h_zz_munu_events_wmass->GetYaxis()->SetTitle("Events");
         h_zz_munu_events_wmass->SetLineColor(kTeal);
-	//h_sm_munu_events_wmass->SetLineColor(kViolet);
-	//h_met_munu_events_wmass->SetLineColor(kPink);
+        //h_se_munu_events_wmass->SetLineColor(kViolet);
+        //h_met_munu_events_wmass->SetLineColor(kPink);
 
-	h_d_munu_events_wmass->Draw();
-	h_ww_munu_events_wmass->Draw("SAME");
-	h_wz_munu_events_wmass->Draw("SAME");
-	h_ttZ_munu_events_wmass->Draw("SAME");
-	h_zz_munu_events_wmass->Draw("SAME");
-	//h_sm_munu_events_wmass->Draw("SAME");
-	//h_met_munu_events_wmass->Draw("SAME");
-
-        h_events_munu_wmass_canvas->BuildLegend();
-        h_events_munu_wmass_canvas->SaveAs("munu_transverse_Wmass.root");
-	h_events_munu_wmass_canvas->SaveAs("munu_transverse_Wmass.pdf");
+        h_d_munu_events_wmass->Scale(TZQ_W);
+        h_ww_munu_events_wmass->Scale(WWLNQQ_W);
+        h_wz_munu_events_wmass->Scale(WZLNQQ_W);
+        h_ttZ_munu_events_wmass->Scale(TTZQQ_W);
+        h_zz_munu_events_wmass->Scale(ZZLLQQ_W);
 
 
-/*
-        auto h_enu_events_jpt = d_enu_top_selection.Histo1D({"jet_pt_enu_Channel","jet pt in electron-neutrino channel",20,0,150},"tight_jets_pt");
-	auto h_munu_events_jpt = d_munu_top_selection.Histo1D({"jet_pt_munu_Channel","jet pt in mu-neutrino channel",20,0,150},"tight_jets_pt");
-	auto h_events_jpt_canvas = new TCanvas("jet pt", "jet pt",10,10,900,900);
-        h_enu_events_jpt->GetXaxis()->SetTitle("Pt/GeV");
-        h_enu_events_jpt->GetYaxis()->SetTitle("Events");
-        h_enu_events_jpt->SetLineColor(kRed);
-	h_munu_events_jpt->SetLineColor(kBlue);
-	h_enu_events_jpt->Draw();
-	h_munu_events_jpt->DrawClone("SAME");
-	h_events_jpt_canvas->BuildLegend();
-        h_events_jpt_canvas->SaveAs("Jet_pts.root");
-	h_events_jpt_canvas->SaveAs("Jet_pts.pdf");
-*/
+
+        h_d_munu_events_wmass->Draw();
+        h_ww_munu_events_wmass->Draw("SAME");
+        h_wz_munu_events_wmass->Draw("SAME");
+        h_ttZ_munu_events_wmass->Draw("SAME");
+        h_zz_munu_events_wmass->Draw("SAME");
+        //h_smu_munu_events_wmass->Draw("SAME");
+        //h_met_munu_events_wmass->Draw("SAME");
+
+        h_munu_events_wmass_canvas->BuildLegend();
+        h_munu_events_wmass_canvas->SaveAs("munu_transverse_Wmass.root");
+        h_munu_events_wmass_canvas->SaveAs("munu_transverse_Wmass.pdf");
+
+
 
 
         auto h_d_munu_events_zmass = d_munu_z_rec_selection.Histo1D({"MC Z_mass_munu_Channel","MC Z mass in Muon-neutrino channel",50,0,150},"z_mass");
@@ -2037,295 +2157,263 @@ auto se_enu_event_selection = Se.Define("tight_eles", is_good_tight_ele, {"Elect
         auto h_wz_munu_events_zmass = wz_munu_z_rec_selection.Histo1D({"WZ Z_mass_munu_Channel","WZ Z mass in Muon-neutrino channel",50,0,150},"z_mass");
         auto h_ttZ_munu_events_zmass = ttZ_munu_z_rec_selection.Histo1D({"ttZ Z_mass_munu_Channel","ttZ Z mass in Muon-neutrino channel",50,0,150},"z_mass");
         auto h_zz_munu_events_zmass = zz_munu_z_rec_selection.Histo1D({"zz Z_mass_munu_Channel","zz Z mass in Muon-neutrino channel",50,0,150},"z_mass");
-	//auto h_sm_munu_events_zmass = sm_munu_z_rec_selection.Histo1D({"Single Muon Z_mass_munu_Channel","Single Muon Z mass in Muon-neutrino channel",50,0,150},"z_mass");
+	//auto h_smu_munu_events_zmass = smu_munu_z_rec_selection.Histo1D({"Single Muon Z_mass_enu_Channel","Single Muon Z mass in Muon-neutrino channel",50,0,150},"z_mass");
 	//auto h_met_munu_events_zmass = met_munu_z_rec_selection.Histo1D({"MET Z_mass_munu_Channel","MET Z mass in Muon-neutrino channel",50,0,150},"z_mass");
 
-        auto h_events_munu_zmass_canvas = new TCanvas("Z mass", "Z mass",10,10,900,900);
+        auto h_munu_events_zmass_canvas = new TCanvas("Z mass", "Z mass",10,10,900,900);
 
         h_d_munu_events_zmass->GetXaxis()->SetTitle("mass/GeVC^2");
         h_d_munu_events_zmass->GetYaxis()->SetTitle("Events");
+
         h_d_munu_events_zmass->SetLineColor(kBlack);
-        h_ww_munu_events_zmass->GetXaxis()->SetTitle("mass/GeVC^2");
-        h_ww_munu_events_zmass->GetYaxis()->SetTitle("Events");
         h_ww_munu_events_zmass->SetLineColor(kRed);
-        h_wz_munu_events_zmass->GetXaxis()->SetTitle("mass/GeVC^2");
-        h_wz_munu_events_zmass->GetYaxis()->SetTitle("Events");
         h_wz_munu_events_zmass->SetLineColor(kOrange);
-        h_ttZ_munu_events_zmass->GetXaxis()->SetTitle("mass/GeVC^2");
-        h_ttZ_munu_events_zmass->GetYaxis()->SetTitle("Events");
         h_ttZ_munu_events_zmass->SetLineColor(kYellow);
-        h_zz_munu_events_zmass->GetXaxis()->SetTitle("mass/GeVC^2");
-        h_zz_munu_events_zmass->GetYaxis()->SetTitle("Events");
         h_zz_munu_events_zmass->SetLineColor(kTeal);
-	//h_sm_munu_events_zmass->SetLineColor(kViolet);
-	//h_met_munu_events_zmass->SetLineColor(kPink);
+	//h_smu_enu_events_zmass->SetLineColor(kViolet);
+	//h_met_enu_events_zmass->SetLineColor(kPink);
+
+	h_d_munu_events_zmass->Scale(TZQ_W);
+        h_ww_munu_events_zmass->Scale(WWLNQQ_W);
+        h_wz_munu_events_zmass->Scale(WZLNQQ_W);
+        h_ttZ_munu_events_zmass->Scale(TTZQQ_W);
+        h_zz_munu_events_zmass->Scale(ZZLLQQ_W);
+
 
 	h_d_munu_events_zmass->Draw();
         h_ww_munu_events_zmass->Draw("SAME");
         h_wz_munu_events_zmass->Draw("SAME");
         h_ttZ_munu_events_zmass->Draw("SAME");
         h_zz_munu_events_zmass->Draw("SAME");
-	//h_sm_munu_events_zmass->Draw("SAME");
+	//h_smu_munu_events_zmass->Draw("SAME");
 	//h_met_munu_events_zmass->Draw("SAME");
 
-	h_events_munu_zmass_canvas->BuildLegend();
-        h_events_munu_zmass_canvas->SaveAs("munu_Z_mass.root");
-	h_events_munu_zmass_canvas->SaveAs("munu_Z_mass.pdf");
-
-/*
-
-        auto h_enu_events_topmass = d_enu_top_selection.Histo1D({"enu_top_mass","electron-neutrino top mass",100,0,250},"Top_Mass");
-        auto h_munu_events_topmass = d_munu_top_selection.Histo1D({"munu_top_mass","mu-neutrino top mass",100,0,250},"Top_Mass");
-
-        auto h_events_topmass_canvas = new TCanvas("top mass ", "top mass",10,10,900,900);
-        h_enu_events_topmass->GetXaxis()->SetTitle("mass/GeV/C^2");
-        h_enu_events_topmass->GetYaxis()->SetTitle("Events");
-        h_enu_events_topmass->SetLineColor(kRed);
-	h_munu_events_topmass->SetLineColor(kBlue);
-	h_munu_events_topmass->Draw();
-	h_enu_events_topmass->DrawClone("SAME");
-        h_events_topmass_canvas->BuildLegend();
-        h_events_topmass_canvas->SaveAs("topmass.root");
-	h_events_topmass_canvas->SaveAs("topmass.pdf");
-
-///////////////////////////////////////////////////////////////////////////ETA //////////////////////////////////////////////////////////////////////////
-        auto h_enu_events_eeta = d_enu_jets_selection.Histo1D({"electron_eta_enu_Channel","electron eta in electron-neutrino channel",20,-5,5},"Electron_eta_Selection");
-
-        auto h_enu_events_eeta_canvas = new TCanvas("Electron eta in enu channel", "electron eta in enu",10,10,900,900);
-        h_enu_events_eeta->GetXaxis()->SetTitle("eta");
-        h_enu_events_eeta->GetYaxis()->SetTitle("Events");
-        h_enu_events_eeta->SetLineColor(kRed);
-        h_enu_events_eeta_canvas->BuildLegend();
-        h_enu_events_eeta->Draw();
-        h_enu_events_eeta_canvas->SaveAs("Electron_eta_enu_eSelection.root");
-
-        auto h_enu_events_jeta = d_enu_jets_selection.Histo1D({"jet_eta_enu_Channel","jet eta in electron-neutrino channel",20,-5,5},"Jet_eta_Selection");
-
-        auto h_enu_events_jeta_canvas = new TCanvas("Jet eta in enu channel", "Jet eta in enu",10,10,900,900);
-        h_enu_events_jeta->GetXaxis()->SetTitle("eta");
-        h_enu_events_jeta->GetYaxis()->SetTitle("Events");
-        h_enu_events_jeta->SetLineColor(kRed);
-        h_enu_events_jeta_canvas->BuildLegend();
-        h_enu_events_jeta->Draw();
-        h_enu_events_jeta_canvas->SaveAs("Jet_eta_enu.root");
-/*
-        auto h_enu_events_zeta = d_enu_z_rec_selection.Histo1D({"Z_eta_enu_Channel","Z eta in electron-neutrino channel",20,-5,5},"z_eta_pair");
-
-        auto h_enu_events_zeta_canvas = new TCanvas("Z eta in enu channel", "Z eta in enu",10,10,900,900);
-        h_enu_events_zeta->GetXaxis()->SetTitle("eta");
-        h_enu_events_zeta->GetYaxis()->SetTitle("Events");
-        h_enu_events_zeta->SetLineColor(kRed);
-        h_enu_events_zeta_canvas->BuildLegend();
-        h_enu_events_zeta->Draw();
-        h_enu_events_zeta_canvas->SaveAs("Z_eta_enu.root");
-
-/////////////////////////////////////////////////////////////////////// PHI////////////////////////////////////////////////////////////////////////////////////////
-
-	auto h_enu_events_ephi = d_enu_jets_selection.Histo1D({"Electron_phi_enu_Channel","Electron phi in electron-neutrino channel",20,0,8},"Electron_phi_Selection");
-
-        auto h_enu_events_ephi_canvas = new TCanvas("Electron phi in enu channel", "Electrion phi in enu",10,10,900,900);
-        h_enu_events_ephi->GetXaxis()->SetTitle("phi/rad");
-        h_enu_events_ephi->GetYaxis()->SetTitle("Events");
-        h_enu_events_ephi->SetLineColor(kRed);
-        h_enu_events_ephi_canvas->BuildLegend();
-        h_enu_events_ephi->Draw();
-        h_enu_events_ephi_canvas->SaveAs("Electron_phi_enu_eSelection.root");
-
-        auto h_enu_events_jphi = d_enu_jets_selection.Histo1D({"jet_phi_enu_Channel","jet phi in electron-neutrino channel",20,0,8},"Jet_phi_Selection");
-
-        auto h_enu_events_jphi_canvas = new TCanvas("jet phi in enu channel", "jet phi in enu",10,10,900,900);
-        h_enu_events_jphi->GetXaxis()->SetTitle("phi/rad");
-        h_enu_events_jphi->GetYaxis()->SetTitle("Events");
-        h_enu_events_jphi->SetLineColor(kRed);
-        h_enu_events_jphi_canvas->BuildLegend();
-        h_enu_events_jphi->Draw();
-        h_enu_events_jphi_canvas->SaveAs("Jet_phi_enu.root");
-
-/*        auto h_enu_events_zphi = d_enu_z_rec_selection.Histo1D({"z_phi_enu_Channel","z phi in electron-neutrino channel",20,0,8},"z_pair_phi");
-
-        auto h_enu_events_zphi_canvas = new TCanvas("z phi in enu channel", "z phi in enu",10,10,900,900);
-        h_enu_events_zphi->GetXaxis()->SetTitle("phi/rad");
-        h_enu_events_zphi->GetYaxis()->SetTitle("Events");
-        h_enu_events_zphi->SetLineColor(kRed);
-        h_enu_events_zphi_canvas->BuildLegend();
-        h_enu_events_zphi->Draw();
-        h_enu_events_zphi_canvas->SaveAs("Z_phi_enu.root");
-
-///////////////////////////////////////////////////////////////////// MU-NEU CHANNEL Histograms and Canvases ///////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////// PT////////////////////////////////////////////////////////////////////////////////////
-
-        auto h_d_munu_events_mupt = d_munu_top_selection.Histo1D({"MC mu_pt_enu_Channel","MC mu pt in mu-neutrino channel",100,0,150},"tight_mu_pt");
-        auto h_ww_munu_events_mupt = ww_munu_top_selection.Histo1D({"WW mu_pt_enu_Channel","WW mu pt in mu-neutrino channel",100,0,150},"tight_mu_pt");
-        auto h_wz_munu_events_mupt = wz_munu_top_selection.Histo1D({"WZ mu_pt_enu_Channel","WZ mu pt in mu-neutrino channel",100,0,150},"tight_mu_pt");
-        auto h_zz_munu_events_mupt = zz_munu_top_selection.Histo1D({"ZZ mu_pt_enu_Channel","ZZ mu pt in mu-neutrino channel",100,0,150},"tight_mu_pt");
-        auto h_ttZ_munu_events_mupt = ttZ_munu_top_selection.Histo1D({"ttZ mu_pt_enu_Channel","ttZ mu pt in mu-neutrino channel",100,0,150},"tight_mu_pt");
+	h_munu_events_zmass_canvas->BuildLegend();
+        h_munu_events_zmass_canvas->SaveAs("en_Z_mass.root");
+	h_munu_events_zmass_canvas->SaveAs("en_Z_mass.pdf");
 
 
-        auto h_munu_events_mupt_canvas = new TCanvas("Muon pt in munu channel", "Muon pt in munu",10,10,900,900);
-        h_d_munu_events_mupt->GetXaxis()->SetTitle("Pt/GeV");
-        h_d_munu_events_mupt->GetYaxis()->SetTitle("Events");
-        h_d_munu_events_mupt->SetLineColor(kRed);
-        h_d_munu_events_mupt->Draw();
-	h__munu_events_mupt_canvas->BuildLegend();
-        h_munu_events_mupt_canvas->SaveAs("Muon_pt_munu_muSelection.root");
+
+        auto h_d_munu_events_jdphi = d_munu_z_rec_selection.Histo1D({"MC jdphi_munu_Channel","MC jet deltaphi in Muon-neutrino channel",50,0,150},"tight_jets_deltaphi");
+        auto h_ww_munu_events_jdphi = ww_munu_z_rec_selection.Histo1D({"WW jdphi_munu_Channel","WW jet deltaphi in Muon-neutrino channel",50,0,150},"tight_jets_deltaphi");
+        auto h_wz_munu_events_jdphi = wz_munu_z_rec_selection.Histo1D({"WZ jdphi_munu_Channel","WZ jet deltaphi in Muon-neutrino channel",50,0,150},"tight_jets_deltaphi");
+        auto h_ttZ_munu_events_jdphi = ttZ_munu_z_rec_selection.Histo1D({"ttZ jdphi_munu_Channel","ttZ jet deltaphi in Muon-neutrino channel",50,0,150},"tight_jets_deltaphi");
+        auto h_zz_munu_events_jdphi = zz_munu_z_rec_selection.Histo1D({"zz jdphi_munu_Channel","zz jet deltaphi in Muon-neutrino channel",50,0,150},"tight_jets_deltaphi");
+        //auto h_smu_munu_events_jdphi = smu_munu_z_rec_selection.Histo1D({"Single Muon jdphi_munu_Channel","Single Muon jet deltaphi in Muon-neutrino channel",50,0,150},"tight_jets_deltaphi");
+        //auto h_met_munu_events_jdphi = met_munu_z_rec_selection.Histo1D({"MET jdphi_munu_Channel","MET jet deltaphi in Muon-neutrino channel",50,0,150},"tight_jets_deltaphi");
 
 
-        auto h_munu_events_jpt = d_munu_jets_selection.Histo1D({"muon_pt_enu_Channel","muon pt in electron-neutrino channel",20,0,150},"Jet_pt_Selection");
+        auto h_munu_events_jdphi_canvas = new TCanvas("jetdeltaphi", "jetdeltaphi",10,10,900,900);
 
-        auto h_munu_events_jpt_canvas = new TCanvas("jet pt in munu channel", "jet pt in munu",10,10,900,900);
-        h_munu_events_jpt->GetXaxis()->SetTitle("Pt/GeV");
-        h_munu_events_jpt->GetYaxis()->SetTitle("Events");
-        h_munu_events_jpt->SetLineColor(kRed);
-        h_munu_events_jpt_canvas->BuildLegend();
-        h_munu_events_jpt->Draw();
-        h_munu_events_jpt_canvas->SaveAs("Jet_pt_munu.root");
-/*
-        auto h_munu_events_zpt = d_munu_z_rec_selection.Histo1D({"Z_pt_munu_Channel","Z pt in muon-neutrino channel",20,0,150},"z_pair_pt");
+        h_d_munu_events_jdphi->GetXaxis()->SetTitle("jets delta phi / rad");
+        h_d_munu_events_jdphi->GetYaxis()->SetTitle("Events");
 
-        auto h_munu_events_zpt_canvas = new TCanvas("Z pt in munu channel", "Z pt in munu",10,10,900,900);
-        h_munu_events_zpt->GetXaxis()->SetTitle("Pt/GeV");
-        h_munu_events_zpt->GetYaxis()->SetTitle("Events");
-        h_munu_events_zpt->SetLineColor(kRed);
-        h_munu_events_zpt_canvas->BuildLegend();
-        h_munu_events_zpt->Draw();
-        h_munu_events_zpt_canvas->SaveAs("Z_pt_munu.root");
+        h_d_munu_events_jdphi->SetLineColor(kBlack);
+        h_ww_munu_events_jdphi->SetLineColor(kRed);
+        h_wz_munu_events_jdphi->SetLineColor(kOrange);
+        h_ttZ_munu_events_jdphi->SetLineColor(kYellow);
+        h_zz_munu_events_jdphi->SetLineColor(kTeal);
+        //h_smu_munu_events_jdphi->SetLineColor(kViolet);
+        //h_met_munu_events_jdphi->SetLineColor(kPink);
+
+        h_d_munu_events_jdphi->Scale(TZQ_W);
+        h_ww_munu_events_jdphi->Scale(WWLNQQ_W);
+        h_wz_munu_events_jdphi->Scale(WZLNQQ_W);
+        h_ttZ_munu_events_jdphi->Scale(TTZQQ_W);
+        h_zz_munu_events_jdphi->Scale(ZZLLQQ_W);
 
 
- ////////////////////////////////////////////////////////////////////////////////////ETA////////////////////////////////////////////////////////////////////////
+        h_d_munu_events_jdphi->Draw();
+        h_ww_munu_events_jdphi->Draw("SAME");
+        h_wz_munu_events_jdphi->Draw("SAME");
+        h_ttZ_munu_events_jdphi->Draw("SAME");
+        h_zz_munu_events_jdphi->Draw("SAME");
+        //h_smu_munu_events_jdphi->Draw("SAME");
+        //h_met_munu_events_jdphi->Draw("SAME");
 
-        auto h_munu_events_mueta = d_munu_jets_selection.Histo1D({"muon_eta_munu_Channel","muon eta in Muon-neutrino channel",20,-5,5},"Muon_eta_Selection");
+        h_munu_events_jdphi_canvas->BuildLegend();
+        h_munu_events_jdphi_canvas->SaveAs("munu_jet_dphi.root");
+        h_munu_events_jdphi_canvas->SaveAs("munu_jet_dphi.pdf");
 
-        auto h_munu_events_mueta_canvas = new TCanvas("Muon eta in enu channel", "Muon eta in enu",10,10,900,900);
-        h_munu_events_mueta->GetXaxis()->SetTitle("eta");
-        h_munu_events_mueta->GetYaxis()->SetTitle("Events");
-        h_munu_events_mueta->SetLineColor(kRed);
-        h_munu_events_mueta_canvas->BuildLegend();
-        h_munu_events_mueta->Draw();
-        h_munu_events_mueta_canvas->SaveAs("Muon_eta_munu_muSelection.root");
 
-        auto h_munu_events_jeta = d_munu_jets_selection.Histo1D({"jet_eta_munu_Channel","jet muta in muon-neutrino channel",20,-5,5},"Jet_eta_Selection");
 
-        auto h_munu_events_jeta_canvas = new TCanvas("Jet eta in munu channel", "Jet eta in munu",10,10,900,900);
-        h_munu_events_jeta->GetXaxis()->SetTitle("eta");
-        h_munu_events_jeta->GetYaxis()->SetTitle("Events");
-        h_munu_events_jeta->SetLineColor(kRed);
-        h_munu_events_jeta_canvas->BuildLegend();
-        h_munu_events_jeta->Draw();
-        h_munu_events_jeta_canvas->SaveAs("Jet_eta_munu.root");
-/*
-        auto h_munu_events_zeta = d_munu_z_rec_selection.Histo1D({"Z_eta_munu_Channel","Z eta in muon-neutrino channel",20,-5,5},"z_eta_pair");
+        auto h_d_munu_events_zmetdphi = d_munu_z_rec_selection.Histo1D({"MC zmetdphi_munu_Channel","MC Z met pt deltaphi in Muon-neutrino channel",50,0,150},"ZMet_deltaphi");
+        auto h_ww_munu_events_zmetdphi = ww_munu_z_rec_selection.Histo1D({"WW zmetdphi_munu_Channel","WW Z met pt deltaphi in Muon-neutrino channel",50,0,150},"ZMet_deltaphi");
+        auto h_wz_munu_events_zmetdphi = wz_munu_z_rec_selection.Histo1D({"WZ zmetdphi_munu_Channel","WZ Z met pt deltaphi in Muon-neutrino channel",50,0,150},"ZMet_deltaphi");
+        auto h_ttZ_munu_events_zmetdphi = ttZ_munu_z_rec_selection.Histo1D({"ttZ zmetdphi_munu_Channel","ttZ Z met pt jet deltaphi in Muon-neutrino channel",50,0,150},"ZMet_deltaphi");
+        auto h_zz_munu_events_zmetdphi = zz_munu_z_rec_selection.Histo1D({"zz zmetdphi_munu_Channel","zz z met pt deltaphi in Muon-neutrino channel",50,0,150},"ZMet_deltaphi");
+        //auto h_smu_munu_events_zmetdphi = smu_munu_z_rec_selection.Histo1D({"Single Muon zmetdphi_munu_Channel","Single Muon z met pt deltaphi in Muon-neutrino channel",50,0,150},"ZMet_deltaphi");
+        //auto h_met_munu_events_zmetdphi = met_munu_z_rec_selection.Histo1D({"MET zmetdphi_munu_Channel","MET z met pt deltaphi in Muon-neutrino channel",50,0,150},"ZMet_deltaphi");
 
-        auto h_munu_events_zeta_canvas = new TCanvas("Z eta in munu channel", "Z eta in munu",10,10,900,900);
-        h_munu_events_zeta->GetXaxis()->SetTitle("eta");
-        h_munu_events_zeta->GetYaxis()->SetTitle("Events");
-        h_munu_events_zeta->SetLineColor(kRed);
-        h_munu_events_zeta_canvas->BuildLegend();
-        h_munu_events_zeta->Draw();
-        h_munu_events_zeta_canvas->SaveAs("Z_eta_munu.root");
 
-////////////////////////////////////////////////////////////////////////////PHI////////////////////////////////////////////////////////////////////////////////
-        auto h_munu_events_muphi = d_munu_jets_selection.Histo1D({"Muon_phi_enu_Channel","Muon phi in Muon-neutrino channel",20,0,8},"Muon_phi_Selection");
 
-        auto h_munu_events_muphi_canvas = new TCanvas("Muon phi in munu channel", "Muon phi in enu",10,10,900,900);
-        h_munu_events_muphi->GetXaxis()->SetTitle("phi/rad");
-        h_munu_events_muphi->GetYaxis()->SetTitle("Events");
-        h_munu_events_muphi->SetLineColor(kRed);
-        h_munu_events_muphi_canvas->BuildLegend();
-        h_munu_events_muphi->Draw();
-        h_munu_events_muphi_canvas->SaveAs("Muon_phi_munu_muSelection.root");
+        auto h_munu_events_zmetdphi_canvas = new TCanvas("zmetdeltaphi", "zmetdeltaphi",10,10,900,900);
 
-        auto h_munu_events_jphi = d_munu_jets_selection.Histo1D({"jet_phi_munu_Channel","jet phi in muon-neutrino channel",20,0,8},"Jet_phi_Selection");
+        h_d_munu_events_zmetdphi->GetXaxis()->SetTitle("z and met delta phi / rad");
+        h_d_munu_events_zmetdphi->GetYaxis()->SetTitle("Events");
 
-        auto h_munu_events_jphi_canvas = new TCanvas("jet phi in munu channel", "jet phi in munu",10,10,900,900);
-        h_munu_events_jphi->GetXaxis()->SetTitle("phi/rad");
-        h_munu_events_jphi->GetYaxis()->SetTitle("Events");
-        h_munu_events_jphi->SetLineColor(kRed);
-        h_munu_events_jphi_canvas->BuildLegend();
-        h_munu_events_jphi->Draw();
-        h_munu_events_jphi_canvas->SaveAs("Jet_phi_munu.root");
-/*
+        h_d_munu_events_zmetdphi->SetLineColor(kBlack);
+        h_ww_munu_events_zmetdphi->SetLineColor(kRed);
+        h_wz_munu_events_zmetdphi->SetLineColor(kOrange);
+        h_ttZ_munu_events_zmetdphi->SetLineColor(kYellow);
+        h_zz_munu_events_zmetdphi->SetLineColor(kTeal);
+        //h_se_enu_events_zmetdphi->SetLineColor(kViolet);
+        //h_met_enu_events_zmetdphi->SetLineColor(kPink);
 
-        auto h_munu_events_zphi = d_munu_z_rec_selection.Histo1D({"z_phi_munu_Channel","z phi in Muon-neutrino channel",20,0,8},"z_pair_phi");
+        h_d_munu_events_zmetdphi->Scale(TZQ_W);
+        h_ww_munu_events_zmetdphi->Scale(WWLNQQ_W);
+        h_wz_munu_events_zmetdphi->Scale(WZLNQQ_W);
+        h_ttZ_munu_events_zmetdphi->Scale(TTZQQ_W);
+        h_zz_munu_events_zmetdphi->Scale(ZZLLQQ_W);
 
-        auto h_munu_events_zphi_canvas = new TCanvas("z phi in munu channel", "z phi in munu",10,10,900,900);
-        h_munu_events_zphi->GetXaxis()->SetTitle("phi/rad");
-        h_munu_events_zphi->GetYaxis()->SetTitle("Events");
-        h_munu_events_zphi->SetLineColor(kRed);
-        h_munu_events_zphi_canvas->BuildLegend();
-        h_munu_events_zphi->Draw();
-        h_munu_events_zphi_canvas->SaveAs("Z_phi_munu.root");
 
-*/
+        h_d_munu_events_zmetdphi->Draw();
+        h_ww_munu_events_zmetdphi->Draw("SAME");
+        h_wz_munu_events_zmetdphi->Draw("SAME");
+        h_ttZ_munu_events_zmetdphi->Draw("SAME");
+        h_zz_munu_events_zmetdphi->Draw("SAME");
+        //h_smu_munu_events_zmetdphi->Draw("SAME");
+        //h_met_munu_events_zmetdphi->Draw("SAME");
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/* 	auto ReconZ_massCanvas = new TCanvas("Reconstrcuted mass from jets", "Reconstructed mass from jets",10,10,900,900);
-        d_munu_z_rec_selection->GetXaxis()->SetTitle("GeV/c^2");
-        d_munu_z_rec_selection->GetYaxis()->SetTitle("Events");
-        d_munu_z_rec_selection->SetLineColor(kRed);
-        d_munu_z_rec_selection->Draw();
-        d_enu_z_rec_selection->SetLineColor(kBlue);
-	d_enu_z_rec_selection->GetXaxis()->SetTitle("GeV/c^2");
-	d_enu_z_rec_selection->GetYaxis()->SetTitle("Events");
-        d_enu_z_rec_selection->DrawClone("SAME");
-	//ReconZ_massCanvas->SetTitle("Reconstructed Z mass from jets in tZq DataSet");
-	gStyle->SetOptTitle(0);
-   	//TPaveLabel *title = new TPaveLabel(.11,.95,.35,.99,"new title","Reconstructed Z mass from jets in tZq DataSet");
-   	//title->Draw(); 
-	//auto legend = new TLegend(0.1,0.7,0.48,0.9);
-        //legend->SetHeader("Reconstructed Z mass for e-nu and mu-nu Channel","C"); // option "C" allows to center the header
-        //legend->AddEntry("d_enu_z_rec_selection","Reconstructed Z mass from electron-neutrino channel","l");
-        //legend->AddEntry("d_munu_z_rec_selection","Reconstructed Z mass fro muon-neutrino channel","l");
-        //legend->Draw();
-	ReconZ_massCanvas->BuildLegend();
-        ReconZ_massCanvas->SaveAs("rec_z_mass_inc_MET_cut.root");
-*/
+        h_munu_events_zmetdphi_canvas->BuildLegend();
+        h_munu_events_zmetdphi_canvas->SaveAs("munu_zmetpt_dphi.root");
+        h_munu_events_zmetdphi_canvas->SaveAs("munu_zmetpt_dphi.pdf");
 
-/*
-        auto d_enu_event_pt_selection = d.Define("nElectron_Selection",{"nElectron"})
-                                        .Define("Electron_pt_Selection", {"Electron_pt"})
-                                        .Define("Electron_eta_Selection", {"Electron_eta"})
-                                        .Define("Electron_charge_Selection", {"Electron_charge"})
-                                        .Define("Electron_IDCut_Selection", {"Electron_cutBased"})
-                                        .Define("Electron_isPFcand_Selection", {"Electron_isPFcand"})
-                                        //.Filter(enu_selection_function, enu_strings)
-                                        .Define("MET_pt_Selection",{"MET_pt"})
-                                        //.Filter([](float pts){return pts > 0;},{"MET_pt_Selection"})
-                                        //.Filter([](const floats pts){return pts.empty() ? false : std::all_of(pts.cbegin(),pts.cend(), [](float pt){return pt > 0.;})$
-                                        .Define("MET_phi_Selection",{"MET_phi"})
-                                        .Define("MET_sumEt_Selection",{"MET_sumEt"})
-                                        .Histo1D({"PTHist_enu_Channel","electron Pt Dist.",20,0,20},"Electron_pt_Selection");
 
-	auto Electron_pt_Canvas = new TCanvas("Electron PT Canvas", "Electron PT Canvas",10,10,700,700);
-        d_enu_event_pt_selection->SetLineColor(kBlue);
-        d_enu_event_pt_selection->DrawClone();
-        Electron_pt_Canvas->SaveAs("Electron_pt_uncut_check.root");
+        auto h_d_munu_events_zwdphi = d_munu_z_rec_selection.Histo1D({"MC zwdphi_munu_Channel","MC Z w deltaphi in Muon-neutrino channel",50,0,150},"ZW_deltaphi");
+        auto h_ww_munu_events_zwdphi = ww_munu_z_rec_selection.Histo1D({"WW zwdphi_munu_Channel","WW Z w deltaphi in Muon-neutrino channel",50,0,150},"ZW_deltaphi");
+        auto h_wz_munu_events_zwdphi = wz_munu_z_rec_selection.Histo1D({"WZ zwdphi_munu_Channel","WZ Z w deltaphi in Muon-neutrino channel",50,0,150},"ZW_deltaphi");
+        auto h_ttZ_munu_events_zwdphi = ttZ_munu_z_rec_selection.Histo1D({"ttZ zwdphi_munu_Channel","ttZ  Z w deltaphi in Muon-neutrino channel",50,0,150},"ZW_deltaphi");
+        auto h_zz_munu_events_zwdphi = zz_munu_z_rec_selection.Histo1D({"zz zwdphi_munu_Channel","zz z Z w deltaphi in Muon-neutrino channel",50,0,150},"ZW_deltaphi");
+        //auto h_smu_munu_events_zmetdphi = smu_munu_z_rec_selection.Histo1D({"Single Muon zmetdphi_munu_Channel","Single Muon z met pt deltaphi in Muon-neutrino channel,50,0,150},"ZW_deltaphi");
+        //auto h_met_munu_events_zmetdphi = met_munu_z_rec_selection.Histo1D({"MET zmetdphi_munu_Channel","MET z met pt deltaphi in Muon-neutrino channel",50,0,150},"ZW_deltaphi");
 
-*/
 
-		//std::cout<<"Z mass is "<< *z_mass<<endl;
+        auto h_munu_events_zwdphi_canvas = new TCanvas("zwdeltaphi", "zwdeltaphi",10,10,900,900);
 
-				 /*.Define("jets_selection",jet_selection_function,{"Jet_pt","Jet_eta","Jet_phi","nJet","Jet_jetId"})
-				.Define("Single_lep",e_or_mu_selection_function,{"nElectron","Electron_eta","Electron_pt","nMuon","Muon_eta","Muon_pt","CaloMET_pt","CaloMET_phi","CaloMET_sumEt"})
-				.Define("b_jets",bjet_id,{"Jet_btagCSVV2", "Jet_eta"})
-				.Filter(bjet_cut, {"b_jets"}, "b jet cut");
-		std::cout<< "Event selection number done "<<std::endl;
-	auto Z_Rec_M = event_selection.Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass"}) //"tight_jets", "lead_bjet"})
-                 			   .Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
-                 	                   .Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
-                 			   .Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
-                 			   .Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
-                 			   .Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
-					   //.Count();
-					   .Histo1D({"ZReconDMassHist","Recon. Z mass of jets",20,0,200},"z_mass");
-                 			//.Filter(w_mass_cut, {"w_mass"}, "W mass cut")};
- 		//std::cout<<"Event selection number for Z recon "<< *Z_Rec_M <<std::endl;
-	//auto Z_Rec_M_Hist = Z_Rec_M.Histo1D({"ZReconDMassHist","Recon. Z mass of jets",20,0,200},"z_mass");
-	auto ReconZ_massCanvas = new TCanvas("Reconstrcuted mass from jets", "Reconstructed mass from jets",10,10,700,700);
-        //Z_REC_M_Hist->SetLineColor(kBlue);
-	Z_Rec_M->DrawClone();
-        Z_Rec_M->SaveAs("rec_z_mass.root");*/
-	//ReconZ_massCanvas->SaveAs("rec_z_mass.pdf");
-/////////////////////////////////////////////////////////////////////////////// Pt And ETa Test/////////////////////////////////////////////////////////////////
+        h_d_munu_events_zwdphi->GetXaxis()->SetTitle("z and w delta phi / rad");
+        h_d_munu_events_zwdphi->GetYaxis()->SetTitle("Events");
+
+        h_d_munu_events_zwdphi->SetLineColor(kBlack);
+        h_ww_munu_events_zwdphi->SetLineColor(kRed);
+        h_wz_munu_events_zwdphi->SetLineColor(kOrange);
+        h_ttZ_munu_events_zwdphi->SetLineColor(kYellow);
+        h_zz_munu_events_zwdphi->SetLineColor(kTeal);
+        //h_smu_munu_events_zwdphi->SetLineColor(kViolet);
+        //h_met_munu_events_zwdphi->SetLineColor(kPink);
+
+        h_d_munu_events_zwdphi->Scale(TZQ_W);
+        h_ww_munu_events_zwdphi->Scale(WWLNQQ_W);
+        h_wz_munu_events_zwdphi->Scale(WZLNQQ_W);
+        h_ttZ_munu_events_zwdphi->Scale(TTZQQ_W);
+        h_zz_munu_events_zwdphi->Scale(ZZLLQQ_W);
+
+
+        h_d_munu_events_zwdphi->Draw();
+        h_ww_munu_events_zwdphi->Draw("SAME");
+        h_wz_munu_events_zwdphi->Draw("SAME");
+        h_ttZ_munu_events_zwdphi->Draw("SAME");
+        h_zz_munu_events_zmetdphi->Draw("SAME");
+        //h_se_munu_events_zwdphi->Draw("SAME");
+        //h_met_munu_events_zwdphi->Draw("SAME");
+
+        h_munu_events_zwdphi_canvas->BuildLegend();
+        h_munu_events_zwdphi_canvas->SaveAs("munu_zwd_dphi.root");
+        h_munu_events_zwdphi_canvas->SaveAs("munu_zw_dphi.pdf");
+
+
+
+
+        auto h_d_munu_events_mujdr = d_munu_z_rec_selection.Histo1D({"MC ejdr_munu_Channel","MC muon and jet deltaR in muon-neutrino channel",50,0,150},"jet_mu_min_dR");
+        auto h_ww_munu_events_mujdr = ww_munu_z_rec_selection.Histo1D({"WW ejdr_munu_Channel","WW muon and jet deltaR in muon-neutrino channel",50,0,150},"jet_mu_min_dR");
+        auto h_wz_munu_events_mujdr = wz_munu_z_rec_selection.Histo1D({"WZ ejdr_munu_Channel","WZ muon and jet deltaR in muon-neutrino channel",50,0,150},"jet_mu_min_dR");
+        auto h_ttZ_munu_events_mujdr = ttZ_munu_z_rec_selection.Histo1D({"ttZ ejdr_munu_Channel","ttZ muon and jet deltaR in muon-neutrino channel",50,0,150},"jet_mu_min_dR");
+        auto h_zz_munu_events_mujdr = zz_munu_z_rec_selection.Histo1D({"zz ejdr_munu_Channel","zz muon and jet deltaR in muon-neutrino channel",50,0,150},"jet_mu_min_dR");
+        //auto h_smu_munu_events_mujdr = smu_munu_z_rec_selection.Histo1D({"Single Muon mujdr_munu_Channel","Single Muon muon and jet pt deltaR in Muon-neutrino channel,50,0,150},"jet_mu_min_dR");
+        //auto h_met_munu_events_mujdr = met_munu_z_rec_selection.Histo1D({"MET mujdr_munu_Channel","MET muon and jet deltaR in muon-neutrino channel",50,0,150},"jet_mu_min_dR");
+
+        auto h_events_mujdr_canvas = new TCanvas("mujdeltar", "mujdeltar",10,10,900,900);
+
+        h_d_munu_events_mujdr->GetXaxis()->SetTitle("mu and jet deltaR");
+        h_d_munu_events_mujdr->GetYaxis()->SetTitle("Events");
+
+
+
+        h_d_munu_events_mujdr->SetLineColor(kBlack);
+        h_ww_munu_events_mujdr->SetLineColor(kRed);
+        h_wz_munu_events_mujdr->SetLineColor(kOrange);
+        h_ttZ_munu_events_mujdr->SetLineColor(kYellow);
+        h_zz_munu_events_mujdr->SetLineColor(kTeal);
+        //h_smu_munu_events_mujdr->SetLineColor(kViolet);
+        //h_met_munu_events_mujdr->SetLineColor(kPink);
+
+        h_d_munu_events_mujdr->Scale(TZQ_W);
+        h_ww_munu_events_mujdr->Scale(WWLNQQ_W);
+        h_wz_munu_events_mujdr->Scale(WZLNQQ_W);
+        h_ttZ_munu_events_mujdr->Scale(TTZQQ_W);
+        h_zz_munu_events_mujdr->Scale(ZZLLQQ_W);
+
+
+        h_d_munu_events_mujdr->Draw();
+        h_ww_munu_events_mujdr->Draw("SAME");
+        h_wz_munu_events_mujdr->Draw("SAME");
+        h_ttZ_munu_events_mujdr->Draw("SAME");
+        h_zz_munu_events_mujdr->Draw("SAME");
+        //h_smu_munu_events_mujdr->Draw("SAME");
+        //h_met_munu_events_mujdr->Draw("SAME");
+
+        h_events_mujdr_canvas->BuildLegend();
+        h_events_mujdr_canvas->SaveAs("munu_muj_dr.root");
+        h_events_mujdr_canvas->SaveAs("munu_muj_dr.pdf");
+
+
+
+        auto h_d_munu_events_muzdr = d_munu_z_rec_selection.Histo1D({"MC muzdr_munu_Channel","MC mu and z deltaR in muon-neutrino channel",50,0,150},"z_mu_min_dR");
+        auto h_ww_munu_events_muzdr = ww_munu_z_rec_selection.Histo1D({"WW muzdr_munu_Channel","WW mu and z deltaR in muon-neutrino channel",50,0,150},"z_mu_min_dR");
+        auto h_wz_munu_events_muzdr = wz_munu_z_rec_selection.Histo1D({"WZ muzdr_munu_Channel","WZ mu and z deltaR in muon-neutrino channel",50,0,150},"z_mu_min_dR");
+        auto h_ttZ_munu_events_muzdr = ttZ_munu_z_rec_selection.Histo1D({"ttZ muzdr_munu_Channel","ttZ  mu and z deltaR in muon-neutrino channel",50,0,150},"z_mu_min_dR");
+        auto h_zz_munu_events_muzdr = zz_munu_z_rec_selection.Histo1D({"zz muzdr_munu_Channel","zz mu and z deltaR in muon-neutrino channel",50,0,150},"z_mu_min_dR");
+        //auto h_smu_munu_events_muzdr = smu_munu_z_rec_selection.Histo1D({"Single Muon muzdr_munu_Channel","Single Muon mu and z deltaR in muon-neutrino channel,50,0,150},"z_mu_min_dR");
+        //auto h_met_munu_events_muzdr = met_munu_z_rec_selection.Histo1D({"MET muzdr_munu_Channel","MET mu and z deltaR in muon-neutrino channel",50,0,150},"z_mu_min_dR");
+
+        auto h_events_muzdr_canvas = new TCanvas("muzdeltar", "muzdeltar",10,10,900,900);
+
+        h_d_munu_events_muzdr->GetXaxis()->SetTitle("muon and z deltaR");
+        h_d_munu_events_muzdr->GetYaxis()->SetTitle("Events");
+
+
+        h_d_munu_events_muzdr->SetLineColor(kBlack);
+        h_ww_munu_events_muzdr->SetLineColor(kRed);
+        h_wz_munu_events_muzdr->SetLineColor(kOrange);
+        h_ttZ_munu_events_muzdr->SetLineColor(kYellow);
+        h_zz_munu_events_muzdr->SetLineColor(kTeal);
+        //h_smu_munu_events_muzdr->SetLineColor(kViolet);
+        //h_met_munu_events_muzdr->SetLineColor(kPink);
+
+
+        h_d_munu_events_muzdr->Scale(TZQ_W);
+        h_ww_munu_events_muzdr->Scale(WWLNQQ_W);
+        h_wz_munu_events_muzdr->Scale(WZLNQQ_W);
+        h_ttZ_munu_events_muzdr->Scale(TTZQQ_W);
+        h_zz_munu_events_muzdr->Scale(ZZLLQQ_W);
+
+
+        h_d_munu_events_muzdr->Draw();
+        h_ww_munu_events_muzdr->Draw("SAME");
+        h_wz_munu_events_muzdr->Draw("SAME");
+        h_ttZ_munu_events_muzdr->Draw("SAME");
+        h_zz_munu_events_muzdr->Draw("SAME");
+        //h_smu_munu_events_muzdr->Draw("SAME");
+        //h_met_munu_events_ezdr->Draw("SAME");
+
+        h_events_muzdr_canvas->BuildLegend();
+        h_events_muzdr_canvas->SaveAs("munu_ez_dr.root");
+        h_events_muzdr_canvas->SaveAs("munu_ez_dr.pdf");
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////// Pt And ETa Test/////////////////////////////////////////////////////////////////
 /*
 	auto electron_pT = d.Histo1D({"Electron pT","Electron_pT",20,0,200},"Electron_pt");
 	auto electron_pTCanvas = new TCanvas("Electron pT", "Electron_pT",10,10,700,700);
