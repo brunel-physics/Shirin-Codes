@@ -38,6 +38,8 @@ using floats = ROOT::VecOps::RVec<float>;
 using ints = ROOT::VecOps::RVec<int>;
 using bools = ROOT::VecOps::RVec<bool>;
 using chars = ROOT::VecOps::RVec<UChar_t>; // aka 1 byte ints
+using strings = ROOT::VecOps::RVec<string>;
+
 
 namespace
 {
@@ -690,96 +692,63 @@ void analyse(int argc, char* argv[])
 */
 
 	auto CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
-//		ifstream csvread;
-//		csvread.open("CSVv2_94XSF_V2_B_F.csv",ios::in);
-		chars formula;
-/*		if(csvread)
+		strings formula;
+		string x ("x");
+	  	ifstream ip("CSVv2_94XSF_V2_B_F.csv");
+  		if(!ip.is_open()) std::cout << "ERROR: File Open" << '\n';
+        	string CSVv2;
+        	string measure_type;
+        	string sys_type;
+        	string jet_flav;
+        	string eta_min;
+        	string eta_max;
+        	string pt_min;
+        	string pt_max;
+        	string CSV_min;
+        	string CSV_max;
+        	string formular;
+
+	  	while(ip.good())
 		{
+               		getline(ip, CSVv2, ',');
+               		getline(ip, measure_type, ',');
+               		getline(ip, sys_type, ',');
+               		getline(ip, jet_flav, ',');
+               		getline(ip, eta_min, ',');
+               		getline(ip, eta_max, ',');
+               		getline(ip, pt_min, ',');
+               		getline(ip, pt_max, ',');
+               		getline(ip, CSV_min, ',');
+               		getline(ip, CSV_max, ',');
+               		getline(ip, formular, '\n');
 
-
-			for(int i; i <pt.size(); i++)
-			{
-                                for(csvLine line;getLine( csvread, line)
-				{
-
-                                        cout << "CSV works"<<endl;
-					if(btag.at(i) == line.CSVv2 && line.measure_type = "comb" && line.jet_flav  == "0" && eta.at(i) > line.eta_min && eta.at(i) < line.eta_max && pt.at(i) > line.pt_min && pt.at(i) < line.pt_max && btag.at(i) > line.CSV_min && btag.at(i) < line.CSV_max)
-					{
-						cout <<line.formular<<"  This is the formula"<<endl;
-						formula.push_back(line.formular);
-					}
-					else
-					{
-						formula.push_back(0);
-					}
-                                }
-			}
-			csvread.close();
-		}
-		return formula;
-		else
-		{
-			cerr <<"CSV file can't be opened"<<endl;
-	    	}
-*/
-
-
-  	ifstream ip("CSVv2_94XSF_V2_B_F.csv");
-
-  	if(!ip.is_open()) std::cout << "ERROR: File Open" << '\n';
-
-
-        std::string CSVv2;
-        std::string measure_type;
-        std::string sys_type;
-        std::string jet_flav;
-        std::string eta_min;
-        std::string eta_max;
-        std::string pt_min;
-        std::string pt_max;
-        std::string CSV_min;
-        std::string CSV_max;
-        std::string formular;
-
-
-
-  	while(ip.good())
-	{
-              int CSVv2 = std::getline(ip, CSVv2, ',');
-              char measure_type = std::getline(ip, measure_type, ',');
-              char sys_type = std::getline(ip, sys_type, ',');
-              int jet_flav = std::getline(ip, jet_flav, ',');
-              double eta_min = std::getline(ip, eta_min, ',');
-              double eta_max = std::getline(ip, eta_max, ',');
-              double  pt_min = std::getline(ip, pt_min, ',');
-              double  pt_max = std::getline(ip, pt_max, ',');
-              double CSV_min = std::getline(ip, CSV_min, ',');
-              double CSV_maxstd::getline(ip, CSV_max, ',');
-              char formular =std::getline(ip, formular, '/n');
-
-	    for(int i; i <pt.size(); i++)
+	      		for(int i; i <pt.size(); i++)
                         {
-                                        cout << "CSV works"<<endl;
-                                        if(btag.at(i) == "CSVv2" && "measure_type" = "comb" && "jet_flav"  == "0" && eta.at(i) > eta_min && eta.at(i) < eta_max && pt.at(i) > pt_min && pt.at(i) < pt_max && btag.at(i) > "CSV_min" && btag.at(i) < "CSV_max")
-                                        {
-                                                cout <<formular<<"  This is the formula"<<endl;
-                                                formula.push_back("formular");
-                                        }
-                                        else
-                                        {
-                                                formula.push_back(0);
-                                        }
-
+                        	cout << "CSV works"<<endl;
+                                if(btag.at(i) == CSVv2 && "measure_type" == "comb" && jet_flav  == "0" && eta.at(i) > eta_min && eta.at(i) < eta_max && pt.at(i) > pt_min && pt.at(i) < pt_max && btag.at(i) > CSV_min && btag.at(i) < CSV_max)
+                                {
+                                	cout <<formular<<"  This is the formula"<<endl;
+                                        formula.push_back(formular);
+                                }
+                                /*else
+                                {
+                                	formula.push_back(0);
+                                }
+				*/
                         }
-                        csvread.close();
-                }
+                        ip.close();
 
-  	}
+  		}
+		for(int i; i< formula.size(); i++)
+		{
+			//size_t found = formula.at(i)find(x)
+			//if(formula.find(x)) find x in each formula if exist replace with b pt if not return the value
+		}
+	        cout<< "returning formula"<<endl;
+		return formula;
 
-  ip.close();
-			cout<< "returning formula"<<endl;
-			return formula;
 	}};
+
 // Variable Luminosity scale factor for all
 	auto VarFact_func_double{[](const double& i){// this function make the variable which is equal to one and will be used for all scale factors
 		return 1.0f;
