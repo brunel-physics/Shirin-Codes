@@ -710,11 +710,11 @@ void analyse(int argc, char* argv[])
 		                for(int i; i< formula.size(); i++)
 		                {
 					// convert bpt to string
-					string p = boost::lexical_cast<string>(pt.at(i));
+					string bpt_string = boost::lexical_cast<string>(pt.at(i));
 					//replace all x with bpts values and "" with space
 					string form;
 					form = formula.at(i);
-					form.replace(form.begin(), form.end(), 'x', 'p');
+					form.replace(form.begin(), form.end(), 'x', 'bpt_string');
 					form.replace(form.begin(), form.end(), '"', ' ');
 					//use the parser
 					Eval ev;
