@@ -8,12 +8,15 @@
 #include <TH1D.h>
 #include <TTreeReaderArray.h>
 #include <TLegend.h>
+#include "eval_complex.hpp"
 #include <TStyle.h>
 #include "tdrstyle.C"
 #include <TChain.h>
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 
 #include <ROOT/RResultPtr.hxx>
@@ -91,21 +94,6 @@ constexpr double WZLNQQ_W{0.2335};
 constexpr double TTZQQ_W{0.0237};
 constexpr double ZZLLQQ_W{0.0485};
 
-/*struct csvLine
-{
-        std::string CSVv2;
-        std::string measure_type;
-        std::string sys_type;
-        std::string jet_flav;
-        std::string eta_min;
-        std::string eta_max;
-        std::string pt_min;
-        std::string pt_max;
-        std::string CSV_min;
-        std::string CSV_max;
-        std::string formular;
-};
-*/
 
 
 enum class channels
@@ -673,27 +661,11 @@ void analyse(int argc, char* argv[])
 	vector<string> bjet_phi_strings = {"Jet_phi", "nJet", "lead_bjet"};
 
 // B Tag Efficiency centre
- /*       auto getLine{[](const istream& in,const csvLine& c)
-        {
-              std::getline(in, c.CSVv2, ',');
-              std::getline(in, c.measure_type, ',');
-              std::getline(in, c.sys_type, ',');
-              std::getline(in, c.jet_flav, ',');
-              std::getline(in, c.eta_min, ',');
-              std::getline(in, c.eta_max, ',');
-              std::getline(in, c.pt_min, ',');
-              std::getline(in, c.pt_max, ',');
-              std::getline(in, c.CSV_min, ',');
-              std::getline(in, c.CSV_max, ',');
-              std::getline(in, c.formular, '/n');
-
-              return in;
-        }};
-*/
-
 	auto CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
 		strings formula;
 		string x ("x");
+		floats result;
+
 	  	ifstream ip("CSVv2_94XSF_V2_B_F.csv");
   		if(!ip.is_open()) std::cout << "ERROR: File Open" << '\n';
         	string CSVv2;
@@ -729,23 +701,35 @@ void analyse(int argc, char* argv[])
                                 {
                                 	cout <<formular<<"  This is the formula"<<endl;
                                         formula.push_back(formular);
+
                                 }
-                                /*else
+                                else
                                 {
                                 	formula.push_back(0);
                                 }
-				*/
+		                for(int i; i< formula.size(); i++)
+		                {
+					// convert bpt to string
+					string p = boost::lexical_cast<string>(pt.at(i));
+					//replace all x with bpts values and "" with space
+					string form;
+					form = formula.at(i);
+					form.replace(form.begin(), form.end(), 'x', 'p');
+					form.replace(form.begin(), form.end(), '"', ' ');
+					//use the parser
+					Eval ev;
+					complex<float> res;
+					res = ev.eval((char*)form.c_str());
+    					result.push_back(res.real());
+
+				}
                         }
                         ip.close();
 
   		}
-		for(int i; i< formula.size(); i++)
-		{
-			//size_t found = formula.at(i)find(x)
-			//if(formula.find(x)) find x in each formula if exist replace with b pt if not return the value
-		}
-	        cout<< "returning formula"<<endl;
-		return formula;
+
+	        cout<< "returning evaluated result"<<endl;
+		return result;
 
 	}};
 
