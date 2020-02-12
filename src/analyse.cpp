@@ -463,9 +463,9 @@ void analyse(int argc, char* argv[])
 	}};
 
 
-	auto bjet_id{[](const ints& tight_jets,	const floats& btags, const floats& etas){
-		return  tight_jets && (btags > 0.8838f) && (etas < 2.4f);
-	}};
+	auto bjet_id{[](const floats& btags, const floats& etas){
+		return  (btags > 0.8838f) && (abs(etas) < 2.4f);
+	}}; // i think i need to select the variable with tight_jets from these bjet_id variable and then build up the es from those 
 
 	auto bjet_cut{[](const ints& bjets) {const auto nbjet{std::count_if(bjets.begin(), bjets.end(), [](int i) { return i; })};
         	return nbjet >= 1 && nbjet <= 3;
@@ -661,7 +661,7 @@ void analyse(int argc, char* argv[])
 	vector<string> bjet_phi_strings = {"Jet_phi", "nJet", "lead_bjet"};
 
 // B Tag Efficiency centre
-	auto CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
+	auto btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
 		strings formula;
 		string x ("x");
 		floats result;
@@ -697,7 +697,7 @@ void analyse(int argc, char* argv[])
 	      		for(int i; i <pt.size(); i++)
                         {
                         	cout << "CSV works"<<endl;
-                                if(btag.at(i) == CSVv2 && "measure_type" == "comb" && jet_flav  == "0" && eta.at(i) > eta_min && eta.at(i) < eta_max && pt.at(i) > pt_min && pt.at(i) < pt_max && btag.at(i) > CSV_min && btag.at(i) < CSV_max)
+                                if(CSVv2 >= 0.8838 && measure_type == "comb" && jet_flav  == "0" && eta.at(i) > eta_min && eta.at(i) < eta_max && pt.at(i) > pt_min && pt.at(i) < pt_max && btag.at(i) > CSV_min && btag.at(i) < CSV_max)
                                 {
                                 	cout <<formular<<"  This is the formula"<<endl;
                                         formula.push_back(formular);
@@ -732,6 +732,103 @@ void analyse(int argc, char* argv[])
 		return result;
 
 	}};
+
+	auto non_btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
+                strings formula;
+                string x ("x");
+                floats result;
+
+                ifstream ip("CSVv2_94XSF_V2_B_F.csv");
+                if(!ip.is_open()) std::cout << "ERROR: File Open" << '\n';
+                string CSVv2;
+                string measure_type;
+                string sys_type;
+                string jet_flav;
+                string eta_min;
+                string eta_max;
+                string pt_min;
+                string pt_max;
+                string CSV_min;
+                string CSV_max;
+                string formular;
+
+                while(ip.good())
+                {
+                        getline(ip, CSVv2, ',');
+                        getline(ip, measure_type, ',');
+                        getline(ip, sys_type, ',');
+                        getline(ip, jet_flav, ',');
+                        getline(ip, eta_min, ',');
+                        getline(ip, eta_max, ',');
+                        getline(ip, pt_min, ',');
+                        getline(ip, pt_max, ',');
+                        getline(ip, CSV_min, ',');
+                        getline(ip, CSV_max, ',');
+                        getline(ip, formular, '\n');
+
+                        for(int i; i <pt.size(); i++)
+                        {
+                                cout << "CSV works"<<endl;
+                                if(measure_type == "comb" && jet_flav  == "0" && eta.at(i) > eta_min && eta.at(i) < eta_max && pt.at(i) > pt_min && pt.at(i) < pt_max && btag.at(i) > CSV_min && btag.at(i) < CSV_max)
+
+                                {
+                                        cout <<formular<<"  This is the formula"<<endl;
+                                        formula.push_back(formular);
+				}
+                                else
+                                {
+                                        formula.push_back(0);
+                                }
+                                for(int i; i< formula.size(); i++)
+                                {
+                                        // convert bpt to string
+                                        string pt_string = boost::lexical_cast<string>(pt.at(i));
+                                        //replace all x with bpts values and "" with space
+                                        string form;
+                                        form = formula.at(i);
+                                        form.replace(form.begin(), form.end(), 'x', 'pt_string');
+                                        form.replace(form.begin(), form.end(), '"', ' ');
+                                        //use the parser
+                                        Eval ev;
+                                        complex<float> res;
+                                        res = ev.eval((char*)form.c_str());
+                                        result.push_back(res.real());
+
+                                }
+                        }
+                        ip.close();
+
+                }
+
+                cout<< "returning evaluated result"<<endl;
+                return result;
+
+        }};
+
+
+	// e calculation for b tagging efficiency (b tagged),ei
+	// numerator
+	auto bjet_id_numer{[](const floats& btags, const floats& etas,const ints& Gen_id){
+               return (btags > 0.8838f) && (abs(etas) < 2.4f) && Gen_id ==5;
+        }};
+	// denominator
+	auto bjet_id_denom{[](const floats& etas, const ints& Gen_id){
+               return (abs(etas) < 2.4f) && Gen_id == 5;
+        }};
+	// use select floats<> in Define to choose the numerator from denominator
+	// e calculation for b tagging efficiency (non-b tagged),ej
+	// nominator
+        auto non_bjet_id_numer{[](const floats& btags, const floats& etas,const ints& Gen_id){
+               return (btags > 0.8838f) && (abs(etas) < 2.4f) && ((Gen_id > 0 && Gen_id <= 4) || Gen_id == 21);
+        }};
+        // denominator
+   	auto non_bjet_id_denom{[](const floats& etas, const ints& Gen_id){
+               return (abs(etas) < 2.4f) && ((Gen_id > 0 && Gen_id <= 4) || Gen_id == 21);
+        }};
+	//Product formula for MC
+	
+
+
 
 // Variable Luminosity scale factor for all
 	auto VarFact_func_double{[](const double& i){// this function make the variable which is equal to one and will be used for all scale factors
@@ -916,9 +1013,19 @@ void analyse(int argc, char* argv[])
 							.Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                    					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-	auto d_enu_jets_bjets_selection = d_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
-                    					        .Filter(bjet_cut, {"bjets"}, "b jet cut");
-
+	auto d_enu_jets_bjets_selection = d_enu_jets_selection.Define("bjets_candid", bjet_id, {"Jet_btagCSVV2", "Jet_eta"})
+								.Define("bjets", select<floats>,{"tight_jets", "bjets_candid"})
+								.Define("btag_numer_candid", bjet_id_numer,{"Jet_btagCSVV2", "Jet_eta", "GenPart_pdgId"})
+								.Define("btag_numer", select<floats>,{"tight_jets", "btag_numer_candid"})
+								.Define("btag_denom_candid", bjet_id_denom,{"Jet_eta", "GenPart_pdgId"})
+								.Define("btag_denom", select<floats>,{"tight_jets", "btag_denom_candid"})
+								.Define("btag", select<floats>,{"btag_numer", "btag_denom"})
+								.Define("non_btag_numer_candid", non_bjet_id_numer,{"Jet_btagCSVV2", "Jet_eta", "GenPart_pdgId"})
+								.Define("non_btag_numer", select<floats>,{"tight_jets", "non_btaf_numer_candid"})
+								.Define("non_btag_denom_candid",non_bjet_id_denom,{"Jet_eta", "GenPart_pdgId"})
+								.Define("non_btag_denom", select<floats>, {"tight_jets", "non_btag_denom_candid"})
+								.Define("non_btag", select<floats>, {"non_btag_numer","non_btag_denom"})
+                    					        .Filter(bjet_cut, {"bjets"}, "b jet cut" );
 
 	auto d_enu_z_rec_selection = d_enu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
                  						.Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "tight_jets", "lead_bjet"})
