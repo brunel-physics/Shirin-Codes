@@ -463,9 +463,9 @@ void analyse(int argc, char* argv[])
 	}};
 
 
-	auto bjet_id{[](const floats& btags, const floats& etas){
-		return  (btags > 0.8838f) && (abs(etas) < 2.4f);
-	}}; // i think i need to select the variable with tight_jets from these bjet_id variable and then build up the es from those 
+	auto bjet_id{[](const ints& tight_jets, const floats& btags, const floats& etas){
+		return  tight_jets && (btags > 0.8838f) && (abs(etas) < 2.4f);
+	}};
 
 	auto bjet_cut{[](const ints& bjets) {const auto nbjet{std::count_if(bjets.begin(), bjets.end(), [](int i) { return i; })};
         	return nbjet >= 1 && nbjet <= 3;
@@ -661,7 +661,7 @@ void analyse(int argc, char* argv[])
 	vector<string> bjet_phi_strings = {"Jet_phi", "nJet", "lead_bjet"};
 
 // B Tag Efficiency centre
-	auto btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
+/*	auto btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
 		strings formula;
 		string x ("x");
 		floats result;
@@ -769,7 +769,7 @@ void analyse(int argc, char* argv[])
                         for(int i; i <pt.size(); i++)
                         {
                                 cout << "CSV works"<<endl;
-                                if(measure_type == "comb" && jet_flav  == "0" && eta.at(i) > eta_min && eta.at(i) < eta_max && pt.at(i) > pt_min && pt.at(i) < pt_max && btag.at(i) > CSV_min && btag.at(i) < CSV_max)
+                                if(measure_type == "comb" && jet_flav  == "0" && eta.at(i) > eta_min && eta.at(i) < eta_max && pt.at(i) > pt_min && pt.at(i) < pt_max) //&& btag.at(i) > CSV_min && btag.at(i) < CSV_max)
 
                                 {
                                         cout <<formular<<"  This is the formula"<<endl;
@@ -804,29 +804,39 @@ void analyse(int argc, char* argv[])
                 return result;
 
         }};
-
+*/
 
 	// e calculation for b tagging efficiency (b tagged),ei
 	// numerator
-	auto bjet_id_numer{[](const floats& btags, const floats& etas,const ints& Gen_id){
-               return (btags > 0.8838f) && (abs(etas) < 2.4f) && Gen_id ==5;
+	auto bjet_id_numer{[](const ints& tight_jets, const floats& btags, const floats& etas,const ints& Gen_id){
+               return tight_jets && (btags > 0.8838f) && (abs(etas) < 2.4f) && Gen_id ==5;
         }};
 	// denominator
-	auto bjet_id_denom{[](const floats& etas, const ints& Gen_id){
-               return (abs(etas) < 2.4f) && Gen_id == 5;
+	auto bjet_id_denom{[](const ints& tight_jets, const floats& etas, const ints& Gen_id){
+               return tight_jets && (abs(etas) < 2.4f) && Gen_id == 5;
         }};
 	// use select floats<> in Define to choose the numerator from denominator
 	// e calculation for b tagging efficiency (non-b tagged),ej
 	// nominator
-        auto non_bjet_id_numer{[](const floats& btags, const floats& etas,const ints& Gen_id){
-               return (btags > 0.8838f) && (abs(etas) < 2.4f) && ((Gen_id > 0 && Gen_id <= 4) || Gen_id == 21);
+        auto non_bjet_id_numer{[](const ints& tight_jets, const floats& btags, const floats& etas,const ints& Gen_id){
+               return tight_jets && (btags > 0.8838f) && (abs(etas) < 2.4f) && ((Gen_id > 0 && Gen_id <= 4) || Gen_id == 21);
         }};
         // denominator
-   	auto non_bjet_id_denom{[](const floats& etas, const ints& Gen_id){
-               return (abs(etas) < 2.4f) && ((Gen_id > 0 && Gen_id <= 4) || Gen_id == 21);
+   	auto non_bjet_id_denom{[](const ints& tight_jets, const floats& etas, const ints& Gen_id){
+               return tight_jets && (abs(etas) < 2.4f) && ((Gen_id > 0 && Gen_id <= 4) || Gen_id == 21);
         }};
+	// division formula
+/*	auto division{[](const ints& nom, const ints& denom){
+
+		for(int i; i << denom.size(); i++)
+		{
+			cout<< "size of numer"<< nom.size()<<endl;
+			cout<< "size of denom"<< denom.size()<<endl;
+		}
+		return 0;
+	}};
+*/
 	//Product formula for MC
-	
 
 
 
@@ -1011,20 +1021,15 @@ void analyse(int argc, char* argv[])
 							.Define("tight_jets_eta", select<floats>, {"Jet_eta", "tight_jets"})
 							.Define("tight_jets_phi", select<floats>, {"Jet_phi", "tight_jets"})
 							.Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
-                   					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
+                   					.Filter(jet_cut, {"tight_jets"}, "Jet cut");
 
-	auto d_enu_jets_bjets_selection = d_enu_jets_selection.Define("bjets_candid", bjet_id, {"Jet_btagCSVV2", "Jet_eta"})
-								.Define("bjets", select<floats>,{"tight_jets", "bjets_candid"})
-								.Define("btag_numer_candid", bjet_id_numer,{"Jet_btagCSVV2", "Jet_eta", "GenPart_pdgId"})
-								.Define("btag_numer", select<floats>,{"tight_jets", "btag_numer_candid"})
-								.Define("btag_denom_candid", bjet_id_denom,{"Jet_eta", "GenPart_pdgId"})
-								.Define("btag_denom", select<floats>,{"tight_jets", "btag_denom_candid"})
-								.Define("btag", select<floats>,{"btag_numer", "btag_denom"})
-								.Define("non_btag_numer_candid", non_bjet_id_numer,{"Jet_btagCSVV2", "Jet_eta", "GenPart_pdgId"})
-								.Define("non_btag_numer", select<floats>,{"tight_jets", "non_btaf_numer_candid"})
-								.Define("non_btag_denom_candid",non_bjet_id_denom,{"Jet_eta", "GenPart_pdgId"})
-								.Define("non_btag_denom", select<floats>, {"tight_jets", "non_btag_denom_candid"})
-								.Define("non_btag", select<floats>, {"non_btag_numer","non_btag_denom"})
+	auto d_enu_jets_bjets_selection = d_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
+							       	.Define("btag_numer", bjet_id_numer,{"tight_jets", "Jet_btagCSVV2", "Jet_eta", "GenPart_pdgId"})
+								//.Define("btag_denom", bjet_id_denom,{"tight_jets", "Jet_eta", "GenPart_pdgId"})
+								//.Define("btag", division,{"btag_numer", "btag_denom"})
+								//.Define("non_btag_numer", non_bjet_id_numer,{"tight_jets", "Jet_btagCSVV2", "Jet_eta", "GenPart_pdgId"})
+								//.Define("non_btag_denom", non_bjet_id_denom, {"tight_jets", "Jet_eta", "GenPart_pdgId"})
+								//.Define("non_btag", division, {"non_btag_numer","non_btag_denom"})
                     					        .Filter(bjet_cut, {"bjets"}, "b jet cut" );
 
 	auto d_enu_z_rec_selection = d_enu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
@@ -1093,7 +1098,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                                                         .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-        auto d_munu_jets_bjets_selection = d_munu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+        auto d_munu_jets_bjets_selection = d_munu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                                                               .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
   	auto d_munu_z_rec_selection = d_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
@@ -1164,7 +1169,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
 							.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-	auto ww_enu_jets_bjets_selection = ww_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+	auto ww_enu_jets_bjets_selection = ww_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                     					      .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
 
@@ -1234,7 +1239,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                                                         .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-        auto ww_munu_jets_bjets_selection = ww_munu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+        auto ww_munu_jets_bjets_selection = ww_munu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                                                               .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
   	auto ww_munu_z_rec_selection = ww_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
@@ -1303,7 +1308,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                    					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-	auto wz_enu_jets_bjets_selection = wz_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+	auto wz_enu_jets_bjets_selection = wz_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                     					      .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
 
@@ -1373,7 +1378,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                                                         .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-        auto wz_munu_jets_bjets_selection = wz_munu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+        auto wz_munu_jets_bjets_selection = wz_munu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                                                               .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
   	auto wz_munu_z_rec_selection = wz_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
@@ -1443,7 +1448,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                    					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-	auto ttZ_enu_jets_bjets_selection = ttZ_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+	auto ttZ_enu_jets_bjets_selection = ttZ_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                     					      .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
 
@@ -1513,7 +1518,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                                                         .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-        auto ttZ_munu_jets_bjets_selection = ttZ_munu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+        auto ttZ_munu_jets_bjets_selection = ttZ_munu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                                                               .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
   	auto ttZ_munu_z_rec_selection = ttZ_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
@@ -1584,7 +1589,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
 							.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-	auto zz_enu_jets_bjets_selection = zz_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+	auto zz_enu_jets_bjets_selection = zz_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                     					      .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
 
@@ -1654,7 +1659,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                                                         .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-        auto zz_munu_jets_bjets_selection = zz_munu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+        auto zz_munu_jets_bjets_selection = zz_munu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                                                               .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
   	auto zz_munu_z_rec_selection = zz_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
@@ -1724,7 +1729,7 @@ void analyse(int argc, char* argv[])
 							.Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                    					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-	auto bg_enu_jets_bjets_selection = bg_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+	auto bg_enu_jets_bjets_selection = bg_enu_jets_selection.Define("bjets", bjet_id, {"Jet_btagCSVV2", "Jet_eta"})
                     					        .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
 
@@ -1796,7 +1801,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                                                         .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-        auto bg_munu_jets_bjets_selection = bg_munu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+        auto bg_munu_jets_bjets_selection = bg_munu_jets_selection.Define("bjets", bjet_id, {"Jet_btagCSVV2", "Jet_eta"})
                                                               .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
   	auto bg_munu_z_rec_selection = bg_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
@@ -1867,7 +1872,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                    					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-	auto se_enu_jets_bjets_selection = se_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+	auto se_enu_jets_bjets_selection = se_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                     					      .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
 
@@ -1928,7 +1933,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                                                         .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-        auto sm_munu_jets_bjets_selection = sm_munu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+        auto sm_munu_jets_bjets_selection = sm_munu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                                                               .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
   	auto sm_munu_z_rec_selection = sm_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
@@ -1986,7 +1991,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                    					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-	auto met_enu_jets_bjets_selection = met_enu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+	auto met_enu_jets_bjets_selection = met_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                     					      .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
 
@@ -2049,7 +2054,7 @@ void analyse(int argc, char* argv[])
                                                         .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
                                                         .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
-        auto met_munu_jets_bjets_selection = met_munu_jets_selection.Define("bjets", bjet_id, {"Jet_jetId", "Jet_btagCSVV2", "Jet_eta"})
+        auto met_munu_jets_bjets_selection = met_munu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
                                                               .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
   	auto met_munu_z_rec_selection = met_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
