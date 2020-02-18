@@ -3334,7 +3334,7 @@ void analyse(int argc, char* argv[])
 
 	h_events_btag_pt_canvas->BuildLegend();
         h_events_btag_pt_canvas->SaveAs("hist_btag_pt.root");
-        h_events_btag_pt_canvas->SaveAs("hist_brag_pt.pdf");
+        h_events_btag_pt_canvas->SaveAs("hist_btag_pt.pdf");
 	legend_ed.Clear();
 
 
@@ -3362,39 +3362,39 @@ void analyse(int argc, char* argv[])
 
         h_events_btag_eta_canvas->BuildLegend();
         h_events_btag_eta_canvas->SaveAs("hist_btag_eta.root");
-        h_events_btag_eta_canvas->SaveAs("hist_brag_eta.pdf");
+        h_events_btag_eta_canvas->SaveAs("hist_btag_eta.pdf");
         legend_ed.Clear();
 
 
 	auto h_d_enu_events_btag_PtVsEta = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,250,50,-3,3}, "btag_pt" , "btag_eta");
 
-        THStack *btag_PtVsEta_Stack = new THStack("MC_Stack","b tag pt Vs eta ");
-        h_d_enu_events_btag_PtVsEta->SetLineColor(kBlack);
+        //THStack *btag_PtVsEta_Stack = new THStack("MC_Stack","b tag pt Vs eta ");
+        //h_d_enu_events_btag_PtVsEta->SetLineColor(kBlack);
 
 
-        btag_PtVsEta_Stack->Add((TH1*)&h_d_enu_events_btag_PtVsEta.GetValue());
+        //btag_PtVsEta_Stack->Add((TH1*)&h_d_enu_events_btag_PtVsEta.GetValue());
 
 
         auto h_events_btag_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
 
 
 
-        h_d_enu_events_btag_PtVsEta->GetXaxis()->SetTitle("b tag of pt Vs eta");
-        h_d_enu_events_btag_PtVsEta->GetYaxis()->SetTitle("Events");
+        //h_d_enu_events_btag_PtVsEta->GetXaxis()->SetTitle("b tag of pt Vs eta");
+        //h_d_enu_events_btag_PtVsEta->GetYaxis()->SetTitle("Events");
 
 
-        legend_ed.AddEntry(h_d_enu_events_btag_PtVsEta.GetPtr(),"tZq MC,b tag Pt Vs Eta","l");
+        //legend_ed.AddEntry(h_d_enu_events_btag_PtVsEta.GetPtr(),"tZq MC,b tag Pt Vs Eta","l");
 
 
 
 
         //h_events_btag_PtVsEta_canvas->cd(2);
-        btag_PtVsEta_Stack->DrawClone("colz");
+        h_d_enu_events_btag_PtVsEta->Draw("COLZ");
 
         h_events_btag_eta_canvas->BuildLegend();
         h_events_btag_eta_canvas->SaveAs("hist_btag_PtVsEta.root");
-        h_events_btag_eta_canvas->SaveAs("hist_brag_PtVsEta.pdf");
-        legend_ed.Clear();
+        h_events_btag_eta_canvas->SaveAs("hist_btag_PtVsEta.pdf");
+        //legend_ed.Clear();
 
 
 
