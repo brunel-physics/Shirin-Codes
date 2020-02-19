@@ -181,16 +181,16 @@ void analyse(int argc, char* argv[])
 	//ROOT::RDataFrame Sm{"Events","/data/disk3/nanoAOD_2017/SingleMuon_*/*.root"};
 	//ROOT::RDataFrame met{"Events","/data/disk0/nanoAOD_2017/MET*/*.root"};
 
-	auto d = dc.Range(0, 1000);
-	//auto bg = bgc.Range(0, 100);
+	auto d = dc.Range(0, 10000);
+	//auto bg = bgc.Range(0, 10000);
 
-	auto ww = wwc.Range(0, 100);
-	auto wz = wzc.Range(0, 100);
-	auto ttZ = ttZc.Range(0, 100);
-	auto zz = zzc.Range(0, 100);
-	//auto se = Sec.Range(0, 100);
-	//auto sm = Smc.Range(0, 100);
-	//auto met = metc.Range(0, 100);
+	auto ww = wwc.Range(0, 10000);
+	auto wz = wzc.Range(0, 10000);
+	auto ttZ = ttZc.Range(0, 10000);
+	auto zz = zzc.Range(0, 10000);
+	//auto se = Sec.Range(0, 10000);
+	//auto sm = Smc.Range(0, 10000);
+	//auto met = metc.Range(0, 10000);
 
 	std::cout << "I have looked up the dataset"<<std::endl;
 /////////////////////////////////////////////////////////////////////////// Number of Particles Per Event /////////////////////////////////////////////////////////////////////
@@ -846,39 +846,44 @@ void analyse(int argc, char* argv[])
                //cout<<"i am inside non btag numer"<<endl;
 		//return tight_jets && (btags > 0.8838f) && (abs(etas) < 2.4f) && ((Gen_id > 0 && Gen_id <= 4) || Gen_id == 21);
 
-                int non_bjet_numer_num;
+                bool cond = 0;
                 for(int i; i< tight_jets.size(); i++)
                 {
                         if(btags.at(i) > 0.8838f && (abs(etas.at(i)) < 2.4f) && ((Gen_id.at(i) > 0 && Gen_id.at(i) <= 4) || Gen_id.at(i) == 21))
                         {
-                                non_bjet_numer_num++;
+                                cond = 1;
                         }
                 }
                 //cout<<"number of non bjet numer "<< non_bjet_numer_num<<endl;
-                return non_bjet_numer_num;
+                return tight_jets && cond;
 
         }};
         // denominator
    	auto non_bjet_id_denom{[](const ints& tight_jets, const floats& etas, const ints& Gen_id){
                //cout<<"i am inside non btag denom"<<endl;
 		//return tight_jets && (abs(etas) < 2.4f) && ((Gen_id > 0 && Gen_id <= 4) || Gen_id == 21);
-		int non_bjet_denom_num;
+		bool cond = 0;
                 for(int i; i< tight_jets.size(); i++)
                 {
                         if((abs(etas.at(i)) < 2.4f) && ((Gen_id.at(i) > 0 && Gen_id.at(i) <= 4) || Gen_id.at(i) == 21))
                         {
-                                non_bjet_denom_num++;
+                                cond = 1;
                         }
                 }
                 //cout<<"number of non bjet denom "<< non_bjet_denom_num<<endl;
-                return non_bjet_denom_num;
+                return tight_jets && cond;
 
         }};
 	// division formula
-	auto division{[](const int& nom, const int& denom){
-		//cout<< "I am in division"<<endl;
-		//cout<< "nom/denom  "<< nom/denom<<endl;
-		return nom / denom;
+	auto division{[](const ints& numer, const ints& denom){
+		cout<< "I am in division"<<endl;
+		floats ratio;
+		for(int i; i< numer.size(); i++)
+		{
+			cout<< "ratio is "<< numer.at(i)/denom.at(i)<<endl;
+			ratio.push_back(numer.at(i)/denom.at(i));
+		}
+		return ratio;
 	}};
 
 	//Product formula for MC
@@ -1071,13 +1076,21 @@ void analyse(int argc, char* argv[])
 	auto d_enu_jets_bjets_selection = d_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
 							       	.Define("btag_numer", bjet_id_numer, {"tight_jets", "Jet_btagCSVV2", "Jet_eta", "GenPart_pdgId"})
 								.Define("btag_denom", bjet_id_denom, {"tight_jets", "Jet_eta", "GenPart_pdgId"})
-								//.Define("btag", division, {"btag_numer", "btag_denom"})
-								.Define("btag_pt", select<floats>, {"Jet_pt", "btag_numer"})
-								.Define("btag_eta",select<floats>, {"Jet_eta", "btag_numer"})
-								//.Define("non_btag_numer", non_bjet_id_numer,{"tight_jets", "Jet_btagCSVV2", "Jet_eta", "GenPart_pdgId"})
-								//.Define("non_btag_denom", non_bjet_id_denom, {"tight_jets", "Jet_eta", "GenPart_pdgId"})
-								//.Define("non_btag", division, {"non_btag_numer","non_btag_denom"})
+								.Define("btag", division, {"btag_numer", "btag_denom"})
+								.Define("btag_numer_pt", select<floats>, {"Jet_pt", "btag_numer"})
+								.Define("btag_numer_eta",select<floats>, {"Jet_eta", "btag_numer"})
+								.Define("btag_denom_pt", select<floats>, {"Jet_pt", "btag_denom"})
+								.Define("btag_denom_eta",select<floats>, {"Jet_eta", "btag_denom"})
+								.Define("non_btag_numer", non_bjet_id_numer,{"tight_jets", "Jet_btagCSVV2", "Jet_eta", "GenPart_pdgId"})
+								.Define("non_btag_denom", non_bjet_id_denom, {"tight_jets", "Jet_eta", "GenPart_pdgId"})
+                                                                .Define("non_btag_numer_pt", select<floats>, {"Jet_pt", "non_btag_numer"})
+                                                                .Define("non_btag_numer_eta",select<floats>, {"Jet_eta", "non_btag_numer"})
+                                                                .Define("non_btag_denom_pt", select<floats>, {"Jet_pt", "btag_denom"})
+                                                                .Define("non_btag_denom_eta",select<floats>, {"Jet_eta", "btag_denom"})
+								.Define("non_btag", division, {"non_btag_numer","non_btag_denom"})
                     					        .Filter(bjet_cut, {"bjets"}, "b jet cut" );
+
+
 
 	auto d_enu_z_rec_selection = d_enu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
                  						.Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "tight_jets", "lead_bjet"})
@@ -1118,6 +1131,30 @@ void analyse(int argc, char* argv[])
 							.Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi"})
 							.Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi"})
 							.Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi"});
+/*
+
+	d_enu_btagged_numer_2dhist = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3}, "btag_numer_pt" , "btag_numer_eta");
+        d_enu_btagged_denom_2dhist = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3}, "b_tag_denom_pt", "btag_denom_eta");
+	d_enu_non_btagged_numer_2dhist = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3}, "non_btag_numer_pt" , "non_btag_numer_eta");
+        d_enu_non_btagged_denom_2dhist = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3}, "non_btag_denom_pt", "non_btag_denom_eta");
+
+
+        // division formula
+        auto division{[&d_enu_btagged_numer_2dhist, &d_enu_btagged_denom_2dhist](const ints dummy){
+                //cout<< "I am in division"<<endl;
+                floats binValue;
+                auto  *h_ratio =  new Th2D("ei", "ratio of btagged",50,0,400,50,-3,3);
+                h_ratio = (Th2D*)d_enu_btagged_numer_2dhist ->Clone();
+                h_ratio->Divide(d_enu_btagged_numer_2dhist)
+                for(i; i<50; i++)
+                {
+                        binValue.push_back(&h_ratio.GetBinContent(i,i).GetValue());
+                }
+                return binValue;
+        }};
+
+        d_enu_btagged_div = d_enu_top_selection.Define("ei", division, {"tight_jets"});
+*/
 
 ///////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
         auto d_munu_event_selection = d.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
@@ -3305,32 +3342,15 @@ void analyse(int argc, char* argv[])
 
 ////////////////////////////////////////////////////////////////////////////////// b jets ///////////////////////////////////////////////////////////////////////////
 
-	auto h_d_enu_events_btag_pt = d_enu_top_selection.Histo1D({"MC Signal btag_pt_enu_Channel","MC b tag pt in electron-neutrino channel",50,0,250},"btag_pt");
+	auto h_d_enu_events_btag_pt = d_enu_top_selection.Histo1D({"MC Signal btag_pt_enu_Channel","MC b tag pt in electron-neutrino channel",50,0,400},"btag_numer_pt");
 
-	THStack *btag_pt_Stack = new THStack("MC_Stack","b tag pt ");
 	h_d_enu_events_btag_pt->SetLineColor(kBlack);
-
-
-
-	btag_pt_Stack->Add((TH1*)&h_d_enu_events_btag_pt.GetValue());
-
 
 	auto h_events_btag_pt_canvas = new TCanvas("b tag pt", "b tag pt",10,10,900,900);
 
-
-
         h_d_enu_events_btag_pt->GetXaxis()->SetTitle("b tag of pt");
         h_d_enu_events_btag_pt->GetYaxis()->SetTitle("Events");
-
-
-	legend_ed.AddEntry(h_d_enu_events_btag_pt.GetPtr(),"tZq MC,b tag pt","l");
-
-
 	h_d_enu_events_btag_pt->Draw();
-
-	h_events_btag_pt_canvas->cd(2);
-        btag_pt_Stack->Draw("HIST");
-
 
 	h_events_btag_pt_canvas->BuildLegend();
         h_events_btag_pt_canvas->SaveAs("hist_btag_pt.root");
@@ -3338,13 +3358,9 @@ void analyse(int argc, char* argv[])
 	legend_ed.Clear();
 
 
-        auto h_d_enu_events_btag_eta = d_enu_top_selection.Histo1D({"MC btag_eta_enu_Channel","MC btag eta in electron-neutrino channel",50,-3,3}, "btag_eta");
+        auto h_d_enu_events_btag_eta = d_enu_top_selection.Histo1D({"MC btag_eta_enu_Channel","MC btag eta in electron-neutrino channel",50,-3,3}, "btag_numer_eta");
 
-        THStack *btag_eta_Stack = new THStack("MC_Stack","b tag eta ");
         h_d_enu_events_btag_eta->SetLineColor(kBlack);
-
-        btag_eta_Stack->Add((TH1*)&h_d_enu_events_btag_eta.GetValue());
-
 
         auto h_events_btag_eta_canvas = new TCanvas("b tag eta", "b tag eta",10,10,900,900);
 
@@ -3352,13 +3368,7 @@ void analyse(int argc, char* argv[])
         h_d_enu_events_btag_eta->GetYaxis()->SetTitle("Events");
 
 
-        legend_ed.AddEntry(h_d_enu_events_btag_eta.GetPtr(),"tZq MC,b tag eta","l");
-
-
         h_d_enu_events_btag_eta->Draw();
-
-        h_events_btag_eta_canvas->cd(2);
-        btag_eta_Stack->Draw("HIST");
 
         h_events_btag_eta_canvas->BuildLegend();
         h_events_btag_eta_canvas->SaveAs("hist_btag_eta.root");
@@ -3366,37 +3376,32 @@ void analyse(int argc, char* argv[])
         legend_ed.Clear();
 
 
-	auto h_d_enu_events_btag_PtVsEta = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,250,50,-3,3}, "btag_pt" , "btag_eta");
+	auto h_d_enu_events_btag_numer_PtVsEta = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3}, "btag_numer_pt" , "btag_numer_eta");
 
-        //THStack *btag_PtVsEta_Stack = new THStack("MC_Stack","b tag pt Vs eta ");
-        //h_d_enu_events_btag_PtVsEta->SetLineColor(kBlack);
+        auto h_events_btag_numer_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
 
+        h_d_enu_events_btag_numer_PtVsEta->GetXaxis()->SetTitle("b tag of pt Vs eta");
+        h_d_enu_events_btag_numer_PtVsEta->GetYaxis()->SetTitle("b tagg eta");
 
-        //btag_PtVsEta_Stack->Add((TH1*)&h_d_enu_events_btag_PtVsEta.GetValue());
+        h_events_btag_numer_PtVsEta_canvas->BuildLegend();
+        h_d_enu_events_btag_numer_PtVsEta->Draw("COLZ");
 
-
-        auto h_events_btag_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
-
-
-
-        //h_d_enu_events_btag_PtVsEta->GetXaxis()->SetTitle("b tag of pt Vs eta");
-        //h_d_enu_events_btag_PtVsEta->GetYaxis()->SetTitle("Events");
+        h_events_btag_numer_PtVsEta_canvas->SaveAs("hist_btag_PtVsEta.root");
+        h_events_btag_numer_PtVsEta_canvas->SaveAs("hist_btag_PtVsEta.pdf");
 
 
-        //legend_ed.AddEntry(h_d_enu_events_btag_PtVsEta.GetPtr(),"tZq MC,b tag Pt Vs Eta","l");
+	auto h_d_enu_events_non_btag_numer_PtVsEta = d_enu_top_selection.Histo2D({"MC non btag_Pt_vs_eta_enu_Channel","MC non btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3}, "non_btag_numer_pt" , "non_btag_numer_eta");
 
+        auto h_events_non_btag_numer_PtVsEta_canvas = new TCanvas("non b tag pt Vs eta", "non b tag pt Vs eta",10,10,900,900);
 
+        h_d_enu_events_non_btag_numer_PtVsEta->GetXaxis()->SetTitle("non b tag of pt Vs eta");
+        h_d_enu_events_non_btag_numer_PtVsEta->GetYaxis()->SetTitle("b tagg eta");
 
+        h_events_non_btag_numer_PtVsEta_canvas->BuildLegend();
+        h_d_enu_events_non_btag_numer_PtVsEta->Draw("COLZ");
 
-        //h_events_btag_PtVsEta_canvas->cd(2);
-        h_d_enu_events_btag_PtVsEta->Draw("COLZ");
-
-        h_events_btag_eta_canvas->BuildLegend();
-        h_events_btag_eta_canvas->SaveAs("hist_btag_PtVsEta.root");
-        h_events_btag_eta_canvas->SaveAs("hist_btag_PtVsEta.pdf");
-        //legend_ed.Clear();
-
-
+        h_events_non_btag_numer_PtVsEta_canvas->SaveAs("hist_non_btag_numer_PtVsEta.root");
+        h_events_non_btag_numer_PtVsEta_canvas->SaveAs("hist_non_btag_numer_PtVsEta.pdf");
 
 
 /////////////////////////////////////////////////////////////////////// E-Nu Channel histograms AND Canvases /////////////////////////////////////////////////////////////////////////////
