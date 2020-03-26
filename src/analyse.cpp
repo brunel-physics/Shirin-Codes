@@ -1192,10 +1192,32 @@ void analyse(int argc, char* argv[])
 		}
 		return BTaggedEff;
 	}};
+        auto NonBTaggedBinFunction{[&h_d_enu_events_non_btag_numer_PtVsEta, &h_d_enu_events_non_btag_denom_PtVsEta](const floats& pts, const floats& etas){
+                cout << "inside non b tag function" << endl;
+                floats NonBTaggedEff{};
+                for(int i = 0; i < pts.size(); i++)
+                {
+
+                        float PtNum = h_d_enu_events_non_btag_numer_PtVsEta->GetXaxis()->FindBin(pts.at(i));
+                        float EtaNum = h_d_enu_events_non_btag_numer_PtVsEta->GetYaxis()->FindBin(etas.at(i));
+                        float PtDenom = h_d_enu_events_non_btag_denom_PtVsEta->GetXaxis()->FindBin(pts.at(i));
+                        float EtaDenom = h_d_enu_events_non_btag_denom_PtVsEta->GetYaxis()->FindBin(etas.at(i));
+                        //float Numerator = h_d_enu_events_btag_numer_PtVsEta->GetBinContent(&btag_numer_pt, &btag_numer_eta);
+                        //float Denominator = h_d_enu_events_btag_denom_PtVsEta->GetBinContent(&btag_denom_pt, &btag_denom_eta);
+                        float eff = (PtNum * EtaDenom) / (PtDenom * EtaNum);
+                        NonBTaggedEff.push_back(eff);
+                        cout<< "I have found the bins" << endl;
+                }
+                return NonBTaggedEff;
+        }};
+
 
 	auto d_enu_btag_eff = d_enu_top_selection.Define("EffBTagged", BTaggedBinFunction, {"Jet_pt", "Jet_eta"});
-
-///////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
+	auto d_enu_non_btag_eff = d_enu_top_selection.Define("NonEffBTagged", NonBTaggedBinFunction, {"Jet_pt", "Jet_eta"});
+	auto h_d_enu_events_btag_eff = d_enu_btag_eff.Histo1D({"MC btag EFF","MC btag EFF electro and neutrino channel",50,0,400},"EffBTagged");
+        auto h_d_enu_events_non_btag_eff = d_enu_non_btag_eff.Histo1D({"MC non btag EFF","MC non btag EFF electro and neutrino channel",50,0,400},"NonEffBTagged");
+       
+//////////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
         auto d_munu_event_selection = d.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
                                       .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
 				      .Define("tight_mu_eta", select<floats>, {"Muon_eta", "tight_mus"})
