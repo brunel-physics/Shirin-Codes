@@ -836,9 +836,9 @@ void analyse(int argc, char* argv[])
 		//cout<<"after for"<<endl;
 		//cout<<"count vec content" <<CountVec<<endl;
 		//cout<<"before check"<<endl;
-		bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
+		//bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
 		//cout<<"after check"<<endl;
-		return  CountVec && check;
+		return  CountVec;
 
 		//return 0;
         }};
@@ -860,8 +860,8 @@ void analyse(int argc, char* argv[])
                                 CountVec.push_back(0.0);
                         }
                 }
-                bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
-                return  CountVec && check;
+                //bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
+                return  CountVec;
 
         }};
 	// use select floats<> in Define to choose the numerator from denominator
@@ -885,8 +885,8 @@ void analyse(int argc, char* argv[])
                 //cout<<"size of btag "<<btags.size()<<endl;
                 //cout<<"size of eta "<<etas.size()<<endl;
                 //cout<<"size of gen_id "<<Gen_id.size()<<endl;
-		bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
-		return CountVec && check;
+		//bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
+		return CountVec;
         }};
         // denominator
    	auto non_bjet_id_denom{[](const ints& tight_jets, const floats& etas, const ints& Gen_id){
@@ -905,8 +905,8 @@ void analyse(int argc, char* argv[])
                 }
                 //cout<<"size of eta "<<etas.size()<<endl;
                 //cout<<"size of gen_id "<<Gen_id.size()<<endl;
-		bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
-		return CountVec && check;
+		//bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
+		return CountVec;
         }};
 	// division formula
 /*	auto division{[](const ints& numer, const ints& denom){
@@ -923,6 +923,11 @@ void analyse(int argc, char* argv[])
 
 */	//Product formula for MC
 
+        auto btag_cut{[](const ints& CountVec) {
+		bool check = any_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
+		if(check ==1)cout<<"i am in btag cut "<< CountVec.size()<<endl;
+                return any_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
+        }};
 
 
 // Variable Luminosity scale factor for all
@@ -1125,7 +1130,11 @@ void analyse(int argc, char* argv[])
                                                                 .Define("non_btag_denom_pt", select<floats>, {"Jet_pt", "btag_denom"})
                                                                 .Define("non_btag_denom_eta",select<floats>, {"Jet_eta", "btag_denom"})
 								//.Define("non_btag", division, {"non_btag_numer","non_btag_denom"})
-                    					        .Filter(bjet_cut, {"bjets"}, "b jet cut" );
+                    					        .Filter(bjet_cut, {"bjets"}, "b jet cut" )
+								.Filter(btag_cut, {"btag_numer"}, "btag numer cut")
+								.Filter(btag_cut, {"btag_denom"}, "btag denom cut")
+								.Filter(btag_cut, {"non_btag_numer"}, "non btag numer cut")
+								.Filter(btag_cut, {"non_btag_denom"}, "non btag denom cut");
 
 
 
