@@ -808,14 +808,18 @@ void analyse(int argc, char* argv[])
 
 	// e calculation for b tagging efficiency (b tagged),ei
 	// numerator
-	auto bjet_id_numer{[](const ints& tight_jets, const floats& btags, const floats& etas,const ints& Gen_id){
+	auto is_GenPar_b{[](const ints& Gen_id)
+	{
+		return any_of(Gen_id.cbegin(), Gen_id.cend(), [](int gen){return gen ==5;});
+	}};
+	auto bjet_id_numer{[is_GenPar_b](const ints& tight_jets, const floats& btags, const floats& etas,const ints& Gen_id){
 		//cout<<"i am inside b tag numer"<<endl;
 		//cout<<"tight_jets "<<tight_jets.size()<<endl;
 		//cout<<"size of btag "<<btags.size()<<endl;
 		//cout<<"size of eta "<<etas.size()<<endl;
 		//cout<<"size of gen_id "<<Gen_id.size()<<endl;
 		//int size = (btags.size() < Gen_Id.size()) ? btags.size() : Gen_Id.size();
-		ints CountVec{};
+/*		ints CountVec{};
 		//cout<<"before for"<<endl;
 		for(int i; i< btags.size(); i++) // this loop could be incorrectly defined , due to not selecting the jets from tight_jets but selecting the number of $
                 {
@@ -839,15 +843,16 @@ void analyse(int argc, char* argv[])
 		//bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
 		//cout<<"after check"<<endl;
 		return  CountVec;
-
+*/
+		return (is_GenPar_b(Gen_id) && btags > 0.8838f && (abs(etas) < 2.4f) && tight_jets > 0);
 		//return 0;
         }};
 	// denominator
-	auto bjet_id_denom{[](const ints& tight_jets, const floats& etas, const ints& Gen_id){
+	auto bjet_id_denom{[is_GenPar_b](const ints& tight_jets, const floats& etas, const ints& Gen_id){
                 //cout<< "i am inside b tag denom"<<endl;
                 //cout<<"size of eta "<<etas.size()<<endl;
                 //cout<<"size of gen_id "<<Gen_id.size()<<endl;
-		ints CountVec;
+/*		ints CountVec;
 		for(int i; i< etas.size(); i++)
 		{
 
@@ -861,15 +866,19 @@ void analyse(int argc, char* argv[])
                         }
                 }
                 //bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
-                return  CountVec;
-
+               return  CountVec;
+*/
+		return (is_GenPar_b(Gen_id) && (abs(etas) < 2.4f) && tight_jets > 0);
         }};
 	// use select floats<> in Define to choose the numerator from denominator
 	// e calculation for b tagging efficiency (non-b tagged),ej
 	// nominator
-        auto non_bjet_id_numer{[](const ints& tight_jets, const floats& btags, const floats& etas,const ints& Gen_id){
+	auto not_GenPar_b{[](const ints& Gen_id){
+		return any_of(Gen_id.cbegin(), Gen_id.cend(), [](int gen){return ((gen > 0 && gen <= 4) || gen == 21);});
+	}};
+        auto non_bjet_id_numer{[not_GenPar_b](const ints& tight_jets, const floats& btags, const floats& etas,const ints& Gen_id){
                //cout<<"i am inside non btag numer"<<endl;
-                ints CountVec;
+/*                ints CountVec;
                 for(int i; i< etas.size(); i++)
                 {
                         if(tight_jets.at(i) > 0 && btags.at(i) > 0.8838f && (abs(etas.at(i)) < 2.4f) && ((Gen_id.at(i) > 0 && Gen_id.at(i) <= 4) || Gen_id.at(i) == 21))
@@ -887,11 +896,13 @@ void analyse(int argc, char* argv[])
                 //cout<<"size of gen_id "<<Gen_id.size()<<endl;
 		//bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
 		return CountVec;
+*/
+		return (not_GenPar_b(Gen_id) && tight_jets > 0 && btags > 0.8838f && (abs(etas) < 2.4f));
         }};
         // denominator
-   	auto non_bjet_id_denom{[](const ints& tight_jets, const floats& etas, const ints& Gen_id){
+   	auto non_bjet_id_denom{[not_GenPar_b](const ints& tight_jets, const floats& etas, const ints& Gen_id){
                //cout<<"i am inside non btag denom"<<endl;
-		ints CountVec;
+/*		ints CountVec;
                 for(int i; i< etas.size(); i++)
                 {
                         if(tight_jets.at(i)>0 && (abs(etas.at(i)) < 2.4f) && ((Gen_id.at(i) > 0 && Gen_id.at(i) <= 4) || Gen_id.at(i) == 21))
@@ -907,6 +918,8 @@ void analyse(int argc, char* argv[])
                 //cout<<"size of gen_id "<<Gen_id.size()<<endl;
 		//bool check = all_of(CountVec.begin(), CountVec.end(), [](int i ){return i = 1.0;});
 		return CountVec;
+*/
+		return (not_GenPar_b(Gen_id) && tight_jets > 0 && (abs(etas) < 2.4f));
         }};
 	// division formula
 /*	auto division{[](const ints& numer, const ints& denom){
@@ -1130,11 +1143,11 @@ void analyse(int argc, char* argv[])
                                                                 .Define("non_btag_denom_pt", select<floats>, {"Jet_pt", "btag_denom"})
                                                                 .Define("non_btag_denom_eta",select<floats>, {"Jet_eta", "btag_denom"})
 								//.Define("non_btag", division, {"non_btag_numer","non_btag_denom"})
-                    					        .Filter(bjet_cut, {"bjets"}, "b jet cut" )
-								.Filter(btag_cut, {"btag_numer"}, "btag numer cut")
-								.Filter(btag_cut, {"btag_denom"}, "btag denom cut")
-								.Filter(btag_cut, {"non_btag_numer"}, "non btag numer cut")
-								.Filter(btag_cut, {"non_btag_denom"}, "non btag denom cut");
+                    					        .Filter(bjet_cut, {"bjets"}, "b jet cut" );
+								//.Filter(btag_cut, {"btag_numer"}, "btag numer cut")
+								//.Filter(btag_cut, {"btag_denom"}, "btag denom cut")
+								//.Filter(btag_cut, {"non_btag_numer"}, "non btag numer cut")
+								//.Filter(btag_cut, {"non_btag_denom"}, "non btag denom cut");
 
 
 
@@ -1183,7 +1196,7 @@ void analyse(int argc, char* argv[])
         auto h_d_enu_events_btag_denom_PtVsEta = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"btag_denom_pt","btag_denom_eta");
         auto h_d_enu_events_non_btag_denom_PtVsEta = d_enu_top_selection.Histo2D({"MC non btag_Pt_vs_eta_enu_Channel","MC non btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"non_btag_denom_pt","non_btag_denom_eta");
 
-	auto BTaggedBinFunction{[&h_d_enu_events_btag_numer_PtVsEta, &h_d_enu_events_btag_denom_PtVsEta](const floats& pts_num, const floats& etas_num, const floats pts_den, const floats& etas_den){
+	auto BTaggedBinFunction{[&h_d_enu_events_btag_numer_PtVsEta, &h_d_enu_events_btag_denom_PtVsEta](const ints& Gen_id, const floats& pts_num, const floats& etas_num, const floats pts_den, const floats& etas_den){
 		cout << "inside b tag function" << endl;
 		floats BTaggedEff{};
 		int PtNum;
@@ -1194,28 +1207,35 @@ void analyse(int argc, char* argv[])
 		cout<<"size of pt den "<< pts_den.size()<<endl;
 		for(int i = 0; i < pts_num.size(); i++)
 		{
-			cout <<"before floats in loop"<<endl;
-			cout<<"pt is "<<pts_num.at(i)<<" histogram bin is"<<endl;
-			// h_d_enu_events_btag_numer_PtVsEta->GetXaxis()->FindBin(pts_num.at(i))<<endl;
-			PtNum = h_d_enu_events_btag_numer_PtVsEta->GetXaxis()->FindBin(pts_num.at(i));
-			cout<<"got pt num"<<endl;
-			EtaNum = h_d_enu_events_btag_numer_PtVsEta->GetYaxis()->FindBin(etas_num.at(i));
-			cout<<"got eta num"<<endl;
+			if(Gen_id.at(i) ==5)
+			{
+				cout<<"generated particle is "<<Gen_id.at(i)<<endl;
+				cout <<"before floats in loop"<<endl;
+				cout<<"pt is "<<pts_num.at(i)<<" histogram bin is"<<endl;
+				// h_d_enu_events_btag_numer_PtVsEta->GetXaxis()->FindBin(pts_num.at(i))<<endl;
+				PtNum = h_d_enu_events_btag_numer_PtVsEta->GetXaxis()->FindBin(pts_num.at(i));
+				cout<<"got pt num"<<endl;
+				EtaNum = h_d_enu_events_btag_numer_PtVsEta->GetYaxis()->FindBin(etas_num.at(i));
+				cout<<"got eta num"<<endl;
+			}
 			for(int j = 0; j < pts_den.size(); j++)
 			{
-				PtDenom = h_d_enu_events_btag_denom_PtVsEta->GetXaxis()->FindBin(pts_den.at(j));
-				cout<<"got pt denom"<<endl;
-				EtaDenom = h_d_enu_events_btag_denom_PtVsEta->GetYaxis()->FindBin(etas_den.at(j));
-				cout<<"got eta denom"<<endl;
-				//cout<<"before numer and denom def"<<endl;
-				float Numerator = h_d_enu_events_btag_numer_PtVsEta->GetBinContent(PtNum, EtaNum);
-				cout<<"got numer"<<endl;
-				float Denominator = h_d_enu_events_btag_denom_PtVsEta->GetBinContent(PtDenom, EtaDenom);
-				cout<<"got denom"<<endl;
-				float eff = Numerator / Denominator;
-				cout<<"got eff"<<endl;
-				BTaggedEff.push_back(eff);
-				cout<< "I have got Btagged" << endl;
+				if(Gen_id.at(j)==5)
+				{
+					PtDenom = h_d_enu_events_btag_denom_PtVsEta->GetXaxis()->FindBin(pts_den.at(j));
+					cout<<"got pt denom"<<endl;
+					EtaDenom = h_d_enu_events_btag_denom_PtVsEta->GetYaxis()->FindBin(etas_den.at(j));
+					cout<<"got eta denom"<<endl;
+					//cout<<"before numer and denom def"<<endl;
+					float Numerator = h_d_enu_events_btag_numer_PtVsEta->GetBinContent(PtNum, EtaNum);
+					cout<<"got numer"<<endl;
+					float Denominator = h_d_enu_events_btag_denom_PtVsEta->GetBinContent(PtDenom, EtaDenom);
+					cout<<"got denom"<<endl;
+					float eff = Numerator / Denominator;
+					cout<<"got eff"<<endl;
+					BTaggedEff.push_back(eff);
+					cout<< "I have got Btagged" << endl;
+				}
 			}
 		}
 		return BTaggedEff;
@@ -1247,7 +1267,7 @@ void analyse(int argc, char* argv[])
         }};
 
 
-	auto d_enu_btag_eff = d_enu_top_selection.Define("EffBTagged", BTaggedBinFunction, {"btag_numer_pt", "btag_numer_eta", "btag_denom_pt", "btag_denom_eta"});
+	auto d_enu_btag_eff = d_enu_top_selection.Define("EffBTagged", BTaggedBinFunction, {"GenPart_pdgId", "btag_numer_pt", "btag_numer_eta", "btag_denom_pt", "btag_denom_eta"});
 	auto d_enu_non_btag_eff = d_enu_top_selection.Define("NonEffBTagged", NonBTaggedBinFunction, {"non_btag_numer_pt", "non_btag_numer_eta", "non_btag_denom_pt", "non_btag_denom_eta"});
 	auto h_d_enu_events_btag_eff = d_enu_btag_eff.Histo1D({"MC btag EFF","MC btag EFF electro and neutrino channel",50,0,400},"EffBTagged");
         auto h_d_enu_events_non_btag_eff = d_enu_non_btag_eff.Histo1D({"MC non btag EFF","MC non btag EFF electro and neutrino channel",50,0,400},"NonEffBTagged");
