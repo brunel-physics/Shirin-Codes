@@ -44,6 +44,42 @@ using chars = ROOT::VecOps::RVec<UChar_t>; // aka 1 byte ints
 using strings = ROOT::VecOps::RVec<string>;
 
 
+
+class CSVReader
+{
+	std::string fileName;
+	std::string delimeter;
+
+public:
+	CSVReader(std::string filename, std::string delm = ",") :
+			fileName(filename), delimeter(delm)
+	{ }
+
+	// Function to fetch data from a CSV File
+	std::vector<std::vector<std::string> > getData();
+};
+
+std::vector<std::vector<std::string> > CSVReader::getData()
+{
+	std::ifstream file("CSVv2_94XSF_V2_B_F.csv");
+
+	std::vector<std::vector<std::string> > dataList;
+	std::string line = "";
+	// Iterate through each line and split the content using delimeter
+	while (getline(file, line))
+	{
+		cout<<"file is opened in CSVreader"<<endl;
+		std::vector<std::string> vec;
+		boost::algorithm::split(vec, line, boost::is_any_of(delimeter));
+		dataList.push_back(vec);
+	}
+	// Close the File
+	file.close();
+
+	return dataList;
+}
+
+
 namespace
 {
 
@@ -660,15 +696,52 @@ void analyse(int argc, char* argv[])
 	vector<string> bjet_pt_strings = {"Jet_pt", "nJet", "lead_bjet"};
 	vector<string> bjet_phi_strings = {"Jet_phi", "nJet", "lead_bjet"};
 
+// Try to open the file 
+	auto open_CSV_file{[](const floats& dummy){
+		/*int value;
+		ifstream ip;
+		ip.open("CSVv2_94XSF_V2_B_F.csv", ios::in);
+		if(ip.is_open())
+		{
+			cout<<"CSV is open"<<endl;
+			value = 0;
+		}
+		else
+		{
+			cout<<"CSV can not open"<<endl;
+			value = 1;
+		}
+		ip.close();
+		return value;
+		*/
+		cout<<"i am in open csv"<<endl;
+		CSVReader reader("CSVv2_94XSF_V2_B_F.csv");
+		// Get the data from CSV File
+		std::vector<std::vector<std::string> > dataList = reader.getData();
+		cout<<"got passed reader.getData()"<<endl;
+		// Print the content of row by row on screen
+		for(std::vector<std::string> vec : dataList)
+		{
+			cout<<"i am inside the first loop of reading file"<<endl;
+			for(std::string data : vec)
+			{
+				cout<<"I am reading the file"<<endl;
+				cout<<data << " , ";
+			}
+		}
+		return 0;
+	}};
+
 // B Tag Efficiency centre
 	auto btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
 		strings formula;
 		string x ("x");
 		floats result;
 
-	  	ifstream ip; //("CSVv2_94XSF_V2_B_F.csv");
-		ip.open("CSVv2_94XSF_V2_B_F.csv");
+	  	ifstream ip("CSVv2_94XSF_V2_B_F.csv");
+		//ip.open("CSVv2_94XSF_V2_B_F.csv");
   		if(!ip.is_open()) std::cout << "ERROR: File Open" << '\n';
+		if(ip.is_open()) cout<< "CSVV IS OPEN"<< endl;
         	string CSVv2;
         	string measure_type;
         	string sys_type;
@@ -1207,7 +1280,6 @@ void analyse(int argc, char* argv[])
 
 
 	auto BTaggedBinFunction{[&h_d_enu_events_btag_numer_PtVsEta, &h_d_enu_events_btag_denom_PtVsEta](const floats& pts, const floats& etas){
-		cout << "inside b tag function" << endl;
 		floats BTaggedEff{};
                 for(int i = 0; i < pts.size(); i++)
                 {
@@ -1215,31 +1287,19 @@ void analyse(int argc, char* argv[])
 			int EtaNum;
 			int PtDenom;
 			int EtaDenom;
-			cout<<"size of pt "<< pts.size()<< " at i "<<i<<endl;
-			cout<<"pt is "<<pts.at(i)<<" i is "<<i<<endl;
 			PtNum = h_d_enu_events_btag_numer_PtVsEta->GetXaxis()->FindBin(pts.at(i));
-			cout<<"got pt num"<<endl;
 			EtaNum = h_d_enu_events_btag_numer_PtVsEta->GetYaxis()->FindBin(etas.at(i));
-			cout<<"got eta num"<<endl;
-
 			PtDenom = h_d_enu_events_btag_denom_PtVsEta->GetXaxis()->FindBin(pts.at(i));
-			cout<<"got pt denom"<<endl;
 			EtaDenom = h_d_enu_events_btag_denom_PtVsEta->GetYaxis()->FindBin(etas.at(i));
-			cout<<"got eta denom"<<endl;
 
 			float Numerator = h_d_enu_events_btag_numer_PtVsEta->GetBinContent(PtNum, EtaNum);
-			cout<<"got numer"<<endl;
 			float Denominator = h_d_enu_events_btag_denom_PtVsEta->GetBinContent(PtDenom, EtaDenom);
-			cout<<"got denom"<<endl;
 			float eff = Numerator / Denominator;
-			cout<<"got eff"<<endl;
 			BTaggedEff.push_back(eff);
-			cout<< "I have got Btagged" << endl;
 		}
 		return BTaggedEff;
 	}};
         auto NonBTaggedBinFunction{[&h_d_enu_events_non_btag_numer_PtVsEta, &h_d_enu_events_non_btag_denom_PtVsEta](const floats& pts, const floats& etas){
-                cout << "inside non b tag function" << endl;
                 floats NonBTaggedEff{};
 		int PtNum;
 		int EtaNum;
@@ -1256,8 +1316,7 @@ void analyse(int argc, char* argv[])
 			float Numerator = h_d_enu_events_non_btag_numer_PtVsEta->GetBinContent(PtNum, EtaNum);
                        	float Denominator = h_d_enu_events_non_btag_denom_PtVsEta->GetBinContent(PtDenom, EtaDenom);
                        	float eff = Numerator / Denominator;
-                       	NonBTaggedEff.push_back(eff);
-                       	cout<< "I have found the bins" << endl;
+                      	NonBTaggedEff.push_back(eff);
 
                 }
                 return NonBTaggedEff;
@@ -1271,12 +1330,16 @@ void analyse(int argc, char* argv[])
 
 	auto d_enu_P_btag = d_enu_btag_eff.Define("Pi_ei",EffBTaggedProduct, {"EffBTagged"})
 					.Define("Pi_ej", EffNonBTaggedProduct,{"NonEffBTagged"})
-					.Define("Pi_sfei",Sfi_EffBTaggedProduct, {"EffBTagged", "sfi"})
-					.Define("Pi_sfej", Sfj_EffNonBTaggedProduct, {"NonEffBTagged", "sfj"})
+					//.Define("Pi_sfei",Sfi_EffBTaggedProduct, {"EffBTagged", "sfi"})
+					//.Define("Pi_sfej", Sfj_EffNonBTaggedProduct, {"NonEffBTagged", "sfj"})
 					.Define("P_MC", P_MC_func, {"Pi_ei", "Pi_ej"})
-					.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"});
+					//.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"});
+					.Define("dummy", open_CSV_file, {"Jet_pt"});
 
-	auto h_d_enu_Pi_ei = d_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_d_enu_Pi_ei->Write();
+	auto h_dummy_csv = d_enu_P_btag.Histo1D({"dummy","dummy", 50,0,3}, "dummy");
+	h_dummy_csv->Write();
+
+	/*auto h_d_enu_Pi_ei = d_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_d_enu_Pi_ei->Write();
 	auto h_d_enu_Pi_ej = d_enu_P_btag.Histo1D({"Pi ej histogram","Pi ej histogram",50,0,400},"Pi_ej"); h_d_enu_Pi_ej->Write();
 	auto h_d_enu_sfi = d_enu_P_btag.Histo1D({"sfi histogram","sfi histogram",50,0,400},"sfi"); h_d_enu_sfi->Write();
 	auto h_d_enu_sfj = d_enu_P_btag.Histo1D({"sfj histogram","sfj histogram",50,0,400},"sfj"); h_d_enu_sfj->Write();
@@ -1284,7 +1347,7 @@ void analyse(int argc, char* argv[])
 	auto h_d_enu_Pi_sfej = d_enu_P_btag.Histo1D({"Pi sfej histogram","Pi sfej histogram",50,0,400},"Pi_sfej"); h_d_enu_Pi_sfej->Write();
 	auto h_d_enu_P_MC = d_enu_P_btag.Histo1D({"P(MC) histogram","P(MC) histogram",50,0,400},"P_MC"); h_d_enu_P_MC->Write();
 	auto h_d_enu_P_Data = d_enu_P_btag.Histo1D({"P(Data) histogram","P(Data) histogram",50,0,400},"P_Data"); //h_d_enu_P_Data->Write();
-
+	*/
 //////////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
         auto d_munu_event_selection = d.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
                                       .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
