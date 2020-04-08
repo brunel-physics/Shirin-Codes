@@ -764,9 +764,9 @@ void analyse(int argc, char* argv[])
 
 // Try to open the file 
 	auto open_CSV_file{[](const floats& dummy){
-		/*int value;
+		int value;
 		ifstream ip;
-		ip.open("CSVv2_94XSF_V2_B_F.txt", ios::in);
+		ip.open("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv", ios::in);
 		if(ip.is_open())
 		{
 			cout<<"CSV is open"<<endl;
@@ -779,9 +779,9 @@ void analyse(int argc, char* argv[])
 		}
 		ip.close();
 		return value;
-		*/
+
 /*		cout<<"i am in open csv"<<endl;
-		CSVReader reader("CSVv2_94XSF_V2_B_F.csv");
+		CSVReader reader("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv");
 		cout<<"passed giving the address"<<endl;
 		// Get the data from CSV File
 		vector<vector<string> > dataList = reader.getData();
@@ -805,7 +805,7 @@ void analyse(int argc, char* argv[])
         		std::cout << "4th Element(" << row[3] << endl;;
     		}
 		*/
-		ifstream file("CSVv2_94XSF_V2_B_F.csv");
+/*		ifstream file("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv");
 		cout<<"file is declared"<<endl;
     		for(CSVIterator loop(file); loop != CSVIterator(); ++loop)
     		{
@@ -813,6 +813,7 @@ void analyse(int argc, char* argv[])
         		//std::cout << "4th Element(" << (*loop)[3] << ")\n";
     		}
 		return 1;
+*/
 		}};
 
 // B Tag Efficiency centre
@@ -821,7 +822,7 @@ void analyse(int argc, char* argv[])
 		string x ("x");
 		floats result;
 
-	  	ifstream ip("CSVv2_94XSF_V2_B_F.csv");
+	  	ifstream ip("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv");
 		//ip.open("CSVv2_94XSF_V2_B_F.csv");
   		if(!ip.is_open()) std::cout << "ERROR: File Open" << '\n';
 		if(ip.is_open()) cout<< "CSVV IS OPEN"<< endl;
