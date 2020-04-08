@@ -45,7 +45,7 @@ using strings = ROOT::VecOps::RVec<string>;
 
 
 
-class CSVReader
+/*class CSVReader
 {
 	std::string fileName;
 	std::string delimeter;
@@ -78,6 +78,72 @@ std::vector<std::vector<std::string> > CSVReader::getData()
 
 	return dataList;
 }
+*/
+class CSVRow
+{
+    public:
+        std::string const& operator[](std::size_t index) const
+        {
+            return m_data[index];
+        }
+        std::size_t size() const
+        {
+            return m_data.size();
+        }
+        void readNextRow(std::istream& str)
+        {
+            std::string         line;
+            std::getline(str, line);
+
+            std::stringstream   lineStream(line);
+            std::string         cell;
+
+            m_data.clear();
+            while(std::getline(lineStream, cell, ','))
+            {
+                m_data.push_back(cell);
+            }
+            // This checks for a trailing comma with no data after it.
+            if (!lineStream && cell.empty())
+            {
+                // If there was a trailing comma then add an empty element.
+                m_data.push_back("");
+            }
+        }
+    private:
+        std::vector<std::string>    m_data;
+};
+std::istream& operator>>(std::istream& str, CSVRow& data)
+{
+    data.readNextRow(str);
+    return str;
+} 
+
+class CSVIterator
+{
+    public:
+        typedef std::input_iterator_tag     iterator_category;
+        typedef CSVRow                      value_type;
+        typedef std::size_t                 difference_type;
+        typedef CSVRow*                     pointer;
+        typedef CSVRow&                     reference;
+
+        CSVIterator(std::istream& str)  :m_str(str.good()?&str:NULL) { ++(*this); }
+        CSVIterator()                   :m_str(NULL) {}
+
+        // Pre Increment
+        CSVIterator& operator++()               {if (m_str) { if (!((*m_str) >> m_row)){m_str = NULL;}}return *this;}
+        // Post increment
+        CSVIterator operator++(int)             {CSVIterator    tmp(*this);++(*this);return tmp;}
+        CSVRow const& operator*()   const       {return m_row;}
+        CSVRow const* operator->()  const       {return &m_row;}
+
+        bool operator==(CSVIterator const& rhs) {return ((this == &rhs) || ((this->m_str == NULL) && (rhs.m_str == NULL)));}
+        bool operator!=(CSVIterator const& rhs) {return !((*this) == rhs);}
+    private:
+        std::istream*       m_str;
+        CSVRow              m_row;
+};
 
 
 namespace
@@ -700,7 +766,7 @@ void analyse(int argc, char* argv[])
 	auto open_CSV_file{[](const floats& dummy){
 		/*int value;
 		ifstream ip;
-		ip.open("CSVv2_94XSF_V2_B_F.csv", ios::in);
+		ip.open("CSVv2_94XSF_V2_B_F.txt", ios::in);
 		if(ip.is_open())
 		{
 			cout<<"CSV is open"<<endl;
@@ -714,23 +780,40 @@ void analyse(int argc, char* argv[])
 		ip.close();
 		return value;
 		*/
-		cout<<"i am in open csv"<<endl;
+/*		cout<<"i am in open csv"<<endl;
 		CSVReader reader("CSVv2_94XSF_V2_B_F.csv");
+		cout<<"passed giving the address"<<endl;
 		// Get the data from CSV File
-		std::vector<std::vector<std::string> > dataList = reader.getData();
+		vector<vector<string> > dataList = reader.getData();
 		cout<<"got passed reader.getData()"<<endl;
 		// Print the content of row by row on screen
 		for(std::vector<std::string> vec : dataList)
 		{
 			cout<<"i am inside the first loop of reading file"<<endl;
-			for(std::string data : vec)
+			for(string data : vec)
 			{
 				cout<<"I am reading the file"<<endl;
 				cout<<data << " , ";
 			}
 		}
-		return 0;
-	}};
+		return 0;*/
+		/*ifstream file("CSVv2_94XSF_V2_B_F.csv");
+		cout<<"file is declared"<<endl;
+    		CSVRow row;
+    		while(file >> row)
+    		{
+        		std::cout << "4th Element(" << row[3] << endl;;
+    		}
+		*/
+		ifstream file("CSVv2_94XSF_V2_B_F.csv");
+		cout<<"file is declared"<<endl;
+    		for(CSVIterator loop(file); loop != CSVIterator(); ++loop)
+    		{
+			cout<< "file is iterating"<<endl;
+        		//std::cout << "4th Element(" << (*loop)[3] << ")\n";
+    		}
+		return 1;
+		}};
 
 // B Tag Efficiency centre
 	auto btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
