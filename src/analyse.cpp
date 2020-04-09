@@ -887,7 +887,7 @@ void analyse(int argc, char* argv[])
 
                         	cout << "CSV works"<<endl;
 				cout<<"pt is "<<pt.at(i)<<" pt_min is "<<pt_min<<"pt max is "<<pt_max<<endl;
-                                if(CSVv2_v >= 0.8838 && measure_type == "comb" && jet_flav_v  == "0" && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v && btag.at(i) > CSV_min_v && btag.at(i) < CSV_max_v)
+                                if(CSVv2_v >= 0.8838 && measure_type == "comb" && jet_flav_v  == 0 && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v && btag.at(i) > CSV_min_v && btag.at(i) < CSV_max_v)
                                 {
                                 	cout <<formular<<"  This is the formula"<<endl;
                                         formula.push_back(formular);
