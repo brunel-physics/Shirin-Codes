@@ -1,3 +1,4 @@
+
 #include "analyse.hpp"
 #include <algorithm>
 #include "TLorentzVector.h"
@@ -891,7 +892,11 @@ void analyse(int argc, char* argv[])
                                 if(CSVv2_v >= 0.8838 && measure_type == "comb" && jet_flav_v  == 0 && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v && btag.at(i) > CSV_min_v && btag.at(i) < CSV_max_v)
                                 {
                                 	cout <<formular<<"  This is the formula"<<endl;
-                                        formula.push_back(formular);
+					string bpt_string = boost::lexical_cast<string>(pt.at(i));
+					cout<<"b pt is "<<bpt_string<<endl;
+					if(formular.find("x")!= string::npos)formular.replace(formular.begin(), formular.end(), 'x', 'bpt_string');
+					cout<<"i replaced b pt string, formula is"<<formular<<endl;
+					formula.push_back(formular);
                                 }
                                 else
                                 {
@@ -905,16 +910,17 @@ void analyse(int argc, char* argv[])
 		cout<<"size of formula is "<<formula.size()<<endl;
 	      	for(int j; j< formula.size(); j++)
 	        {
+			cout<<"formula size is "<<formula.size()<<endl;
 			cout<<"i am starting to parse the formula   "<<"formula is"<<formula.at(j)<<endl;
 			// convert bpt to string
-			string bpt_string = boost::lexical_cast<string>(pt.at(j));
+			//string bpt_string = boost::lexical_cast<string>(pt.at(j));
 			cout<<"i replaced b pt string"<<endl;
 			//replace all x with bpts values and "" with space
 			string form;
 			form = formula.at(j);
-			cout<<"i assigned formula to form"<<endl;
-			form.replace(form.begin(), form.end(), 'x', 'bpt_string');
-			cout<<"replaced x"<<endl;
+			cout<<"i assigned formula to form "<<" formula is" <<formula.at(j)<<endl;
+			//if (form.find("x") != string::npos) form.replace(form.begin(), form.end(), 'x', 'bpt_string');
+			//cout<<"b pt string is "<<pt.at(j)<<"replaced x form is "<<form<<endl;
 			//form.replace(form.begin(), form.end(), '"', '');
 			//cout<<"replaced the notation"<<endl;
 			//use the parser
@@ -922,6 +928,7 @@ void analyse(int argc, char* argv[])
 			cout<<"after Eval ev"<<endl;
 			complex<float> res;
 			cout<<"after complex"<<endl;
+			cout<<"form is "<<form<<endl;
 			res = ev.eval((char*)form.c_str());
 			cout<<"after res"<<endl;
     			result.push_back(res.real());
