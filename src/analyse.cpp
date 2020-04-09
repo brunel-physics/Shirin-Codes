@@ -874,6 +874,7 @@ void analyse(int argc, char* argv[])
 			cout<< "this is formular "<<formular<<endl;
 			cout<<"size of pt is "<<pt.size()<<" pt is "<<pt.at(0)<<" pt_min is "<<pt_min<<" pt max is "<<pt_max<<endl;
 			cout<<"before loop"<<endl;
+			if(CSVv2=="") break;
 			for(int i{0}; i < pt.size(); i++)
                         {
 				float CSVv2_v = boost::lexical_cast<float>(CSVv2); cout<<"CSV value is "<<CSVv2_v<<endl;
@@ -907,16 +908,24 @@ void analyse(int argc, char* argv[])
 			cout<<"i am starting to parse the formula   "<<"formula is"<<formula.at(j)<<endl;
 			// convert bpt to string
 			string bpt_string = boost::lexical_cast<string>(pt.at(j));
+			cout<<"i replaced b pt string"<<endl;
 			//replace all x with bpts values and "" with space
 			string form;
 			form = formula.at(j);
+			cout<<"i assigned formula to form"<<endl;
 			form.replace(form.begin(), form.end(), 'x', 'bpt_string');
-			form.replace(form.begin(), form.end(), '"', ' ');
+			cout<<"replaced x"<<endl;
+			//form.replace(form.begin(), form.end(), '"', '');
+			//cout<<"replaced the notation"<<endl;
 			//use the parser
 			Eval ev;
+			cout<<"after Eval ev"<<endl;
 			complex<float> res;
+			cout<<"after complex"<<endl;
 			res = ev.eval((char*)form.c_str());
+			cout<<"after res"<<endl;
     			result.push_back(res.real());
+			cout<<"after result "<<result.at(j)<<endl;
 
 		}
 	        cout<< "returning evaluated result in btag"<<endl;
