@@ -79,7 +79,7 @@ std::vector<std::vector<std::string> > CSVReader::getData()
 	return dataList;
 }
 */
-class CSVRow
+/*class CSVRow
 {
     public:
         std::string const& operator[](std::size_t index) const
@@ -145,7 +145,7 @@ class CSVIterator
         CSVRow              m_row;
 };
 
-
+*/
 namespace
 {
 
@@ -283,7 +283,7 @@ void analyse(int argc, char* argv[])
 	//ROOT::RDataFrame Sm{"Events","/data/disk3/nanoAOD_2017/SingleMuon_*/*.root"};
 	//ROOT::RDataFrame met{"Events","/data/disk0/nanoAOD_2017/MET*/*.root"};
 
-	auto d = dc.Range(0, 10000);
+	auto d = dc.Range(0, 100);
 	//auto bg = bgc.Range(0, 10000);
 
 	auto ww = wwc.Range(0, 10000);
@@ -779,7 +779,15 @@ void analyse(int argc, char* argv[])
 		}
 		ip.close();
 		return value;
-
+		/*ofstream tf;
+		tf.open("test.txt");
+		if(tf.is_open())
+		{
+			tf << "open\n";
+			tf.close();
+		}
+		return 1;
+		*/
 /*		cout<<"i am in open csv"<<endl;
 		CSVReader reader("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv");
 		cout<<"passed giving the address"<<endl;
@@ -840,6 +848,7 @@ void analyse(int argc, char* argv[])
 
 	  	while(ip.good())
 		{
+			cout<<"File is read"<<endl;
                		getline(ip, CSVv2, ',');
                		getline(ip, measure_type, ',');
                		getline(ip, sys_type, ',');
@@ -852,41 +861,65 @@ void analyse(int argc, char* argv[])
                		getline(ip, CSV_max, ',');
                		getline(ip, formular, '\n');
 
-	      		for(int i; i <pt.size(); i++)
+			cout<< "This is CSVvs operator "<<CSVv2<<endl;
+			cout<< "This is measure_type "<<measure_type<<endl;
+	      		cout<< "This is sys_type "<<sys_type<<endl;
+			cout<< "This is jet_flav "<<jet_flav<<endl;
+			cout<< "eta min "<<eta_min<<endl;
+			cout<< "eta max "<<eta_max<<endl;
+			cout<< "This is pt min "<<pt_min<<endl;
+			cout<< "This is pt max "<<pt_max<<endl;
+			cout<< "This is CSV min "<<CSV_min<<endl;
+			cout<< "This is CSV max "<<CSV_max<<endl;
+			cout<< "this is formular "<<formular<<endl;
+			cout<<"size of pt is "<<pt.size()<<" pt is "<<pt.at(0)<<" pt_min is "<<pt_min<<" pt max is "<<pt_max<<endl;
+			cout<<"before loop"<<endl;
+			for(int i{0}; i < pt.size(); i++)
                         {
+				float CSVv2_v = boost::lexical_cast<float>(CSVv2); cout<<"CSV value is "<<CSVv2_v<<endl;
+				float jet_flav_v = boost::lexical_cast<float>(jet_flav); cout<<"jet flav value is "<<jet_flav_v<<endl;
+				float eta_min_v = boost::lexical_cast<float>(eta_min); cout<<"eta min value is "<<eta_min_v<<endl;
+				float eta_max_v = boost::lexical_cast<float>(eta_max); cout<<"eta max value is "<<eta_max_v<<endl;
+				float pt_min_v = boost::lexical_cast<float>(pt_min); cout<<"pt min value is "<<pt_min_v<<endl;
+				float pt_max_v = boost::lexical_cast<float>(pt_max); cout<<"pt max value is "<<pt_max_v<<endl;
+				float CSV_min_v = boost::lexical_cast<float>(CSV_min); cout<<"CSV min value is "<<CSV_min_v<<endl;
+				float CSV_max_v = boost::lexical_cast<float>(CSV_max); cout<<"CSV max value is "<<CSV_max_v<<endl;
+
                         	cout << "CSV works"<<endl;
-                                if(CSVv2 >= 0.8838 && measure_type == "comb" && jet_flav  == "0" && eta.at(i) > eta_min && eta.at(i) < eta_max && pt.at(i) > pt_min && pt.at(i) < pt_max && btag.at(i) > CSV_min && btag.at(i) < CSV_max)
+				cout<<"pt is "<<pt.at(i)<<" pt_min is "<<pt_min<<"pt max is "<<pt_max<<endl;
+                                if(CSVv2_v >= 0.8838 && measure_type == "comb" && jet_flav_v  == "0" && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v && btag.at(i) > CSV_min_v && btag.at(i) < CSV_max_v)
                                 {
                                 	cout <<formular<<"  This is the formula"<<endl;
                                         formula.push_back(formular);
-
                                 }
                                 else
                                 {
-                                	formula.push_back(0);
+					cout<<"combination for the formula was not found"<<endl;
+                                	formula.push_back("0");
                                 }
-		                for(int i; i< formula.size(); i++)
-		                {
-					// convert bpt to string
-					string bpt_string = boost::lexical_cast<string>(pt.at(i));
-					//replace all x with bpts values and "" with space
-					string form;
-					form = formula.at(i);
-					form.replace(form.begin(), form.end(), 'x', 'bpt_string');
-					form.replace(form.begin(), form.end(), '"', ' ');
-					//use the parser
-					Eval ev;
-					complex<float> res;
-					res = ev.eval((char*)form.c_str());
-    					result.push_back(res.real());
-
-				}
-                        }
-                        ip.close();
-
-  		}
+			}
+			cout<<"after loop"<<endl;
+		}
 		ip.close();
-	        cout<< "returning evaluated result"<<endl;
+		cout<<"size of formula is "<<formula.size()<<endl;
+	      	for(int j; j< formula.size(); j++)
+	        {
+			cout<<"i am starting to parse the formula   "<<"formula is"<<formula.at(j)<<endl;
+			// convert bpt to string
+			string bpt_string = boost::lexical_cast<string>(pt.at(j));
+			//replace all x with bpts values and "" with space
+			string form;
+			form = formula.at(j);
+			form.replace(form.begin(), form.end(), 'x', 'bpt_string');
+			form.replace(form.begin(), form.end(), '"', ' ');
+			//use the parser
+			Eval ev;
+			complex<float> res;
+			res = ev.eval((char*)form.c_str());
+    			result.push_back(res.real());
+
+		}
+	        cout<< "returning evaluated result in btag"<<endl;
 		return result;
 
 	}};
@@ -897,7 +930,7 @@ void analyse(int argc, char* argv[])
                 floats result;
 
                 ifstream ip;//("CSVv2_94XSF_V2_B_F.csv");
-		ip.open("CSVv2_94XSF_V2_B_F.csv");
+		ip.open("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv");
                 if(!ip.is_open()) std::cout << "ERROR: File Open" << '\n';
                 string CSVv2;
                 string measure_type;
@@ -936,30 +969,31 @@ void analyse(int argc, char* argv[])
 				}
                                 else
                                 {
-                                        formula.push_back(0);
+                                        formula.push_back("0");
                                 }
-                                for(int i; i< formula.size(); i++)
-                                {
-                                        // convert bpt to string
-                                        string pt_string = boost::lexical_cast<string>(pt.at(i));
-                                        //replace all x with bpts values and "" with space
-                                        string form;
-                                        form = formula.at(i);
-                                        form.replace(form.begin(), form.end(), 'x', 'pt_string');
-                                        form.replace(form.begin(), form.end(), '"', ' ');
-                                        //use the parser
-                                        Eval ev;
-                                        complex<float> res;
-                                        res = ev.eval((char*)form.c_str());
-                                        result.push_back(res.real());
+			}
+                        for(int j; j< formula.size(); j++)
+                        {
+                               // convert bpt to string
+                               string pt_string = boost::lexical_cast<string>(pt.at(j));
+                               //replace all x with bpts values and "" with space
+                               string form;
+                               form = formula.at(j);
+                               form.replace(form.begin(), form.end(), 'x', 'pt_string');
+                               form.replace(form.begin(), form.end(), '"', ' ');
+                               //use the parser
+                               Eval ev;
+                               complex<float> res;
+                               res = ev.eval((char*)form.c_str());
+                               result.push_back(res.real());
 
-                                }
                         }
                         ip.close();
 
                 }
 		ip.close();
                 cout<< "returning evaluated result"<<endl;
+		cout<< " size of pt is "<<pt.size()<<endl;
                 return result;
 
         }};
@@ -1414,20 +1448,20 @@ void analyse(int argc, char* argv[])
 
 	auto d_enu_P_btag = d_enu_btag_eff.Define("Pi_ei",EffBTaggedProduct, {"EffBTagged"})
 					.Define("Pi_ej", EffNonBTaggedProduct,{"NonEffBTagged"})
-					//.Define("Pi_sfei",Sfi_EffBTaggedProduct, {"EffBTagged", "sfi"})
-					//.Define("Pi_sfej", Sfj_EffNonBTaggedProduct, {"NonEffBTagged", "sfj"})
-					.Define("P_MC", P_MC_func, {"Pi_ei", "Pi_ej"})
+					.Define("Pi_sfei",Sfi_EffBTaggedProduct, {"EffBTagged", "sfi"})
+					.Define("Pi_sfej", Sfj_EffNonBTaggedProduct, {"NonEffBTagged", "sfj"})
+					.Define("P_MC", P_MC_func, {"Pi_ei", "Pi_ej"});
 					//.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"});
-					.Define("dummy", open_CSV_file, {"Jet_pt"});
-
+					//.Define("dummy", open_CSV_file, {"Jet_pt"});
+/*
 	auto h_dummy_csv = d_enu_P_btag.Histo1D({"dummy","dummy", 50,0,3}, "dummy");
 	h_dummy_csv->Write();
-
+*/
 	/*auto h_d_enu_Pi_ei = d_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_d_enu_Pi_ei->Write();
 	auto h_d_enu_Pi_ej = d_enu_P_btag.Histo1D({"Pi ej histogram","Pi ej histogram",50,0,400},"Pi_ej"); h_d_enu_Pi_ej->Write();
-	auto h_d_enu_sfi = d_enu_P_btag.Histo1D({"sfi histogram","sfi histogram",50,0,400},"sfi"); h_d_enu_sfi->Write();
-	auto h_d_enu_sfj = d_enu_P_btag.Histo1D({"sfj histogram","sfj histogram",50,0,400},"sfj"); h_d_enu_sfj->Write();
-	auto h_d_enu_Pi_sfei = d_enu_P_btag.Histo1D({"Pi sfei histogram","Pi sfei histogram",50,0,400},"Pi_sfei"); h_d_enu_Pi_sfei->Write();
+	*/ auto h_d_enu_sfi = d_enu_P_btag.Histo1D({"sfi histogram","sfi histogram",50,0,400},"sfi"); h_d_enu_sfi->Write();
+	//auto h_d_enu_sfj = d_enu_P_btag.Histo1D({"sfj histogram","sfj histogram",50,0,400},"sfj"); h_d_enu_sfj->Write();
+	/* auto h_d_enu_Pi_sfei = d_enu_P_btag.Histo1D({"Pi sfei histogram","Pi sfei histogram",50,0,400},"Pi_sfei"); h_d_enu_Pi_sfei->Write();
 	auto h_d_enu_Pi_sfej = d_enu_P_btag.Histo1D({"Pi sfej histogram","Pi sfej histogram",50,0,400},"Pi_sfej"); h_d_enu_Pi_sfej->Write();
 	auto h_d_enu_P_MC = d_enu_P_btag.Histo1D({"P(MC) histogram","P(MC) histogram",50,0,400},"P_MC"); h_d_enu_P_MC->Write();
 	auto h_d_enu_P_Data = d_enu_P_btag.Histo1D({"P(Data) histogram","P(Data) histogram",50,0,400},"P_Data"); //h_d_enu_P_Data->Write();
