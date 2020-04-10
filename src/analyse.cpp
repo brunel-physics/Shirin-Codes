@@ -45,108 +45,6 @@ using chars = ROOT::VecOps::RVec<UChar_t>; // aka 1 byte ints
 using strings = ROOT::VecOps::RVec<string>;
 
 
-
-/*class CSVReader
-{
-	std::string fileName;
-	std::string delimeter;
-
-public:
-	CSVReader(std::string filename, std::string delm = ",") :
-			fileName(filename), delimeter(delm)
-	{ }
-
-	// Function to fetch data from a CSV File
-	std::vector<std::vector<std::string> > getData();
-};
-
-std::vector<std::vector<std::string> > CSVReader::getData()
-{
-	std::ifstream file("CSVv2_94XSF_V2_B_F.csv");
-
-	std::vector<std::vector<std::string> > dataList;
-	std::string line = "";
-	// Iterate through each line and split the content using delimeter
-	while (getline(file, line))
-	{
-		cout<<"file is opened in CSVreader"<<endl;
-		std::vector<std::string> vec;
-		boost::algorithm::split(vec, line, boost::is_any_of(delimeter));
-		dataList.push_back(vec);
-	}
-	// Close the File
-	file.close();
-
-	return dataList;
-}
-*/
-/*class CSVRow
-{
-    public:
-        std::string const& operator[](std::size_t index) const
-        {
-            return m_data[index];
-        }
-        std::size_t size() const
-        {
-            return m_data.size();
-        }
-        void readNextRow(std::istream& str)
-        {
-            std::string         line;
-            std::getline(str, line);
-
-            std::stringstream   lineStream(line);
-            std::string         cell;
-
-            m_data.clear();
-            while(std::getline(lineStream, cell, ','))
-            {
-                m_data.push_back(cell);
-            }
-            // This checks for a trailing comma with no data after it.
-            if (!lineStream && cell.empty())
-            {
-                // If there was a trailing comma then add an empty element.
-                m_data.push_back("");
-            }
-        }
-    private:
-        std::vector<std::string>    m_data;
-};
-std::istream& operator>>(std::istream& str, CSVRow& data)
-{
-    data.readNextRow(str);
-    return str;
-} 
-
-class CSVIterator
-{
-    public:
-        typedef std::input_iterator_tag     iterator_category;
-        typedef CSVRow                      value_type;
-        typedef std::size_t                 difference_type;
-        typedef CSVRow*                     pointer;
-        typedef CSVRow&                     reference;
-
-        CSVIterator(std::istream& str)  :m_str(str.good()?&str:NULL) { ++(*this); }
-        CSVIterator()                   :m_str(NULL) {}
-
-        // Pre Increment
-        CSVIterator& operator++()               {if (m_str) { if (!((*m_str) >> m_row)){m_str = NULL;}}return *this;}
-        // Post increment
-        CSVIterator operator++(int)             {CSVIterator    tmp(*this);++(*this);return tmp;}
-        CSVRow const& operator*()   const       {return m_row;}
-        CSVRow const* operator->()  const       {return &m_row;}
-
-        bool operator==(CSVIterator const& rhs) {return ((this == &rhs) || ((this->m_str == NULL) && (rhs.m_str == NULL)));}
-        bool operator!=(CSVIterator const& rhs) {return !((*this) == rhs);}
-    private:
-        std::istream*       m_str;
-        CSVRow              m_row;
-};
-
-*/
 namespace
 {
 
@@ -763,68 +661,6 @@ void analyse(int argc, char* argv[])
 	vector<string> bjet_pt_strings = {"Jet_pt", "nJet", "lead_bjet"};
 	vector<string> bjet_phi_strings = {"Jet_phi", "nJet", "lead_bjet"};
 
-// Try to open the file 
-	auto open_CSV_file{[](const floats& dummy){
-		int value;
-		ifstream ip;
-		ip.open("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv", ios::in);
-		if(ip.is_open())
-		{
-			cout<<"CSV is open"<<endl;
-			value = 0;
-		}
-		else
-		{
-			cout<<"CSV can not open"<<endl;
-			value = 1;
-		}
-		ip.close();
-		return value;
-		/*ofstream tf;
-		tf.open("test.txt");
-		if(tf.is_open())
-		{
-			tf << "open\n";
-			tf.close();
-		}
-		return 1;
-		*/
-/*		cout<<"i am in open csv"<<endl;
-		CSVReader reader("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv");
-		cout<<"passed giving the address"<<endl;
-		// Get the data from CSV File
-		vector<vector<string> > dataList = reader.getData();
-		cout<<"got passed reader.getData()"<<endl;
-		// Print the content of row by row on screen
-		for(std::vector<std::string> vec : dataList)
-		{
-			cout<<"i am inside the first loop of reading file"<<endl;
-			for(string data : vec)
-			{
-				cout<<"I am reading the file"<<endl;
-				cout<<data << " , ";
-			}
-		}
-		return 0;*/
-		/*ifstream file("CSVv2_94XSF_V2_B_F.csv");
-		cout<<"file is declared"<<endl;
-    		CSVRow row;
-    		while(file >> row)
-    		{
-        		std::cout << "4th Element(" << row[3] << endl;;
-    		}
-		*/
-/*		ifstream file("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv");
-		cout<<"file is declared"<<endl;
-    		for(CSVIterator loop(file); loop != CSVIterator(); ++loop)
-    		{
-			cout<< "file is iterating"<<endl;
-        		//std::cout << "4th Element(" << (*loop)[3] << ")\n";
-    		}
-		return 1;
-*/
-		}};
-
 // B Tag Efficiency centre
 	auto btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
 		strings formula;
@@ -832,9 +668,7 @@ void analyse(int argc, char* argv[])
 		floats result;
 
 	  	ifstream ip("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv");
-		//ip.open("CSVv2_94XSF_V2_B_F.csv");
   		if(!ip.is_open()) std::cout << "ERROR: File Open" << '\n';
-		if(ip.is_open()) cout<< "CSVV IS OPEN"<< endl;
         	string CSVv2;
         	string measure_type;
         	string sys_type;
@@ -849,7 +683,6 @@ void analyse(int argc, char* argv[])
 
 	  	while(ip.good())
 		{
-			cout<<"File is read"<<endl;
                		getline(ip, CSVv2, ',');
                		getline(ip, measure_type, ',');
                		getline(ip, sys_type, ',');
@@ -862,80 +695,39 @@ void analyse(int argc, char* argv[])
                		getline(ip, CSV_max, ',');
                		getline(ip, formular, '\n');
 
-			cout<< "This is CSVvs operator "<<CSVv2<<endl;
-			cout<< "This is measure_type "<<measure_type<<endl;
-	      		cout<< "This is sys_type "<<sys_type<<endl;
-			cout<< "This is jet_flav "<<jet_flav<<endl;
-			cout<< "eta min "<<eta_min<<endl;
-			cout<< "eta max "<<eta_max<<endl;
-			cout<< "This is pt min "<<pt_min<<endl;
-			cout<< "This is pt max "<<pt_max<<endl;
-			cout<< "This is CSV min "<<CSV_min<<endl;
-			cout<< "This is CSV max "<<CSV_max<<endl;
-			cout<< "this is formular "<<formular<<endl;
-			cout<<"size of pt is "<<pt.size()<<" pt is "<<pt.at(0)<<" pt_min is "<<pt_min<<" pt max is "<<pt_max<<endl;
-			cout<<"before loop"<<endl;
 			if(CSVv2=="") break;
 			for(int i{0}; i < pt.size(); i++)
                         {
-				float CSVv2_v = boost::lexical_cast<float>(CSVv2); cout<<"CSV value is "<<CSVv2_v<<endl;
-				float jet_flav_v = boost::lexical_cast<float>(jet_flav); cout<<"jet flav value is "<<jet_flav_v<<endl;
-				float eta_min_v = boost::lexical_cast<float>(eta_min); cout<<"eta min value is "<<eta_min_v<<endl;
-				float eta_max_v = boost::lexical_cast<float>(eta_max); cout<<"eta max value is "<<eta_max_v<<endl;
-				float pt_min_v = boost::lexical_cast<float>(pt_min); cout<<"pt min value is "<<pt_min_v<<endl;
-				float pt_max_v = boost::lexical_cast<float>(pt_max); cout<<"pt max value is "<<pt_max_v<<endl;
-				float CSV_min_v = boost::lexical_cast<float>(CSV_min); cout<<"CSV min value is "<<CSV_min_v<<endl;
-				float CSV_max_v = boost::lexical_cast<float>(CSV_max); cout<<"CSV max value is "<<CSV_max_v<<endl;
+				float CSVv2_v = boost::lexical_cast<float>(CSVv2);
+				float jet_flav_v = boost::lexical_cast<float>(jet_flav);
+				float eta_min_v = boost::lexical_cast<float>(eta_min);
+				float eta_max_v = boost::lexical_cast<float>(eta_max);
+				float pt_min_v = boost::lexical_cast<float>(pt_min);
+				float pt_max_v = boost::lexical_cast<float>(pt_max);
+				float CSV_min_v = boost::lexical_cast<float>(CSV_min);
+				float CSV_max_v = boost::lexical_cast<float>(CSV_max);
 
-                        	cout << "CSV works"<<endl;
-				cout<<"pt is "<<pt.at(i)<<" pt_min is "<<pt_min<<"pt max is "<<pt_max<<endl;
-                                if(CSVv2_v >= 0.8838 && measure_type == "comb" && jet_flav_v  == 0 && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v && btag.at(i) > CSV_min_v && btag.at(i) < CSV_max_v)
+                                if(CSVv2_v >= 0.8838 && measure_type == "comb" && sys_type == "central" && jet_flav_v  == 0 && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v && btag.at(i) > CSV_min_v && btag.at(i) < CSV_max_v)
                                 {
-                                	cout <<formular<<"  This is the formula"<<endl;
-					string bpt_string = boost::lexical_cast<string>(pt.at(i));
-					cout<<"b pt is "<<bpt_string<<endl;
-					if(formular.find("x")!= string::npos)formular.replace(formular.begin(), formular.end(), 'x', 'bpt_string');
-					cout<<"i replaced b pt string, formula is"<<formular<<endl;
+                                	string bpt_string = boost::lexical_cast<string>(pt.at(i));
+					if(formular.find("x")!= string::npos)boost::replace_all(formular, "x", bpt_string);
 					formula.push_back(formular);
                                 }
-                                else
-                                {
-					cout<<"combination for the formula was not found"<<endl;
-                                	formula.push_back("0");
-                                }
+
 			}
-			cout<<"after loop"<<endl;
 		}
 		ip.close();
-		cout<<"size of formula is "<<formula.size()<<endl;
+		if(formula.size() == 0)formula.push_back("0");
 	      	for(int j; j< formula.size(); j++)
 	        {
-			cout<<"formula size is "<<formula.size()<<endl;
-			cout<<"i am starting to parse the formula   "<<"formula is"<<formula.at(j)<<endl;
-			// convert bpt to string
-			//string bpt_string = boost::lexical_cast<string>(pt.at(j));
-			cout<<"i replaced b pt string"<<endl;
-			//replace all x with bpts values and "" with space
 			string form;
 			form = formula.at(j);
-			cout<<"i assigned formula to form "<<" formula is" <<formula.at(j)<<endl;
-			//if (form.find("x") != string::npos) form.replace(form.begin(), form.end(), 'x', 'bpt_string');
-			//cout<<"b pt string is "<<pt.at(j)<<"replaced x form is "<<form<<endl;
-			//form.replace(form.begin(), form.end(), '"', '');
-			//cout<<"replaced the notation"<<endl;
 			//use the parser
 			Eval ev;
-			cout<<"after Eval ev"<<endl;
 			complex<float> res;
-			cout<<"after complex"<<endl;
-			cout<<"form is "<<form<<endl;
 			res = ev.eval((char*)form.c_str());
-			cout<<"after res"<<endl;
     			result.push_back(res.real());
-			cout<<"after result "<<result.at(j)<<endl;
-
 		}
-	        cout<< "returning evaluated result in btag"<<endl;
 		return result;
 
 	}};
@@ -945,7 +737,7 @@ void analyse(int argc, char* argv[])
                 string x ("x");
                 floats result;
 
-                ifstream ip;//("CSVv2_94XSF_V2_B_F.csv");
+                ifstream ip;
 		ip.open("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv");
                 if(!ip.is_open()) std::cout << "ERROR: File Open" << '\n';
                 string CSVv2;
@@ -974,46 +766,41 @@ void analyse(int argc, char* argv[])
                         getline(ip, CSV_max, ',');
                         getline(ip, formular, '\n');
 
+			if(CSVv2=="") break;
                         for(int i; i <pt.size(); i++)
                         {
-                                cout << "CSV works"<<endl;
-                                if(measure_type == "comb" && jet_flav  == "0" && eta.at(i) > eta_min && eta.at(i) < eta_max && pt.at(i) > pt_min && pt.at(i) < pt_max) //&& btag.at(i) > CSV_min && btag.at(i) < CSV_max)
+	                        float CSVv2_v = boost::lexical_cast<float>(CSVv2);
+        	                float jet_flav_v = boost::lexical_cast<float>(jet_flav);
+                	        float eta_min_v = boost::lexical_cast<float>(eta_min);
+                        	float eta_max_v = boost::lexical_cast<float>(eta_max);
+                   	        float pt_min_v = boost::lexical_cast<float>(pt_min);
+                       		float pt_max_v = boost::lexical_cast<float>(pt_max);
+                        	float CSV_min_v = boost::lexical_cast<float>(CSV_min);
+                        	float CSV_max_v = boost::lexical_cast<float>(CSV_max);
 
+                                if(measure_type == "comb" && sys_type == "central" &&jet_flav_v  == 0 && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v) //&& btag.at(i) > CSV_min && btag.at(i) < CSV_max)
                                 {
-                                        cout <<formular<<"  This is the formula"<<endl;
+					string bpt_string = boost::lexical_cast<string>(pt.at(i));
+                                        if(formular.find("x")!= string::npos)boost::replace_all(formular, "x", bpt_string);
                                         formula.push_back(formular);
 				}
-                                else
-                                {
-                                        formula.push_back("0");
-                                }
 			}
-                        for(int j; j< formula.size(); j++)
-                        {
-                               // convert bpt to string
-                               string pt_string = boost::lexical_cast<string>(pt.at(j));
-                               //replace all x with bpts values and "" with space
-                               string form;
-                               form = formula.at(j);
-                               form.replace(form.begin(), form.end(), 'x', 'pt_string');
-                               form.replace(form.begin(), form.end(), '"', ' ');
-                               //use the parser
-                               Eval ev;
-                               complex<float> res;
-                               res = ev.eval((char*)form.c_str());
-                               result.push_back(res.real());
-
-                        }
-                        ip.close();
-
-                }
+		}
 		ip.close();
-                cout<< "returning evaluated result"<<endl;
-		cout<< " size of pt is "<<pt.size()<<endl;
+		if(formula.size() == 0)formula.push_back("0");
+                for(int j; j< formula.size(); j++)
+                {
+                        string form;
+                        form = formula.at(j);
+                        Eval ev;
+                        complex<float> res;
+                        res = ev.eval((char*)form.c_str());
+                        result.push_back(res.real());
+			cout<<"after result "<<result.at(j)<<endl;
+                }
                 return result;
 
         }};
-
 
 	// e calculation for b tagging efficiency (b tagged),ei
 	// numerator
@@ -1466,22 +1253,22 @@ void analyse(int argc, char* argv[])
 					.Define("Pi_ej", EffNonBTaggedProduct,{"NonEffBTagged"})
 					.Define("Pi_sfei",Sfi_EffBTaggedProduct, {"EffBTagged", "sfi"})
 					.Define("Pi_sfej", Sfj_EffNonBTaggedProduct, {"NonEffBTagged", "sfj"})
-					.Define("P_MC", P_MC_func, {"Pi_ei", "Pi_ej"});
-					//.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"});
-					//.Define("dummy", open_CSV_file, {"Jet_pt"});
+					.Define("P_MC", P_MC_func, {"Pi_ei", "Pi_ej"})
+					.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"});
+
 /*
 	auto h_dummy_csv = d_enu_P_btag.Histo1D({"dummy","dummy", 50,0,3}, "dummy");
 	h_dummy_csv->Write();
 */
-	/*auto h_d_enu_Pi_ei = d_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_d_enu_Pi_ei->Write();
+	auto h_d_enu_Pi_ei = d_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_d_enu_Pi_ei->Write();
 	auto h_d_enu_Pi_ej = d_enu_P_btag.Histo1D({"Pi ej histogram","Pi ej histogram",50,0,400},"Pi_ej"); h_d_enu_Pi_ej->Write();
-	*/ auto h_d_enu_sfi = d_enu_P_btag.Histo1D({"sfi histogram","sfi histogram",50,0,400},"sfi"); h_d_enu_sfi->Write();
-	//auto h_d_enu_sfj = d_enu_P_btag.Histo1D({"sfj histogram","sfj histogram",50,0,400},"sfj"); h_d_enu_sfj->Write();
-	/* auto h_d_enu_Pi_sfei = d_enu_P_btag.Histo1D({"Pi sfei histogram","Pi sfei histogram",50,0,400},"Pi_sfei"); h_d_enu_Pi_sfei->Write();
+	auto h_d_enu_sfi = d_enu_P_btag.Histo1D({"sfi histogram","sfi histogram",50,0,400},"sfi"); h_d_enu_sfi->Write();
+	auto h_d_enu_sfj = d_enu_P_btag.Histo1D({"sfj histogram","sfj histogram",50,0,400},"sfj"); h_d_enu_sfj->Write();
+	auto h_d_enu_Pi_sfei = d_enu_P_btag.Histo1D({"Pi sfei histogram","Pi sfei histogram",50,0,400},"Pi_sfei"); h_d_enu_Pi_sfei->Write();
 	auto h_d_enu_Pi_sfej = d_enu_P_btag.Histo1D({"Pi sfej histogram","Pi sfej histogram",50,0,400},"Pi_sfej"); h_d_enu_Pi_sfej->Write();
 	auto h_d_enu_P_MC = d_enu_P_btag.Histo1D({"P(MC) histogram","P(MC) histogram",50,0,400},"P_MC"); h_d_enu_P_MC->Write();
-	auto h_d_enu_P_Data = d_enu_P_btag.Histo1D({"P(Data) histogram","P(Data) histogram",50,0,400},"P_Data"); //h_d_enu_P_Data->Write();
-	*/
+	auto h_d_enu_P_Data = d_enu_P_btag.Histo1D({"P(Data) histogram","P(Data) histogram",50,0,400},"P_Data"); h_d_enu_P_Data->Write();
+
 //////////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
         auto d_munu_event_selection = d.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
                                       .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
