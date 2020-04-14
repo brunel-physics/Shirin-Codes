@@ -1,4 +1,3 @@
-
 #include "analyse.hpp"
 #include <algorithm>
 #include "TLorentzVector.h"
@@ -16,6 +15,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -23,13 +23,10 @@
 #include <ROOT/RResultPtr.hxx>
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
-#include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 #include <cmath>
-#include <iostream>
 #include <limits>
 #include <stdexcept>
-#include <string>
 #include <vdt/vdtMath.h>
 #include <numeric>
 
@@ -709,12 +706,14 @@ void analyse(int argc, char* argv[])
 
                                 if(CSVv2_v >= 0.8838 && measure_type == "comb" && sys_type == "central" && jet_flav_v  == 0 && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v && btag.at(i) > CSV_min_v && btag.at(i) < CSV_max_v)
                                 {
-					cout<<"formula is "<< formular<<endl;
+					char new_formular[formular.size() + 30];
+					strcpy(new_formular, formular.c_str());
                                 	string bpt_string = boost::lexical_cast<string>(pt.at(i));
-					if(formular.find("x")!= string::npos)boost::replace_all(formular, "x", bpt_string);
-					formula.push_back(formular);
-					cout<< CSVv2_v <<" CSVv2 "<< CSV_min_v<< " CSV min "<<CSV_max_v<<" CSV max "<< measure_type << " measure type "<< sys_type << " sys type "<< jet_flav_v<< " jet_ flav "<< eta.at(i) << " eta "<< eta_min_v << " eta min "<< eta_max_v << " eta max "<< pt.at(i)<<" pt  " <<pt_min_v << " pt min "<< pt_max_v<< "pt max "<<endl;
-					cout<<"formula after pt insert is "<<formular<<endl;
+                                        string new_formular_s;
+                                        new_formular_s += new_formular;
+
+					if(formular.find("x")!= string::npos)boost::replace_all(new_formular_s, "x", bpt_string);
+ 				        formula.push_back(new_formular_s);
                                 }
 
 			}
@@ -783,9 +782,14 @@ void analyse(int argc, char* argv[])
 
                                 if(measure_type == "comb" && sys_type == "central" &&jet_flav_v  == 0 && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v) //&& btag.at(i) > CSV_min && btag.at(i) < CSV_max)
                                 {
+					char new_formular[formular.size() + 30];
+                                        strcpy(new_formular, formular.c_str());
 					string bpt_string = boost::lexical_cast<string>(pt.at(i));
-                                        if(formular.find("x")!= string::npos)boost::replace_all(formular, "x", bpt_string);
-                                        formula.push_back(formular);
+					string new_formular_s;
+                                        new_formular_s += new_formular;
+
+                                        if(formular.find("x")!= string::npos)boost::replace_all(new_formular_s, "x", bpt_string);
+                                       	formula.push_back(new_formular_s);
 				}
 			}
 		}
