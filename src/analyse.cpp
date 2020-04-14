@@ -709,9 +709,12 @@ void analyse(int argc, char* argv[])
 
                                 if(CSVv2_v >= 0.8838 && measure_type == "comb" && sys_type == "central" && jet_flav_v  == 0 && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v && btag.at(i) > CSV_min_v && btag.at(i) < CSV_max_v)
                                 {
+					cout<<"formula is "<< formular<<endl;
                                 	string bpt_string = boost::lexical_cast<string>(pt.at(i));
 					if(formular.find("x")!= string::npos)boost::replace_all(formular, "x", bpt_string);
 					formula.push_back(formular);
+					cout<< CSVv2_v <<" CSVv2 "<< CSV_min_v<< " CSV min "<<CSV_max_v<<" CSV max "<< measure_type << " measure type "<< sys_type << " sys type "<< jet_flav_v<< " jet_ flav "<< eta.at(i) << " eta "<< eta_min_v << " eta min "<< eta_max_v << " eta max "<< pt.at(i)<<" pt  " <<pt_min_v << " pt min "<< pt_max_v<< "pt max "<<endl;
+					cout<<"formula after pt insert is "<<formular<<endl;
                                 }
 
 			}
@@ -944,6 +947,44 @@ void analyse(int argc, char* argv[])
                 return pi_ei * pi_ej;
         }};
 
+// jet smearing
+ 	auto jet_smearing_func{[](const floats pt, const floats gen_pt){
+                ifstream ip;
+                ip.open("/home/eepgssg/Shirin-Codes/Fall17_V3_MC_PhiResolution_AK4PFchs.txt");
+                if(!ip.is_open()) cout << "ERROR: Jet Smearing File Open" << '\n';
+   		if(ip.is_open()) cout << "jet smearing file is open"<<endl;	
+                /*string CSVv2;
+                string measure_type;
+                string sys_type;
+                string jet_flav;
+                string eta_min;
+                string eta_max;
+                string pt_min;
+                string pt_max;
+                string CSV_min;
+                string CSV_max;
+                string formular;
+
+                while(ip.good())
+                {
+                        getline(ip, CSVv2, ',');
+                        getline(ip, measure_type, ',');
+                        getline(ip, sys_type, ',');
+                        getline(ip, jet_flav, ',');
+                        getline(ip, eta_min, ',');
+                        getline(ip, eta_max, ',');
+                        getline(ip, pt_min, ',');
+                        getline(ip, pt_max, ',');
+                        getline(ip, CSV_min, ',');
+                        getline(ip, CSV_max, ',');
+                        getline(ip, formular, '\n');
+
+                        if(CSVv2=="") break;
+		}
+		*/
+		return 0;
+	}};
+
 
 // Variable Luminosity scale factor for all
 	auto VarFact_func_double{[](const double& i){// this function make the variable which is equal to one and will be used for all scale factors
@@ -1128,7 +1169,10 @@ void analyse(int argc, char* argv[])
 							.Define("tight_jets_Genid", select<ints>, {"GenPart_pdgId", "tight_jets"})
 							.Define("tight_jets_btagCSVV2", select<floats>, {"Jet_btagCSVV2", "tight_jets"})
 							.Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
+							.Define("dummy", jet_smearing_func, {"tight_jets_pt", "GenPart_pt"})
                    					.Filter(jet_cut, {"tight_jets"}, "Jet cut");
+
+	auto histo_jetsmearing = d_enu_jets_selection.Histo1D({"i am test","i am test",50,0,10,}, "dummy");
 
 	auto d_enu_jets_bjets_selection = d_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
 								.Define("btag_numer", bjet_id_numer, {"tight_jets", "Jet_btagCSVV2", "Jet_eta", "GenPart_pdgId"})
