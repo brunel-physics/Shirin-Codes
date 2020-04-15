@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "TLorentzVector.h"
 #include "sf.hpp"
+#include "csv.h"
 #include <TCanvas.h>
 #include <TText.h>
 #include <THStack.h>
@@ -556,10 +557,10 @@ void analyse(int argc, char* argv[])
 		float phi2;
 		float deltaphi;
 		floats deltaphi_vec;
-                for(int i; i < phis1.size(); i++)
+                for(int i{0}; i < phis1.size(); i++)
                 {
                         phi1 = phis1.at(i);
-                        for(int j; j < phis2.size(); j++)
+                        for(int j{0}; j < phis2.size(); j++)
                         {
 				phi2 = phis2.at(j);
 				deltaphi = abs(delta_phi(phi1,phi2));
@@ -660,153 +661,110 @@ void analyse(int argc, char* argv[])
 
 // B Tag Efficiency centre
 	auto btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
-		strings formula;
-		string x ("x");
+		strings formulae;
 		floats result;
+		string measure_type;
+		string sys_type;
+		string rawFormula;
+    		float CSVv2;
+		float jet_flav;
+		float eta_min;
+		float eta_max;
+		float pt_min;
+		float pt_max;
+		float CSV_min;
+		float CSV_max;
 
-	  	ifstream ip("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv");
-  		if(!ip.is_open()) std::cout << "ERROR: File Open" << '\n';
-        	string CSVv2;
-        	string measure_type;
-        	string sys_type;
-        	string jet_flav;
-        	string eta_min;
-        	string eta_max;
-        	string pt_min;
-        	string pt_max;
-        	string CSV_min;
-        	string CSV_max;
-        	string formular;
+		io::CSVReader<11> thisCSVfile("CSVv2_94XSF_V2_B_F.csv");
+    		thisCSVfile.set_header("CSVv2" ,"measure_type","sys_type","jet_flav","eta_min","eta_max",
+        				"pt_min","pt_max","CSV_min","CSV_max","formula");
 
-	  	while(ip.good())
+		while(thisCSVfile.read_row(CSVv2  , measure_type , sys_type , jet_flav , eta_min , eta_max , pt_min , pt_max , CSV_min , CSV_max , rawFormula))
 		{
-               		getline(ip, CSVv2, ',');
-               		getline(ip, measure_type, ',');
-               		getline(ip, sys_type, ',');
-               		getline(ip, jet_flav, ',');
-               		getline(ip, eta_min, ',');
-               		getline(ip, eta_max, ',');
-               		getline(ip, pt_min, ',');
-               		getline(ip, pt_max, ',');
-               		getline(ip, CSV_min, ',');
-               		getline(ip, CSV_max, ',');
-               		getline(ip, formular, '\n');
+        		if(CSVv2 >= 0.8838 && measure_type == "comb" && sys_type == "central" && jet_flav == 0.)
+			{
+            			for(size_t i=0; i < pt.size() ;++i)
+				{
+                			string tempFormula = rawFormula;
+                			if( eta.at(i) > eta_min &&  eta.at(i) < eta_max &&   pt.at(i) >  pt_min &&   pt.at(i) <  pt_max
+            					&& btag.at(i) > CSV_min && btag.at(i) < CSV_max)
+                			{
+                    				if(tempFormula.find("x") != string::npos)boost::replace_all(tempFormula,"x", to_string(pt.at(i)) );
+                    				formulae.push_back(tempFormula);
+                			}
+					else
+					{
+						formulae.push_back("0");
+					}
+            			}
+        		}
+    		} // No need to close file after this while loop.
 
-			if(CSVv2=="") break;
-			for(int i{0}; i < pt.size(); i++)
-                        {
-				float CSVv2_v = boost::lexical_cast<float>(CSVv2);
-				float jet_flav_v = boost::lexical_cast<float>(jet_flav);
-				float eta_min_v = boost::lexical_cast<float>(eta_min);
-				float eta_max_v = boost::lexical_cast<float>(eta_max);
-				float pt_min_v = boost::lexical_cast<float>(pt_min);
-				float pt_max_v = boost::lexical_cast<float>(pt_max);
-				float CSV_min_v = boost::lexical_cast<float>(CSV_min);
-				float CSV_max_v = boost::lexical_cast<float>(CSV_max);
-
-                                if(CSVv2_v >= 0.8838 && measure_type == "comb" && sys_type == "central" && jet_flav_v  == 0 && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v && btag.at(i) > CSV_min_v && btag.at(i) < CSV_max_v)
-                                {
-					char new_formular[formular.size() + 30];
-					strcpy(new_formular, formular.c_str());
-                                	string bpt_string = boost::lexical_cast<string>(pt.at(i));
-                                        string new_formular_s;
-                                        new_formular_s += new_formular;
-
-					if(formular.find("x")!= string::npos)boost::replace_all(new_formular_s, "x", bpt_string);
- 				        formula.push_back(new_formular_s);
-                                }
-
-			}
-		}
-		ip.close();
-		if(formula.size() == 0)formula.push_back("0");
-	      	for(int j; j< formula.size(); j++)
+		if(formulae.size() == 0)formulae.push_back("0");
+	      	for(int j{0}; j< formulae.size(); j++)
 	        {
 			string form;
-			form = formula.at(j);
+			form = formulae.at(j);
 			//use the parser
 			Eval ev;
 			complex<float> res;
 			res = ev.eval((char*)form.c_str());
     			result.push_back(res.real());
 		}
+		cout<<"size of pt "<<pt.size()<< " size of result "<<result.size()<<"result itself is "<<result<<endl;
 		return result;
 
 	}};
 
 	auto non_btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
-                strings formula;
-                string x ("x");
+                strings formulae;
                 floats result;
-
-                ifstream ip;
-		ip.open("/home/eepgssg/Shirin-Codes/CSVv2_94XSF_V2_B_F.csv");
-                if(!ip.is_open()) std::cout << "ERROR: File Open" << '\n';
-                string CSVv2;
-                string measure_type;
+		string measure_type;
                 string sys_type;
-                string jet_flav;
-                string eta_min;
-                string eta_max;
-                string pt_min;
-                string pt_max;
-                string CSV_min;
-                string CSV_max;
-                string formular;
+                string rawFormula;
+                float CSVv2;
+                float jet_flav;
+                float eta_min;
+                float eta_max;
+                float pt_min;
+                float pt_max;
+                float CSV_min;
+                float CSV_max;
 
-                while(ip.good())
+                io::CSVReader<11> thisCSVfile("CSVv2_94XSF_V2_B_F.csv");
+                thisCSVfile.set_header("CSVv2" ,"measure_type","sys_type","jet_flav","eta_min","eta_max",
+                                        "pt_min","pt_max","CSV_min","CSV_max","formula");
+                while(thisCSVfile.read_row(CSVv2  , measure_type , sys_type , jet_flav , eta_min , eta_max , pt_min , pt_max , CSV_min , CSV_max , rawFormula))
                 {
-                        getline(ip, CSVv2, ',');
-                        getline(ip, measure_type, ',');
-                        getline(ip, sys_type, ',');
-                        getline(ip, jet_flav, ',');
-                        getline(ip, eta_min, ',');
-                        getline(ip, eta_max, ',');
-                        getline(ip, pt_min, ',');
-                        getline(ip, pt_max, ',');
-                        getline(ip, CSV_min, ',');
-                        getline(ip, CSV_max, ',');
-                        getline(ip, formular, '\n');
-
-			if(CSVv2=="") break;
-                        for(int i; i <pt.size(); i++)
+                        if(measure_type == "comb" && sys_type == "central" && jet_flav == 0.)
                         {
-	                        float CSVv2_v = boost::lexical_cast<float>(CSVv2);
-        	                float jet_flav_v = boost::lexical_cast<float>(jet_flav);
-                	        float eta_min_v = boost::lexical_cast<float>(eta_min);
-                        	float eta_max_v = boost::lexical_cast<float>(eta_max);
-                   	        float pt_min_v = boost::lexical_cast<float>(pt_min);
-                       		float pt_max_v = boost::lexical_cast<float>(pt_max);
-                        	float CSV_min_v = boost::lexical_cast<float>(CSV_min);
-                        	float CSV_max_v = boost::lexical_cast<float>(CSV_max);
-
-                                if(measure_type == "comb" && sys_type == "central" &&jet_flav_v  == 0 && eta.at(i) > eta_min_v && eta.at(i) < eta_max_v && pt.at(i) > pt_min_v && pt.at(i) < pt_max_v) //&& btag.at(i) > CSV_min && btag.at(i) < CSV_max)
+                                for(size_t i=0; i < pt.size() ;++i)
                                 {
-					char new_formular[formular.size() + 30];
-                                        strcpy(new_formular, formular.c_str());
-					string bpt_string = boost::lexical_cast<string>(pt.at(i));
-					string new_formular_s;
-                                        new_formular_s += new_formular;
+                                        string tempFormula = rawFormula;
+                                        if( eta.at(i) > eta_min &&  eta.at(i) < eta_max &&   pt.at(i) >  pt_min &&   pt.at(i) <  pt_max)
+                                        {
+                                                if(tempFormula.find("x") != string::npos)boost::replace_all(tempFormula,"x", to_string(pt.at(i)) );
+                                                formulae.push_back(tempFormula);
+                                        }
+                                        else
+                                        {
+                                                formulae.push_back("0");
+                                        }
+                                }
+                        }
+                }
 
-                                        if(formular.find("x")!= string::npos)boost::replace_all(new_formular_s, "x", bpt_string);
-                                       	formula.push_back(new_formular_s);
-				}
-			}
-		}
-		ip.close();
-		if(formula.size() == 0)formula.push_back("0");
-                for(int j; j< formula.size(); j++)
+		if(formulae.size() == 0)formulae.push_back("0");
+                for(int j{0}; j< formulae.size(); j++)
                 {
                         string form;
-                        form = formula.at(j);
+                        form = formulae.at(j);
                         Eval ev;
                         complex<float> res;
                         res = ev.eval((char*)form.c_str());
                         result.push_back(res.real());
-			cout<<"after result "<<result.at(j)<<endl;
                 }
                 return result;
-
         }};
 
 	// e calculation for b tagging efficiency (b tagged),ei
@@ -814,7 +772,7 @@ void analyse(int argc, char* argv[])
 
 	auto bjet_id_numer{[](const ints& tight_jets, const floats& btags, const floats& etas,const ints& Gen_id){
 		ints CountVec{};
-		for(int i; i< btags.size(); i++) // this loop could be incorrectly defined , due to not selecting the jets from tight_jets but selecting the number of $
+		for(int i{0}; i< btags.size(); i++) // this loop could be incorrectly defined , due to not selecting the jets from tight_jets but selecting the number of $
                 {
 			if(Gen_id.at(i) == 5 && btags.at(i) > 0.8838f && (abs(etas.at(i)) < 2.4f) && tight_jets.at(i) > 0)
 			{
@@ -832,7 +790,7 @@ void analyse(int argc, char* argv[])
 	// denominator
 	auto bjet_id_denom{[](const ints& tight_jets, const floats& etas, const ints& Gen_id){
         	ints CountVec;
-		for(int i; i< etas.size(); i++)
+		for(int i{0}; i< etas.size(); i++)
 		{
 
 			if(Gen_id.at(i) == 5 && (abs(etas.at(i)) < 2.4f) && tight_jets.at(i) >0)
@@ -850,7 +808,7 @@ void analyse(int argc, char* argv[])
 
         auto non_bjet_id_numer{[](const ints& tight_jets, const floats& btags, const floats& etas,const ints& Gen_id){
                 ints CountVec;
-                for(int i; i< etas.size(); i++)
+                for(int i{0}; i< etas.size(); i++)
                 {
                         if(tight_jets.at(i) > 0 && btags.at(i) > 0.8838f && (abs(etas.at(i)) < 2.4f) && ((Gen_id.at(i) > 0 && Gen_id.at(i) <= 4) || Gen_id.at(i) == 21))
                         {
@@ -867,7 +825,7 @@ void analyse(int argc, char* argv[])
         // denominator
    	auto non_bjet_id_denom{[](const ints& tight_jets, const floats& etas, const ints& Gen_id){
 		ints CountVec;
-                for(int i; i< etas.size(); i++)
+                for(int i{0}; i< etas.size(); i++)
                 {
                         if(tight_jets.at(i)>0 && (abs(etas.at(i)) < 2.4f) && ((Gen_id.at(i) > 0 && Gen_id.at(i) <= 4) || Gen_id.at(i) == 21))
                         {
@@ -886,7 +844,7 @@ void analyse(int argc, char* argv[])
 		cout << "inside EffBTaggedProduct" << endl;
 		float initial = 1;
 		//floats Vec;
-		for(int i = 0; i < EffBTagged.size(); i++)
+		for(int i{0}; i < EffBTagged.size(); i++)
 		{
 			initial = EffBTagged.at(i) * initial;
 			//Vec.push_back(initial);
@@ -897,7 +855,7 @@ void analyse(int argc, char* argv[])
 	auto EffNonBTaggedProduct{[](const floats& EffNonBTagged){
 		float initial = 1;
 		//floats Vec;
-		for(int i = 0; i < EffNonBTagged.size(); i++ )
+		for(int i{0}; i < EffNonBTagged.size(); i++ )
 		{
 			initial = (1 - EffNonBTagged.at(i)) * initial;
 			//Vec.push_back(initial);
@@ -920,7 +878,7 @@ void analyse(int argc, char* argv[])
                 cout << "inside Si_EffBTaggedProduct" << endl;
                 float initial = 1;
                 int size = (EffBTagged.size() < sfi.size()) ? EffBTagged.size() : sfi.size();
-                for(int i = 0; i < size; i++)
+                for(int i{0}; i < size; i++)
                 {
                         initial = sfi.at(i) * EffBTagged.at(i) * initial;
                 }
@@ -932,7 +890,7 @@ void analyse(int argc, char* argv[])
                 cout << "inside Si_EffNonBTaggedProduct" << endl;
                 float initial = 1;
                 int size = (EffNonBTagged.size() < sfj.size()) ? EffNonBTagged.size() : sfj.size();
-                for(int i = 0; i < size; i++)
+                for(int i{0}; i < size; i++)
                 {
                         initial = (1 - EffNonBTagged.at(i) * sfj.at(i)) * initial;
                 }
@@ -956,7 +914,7 @@ void analyse(int argc, char* argv[])
                 ifstream ip;
                 ip.open("/home/eepgssg/Shirin-Codes/Fall17_V3_MC_PhiResolution_AK4PFchs.txt");
                 if(!ip.is_open()) cout << "ERROR: Jet Smearing File Open" << '\n';
-   		if(ip.is_open()) cout << "jet smearing file is open"<<endl;	
+   		if(ip.is_open()) cout << "jet smearing file is open"<<endl;
                 /*string CSVv2;
                 string measure_type;
                 string sys_type;
@@ -1001,7 +959,7 @@ void analyse(int argc, char* argv[])
 //Signal Luminosity normalization
 	auto NormScaleFact_func_double{[&VarFact_func_double](const doubles& i){// this function calculates the weight scale factor
 		doubles weight_vec;
-		for(int w; w < i.size(); w++)
+		for(int w{0}; w < i.size(); w++)
 		{
 			double n_w;
 			n_w = VarFact_func_double(i.at(w))*TZQ_W;
@@ -1012,7 +970,7 @@ void analyse(int argc, char* argv[])
 
         auto NormScaleFact_func{[&VarFact_func](const floats& i){// this function calculates the weight scale factor
                 floats weight_vec;
-                for(int w; w < i.size(); w++)
+                for(int w{0}; w < i.size(); w++)
                 {
 			float n_w;
                         n_w = VarFact_func(i.at(w))*TZQ_W;
@@ -1030,7 +988,7 @@ void analyse(int argc, char* argv[])
 
         auto WW_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i){// this function calculates the weight scale factor
                 doubles weight_vec;
-                for(int w; w < i.size(); w++)
+                for(int w{0}; w < i.size(); w++)
                 {
                         double n_w;
                         n_w =  VarFact_func_double(i.at(w))*WWLNQQ_W;
@@ -1041,7 +999,7 @@ void analyse(int argc, char* argv[])
 
         auto WW_NormScaleFact_func{[&VarFact_func](const floats& i){// this function calculates the weight scale factor
                 floats weight_vec;
-                for(int w; w < i.size(); w++)
+                for(int w{0}; w < i.size(); w++)
                 {
                         float n_w;
                         n_w = VarFact_func(i.at(w))*WWLNQQ_W;
@@ -1060,7 +1018,7 @@ void analyse(int argc, char* argv[])
 //WZ
 	auto WZ_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i){// this function calculates the weight scale factor
                 doubles weight_vec;
-                for(int w; w < i.size(); w++)
+                for(int w{0}; w < i.size(); w++)
                 {
                         double n_w;
                         n_w = VarFact_func_double(i.at(w))*WZLNQQ_W;
@@ -1071,7 +1029,7 @@ void analyse(int argc, char* argv[])
 
 	auto WZ_NormScaleFact_func{[&VarFact_func](const floats& i){// this function calculates the weight scale factor
                 floats weight_vec;
-                for(int w; w < i.size(); w++)
+                for(int w{0}; w < i.size(); w++)
                 {
                         float n_w;
                         n_w = VarFact_func(i.at(w))*WZLNQQ_W;
@@ -1090,7 +1048,7 @@ void analyse(int argc, char* argv[])
 //ZZ
 	auto ZZ_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i){// this function calculates the weight scale factor
                 doubles weight_vec;
-                for(int w; w < i.size(); w++)
+                for(int w{0}; w < i.size(); w++)
                 {
                         double n_w;
                         n_w =  VarFact_func_double(i.at(w))*ZZLLQQ_W;
@@ -1101,7 +1059,7 @@ void analyse(int argc, char* argv[])
 
         auto ZZ_NormScaleFact_func{[&VarFact_func](const floats& i){// this function calculates the weight scale factor
                 floats weight_vec;
-                for(int w; w < i.size(); w++)
+                for(int w{0}; w < i.size(); w++)
                 {
                         float n_w;
                         n_w = VarFact_func(i.at(w))*ZZLLQQ_W;
@@ -1119,7 +1077,7 @@ void analyse(int argc, char* argv[])
 //TTZ
         auto TTZ_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i){// this function calculates the weight scale factor
                 doubles weight_vec;
-                for(int w; w < i.size(); w++)
+                for(int w{0}; w < i.size(); w++)
                 {
                         double n_w;
                         n_w =  VarFact_func_double(i.at(w))*TTZQQ_W;
@@ -1130,7 +1088,7 @@ void analyse(int argc, char* argv[])
 
 	auto TTZ_NormScaleFact_func{[&VarFact_func](const floats& i){// this function calculates the weight scale factor
                 floats weight_vec;
-                for(int w; w < i.size(); w++)
+                for(int w{0}; w < i.size(); w++)
                 {
                         float n_w;
                         n_w = VarFact_func(i.at(w))*TTZQQ_W;
