@@ -676,8 +676,6 @@ void analyse(int argc, char* argv[])
 		float CSV_max;
 
 		io::CSVReader<11> thisCSVfile("CSVv2_94XSF_V2_B_F.csv");
-    		thisCSVfile.set_header("CSVv2" ,"measure_type","sys_type","jet_flav","eta_min","eta_max",
-        				"pt_min","pt_max","CSV_min","CSV_max","formula");
 
 		while(thisCSVfile.read_row(CSVv2  , measure_type , sys_type , jet_flav , eta_min , eta_max , pt_min , pt_max , CSV_min , CSV_max , rawFormula))
 		{
@@ -711,7 +709,7 @@ void analyse(int argc, char* argv[])
 			res = ev.eval((char*)form.c_str());
     			result.push_back(res.real());
 		}
-		cout<<"size of pt "<<pt.size()<< " size of result "<<result.size()<<"result itself is "<<result<<endl;
+		//cout<<"size of pt "<<pt.size()<< " size of result "<<result.size()<<"result itself is "<<result<<endl;
 		return result;
 
 	}};
@@ -732,8 +730,6 @@ void analyse(int argc, char* argv[])
                 float CSV_max;
 
                 io::CSVReader<11> thisCSVfile("CSVv2_94XSF_V2_B_F.csv");
-                thisCSVfile.set_header("CSVv2" ,"measure_type","sys_type","jet_flav","eta_min","eta_max",
-                                        "pt_min","pt_max","CSV_min","CSV_max","formula");
                 while(thisCSVfile.read_row(CSVv2  , measure_type , sys_type , jet_flav , eta_min , eta_max , pt_min , pt_max , CSV_min , CSV_max , rawFormula))
                 {
                         if(measure_type == "comb" && sys_type == "central" && jet_flav == 0.)
@@ -910,44 +906,89 @@ void analyse(int argc, char* argv[])
         }};
 
 // jet smearing
- 	auto jet_smearing_func{[](const floats pt, const floats gen_pt){
-                ifstream ip;
-                ip.open("/home/eepgssg/Shirin-Codes/Fall17_V3_MC_PhiResolution_AK4PFchs.txt");
-                if(!ip.is_open()) cout << "ERROR: Jet Smearing File Open" << '\n';
-   		if(ip.is_open()) cout << "jet smearing file is open"<<endl;
-                /*string CSVv2;
-                string measure_type;
-                string sys_type;
-                string jet_flav;
-                string eta_min;
-                string eta_max;
-                string pt_min;
-                string pt_max;
-                string CSV_min;
-                string CSV_max;
-                string formular;
+ 	auto jet_smearing_pt_resol{[](const floats& pt, const floats& eta, const float& rho){
 
-                while(ip.good())
+                float min_eta;
+                float max_eta;
+                float min_rho;
+                float max_rho;
+                int Six;
+                float min_pt;
+                float max_pt;
+		float  a;
+		float b;
+		float c;
+		float d;
+		floats resol;
+
+		cout<<"pt size "<<pt.size()<<" eta size "<<eta.size()<<" rho "<<rho<<endl;
+                io::CSVReader<11> thisCSVfile("Fall17_V3_MC_PtResolution_AK4PFchs.txt");
+
+                while(thisCSVfile.read_row(min_eta  , max_eta , min_rho , max_rho , Six , min_pt , max_pt , a , b , c , d ))
                 {
-                        getline(ip, CSVv2, ',');
-                        getline(ip, measure_type, ',');
-                        getline(ip, sys_type, ',');
-                        getline(ip, jet_flav, ',');
-                        getline(ip, eta_min, ',');
-                        getline(ip, eta_max, ',');
-                        getline(ip, pt_min, ',');
-                        getline(ip, pt_max, ',');
-                        getline(ip, CSV_min, ',');
-                        getline(ip, CSV_max, ',');
-                        getline(ip, formular, '\n');
+			cout<<"i am reading jet smearing"<<endl;
+			for(int i{0}; i < pt.size(); i++)
+			{
+				if(eta.at(i) > min_eta && eta.at(i) < max_eta && pt.at(i) > min_pt && pt.at(i) < max_pt
+					&& rho > min_rho && rho < max_rho)
+				{
+					cout<< "a, b, c, d are "<<a<<"  "<<b<<"  "<<c<<"  "<<d<<endl;
+					resol.push_back(sqrt(a * abs(a)/(pt.at(i) * pt.at(i)) + b * b * pow(pt.at(i), d)+ c * c));
+				}
+			}
+			//where to push back zero?!?!
 
-                        if(CSVv2=="") break;
 		}
-		*/
-		return 0;
+		cout<< "resol is "<<resol<<endl;
+		return resol;
 	}};
 
+	auto jet_smearing_Sjer{[](const floats& eta){
+		float min_eta;
+                float max_eta;
+                int Three;
+                float central_SF;
+                float SF_dn;
+                float SF_up;
+                floats Sjer;
+                cout<<" eta size "<<eta.size()<<endl;
+                io::CSVReader<6> thisCSVfile("Fall17_V3_MC_SF_AK4PF.txt");
+                while(thisCSVfile.read_row(min_eta  , max_eta , Three , central_SF , SF_dn , SF_up))
+                {
+                        cout<<"i am reading jet smearing SF "<<endl;
+                        for(int i{0}; i < eta.size(); i++)
+                        {
+                                if(eta.at(i) > min_eta && eta.at(i) < max_eta)
+                                {
+                                        cout<<"found combination Sjer" <<endl;
+                                        Sjer.push_back(central_SF);
+                                }
+                        }
+                        //where to push back zero?!?!
 
+                }
+                cout<< "Sjer is "<<Sjer<<endl;
+                return Sjer;
+	}};
+
+	auto delta_R_jet_smearing{[](const floats& pt, const floats& gen_pt, const floats& resol, const floats& Sjer, const floats& deltaR){
+		floats Cjer; //  correction factor
+		cout<<"pt size "<<pt.size()<<" gen_pt size "<<gen_pt.size()<<" resol size "<<resol.size()<<" Sjer "<<Sjer.size()<<" deltaR "<< deltaR.size()<<endl;
+		cout<<"value of deltaR "<<deltaR<<endl;
+		for(int i{0}; i < pt.size(); i++)
+		{
+			if(deltaR.at(i) < (0.4/2) && abs(pt.at(i) - gen_pt.at(i))< 3 * resol.at(i) * pt.at(i))
+			{
+				Cjer.push_back(1 + (1+ Sjer.at(i)) * ((pt.at(i) - gen_pt.at(i))/pt.at(i));
+			}
+			else
+			{
+				Cjer.push_back(1+ N(0, Sjer.at(i)) * sqrt(max(Sjer.at(i) * Sjer.at(i) - 1, 0)));
+			}
+		}
+		cout<<"Cjer is"<<Cjer<<endl;
+		return 0;
+	}};
 // Variable Luminosity scale factor for all
 	auto VarFact_func_double{[](const double& i){// this function make the variable which is equal to one and will be used for all scale factors
 		return 1.0f;
@@ -1131,10 +1172,7 @@ void analyse(int argc, char* argv[])
 							.Define("tight_jets_Genid", select<ints>, {"GenPart_pdgId", "tight_jets"})
 							.Define("tight_jets_btagCSVV2", select<floats>, {"Jet_btagCSVV2", "tight_jets"})
 							.Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
-							.Define("dummy", jet_smearing_func, {"tight_jets_pt", "GenPart_pt"})
-                   					.Filter(jet_cut, {"tight_jets"}, "Jet cut");
-
-	auto histo_jetsmearing = d_enu_jets_selection.Histo1D({"i am test","i am test",50,0,10,}, "dummy");
+							.Filter(jet_cut, {"tight_jets"}, "Jet cut");
 
 	auto d_enu_jets_bjets_selection = d_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
 								.Define("btag_numer", bjet_id_numer, {"tight_jets", "Jet_btagCSVV2", "Jet_eta", "GenPart_pdgId"})
@@ -1260,7 +1298,10 @@ void analyse(int argc, char* argv[])
 					.Define("Pi_sfei",Sfi_EffBTaggedProduct, {"EffBTagged", "sfi"})
 					.Define("Pi_sfej", Sfj_EffNonBTaggedProduct, {"NonEffBTagged", "sfj"})
 					.Define("P_MC", P_MC_func, {"Pi_ei", "Pi_ej"})
-					.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"});
+					.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"})
+					.Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
+                                        .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
+                                        .Define("delta_R_jetsmearing", delta_R_jet_smearing, {"tight_jets_pt", "GenPart_pt", "pt_resol", "Sjer", "jet_e_min_dR"});
 
 /*
 	auto h_dummy_csv = d_enu_P_btag.Histo1D({"dummy","dummy", 50,0,3}, "dummy");
@@ -1274,6 +1315,10 @@ void analyse(int argc, char* argv[])
 	auto h_d_enu_Pi_sfej = d_enu_P_btag.Histo1D({"Pi sfej histogram","Pi sfej histogram",50,0,400},"Pi_sfej"); h_d_enu_Pi_sfej->Write();
 	auto h_d_enu_P_MC = d_enu_P_btag.Histo1D({"P(MC) histogram","P(MC) histogram",50,0,400},"P_MC"); h_d_enu_P_MC->Write();
 	auto h_d_enu_P_Data = d_enu_P_btag.Histo1D({"P(Data) histogram","P(Data) histogram",50,0,400},"P_Data"); h_d_enu_P_Data->Write();
+        auto histo_jetsmearing_pt_resol = d_enu_P_btag.Histo1D({"i am test","i am test",50,0,10}, "pt_resol");
+        auto histo_jetsmearing_Sjer = d_enu_P_btag.Histo1D({"i am test","i am test", 50,0,10}, "Sjer");
+        auto histo_jetsmearing_deltaR = d_enu_P_btag.Histo1D({"i am test", "i am test", 50,0,10}, "delta_R_jetsmearing");
+
 
 //////////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
         auto d_munu_event_selection = d.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
