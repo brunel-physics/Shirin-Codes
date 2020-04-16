@@ -13,14 +13,14 @@
 #include <TStyle.h>
 #include "tdrstyle.C"
 #include <TChain.h>
+#include <TRandom3.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <cstring>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-
-
+#include <random>
 #include <ROOT/RResultPtr.hxx>
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
@@ -142,6 +142,16 @@ template<typename T, typename U, typename... Types>
         vec += p;
     }
 	return boost::numeric_cast<float>(vec.M());
+}
+
+[[gnu::const]] auto MaxValue(const float Sjer, const float x)
+{
+        if(Sjer > x) return Sjer;
+	else
+	{
+		float y{0.00};
+		return y;
+	}
 }
 
 template<typename T>
@@ -979,15 +989,18 @@ void analyse(int argc, char* argv[])
 		{
 			if(deltaR.at(i) < (0.4/2) && abs(pt.at(i) - gen_pt.at(i))< 3 * resol.at(i) * pt.at(i))
 			{
-				Cjer.push_back(1 + (1+ Sjer.at(i)) * ((pt.at(i) - gen_pt.at(i))/pt.at(i));
+				Cjer.push_back(1 + (1+ Sjer.at(i)) * ((pt.at(i) - gen_pt.at(i))/pt.at(i)));
 			}
 			else
 			{
-				Cjer.push_back(1+ N(0, Sjer.at(i)) * sqrt(max(Sjer.at(i) * Sjer.at(i) - 1, 0)));
+				cout<<"Sjer is"<<Sjer.at(i)<<endl;
+				float Normdist = gRandom->Gaus(0, Sjer.at(i)); //needs TRandom3 library
+				float max_val = Sjer.at(i) * Sjer.at(i) - 1;
+				Cjer.push_back(1+ Normdist * sqrt(MaxValue(max_val, 0)));
 			}
 		}
 		cout<<"Cjer is"<<Cjer<<endl;
-		return 0;
+		return Cjer;
 	}};
 // Variable Luminosity scale factor for all
 	auto VarFact_func_double{[](const double& i){// this function make the variable which is equal to one and will be used for all scale factors
@@ -1301,7 +1314,7 @@ void analyse(int argc, char* argv[])
 					.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"})
 					.Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
-                                        .Define("delta_R_jetsmearing", delta_R_jet_smearing, {"tight_jets_pt", "GenPart_pt", "pt_resol", "Sjer", "jet_e_min_dR"});
+                                        .Define("delta_R_jetsmearing", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"});
 
 /*
 	auto h_dummy_csv = d_enu_P_btag.Histo1D({"dummy","dummy", 50,0,3}, "dummy");
