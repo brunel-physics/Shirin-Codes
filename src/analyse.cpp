@@ -190,7 +190,7 @@ void analyse(int argc, char* argv[])
 	//ROOT::RDataFrame Sm{"Events","/data/disk3/nanoAOD_2017/SingleMuon_*/*.root"};
 	//ROOT::RDataFrame met{"Events","/data/disk0/nanoAOD_2017/MET*/*.root"};
 
-	auto d = dc.Range(0, 100);
+	auto d = dc.Range(0, 10000);
 	//auto bg = bgc.Range(0, 10000);
 
 	auto ww = wwc.Range(0, 10000);
@@ -719,7 +719,7 @@ void analyse(int argc, char* argv[])
 			res = ev.eval((char*)form.c_str());
     			result.push_back(res.real());
 		}
-		//cout<<"size of pt "<<pt.size()<< " size of result "<<result.size()<<"result itself is "<<result<<endl;
+		cout<<"SFi btag is "<<result<<endl;
 		return result;
 
 	}};
@@ -770,6 +770,7 @@ void analyse(int argc, char* argv[])
                         res = ev.eval((char*)form.c_str());
                         result.push_back(res.real());
                 }
+		cout<<"SFj btag is "<<result<<endl;
                 return result;
         }};
 
@@ -778,7 +779,7 @@ void analyse(int argc, char* argv[])
 
 	auto bjet_id_numer{[](const ints& tight_jets, const floats& btags, const floats& etas,const ints& Gen_id){
 		ints CountVec{};
-		for(int i{0}; i< btags.size(); i++) // this loop could be incorrectly defined , due to not selecting the jets from tight_jets but selecting the number of $
+		for(int i{0}; i< tight_jets.size(); i++) // this loop could be incorrectly defined , due to not selecting the jets from tight_jets
                 {
 			if(Gen_id.at(i) == 5 && btags.at(i) > 0.8838f && (abs(etas.at(i)) < 2.4f) && tight_jets.at(i) > 0)
 			{
@@ -790,13 +791,13 @@ void analyse(int argc, char* argv[])
 				CountVec.push_back(0.0);
 			}
 		}
+		cout<<"btag numer vector is "<<CountVec<<endl;
 		return  CountVec;
-
 	}};
 	// denominator
 	auto bjet_id_denom{[](const ints& tight_jets, const floats& etas, const ints& Gen_id){
         	ints CountVec;
-		for(int i{0}; i< etas.size(); i++)
+		for(int i{0}; i< tight_jets.size(); i++)
 		{
 
 			if(Gen_id.at(i) == 5 && (abs(etas.at(i)) < 2.4f) && tight_jets.at(i) >0)
@@ -814,7 +815,7 @@ void analyse(int argc, char* argv[])
 
         auto non_bjet_id_numer{[](const ints& tight_jets, const floats& btags, const floats& etas,const ints& Gen_id){
                 ints CountVec;
-                for(int i{0}; i< etas.size(); i++)
+                for(int i{0}; i< tight_jets.size(); i++)
                 {
                         if(tight_jets.at(i) > 0 && btags.at(i) > 0.8838f && (abs(etas.at(i)) < 2.4f) && ((Gen_id.at(i) > 0 && Gen_id.at(i) <= 4) || Gen_id.at(i) == 21))
                         {
@@ -831,7 +832,7 @@ void analyse(int argc, char* argv[])
         // denominator
    	auto non_bjet_id_denom{[](const ints& tight_jets, const floats& etas, const ints& Gen_id){
 		ints CountVec;
-                for(int i{0}; i< etas.size(); i++)
+                for(int i{0}; i< tight_jets.size(); i++)
                 {
                         if(tight_jets.at(i)>0 && (abs(etas.at(i)) < 2.4f) && ((Gen_id.at(i) > 0 && Gen_id.at(i) <= 4) || Gen_id.at(i) == 21))
                         {
@@ -847,15 +848,17 @@ void analyse(int argc, char* argv[])
 
 	//Product formula for MC
 	auto EffBTaggedProduct{[](const floats& EffBTagged){
-		cout << "inside EffBTaggedProduct" << endl;
+		//cout << "inside EffBTaggedProduct" << endl;
 		float initial = 1;
 		//floats Vec;
 		for(int i{0}; i < EffBTagged.size(); i++)
 		{
+			cout<< "Ei Product "<<EffBTagged<<endl;
 			initial = EffBTagged.at(i) * initial;
 			//Vec.push_back(initial);
 		}
 		//cout<<"in effbtagged size of vec is "<<Vec.size()<<endl;
+		cout<<"EffBtagged "<<initial<<endl;
 		return initial;
 	}};
 	auto EffNonBTaggedProduct{[](const floats& EffNonBTagged){
@@ -863,14 +866,16 @@ void analyse(int argc, char* argv[])
 		//floats Vec;
 		for(int i{0}; i < EffNonBTagged.size(); i++ )
 		{
+			cout<<"EffNonBtagged Product "<<EffNonBTagged<<endl;
 			initial = (1 - EffNonBTagged.at(i)) * initial;
 			//Vec.push_back(initial);
 		}
 		//cout<<"in effnonbtagged size of vec is "<<Vec.size()<<endl;
+		cout<<"Eff non Btagged "<<initial<<endl;
 		return initial;
 	}};
 	auto P_MC_func{[](const float pi_ei, const float pi_ej){
-		cout<<"I am inside P(MC)"<<endl;
+		//cout<<"I am inside P(MC)"<<endl;
 		/*floats Vec;
 		int size = (pi_ei.size() < pi_ej.size()) ? pi_ei.size() : pi_ej.size();
 		for(int i = 0; i< size; i++)
@@ -878,10 +883,11 @@ void analyse(int argc, char* argv[])
 			Vec.push_back(pi_ei.at(i) * pi_ej.at(i));
 		}
 		return Vec;*/
+		cout<< "P(MC) value "<< pi_ei*pi_ej<<endl;
 		return pi_ei * pi_ej;
 	}};
         auto Sfi_EffBTaggedProduct{[](const floats& EffBTagged, const floats sfi){
-                cout << "inside Si_EffBTaggedProduct" << endl;
+                //cout << "inside Si_EffBTaggedProduct" << endl;
                 float initial = 1;
                 int size = (EffBTagged.size() < sfi.size()) ? EffBTagged.size() : sfi.size();
                 for(int i{0}; i < size; i++)
@@ -889,11 +895,12 @@ void analyse(int argc, char* argv[])
                         initial = sfi.at(i) * EffBTagged.at(i) * initial;
                 }
                 //cout<<"in effbtagged size of vec is "<<Vec.size()<<endl;
+		cout<<"SiEff Btagged "<<initial<<endl;
                 return initial;
         }};
 
         auto Sfj_EffNonBTaggedProduct{[](const floats& EffNonBTagged, const floats sfj){
-                cout << "inside Si_EffNonBTaggedProduct" << endl;
+                //cout << "inside Si_EffNonBTaggedProduct" << endl;
                 float initial = 1;
                 int size = (EffNonBTagged.size() < sfj.size()) ? EffNonBTagged.size() : sfj.size();
                 for(int i{0}; i < size; i++)
@@ -901,10 +908,11 @@ void analyse(int argc, char* argv[])
                         initial = (1 - EffNonBTagged.at(i) * sfj.at(i)) * initial;
                 }
                 //cout<<"in effbtagged size of vec is "<<Vec.size()<<endl;
+		cout<<"Sjeff non btaged "<<initial<<endl;
                 return initial;
         }};
 	auto P_data_func{[](const float pi_ei, const float pi_ej){
-                cout<<"I am inside P(Data)"<<endl;
+                //cout<<"I am inside P(Data)"<<endl;
                 /*floats Vec;
                 int size = (pi_ei.size() < pi_ej.size()) ? pi_ei.size() : pi_ej.size();
                 for(int i = 0; i< size; i++)
@@ -912,8 +920,23 @@ void analyse(int argc, char* argv[])
                         Vec.push_back(pi_ei.at(i) * pi_ej.at(i));
                 }
                 return Vec;*/
+		cout<<"P(Data) value "<<pi_ei * pi_ej<<endl;
                 return pi_ei * pi_ej;
         }};
+	auto btag_weight{[](const float& p_data, const float& p_MC){
+		float weight;
+		if(p_data !=0 && p_MC != 0)
+		{
+			weight = p_data / p_MC;
+		}
+		else
+		{
+			weight = 0;
+		}
+		cout<<"P_Data  "<<p_data<<"P(MC) "<<p_MC<<endl;
+		cout <<"b tagging weight is "<< weight<<endl;
+		return weight;
+	}};
 
 // jet smearing
  	auto jet_smearing_pt_resol{[](const floats& pt, const floats& eta, const float& rho){
@@ -925,29 +948,26 @@ void analyse(int argc, char* argv[])
                 int Six;
                 float min_pt;
                 float max_pt;
-		float  a;
+		float a;
 		float b;
 		float c;
 		float d;
 		floats resol;
 
-		cout<<"pt size "<<pt.size()<<" eta size "<<eta.size()<<" rho "<<rho<<endl;
+		//cout<<"pt size "<<pt.size()<<" eta size "<<eta.size()<<" rho "<<rho<<endl;
                 io::CSVReader<11> thisCSVfile("Fall17_V3_MC_PtResolution_AK4PFchs.txt");
 
                 while(thisCSVfile.read_row(min_eta  , max_eta , min_rho , max_rho , Six , min_pt , max_pt , a , b , c , d ))
                 {
-			cout<<"i am reading jet smearing"<<endl;
 			for(int i{0}; i < pt.size(); i++)
 			{
 				if(eta.at(i) > min_eta && eta.at(i) < max_eta && pt.at(i) > min_pt && pt.at(i) < max_pt
-					&& rho > min_rho && rho < max_rho)
+				&& rho > min_rho && rho < max_rho)
 				{
-					cout<< "a, b, c, d are "<<a<<"  "<<b<<"  "<<c<<"  "<<d<<endl;
+					//cout<< "a, b, c, d are "<<a<<"  "<<b<<"  "<<c<<"  "<<d<<endl;
 					resol.push_back(sqrt(a * abs(a)/(pt.at(i) * pt.at(i)) + b * b * pow(pt.at(i), d)+ c * c));
 				}
 			}
-			//where to push back zero?!?!
-
 		}
 		cout<< "resol is "<<resol<<endl;
 		return resol;
@@ -961,30 +981,28 @@ void analyse(int argc, char* argv[])
                 float SF_dn;
                 float SF_up;
                 floats Sjer;
-                cout<<" eta size "<<eta.size()<<endl;
                 io::CSVReader<6> thisCSVfile("Fall17_V3_MC_SF_AK4PF.txt");
                 while(thisCSVfile.read_row(min_eta  , max_eta , Three , central_SF , SF_dn , SF_up))
                 {
-                        cout<<"i am reading jet smearing SF "<<endl;
                         for(int i{0}; i < eta.size(); i++)
                         {
                                 if(eta.at(i) > min_eta && eta.at(i) < max_eta)
                                 {
-                                        cout<<"found combination Sjer" <<endl;
+                                        //cout<<"found combination Sjer" <<endl;
                                         Sjer.push_back(central_SF);
                                 }
                         }
                         //where to push back zero?!?!
 
                 }
-                cout<< "Sjer is "<<Sjer<<endl;
+                //cout<< "Sjer is "<<Sjer<<endl;
                 return Sjer;
 	}};
 
 	auto delta_R_jet_smearing{[](const floats& pt, const floats& gen_pt, const floats& resol, const floats& Sjer, const floats& deltaR){
 		floats Cjer; //  correction factor
-		cout<<"pt size "<<pt.size()<<" gen_pt size "<<gen_pt.size()<<" resol size "<<resol.size()<<" Sjer "<<Sjer.size()<<" deltaR "<< deltaR.size()<<endl;
-		cout<<"value of deltaR "<<deltaR<<endl;
+		//cout<<"pt size "<<pt.size()<<" gen_pt size "<<gen_pt.size()<<" resol size "<<resol.size()<<" Sjer "<<Sjer.size()<<" deltaR "<< deltaR.size()<<endl;
+		//cout<<"value of deltaR "<<deltaR<<endl;
 		for(int i{0}; i < pt.size(); i++)
 		{
 			if(deltaR.at(i) < (0.4/2) && abs(pt.at(i) - gen_pt.at(i))< 3 * resol.at(i) * pt.at(i))
@@ -993,13 +1011,13 @@ void analyse(int argc, char* argv[])
 			}
 			else
 			{
-				cout<<"Sjer is"<<Sjer.at(i)<<endl;
+				//cout<<"Sjer is"<<Sjer.at(i)<<endl;
 				float Normdist = gRandom->Gaus(0, Sjer.at(i)); //needs TRandom3 library
 				float max_val = Sjer.at(i) * Sjer.at(i) - 1;
 				Cjer.push_back(1+ Normdist * sqrt(MaxValue(max_val, 0)));
 			}
 		}
-		cout<<"Cjer is"<<Cjer<<endl;
+		//cout<<"Cjer is"<<Cjer<<endl;
 		return Cjer;
 	}};
 // Variable Luminosity scale factor for all
@@ -1198,8 +1216,8 @@ void analyse(int argc, char* argv[])
 								.Define("non_btag_denom", non_bjet_id_denom, {"tight_jets", "Jet_eta", "GenPart_pdgId"})
                                                                 .Define("non_btag_numer_pt", select<floats>, {"Jet_pt", "non_btag_numer"})
                                                                 .Define("non_btag_numer_eta",select<floats>, {"Jet_eta", "non_btag_numer"})
-                                                                .Define("non_btag_denom_pt", select<floats>, {"Jet_pt", "btag_denom"})
-                                                                .Define("non_btag_denom_eta",select<floats>, {"Jet_eta", "btag_denom"})
+                                                                .Define("non_btag_denom_pt", select<floats>, {"Jet_pt", "non_btag_denom"})
+                                                                .Define("non_btag_denom_eta",select<floats>, {"Jet_eta", "non_btag_denom"})
 								.Define("sfi", btag_CSVv2_formula, {"Jet_btagCSVV2","tight_jets_pt","tight_jets_eta"})
 								.Define("sfj", non_btag_CSVv2_formula, {"Jet_btagCSVV2","tight_jets_pt","tight_jets_eta"});
 
@@ -1250,6 +1268,57 @@ void analyse(int argc, char* argv[])
         auto h_d_enu_events_btag_denom_PtVsEta = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"btag_denom_pt","btag_denom_eta");
         auto h_d_enu_events_non_btag_denom_PtVsEta = d_enu_top_selection.Histo2D({"MC non btag_Pt_vs_eta_enu_Channel","MC non btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"non_btag_denom_pt","non_btag_denom_eta");
 
+
+        auto h_events_btag_numer_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
+
+        h_d_enu_events_btag_numer_PtVsEta->GetXaxis()->SetTitle("b tag numer pt");
+        h_d_enu_events_btag_numer_PtVsEta->GetYaxis()->SetTitle("b tag numer eta");
+
+        h_events_btag_numer_PtVsEta_canvas->BuildLegend();
+        h_d_enu_events_btag_numer_PtVsEta->Draw("COLZ");
+
+        h_events_btag_numer_PtVsEta_canvas->SaveAs("hist_btag_numer_PtVsEta.root");
+        h_events_btag_numer_PtVsEta_canvas->SaveAs("hist_btag_numer_PtVsEta.pdf");
+
+
+        auto h_events_non_btag_numer_PtVsEta_canvas = new TCanvas("non b tag pt Vs eta", "non b tag pt Vs eta",10,10,900,900);
+
+        h_d_enu_events_non_btag_numer_PtVsEta->GetXaxis()->SetTitle("non b tag numer pt");
+        h_d_enu_events_non_btag_numer_PtVsEta->GetYaxis()->SetTitle("non b tag numer eta");
+
+        h_events_non_btag_numer_PtVsEta_canvas->BuildLegend();
+        h_d_enu_events_non_btag_numer_PtVsEta->Draw("COLZ");
+
+        h_events_non_btag_numer_PtVsEta_canvas->SaveAs("hist_non_btag_numer_PtVsEta.root");
+        h_events_non_btag_numer_PtVsEta_canvas->SaveAs("hist_non_btag_numer_PtVsEta.pdf");
+
+
+        auto h_events_btag_denom_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
+
+        h_d_enu_events_btag_denom_PtVsEta->GetXaxis()->SetTitle("b tag denom pt");
+        h_d_enu_events_btag_denom_PtVsEta->GetYaxis()->SetTitle("b tag denom eta");
+
+        h_events_btag_denom_PtVsEta_canvas->BuildLegend();
+        h_d_enu_events_btag_denom_PtVsEta->Draw("COLZ");
+
+        h_events_btag_denom_PtVsEta_canvas->SaveAs("hist_btag_denom_PtVsEta.root");
+        h_events_btag_denom_PtVsEta_canvas->SaveAs("hist_btag_denom_PtVsEta.pdf");
+
+
+        auto h_events_non_btag_denom_PtVsEta_canvas = new TCanvas("non b tag pt Vs eta", "non b tag pt Vs eta",10,10,900,900);
+
+        h_d_enu_events_non_btag_denom_PtVsEta->GetXaxis()->SetTitle("non b tag denom pt");
+        h_d_enu_events_non_btag_denom_PtVsEta->GetYaxis()->SetTitle("non b tag denom eta");
+
+        h_events_non_btag_denom_PtVsEta_canvas->BuildLegend();
+        h_d_enu_events_non_btag_denom_PtVsEta->Draw("COLZ");
+
+        h_events_non_btag_denom_PtVsEta_canvas->SaveAs("hist_non_btag_denom_PtVsEta.root");
+        h_events_non_btag_denom_PtVsEta_canvas->SaveAs("hist_non_btag_denom_PtVsEta.pdf");
+
+
+
+
 //Write histogram to a root file:
 	h_d_enu_events_btag_numer_PtVsEta->Write();
         h_d_enu_events_non_btag_numer_PtVsEta->Write();
@@ -1261,20 +1330,27 @@ void analyse(int argc, char* argv[])
 		floats BTaggedEff{};
                 for(int i = 0; i < pts.size(); i++)
                 {
-			int PtNum;
-			int EtaNum;
-			int PtDenom;
-			int EtaDenom;
-			PtNum = h_d_enu_events_btag_numer_PtVsEta->GetXaxis()->FindBin(pts.at(i));
-			EtaNum = h_d_enu_events_btag_numer_PtVsEta->GetYaxis()->FindBin(etas.at(i));
-			PtDenom = h_d_enu_events_btag_denom_PtVsEta->GetXaxis()->FindBin(pts.at(i));
-			EtaDenom = h_d_enu_events_btag_denom_PtVsEta->GetYaxis()->FindBin(etas.at(i));
+			int PtNum = h_d_enu_events_btag_numer_PtVsEta->GetXaxis()->FindBin(pts.at(i));
+			int EtaNum = h_d_enu_events_btag_numer_PtVsEta->GetYaxis()->FindBin(etas.at(i));
+			int PtDenom = h_d_enu_events_btag_denom_PtVsEta->GetXaxis()->FindBin(pts.at(i));
+			int EtaDenom = h_d_enu_events_btag_denom_PtVsEta->GetYaxis()->FindBin(etas.at(i));
+			cout<<"Pt "<<pts.at(i)<<" eta "<<etas.at(i)<<endl;
+			cout<<"pt num "<<PtNum<<" EtaNum "<<EtaNum<<" PtDenom "<<PtDenom<<" EtaDenom "<<EtaDenom<<endl;
 
 			float Numerator = h_d_enu_events_btag_numer_PtVsEta->GetBinContent(PtNum, EtaNum);
 			float Denominator = h_d_enu_events_btag_denom_PtVsEta->GetBinContent(PtDenom, EtaDenom);
 			float eff = Numerator / Denominator;
-			BTaggedEff.push_back(eff);
+			cout<<"Numerator "<<Numerator<<" Denominator "<<Denominator<<endl;
+			if(Numerator != 0 && Denominator != 0)
+			{
+				BTaggedEff.push_back(eff);
+			}
+			else
+			{
+				BTaggedEff.push_back(0);
+			}
 		}
+		cout<<"BTAGF EFF from hist is "<<BTaggedEff<<endl;
 		return BTaggedEff;
 	}};
         auto NonBTaggedBinFunction{[&h_d_enu_events_non_btag_numer_PtVsEta, &h_d_enu_events_non_btag_denom_PtVsEta](const floats& pts, const floats& etas){
@@ -1294,17 +1370,27 @@ void analyse(int argc, char* argv[])
 			float Numerator = h_d_enu_events_non_btag_numer_PtVsEta->GetBinContent(PtNum, EtaNum);
                        	float Denominator = h_d_enu_events_non_btag_denom_PtVsEta->GetBinContent(PtDenom, EtaDenom);
                        	float eff = Numerator / Denominator;
-                      	NonBTaggedEff.push_back(eff);
+			if(Numerator != 0 && Denominator != 0)
+			{
+                      		NonBTaggedEff.push_back(eff);
+			}
+			else
+			{
+				NonBTaggedEff.push_back(0);
+			}
 
                 }
+		cout<<"NonBTagged EFF from hist is "<<NonBTaggedEff<<endl;
                 return NonBTaggedEff;
         }};
 
 
 	auto d_enu_btag_eff = d_enu_top_selection.Define("EffBTagged", BTaggedBinFunction, {"tight_jets_pt", "tight_jets_eta"})
 						.Define("NonEffBTagged", NonBTaggedBinFunction, {"tight_jets_pt", "tight_jets_eta"});
+
 	auto h_d_enu_events_btag_eff = d_enu_btag_eff.Histo1D({"MC btag EFF","MC btag EFF electro and neutrino channel",50,0,400},"EffBTagged");
         auto h_d_enu_events_non_btag_eff = d_enu_btag_eff.Histo1D({"MC non btag EFF","MC non btag EFF electro and neutrino channel",50,0,400},"NonEffBTagged");
+
 
 	auto d_enu_P_btag = d_enu_btag_eff.Define("Pi_ei",EffBTaggedProduct, {"EffBTagged"})
 					.Define("Pi_ej", EffNonBTaggedProduct,{"NonEffBTagged"})
@@ -1312,6 +1398,7 @@ void analyse(int argc, char* argv[])
 					.Define("Pi_sfej", Sfj_EffNonBTaggedProduct, {"NonEffBTagged", "sfj"})
 					.Define("P_MC", P_MC_func, {"Pi_ei", "Pi_ej"})
 					.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"})
+					.Define("btag_w", btag_weight, {"P_Data","P_MC"})
 					.Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("delta_R_jetsmearing", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"});
@@ -1328,6 +1415,7 @@ void analyse(int argc, char* argv[])
 	auto h_d_enu_Pi_sfej = d_enu_P_btag.Histo1D({"Pi sfej histogram","Pi sfej histogram",50,0,400},"Pi_sfej"); h_d_enu_Pi_sfej->Write();
 	auto h_d_enu_P_MC = d_enu_P_btag.Histo1D({"P(MC) histogram","P(MC) histogram",50,0,400},"P_MC"); h_d_enu_P_MC->Write();
 	auto h_d_enu_P_Data = d_enu_P_btag.Histo1D({"P(Data) histogram","P(Data) histogram",50,0,400},"P_Data"); h_d_enu_P_Data->Write();
+	auto btag_w = d_enu_P_btag.Histo1D({"btag w","btag w",50,0,300},"btag_w");
         auto histo_jetsmearing_pt_resol = d_enu_P_btag.Histo1D({"i am test","i am test",50,0,10}, "pt_resol");
         auto histo_jetsmearing_Sjer = d_enu_P_btag.Histo1D({"i am test","i am test", 50,0,10}, "Sjer");
         auto histo_jetsmearing_deltaR = d_enu_P_btag.Histo1D({"i am test", "i am test", 50,0,10}, "delta_R_jetsmearing");
@@ -3585,7 +3673,7 @@ void analyse(int argc, char* argv[])
         h_events_non_btag_numer_PtVsEta_canvas->SaveAs("hist_non_btag_numer_PtVsEta.pdf");
 
 
-	auto h_d_enu_events_btag_denom_PtVsEta = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3}, "btag_denom_pt" , "btag_denom_eta");
+	//auto h_d_enu_events_btag_denom_PtVsEta = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3}, "btag_denom_pt" , "btag_denom_eta");
 
         auto h_events_btag_denom_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
 
@@ -3599,7 +3687,7 @@ void analyse(int argc, char* argv[])
         h_events_btag_denom_PtVsEta_canvas->SaveAs("hist_btag_denom_PtVsEta.pdf");
 
 
-	auto h_d_enu_events_non_btag_denom_PtVsEta = d_enu_top_selection.Histo2D({"MC non btag_Pt_vs_eta_enu_Channel","MC non btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3}, "non_btag_denom_pt" , "non_btag_denom_eta");
+	//auto h_d_enu_events_non_btag_denom_PtVsEta = d_enu_top_selection.Histo2D({"MC non btag_Pt_vs_eta_enu_Channel","MC non btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3}, "non_btag_denom_pt" , "non_btag_denom_eta");
 
         auto h_events_non_btag_denom_PtVsEta_canvas = new TCanvas("non b tag pt Vs eta", "non b tag pt Vs eta",10,10,900,900);
 
@@ -3612,7 +3700,7 @@ void analyse(int argc, char* argv[])
         h_events_non_btag_denom_PtVsEta_canvas->SaveAs("hist_non_btag_denom_PtVsEta.root");
         h_events_non_btag_denom_PtVsEta_canvas->SaveAs("hist_non_btag_denom_PtVsEta.pdf");
 
-
+*/
 	auto h_events_btag_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
 	TH2D *btag_ratio = new TH2D("ei","b tag ei",50,0,400,50,-3,3);
 	btag_ratio = (TH2D*)h_d_enu_events_btag_numer_PtVsEta->Clone();
@@ -3636,7 +3724,6 @@ void analyse(int argc, char* argv[])
         h_events_non_btag_PtVsEta_canvas->SaveAs("h_events_non_btag_PtVsEta_canvas.pdf");
 
 
-*/
 
 /////////////////////////////////////////////////////////////////////// E-Nu Channel histograms AND Canvases /////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////PT//////////////////////////////////////////////////////////////////////////////////
