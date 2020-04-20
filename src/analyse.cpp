@@ -772,28 +772,28 @@ void analyse(int argc, char* argv[])
 	auto bjet_num{[](const ints& id, const ints& bjet){
                 ints good_b;
                 for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
-                for(int i{0}; i< bjet.size();i++)if(abs(id.at(i) ==5)) good_b += 5;
+                for(int i{0}; i< bjet.size();i++)if(abs(id.at(i) ==5)) good_b[i] += 5;
                 return good_b;
         }};
 
 	auto bjet_denom{[](const ints& id, const ints& non_bjet){ //using non_bjet_id
                 ints bad_b;
                 for(int i{0}; i < non_bjet.size(); i++)bad_b.push_back(0);
-                for(int i{0}; i< non_bjet.size();i++)if(abs(id.at(i) ==5)) bad_b += 5;
+                for(int i{0}; i< non_bjet.size();i++)if(abs(id.at(i) ==5)) bad_b[i] += 5;
                 return bad_b;
         }};
 
 	auto non_bjet_num{[](const ints& id, const ints& bjet){ //using bjets which has satisfied btag conditions
                 ints good_b;
                 for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
-                for(int i{0}; i< bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) good_b += 1;
+                for(int i{0}; i< bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) good_b[i] += 1;
         return good_b;
         }};
 
         auto non_bjet_denom{[](const ints& id, const ints& non_bjet){ //using bjets which has satisfied non btag conditions
                 ints bad_b;
                 for(int i{0}; i < non_bjet.size(); i++)bad_b.push_back(0);
-                for(int i{0}; i< non_bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) bad_b += 1;
+                for(int i{0}; i< non_bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) bad_b[i] += 1;
         return bad_b;
         }};
 
@@ -1061,6 +1061,7 @@ void analyse(int argc, char* argv[])
 		//cout<<"pt size "<<pt.size()<<" gen_pt size "<<gen_pt.size()<<" resol size "<<resol.size()<<" Sjer "<<Sjer.size()<<" deltaR "<< deltaR.size()<<endl;
 		//cout<<"value of deltaR "<<deltaR<<endl;
 		for(int i{0}; i<pt.size();i++) Cjer.push_back(0);
+		cout<<"size of pt gen_pt resol Sjer deltaR"<<pt.size()<<" "<<gen_pt.size()<<" "<<resol.size()<<" "<<Sjer.size()<<" "<<deltaR.size()<<endl;
 		for(int i{0}; i < pt.size(); i++)
 		{
 			if(deltaR.at(i) < (0.4/2) && abs(pt.at(i) - gen_pt.at(i))< 3 * resol.at(i) * pt.at(i))
@@ -1460,11 +1461,9 @@ void analyse(int argc, char* argv[])
 					.Define("btag_w", btag_weight, {"P_Data","P_MC"})
 					.Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
-                                        .Define("delta_R_jetsmearing", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
-					.Define("bjet_num_", bjet_num, {"GenPart_pdgId", "bjets"})
-					.Define("bjet__num_pt", select<floats>, {"Jet_pt", "bjet_num_"});
+                                        .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"});
 
-	auto h_dummy = d_enu_P_btag.Histo1D({"bjet_num","bjet_num", 50,0,400}, "bjet__num_pt");
+	auto h_dummy = d_enu_P_btag.Histo1D({"jet smearing","jet smearing", 50,0,400}, "cjer");
 	h_dummy->Write();
 
         auto h_dummy_canvas = new TCanvas("dummy", "dummy",10,10,900,900);
@@ -1492,7 +1491,7 @@ void analyse(int argc, char* argv[])
 	auto btag_w = d_enu_P_btag.Histo1D({"btag w","btag w",50,0,300},"btag_w");
         auto histo_jetsmearing_pt_resol = d_enu_P_btag.Histo1D({"i am test","i am test",50,0,10}, "pt_resol");
         auto histo_jetsmearing_Sjer = d_enu_P_btag.Histo1D({"i am test","i am test", 50,0,10}, "Sjer");
-        auto histo_jetsmearing_deltaR = d_enu_P_btag.Histo1D({"i am test", "i am test", 50,0,10}, "delta_R_jetsmearing");
+        auto histo_jetsmearing_deltaR = d_enu_P_btag.Histo1D({"i am test", "i am test", 50,0,10}, "cjer");
 
 
 //////////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
