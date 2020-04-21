@@ -170,7 +170,7 @@ void analyse(int argc, char* argv[])
         std::cout << "I am starting"<<std::endl;
 	setTDRStyle();
 
-   	ROOT::RDataFrame d{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
+   	ROOT::RDataFrame dc{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
 
 	//TChain
 	/*TChain MCBG("Events");
@@ -192,7 +192,7 @@ void analyse(int argc, char* argv[])
 	//ROOT::RDataFrame Sm{"Events","/data/disk3/nanoAOD_2017/SingleMuon_*/*.root"};
 	//ROOT::RDataFrame met{"Events","/data/disk0/nanoAOD_2017/MET*/*.root"};
 
-	//auto d = dc.Range(0, 10000);
+	auto d = dc.Range(0, 10000);
 	//auto bg = bgc.Range(0, 10000);
 
 	auto ww = wwc.Range(0, 10000);
@@ -770,141 +770,31 @@ void analyse(int argc, char* argv[])
         }};
 
 	auto bjet_num{[](const ints& id, const ints& bjet){
-                ints good_b;
-                for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
-                for(int i{0}; i< bjet.size();i++)if(abs(id.at(i) ==5)) good_b[i] += 5;
-                return good_b;
+                //ints good_b;
+                //for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
+                //for(int i{0}; i< bjet.size();i++)if(abs(id.at(i) ==5)) good_b[i] += 5;
+                return abs(id) == 5 && bjet;
         }};
 
 	auto bjet_denom{[](const ints& id, const ints& non_bjet){ //using non_bjet_id
-                ints bad_b;
-                for(int i{0}; i < non_bjet.size(); i++)bad_b.push_back(0);
-                for(int i{0}; i< non_bjet.size();i++)if(abs(id.at(i) ==5)) bad_b[i] += 5;
-                return bad_b;
+                //ints bad_b;
+                //for(int i{0}; i < non_bjet.size(); i++)bad_b.push_back(0);
+                //for(int i{0}; i< non_bjet.size();i++)if(abs(id.at(i) ==5)) bad_b[i] += 5;// still need to implement a way to only send back results with good indx
+                return abs(id) == 5 && non_bjet;
         }};
 
 	auto non_bjet_num{[](const ints& id, const ints& bjet){ //using bjets which has satisfied btag conditions
-                ints good_b;
-                for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
-                for(int i{0}; i< bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) good_b[i] += 1;
-        return good_b;
+                //ints good_b;
+                //for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
+                //for(int i{0}; i< bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) good_b[i] += 1;
+        	return ((abs(id) > 0 && abs(id) <= 4) || abs(id) == 21 || abs(id) != 5) && bjet;
         }};
 
         auto non_bjet_denom{[](const ints& id, const ints& non_bjet){ //using bjets which has satisfied non btag conditions
-                ints bad_b;
-                for(int i{0}; i < non_bjet.size(); i++)bad_b.push_back(0);
-                for(int i{0}; i< non_bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) bad_b[i] += 1;
-        return bad_b;
-        }};
-
-/* back up functions , keeping them just instead
-	auto bjet_num_pt{[](const ints& id, const ints& bjet, const floats& pt){
-		ints good_b;
-		for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
-		for(int i{0}; i<bjet.size();i++)if(abs(id.at(i) ==5)) good_b += 5;
-		floats b_pt = pt[(good_b == 5)];
-		cout<<"good b is"<<good_b<<" bpt is "<<b_pt<<endl;
-		return b_pt;
-	}};
-
-        auto bjet_num_eta{[](const ints& id, const ints& bjet, const floats& eta){
-                ints good_b;
-                for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
-                for(int i{0}; i<bjet.size();i++)if(abs(id.at(i) ==5)) good_b += 5;
-                floats b_eta = eta[(good_b == 5)];
-                cout<<"good b is"<<good_b<<" beta is "<<b_eta<<endl;
-                return b_eta;
-        }};
-
-        auto non_bjet_num_pt{[](const ints& id, const ints& bjet, const floats& pt){ //using bjets which has satisfied btag conditions
-                ints good_b;
-                for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
-                for(int i{0}; i< bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) good_b += 1;
-                floats non_b_pt = pt[(good_b == 1)];
-                cout<<"bad b is"<<good_b<<" non bpt is "<<non_b_pt<<endl;
-                return non_b_pt;
-        }};
-
-        auto non_bjet_num_eta{[](const ints& id, const ints& bjet, const floats& eta){
-                ints good_b;
-                for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
-                for(int i{0}; i< bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) good_b += 1;
-                floats non_b_eta = eta[(good_b == 1)];
-                cout<<"bad b is"<<good_b<<" non beta is "<<non_b_eta<<endl;
-                return non_b_eta;
-        }};
-
-
-*/
-
-	auto bjet_id_numer{[](const floats& btags, const floats& etas,const ints& Gen_id){
-		ints CountVec;
-		for(int i{0}; i< etas.size(); i++) // this loop could be incorrectly defined , due to not selecting the jets from tight_jets
-                {
-			if(abs(Gen_id.at(i) == 5) && btags.at(i) > 0.8838f && (abs(etas.at(i)) < 2.4f))
-			{	//tight_jets && (btags > 0.8838f) && (abs(etas) < 2.4f)
-				CountVec.push_back(i);
-			}
-			else
-			{
-				CountVec.push_back(0.0);// shouldn't pass zero to hist but mostly are zero
-				cout<<"genpart pdg is"<<Gen_id.at(i)<<" btags "<<btags.at(i)<< " abs etas "<<abs(etas.at(i))<<endl;
-			}
-		}
-		//auto pass = CountVec[(CountVec >0)]; cout<<"pass is"<< pass<< endl;
-		for(int i{0};i<Gen_id.size();i++)if(Gen_id.at(i) == 5)cout<<"i found Gen_id at "<<i<<endl;
-		cout<<"btag numer vector is "<<CountVec<<endl;
-		return  CountVec;
-	}};
-	// denominator
-	auto bjet_id_denom{[](const floats& etas, const ints& Gen_id){
-		ints CountVec;
-		for(int i{0}; i< etas.size(); i++)
-		{
-			if((Gen_id.at(i) == 5 || Gen_id.at(i) == -5) && (abs(etas.at(i)) < 2.4f))
-                        {
-                                CountVec.push_back(1.0);
-                        }
-                        else
-                        {
-                                CountVec.push_back(0.0);
-                        }
-                }
-               return  CountVec;
-        }};
-
-        auto non_bjet_id_numer{[](const floats& btags, const floats& etas,const ints& Gen_id){
-                ints CountVec;
-                for(int i{0}; i< etas.size(); i++)
-                {
-                        if(btags.at(i) > 0.8838f && (abs(etas.at(i)) < 2.4f) && ((Gen_id.at(i) > 0 && Gen_id.at(i) <= 4) || Gen_id.at(i) == 21 || Gen_id.at(i) != -5))
-                        {
-                                CountVec.push_back(1.0);
-                        }
-			else
-			{
-				CountVec.push_back(0.0);
-			}
-                }
-		cout<<"non bjet id numer countvec is "<<CountVec<<endl;
-		return CountVec;
-
-        }};
-        // denominator
-   	auto non_bjet_id_denom{[](const floats& etas, const ints& Gen_id){
-		ints CountVec;
-                for(int i{0}; i< etas.size(); i++)
-                {
-                        if((abs(etas.at(i)) < 2.4f) && ((Gen_id.at(i) > 0 && Gen_id.at(i) <= 4) || Gen_id.at(i) == 21 || Gen_id.at(i) != -5))
-                        {
-                                CountVec.push_back(1.0);
-                        }
-			else
-			{
-				CountVec.push_back(0.0);
-			}
-                }
-		return CountVec;
+                //ints bad_b;
+                //for(int i{0}; i < non_bjet.size(); i++)bad_b.push_back(0);
+                //for(int i{0}; i< non_bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) bad_b[i] += 1;
+        return ((abs(id) > 0 && abs(id) <= 4) || abs(id) == 21 || abs(id) != 5) && non_bjet;
         }};
 
 	//Product formula for MC
@@ -1027,7 +917,7 @@ void analyse(int argc, char* argv[])
 				}
 			}
 		}
-		cout<< "resol is "<<resol<<endl;
+		//cout<< "resol is "<<resol<<endl;
 		return resol;
 	}};
 
@@ -1052,7 +942,7 @@ void analyse(int argc, char* argv[])
                         }
 
                 }
-                cout<< "Sjer is "<<Sjer<<endl;
+                //cout<< "Sjer is "<<Sjer<<endl;
                 return Sjer;
 	}};
 
@@ -1060,9 +950,10 @@ void analyse(int argc, char* argv[])
 		floats Cjer; //  correction factor
 		//cout<<"pt size "<<pt.size()<<" gen_pt size "<<gen_pt.size()<<" resol size "<<resol.size()<<" Sjer "<<Sjer.size()<<" deltaR "<< deltaR.size()<<endl;
 		//cout<<"value of deltaR "<<deltaR<<endl;
-		for(int i{0}; i<pt.size();i++) Cjer.push_back(0);
-		cout<<"size of pt gen_pt resol Sjer deltaR"<<pt.size()<<" "<<gen_pt.size()<<" "<<resol.size()<<" "<<Sjer.size()<<" "<<deltaR.size()<<endl;
-		for(int i{0}; i < pt.size(); i++)
+		int size = (pt.size() < gen_pt.size()) ? pt.size() : gen_pt.size();// skeptical about this
+		for(int i{0}; i< size;i++) Cjer.push_back(0);
+		//cout<<"size of pt gen_pt resol Sjer deltaR and size is "<<pt.size()<<" "<<gen_pt.size()<<" "<<resol.size()<<" "<<Sjer.size()<<" "<<deltaR.size()<<" "<<size<<endl;
+		for(int i{0}; i < size; i++)
 		{
 			if(deltaR.at(i) < (0.4/2) && abs(pt.at(i) - gen_pt.at(i))< 3 * resol.at(i) * pt.at(i))
 			{
@@ -1266,22 +1157,10 @@ void analyse(int argc, char* argv[])
 
 	auto d_enu_jets_bjets_selection = d_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
 								.Define("non_bjets", non_bjet_id,{"tight_jets", "Jet_eta"})
-								/*.Define("btag_numer", bjet_id_numer, {"Jet_btagCSVV2", "tight_jets_eta", "GenPart_pdgId"})
-								.Define("btag_denom", bjet_id_denom, {"tight_jets_eta", "GenPart_pdgId"})
-								.Define("btag_numer_pt", select<floats>, {"tight_jets_pt", "btag_numer"})
-								.Define("btag_numer_eta",select<floats>, {"tight_jets_eta", "btag_numer"})
-								.Define("btag_denom_pt", select<floats>, {"tight_jets_pt", "btag_denom"})
-								.Define("btag_denom_eta",select<floats>, {"tight_jets_eta", "btag_denom"})
-								.Define("non_btag_numer", non_bjet_id_numer,{"Jet_btagCSVV2", "tight_jets_eta", "GenPart_pdgId"})
-								.Define("non_btag_denom", non_bjet_id_denom, {"tight_jets_eta", "GenPart_pdgId"})
-                                                                .Define("non_btag_numer_pt", select<floats>, {"tight_jets_pt", "non_btag_numer"})
-                                                                .Define("non_btag_numer_eta",select<floats>, {"tight_jets_eta", "non_btag_numer"})
-                                                                .Define("non_btag_denom_pt", select<floats>, {"tight_jets_pt", "non_btag_denom"})
-                                                                .Define("non_btag_denom_eta",select<floats>, {"tight_jets_eta", "non_btag_denom"})*/
-								.Define("btag_numer", bjet_num, {"GenPart_pdgId", "bjets"})
-								.Define("btag_denom", bjet_denom, {"GenPart_pdgId", "non_bjets"})
-								.Define("non_btag_numer", non_bjet_num, {"GenPart_pdgId", "bjets"})
-								.Define("non_btag_denom", non_bjet_denom, {"GenPart_pdgId", "non_bjets"})
+								.Define("btag_numer", bjet_num, {"Jet_partonFlavour", "bjets"})
+								.Define("btag_denom", bjet_denom, {"Jet_partonFlavour", "non_bjets"})
+								.Define("non_btag_numer", non_bjet_num, {"Jet_partonFlavour", "bjets"})
+								.Define("non_btag_denom", non_bjet_denom, {"Jet_partonFlavour", "non_bjets"})
 								.Define("btag_numer_pt", select<floats>, {"Jet_pt", "btag_numer"})
 								.Define("btag_numer_eta", select<floats>, {"Jet_eta", "btag_numer"})
 								.Define("btag_denom_pt", select<floats>, {"Jet_pt", "btag_denom"})
@@ -1402,7 +1281,7 @@ void analyse(int argc, char* argv[])
 
 	auto BTaggedBinFunction{[&h_d_enu_events_btag_numer_PtVsEta, &h_d_enu_events_btag_denom_PtVsEta](const floats& pts, const floats& etas){
 		floats BTaggedEff;
-		for(int i{0};i<pts.size();i++)BTaggedEff.push_back(0);
+		//for(int i{0};i<pts.size();i++)BTaggedEff.push_back(0);
                 for(int i{0}; i < pts.size(); i++)
                 {
 			int PtNum = h_d_enu_events_btag_numer_PtVsEta->GetXaxis()->FindBin(pts.at(i));
@@ -1410,20 +1289,20 @@ void analyse(int argc, char* argv[])
 			int PtDenom = h_d_enu_events_btag_denom_PtVsEta->GetXaxis()->FindBin(pts.at(i));
 			int EtaDenom = h_d_enu_events_btag_denom_PtVsEta->GetYaxis()->FindBin(etas.at(i));
 			//cout<<"Pt "<<pts.at(i)<<" eta "<<etas.at(i)<<endl;
-			//cout<<"pt num "<<PtNum<<" EtaNum "<<EtaNum<<" PtDenom "<<PtDenom<<" EtaDenom "<<EtaDenom<<endl;
+			cout<<"pt num "<<PtNum<<" EtaNum "<<EtaNum<<" PtDenom "<<PtDenom<<" EtaDenom "<<EtaDenom<<endl;
 
 			float Numerator = h_d_enu_events_btag_numer_PtVsEta->GetBinContent(PtNum, EtaNum);
 			float Denominator = h_d_enu_events_btag_denom_PtVsEta->GetBinContent(PtDenom, EtaDenom);
 			float eff = Numerator / Denominator;
-			//cout<<"Numerator "<<Numerator<<" Denominator "<<Denominator<<endl;
-			if(Numerator != 0 && Denominator != 0)	BTaggedEff[i] += eff;
+			cout<<"Numerator "<<Numerator<<" Denominator "<<Denominator<<endl;
+			if(Denominator != 0)	BTaggedEff.push_back(eff);
 		}
-		//cout<<"BTAGF EFF from hist is "<<BTaggedEff<<endl;
+		cout<<"BTAGF EFF from hist is "<<BTaggedEff<<endl;
 		return BTaggedEff;
 	}};
         auto NonBTaggedBinFunction{[&h_d_enu_events_non_btag_numer_PtVsEta, &h_d_enu_events_non_btag_denom_PtVsEta](const floats& pts, const floats& etas){
                 floats NonBTaggedEff;
-		for(int i{0};i<pts.size();i++) NonBTaggedEff.push_back(0);
+		//for(int i{0};i<pts.size();i++) NonBTaggedEff.push_back(0);
 		int PtNum;
 		int EtaNum;
 		int PtDenom;
@@ -1438,9 +1317,9 @@ void analyse(int argc, char* argv[])
 			float Numerator = h_d_enu_events_non_btag_numer_PtVsEta->GetBinContent(PtNum, EtaNum);
                        	float Denominator = h_d_enu_events_non_btag_denom_PtVsEta->GetBinContent(PtDenom, EtaDenom);
                        	float eff = Numerator / Denominator;
-			if(Numerator != 0 && Denominator != 0) NonBTaggedEff[i] += eff;
+			if(Denominator != 0) NonBTaggedEff.push_back(eff);
                 }
-		//cout<<"NonBTagged EFF from hist is "<<NonBTaggedEff<<endl;
+		cout<<"NonBTagged EFF from hist is "<<NonBTaggedEff<<endl;
                 return NonBTaggedEff;
         }};
 
