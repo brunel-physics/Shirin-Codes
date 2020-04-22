@@ -1,5 +1,3 @@
-//non of the btag jets  pass the gen_id  == 5 or -5 , to only pass the events which pass atleast one index passing the criteria  i must filter those events? ASk alex if this is correct!
-
 #include "analyse.hpp"
 #include <algorithm>
 #include "TLorentzVector.h"
@@ -170,7 +168,7 @@ void analyse(int argc, char* argv[])
         std::cout << "I am starting"<<std::endl;
 	setTDRStyle();
 
-   	ROOT::RDataFrame dc{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
+   	ROOT::RDataFrame d{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
 
 	//TChain
 	/*TChain MCBG("Events");
@@ -188,18 +186,39 @@ void analyse(int argc, char* argv[])
 
 //need to add the chain for real data...
 
+	//TChain for Data
+        TChain SingleElectron("Events");
+	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunB/*.root");
+	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunC/*.root");
+	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunD/*.root");
+	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunE/*.root");
+        SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunF/*.root");
+
+	ROOT::RDataFrame Sec(SingleElectron);
+
+        TChain SingleMuon("Events");
+        SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunB/*.root");
+        SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunC/*.root");
+        SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunD/*.root");
+        SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunE/*.root");
+        SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunF/*.root");
+
+	ROOT::RDataFrame Smc(SingleMuon);
+
+
+
 	//ROOT::RDataFrame Se{"Events","/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_Run*/*.root"};
 	//ROOT::RDataFrame Sm{"Events","/data/disk3/nanoAOD_2017/SingleMuon_*/*.root"};
 	//ROOT::RDataFrame met{"Events","/data/disk0/nanoAOD_2017/MET*/*.root"};
 
-	auto d = dc.Range(0, 10000);
+	//auto d = dc.Range(0, 10000);
 	//auto bg = bgc.Range(0, 10000);
 
 	auto ww = wwc.Range(0, 10000);
 	auto wz = wzc.Range(0, 10000);
 	auto ttZ = ttZc.Range(0, 10000);
 	auto zz = zzc.Range(0, 10000);
-	//auto se = Sec.Range(0, 10000);
+	auto se = Sec.Range(0, 10000);
 	//auto sm = Smc.Range(0, 10000);
 	//auto met = metc.Range(0, 10000);
 
@@ -770,30 +789,18 @@ void analyse(int argc, char* argv[])
         }};
 
 	auto bjet_num{[](const ints& id, const ints& bjet){
-                //ints good_b;
-                //for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
-                //for(int i{0}; i< bjet.size();i++)if(abs(id.at(i) ==5)) good_b[i] += 5;
                 return abs(id) == 5 && bjet;
         }};
 
-	auto bjet_denom{[](const ints& id, const ints& non_bjet){ //using non_bjet_id
-                //ints bad_b;
-                //for(int i{0}; i < non_bjet.size(); i++)bad_b.push_back(0);
-                //for(int i{0}; i< non_bjet.size();i++)if(abs(id.at(i) ==5)) bad_b[i] += 5;// still need to implement a way to only send back results with good indx
+	auto bjet_denom{[](const ints& id, const ints& non_bjet){ //using non_bjet_id particles not matchin btag criteria
                 return abs(id) == 5 && non_bjet;
         }};
 
 	auto non_bjet_num{[](const ints& id, const ints& bjet){ //using bjets which has satisfied btag conditions
-                //ints good_b;
-                //for(int i{0}; i < bjet.size(); i++)good_b.push_back(0);
-                //for(int i{0}; i< bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) good_b[i] += 1;
         	return ((abs(id) > 0 && abs(id) <= 4) || abs(id) == 21 || abs(id) != 5) && bjet;
         }};
 
-        auto non_bjet_denom{[](const ints& id, const ints& non_bjet){ //using bjets which has satisfied non btag conditions
-                //ints bad_b;
-                //for(int i{0}; i < non_bjet.size(); i++)bad_b.push_back(0);
-                //for(int i{0}; i< non_bjet.size();i++)if((abs(id.at(i)) > 0 && abs(id.at(i)) <= 4) || abs(id.at(i)) == 21 || abs(id.at(i)) != 5) bad_b[i] += 1;
+        auto non_bjet_denom{[](const ints& id, const ints& non_bjet){ //using bjets which has satisfied non btag condition
         return ((abs(id) > 0 && abs(id) <= 4) || abs(id) == 21 || abs(id) != 5) && non_bjet;
         }};
 
@@ -820,19 +827,10 @@ void analyse(int argc, char* argv[])
 		return initial;
 	}};
 	auto P_MC_func{[](const float pi_ei, const float pi_ej){
-		//cout<<"I am inside P(MC)"<<endl;
-		/*floats Vec;
-		int size = (pi_ei.size() < pi_ej.size()) ? pi_ei.size() : pi_ej.size();
-		for(int i = 0; i< size; i++)
-		{
-			Vec.push_back(pi_ei.at(i) * pi_ej.at(i));
-		}
-		return Vec;*/
 		cout<< "P(MC) value "<< pi_ei*pi_ej<<endl;
 		return pi_ei * pi_ej;
 	}};
         auto Sfi_EffBTaggedProduct{[](const floats& EffBTagged, const floats sfi){
-                cout << "inside Sfi_EffBTaggedProduct" << endl;
                 float initial = 1;
                 int size = (EffBTagged.size() < sfi.size()) ? EffBTagged.size() : sfi.size();
                 for(int i{0}; i < size; i++)
@@ -857,14 +855,6 @@ void analyse(int argc, char* argv[])
                 return initial;
         }};
 	auto P_data_func{[](const float pi_ei, const float pi_ej){
-                //cout<<"I am inside P(Data)"<<endl;
-                /*floats Vec;
-                int size = (pi_ei.size() < pi_ej.size()) ? pi_ei.size() : pi_ej.size();
-                for(int i = 0; i< size; i++)
-                {
-                        Vec.push_back(pi_ei.at(i) * pi_ej.at(i));
-                }
-                return Vec;*/
 		cout<<"P(Data) value "<<pi_ei * pi_ej<<endl;
                 return pi_ei * pi_ej;
         }};
@@ -878,7 +868,7 @@ void analyse(int argc, char* argv[])
 		{
 			weight = 0;
 		}
-		cout<<"P_Data  "<<p_data<<"P(MC) "<<p_MC<<endl;
+		cout<<"P(Data)  "<<p_data<<"P(MC) "<<p_MC<<endl;
 		cout <<"b tagging weight is "<< weight<<endl;
 		return weight;
 	}};
@@ -1124,7 +1114,7 @@ void analyse(int argc, char* argv[])
                 weight = VarFact_func(i)*TTZQQ_W;
                 return weight;
         }};
-//////////////////////////////////////////////////////////////////////////////Signal ////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////Signal MC////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////Electron Channel/////////////////////////////////////////////////////////////////////////
 	auto d_enu_event_selection = d.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
@@ -1279,45 +1269,62 @@ void analyse(int argc, char* argv[])
         h_d_enu_events_non_btag_denom_PtVsEta->Write();
 
 
-	auto BTaggedBinFunction{[&h_d_enu_events_btag_numer_PtVsEta, &h_d_enu_events_btag_denom_PtVsEta](const floats& pts, const floats& etas){
-		floats BTaggedEff;
-		//for(int i{0};i<pts.size();i++)BTaggedEff.push_back(0);
+
+	auto h_events_btag_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
+	TH2D *btag_ratio = new TH2D("ei","b tag ei",50,0,400,50,-3,3);
+	btag_ratio = (TH2D*)h_d_enu_events_btag_numer_PtVsEta->Clone();
+	btag_ratio->GetXaxis()->SetTitle(" b tag Pt");
+	btag_ratio->GetYaxis()->SetTitle("b tag eta");
+	btag_ratio->Divide(h_d_enu_events_btag_denom_PtVsEta.GetPtr());
+	h_events_btag_PtVsEta_canvas->BuildLegend();
+	btag_ratio->Draw("COLZ");
+	h_events_btag_PtVsEta_canvas->SaveAs("h_events_btag_PtVsEta_canvas.root");
+	h_events_btag_PtVsEta_canvas->SaveAs("h_events_btag_PtVsEta_canvas.pdf");
+
+	auto h_events_non_btag_PtVsEta_canvas = new TCanvas("non b tag pt Vs eta", "non b tag pt Vs eta",10,10,900,900);
+	TH2D *non_btag_ratio = new TH2D("ej","non b tag ei",50,0,400,50,-3,3);
+	non_btag_ratio = (TH2D*)h_d_enu_events_non_btag_numer_PtVsEta->Clone();
+	non_btag_ratio->GetXaxis()->SetTitle("non b tag Pt");
+	non_btag_ratio->GetYaxis()->SetTitle("non b tag eta");
+	non_btag_ratio->Divide(h_d_enu_events_non_btag_denom_PtVsEta.GetPtr());
+	h_events_non_btag_PtVsEta_canvas->BuildLegend();
+	non_btag_ratio->Draw("COLZ");
+	h_events_non_btag_PtVsEta_canvas->SaveAs("h_events_non_btag_PtVsEta_canvas.root");
+	h_events_non_btag_PtVsEta_canvas->SaveAs("h_events_non_btag_PtVsEta_canvas.pdf");
+
+
+      auto BTaggedBinFunction{[&btag_ratio](const floats& pts, const floats& etas){
+                floats BTaggedEff;
+                //for(int i{0};i<pts.size();i++)BTaggedEff.push_back(0);
+		cout<<"in btag bin "<<pts.size()<<" "<<etas.size()<<endl;
                 for(int i{0}; i < pts.size(); i++)
                 {
-			int PtNum = h_d_enu_events_btag_numer_PtVsEta->GetXaxis()->FindBin(pts.at(i));
-			int EtaNum = h_d_enu_events_btag_numer_PtVsEta->GetYaxis()->FindBin(etas.at(i));
-			int PtDenom = h_d_enu_events_btag_denom_PtVsEta->GetXaxis()->FindBin(pts.at(i));
-			int EtaDenom = h_d_enu_events_btag_denom_PtVsEta->GetYaxis()->FindBin(etas.at(i));
-			//cout<<"Pt "<<pts.at(i)<<" eta "<<etas.at(i)<<endl;
-			cout<<"pt num "<<PtNum<<" EtaNum "<<EtaNum<<" PtDenom "<<PtDenom<<" EtaDenom "<<EtaDenom<<endl;
+			int PtBin = btag_ratio->GetXaxis()->FindBin(pts.at(i));
+                        int EtaBin = btag_ratio->GetYaxis()->FindBin(etas.at(i));
+                        cout<<"pt "<<pts.at(i)<<" eta "<<etas.at(i)<<endl;
+                        cout<<"PtBin "<<PtBin<<" EtaBin "<<EtaBin<<endl;
 
-			float Numerator = h_d_enu_events_btag_numer_PtVsEta->GetBinContent(PtNum, EtaNum);
-			float Denominator = h_d_enu_events_btag_denom_PtVsEta->GetBinContent(PtDenom, EtaDenom);
-			float eff = Numerator / Denominator;
-			cout<<"Numerator "<<Numerator<<" Denominator "<<Denominator<<endl;
-			if(Denominator != 0)	BTaggedEff.push_back(eff);
-		}
-		cout<<"BTAGF EFF from hist is "<<BTaggedEff<<endl;
-		return BTaggedEff;
-	}};
-        auto NonBTaggedBinFunction{[&h_d_enu_events_non_btag_numer_PtVsEta, &h_d_enu_events_non_btag_denom_PtVsEta](const floats& pts, const floats& etas){
+                        float eff = btag_ratio->GetBinContent(PtBin, EtaBin);
+                        cout<<"eff "<<eff<<endl;
+		        if(eff != 0) BTaggedEff.push_back(eff);
+                }
+                cout<<"BTAGF EFF from hist is "<<BTaggedEff<<endl;
+                return BTaggedEff;
+        }};
+
+        auto NonBTaggedBinFunction{[&non_btag_ratio](const floats& pts, const floats& etas){
                 floats NonBTaggedEff;
 		//for(int i{0};i<pts.size();i++) NonBTaggedEff.push_back(0);
-		int PtNum;
-		int EtaNum;
-		int PtDenom;
-		int EtaDenom;
+                cout<<"in non_btag bin "<<pts.size()<<" "<<etas.size()<<endl;
                 for(int i = 0; i < pts.size(); i++)
                 {
-                        PtNum = h_d_enu_events_non_btag_numer_PtVsEta->GetXaxis()->FindBin(pts.at(i));
-                        EtaNum = h_d_enu_events_non_btag_numer_PtVsEta->GetYaxis()->FindBin(etas.at(i));
-                        PtDenom = h_d_enu_events_non_btag_denom_PtVsEta->GetXaxis()->FindBin(pts.at(i));
-                        EtaDenom = h_d_enu_events_non_btag_denom_PtVsEta->GetYaxis()->FindBin(etas.at(i));
+                        int PtBin = non_btag_ratio->GetXaxis()->FindBin(pts.at(i));
+                        int EtaBin = non_btag_ratio->GetYaxis()->FindBin(etas.at(i));
+                        cout<<"pt "<<pts.at(i)<<" eta "<<etas.at(i)<<endl;
+                        cout<<"PtBin "<<PtBin<<" EtaBin "<<EtaBin<<endl;
 
-			float Numerator = h_d_enu_events_non_btag_numer_PtVsEta->GetBinContent(PtNum, EtaNum);
-                       	float Denominator = h_d_enu_events_non_btag_denom_PtVsEta->GetBinContent(PtDenom, EtaDenom);
-                       	float eff = Numerator / Denominator;
-			if(Denominator != 0) NonBTaggedEff.push_back(eff);
+			float eff = non_btag_ratio ->GetBinContent(PtBin, EtaBin);
+			if(eff != 0) NonBTaggedEff.push_back(eff);
                 }
 		cout<<"NonBTagged EFF from hist is "<<NonBTaggedEff<<endl;
                 return NonBTaggedEff;
@@ -1357,8 +1364,6 @@ void analyse(int argc, char* argv[])
         h_dummy->SaveAs("hist_dummy.pdf");
 
 
-
-
 	auto h_d_enu_Pi_ei = d_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_d_enu_Pi_ei->Write();
 	auto h_d_enu_Pi_ej = d_enu_P_btag.Histo1D({"Pi ej histogram","Pi ej histogram",50,0,400},"Pi_ej"); h_d_enu_Pi_ej->Write();
 	auto h_d_enu_sfi = d_enu_P_btag.Histo1D({"sfi histogram","sfi histogram",50,0,400},"sfi"); h_d_enu_sfi->Write();
@@ -1367,10 +1372,10 @@ void analyse(int argc, char* argv[])
 	auto h_d_enu_Pi_sfej = d_enu_P_btag.Histo1D({"Pi sfej histogram","Pi sfej histogram",50,0,400},"Pi_sfej"); h_d_enu_Pi_sfej->Write();
 	auto h_d_enu_P_MC = d_enu_P_btag.Histo1D({"P(MC) histogram","P(MC) histogram",50,0,400},"P_MC"); h_d_enu_P_MC->Write();
 	auto h_d_enu_P_Data = d_enu_P_btag.Histo1D({"P(Data) histogram","P(Data) histogram",50,0,400},"P_Data"); h_d_enu_P_Data->Write();
-	auto btag_w = d_enu_P_btag.Histo1D({"btag w","btag w",50,0,300},"btag_w");
-        auto histo_jetsmearing_pt_resol = d_enu_P_btag.Histo1D({"i am test","i am test",50,0,10}, "pt_resol");
-        auto histo_jetsmearing_Sjer = d_enu_P_btag.Histo1D({"i am test","i am test", 50,0,10}, "Sjer");
-        auto histo_jetsmearing_deltaR = d_enu_P_btag.Histo1D({"i am test", "i am test", 50,0,10}, "cjer");
+	auto btag_w = d_enu_P_btag.Histo1D({"btag w","btag w",50,0,300},"btag_w"); btag_w->Write();
+        auto histo_jetsmearing_pt_resol = d_enu_P_btag.Histo1D({"i am test","i am test",50,0,10}, "pt_resol");histo_jetsmearing_pt_resol->Write();
+        auto histo_jetsmearing_Sjer = d_enu_P_btag.Histo1D({"i am test","i am test", 50,0,10}, "Sjer");histo_jetsmearing_Sjer->Write();
+        auto histo_jetsmearing_deltaR = d_enu_P_btag.Histo1D({"i am test", "i am test", 50,0,10}, "cjer");histo_jetsmearing_deltaR->Write();
 
 
 //////////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
@@ -2003,150 +2008,8 @@ void analyse(int argc, char* argv[])
                                                         .Define("nw_ZW_deltaphi", ZZ_NormScaleFact_func, {"ZW_deltaphi"});
 
 
-///////////////////////////////////////////////////////////////////////////Electron Channel/////////////////////////////////////////////////////////////////////////
-/*	auto bg_enu_event_selection = bg.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                   			.Define("tight_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
-					.Define("tight_ele_eta", select<floats>, {"Electron_eta", "tight_eles"})
-					.Define("tight_ele_phi", select<floats>, {"Electron_phi", "tight_eles"})
-                   			.Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                   			.Define("loose_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
-					.Define("MET_phi_Selection",{"MET_phi"})
-					.Define("MET_electron_pt_Selection",{"MET_pt"})
-					.Filter(ele_met_selection_function, {"MET_electron_pt_Selection"}, "MET PT CUT")
-					.Filter(e_cut, {"tight_ele_pt", "loose_ele_pt"}, "lepton cut");
 
-	auto bg_enu_w_selection = bg_enu_event_selection.Define("w_e_eta", get_w_e_quantity_selector("eta"))
-                 					.Define("w_e_phi", get_w_e_quantity_selector("phi"))
-                 					.Define("w_e_pt", get_w_e_quantity_selector("pt"))
-							.Define("w_e_mass", transvers_W_mass, {"w_e_pt", "w_e_phi", "MET_electron_pt_Selection", "MET_phi_Selection"});
-                 					//.Filter(w_mass_cut, {"w_e_mass"}, "W mass cut");
-
-
-	auto bg_enu_jets_selection = bg_enu_w_selection.Define("jet_e_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "w_e_eta", "w_e_phi"})
-                   					.Define("tight_jets", tight_jet_id, {"jet_e_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
-							.Define("tight_jets_pt", select<floats>, {"Jet_pt", "tight_jets"})
-							.Define("tight_jets_eta", select<floats>, {"Jet_eta", "tight_jets"})
-							.Define("tight_jets_phi", select<floats>, {"Jet_phi", "tight_jets"})
-							.Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
-                   					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
-
-	auto bg_enu_jets_bjets_selection = bg_enu_jets_selection.Define("bjets", bjet_id, {"Jet_btagCSVV2", "Jet_eta"})
-                    					        .Filter(bjet_cut, {"bjets"}, "b jet cut");
-
-
-	auto bg_enu_z_rec_selection = bg_enu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
-                 						.Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "tight_jets", "lead_bjet"})
-                 						.Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
-                 						.Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
-                 						.Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
-                 						.Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
-                 						.Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
-                                                                .Define("z_e_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_ele_eta", "tight_ele_phi"})
-							        .Define("ZW_deltaphi", ZW_deltaphi_func, {"z_pair_phi", "w_e_phi"})
-								.Define("ZMet_deltaphi", ZMet_deltaphi_func, {"z_pair_phi", "MET_electron_pt_Selection"})
-								.Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
-								.Filter(ZW_deltaphi_cut, {"ZW_deltaphi"}, "delta phi ZW cut")
-								.Filter(ZMet_deltaphi_cut, {"ZMet_deltaphi"}, "Z met cut ");
-                 						//.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
-
-
-	auto bg_enu_brec_selection = bg_enu_z_rec_selection.Define("bjetmass", bjet_variable, bjet_mass_strings)
-							.Define("bjetpt", bjet_variable, bjet_pt_strings)
-							.Define("bjeteta", bjet_variable, bjet_eta_strings)
-							.Define("bjetphi", bjet_variable, bjet_phi_strings)
-							.Define("nbjets", numberofbjets, {"bjets"})
-							.Define("BJets", BLorentzVector, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "nbjets"});
-
-	auto bg_enu_top_selection = bg_enu_brec_selection.Define("RecoTop", top_reconstruction_function, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "w_e_pt", "w_e_eta", "w_e_phi", "w_e_mass"})
-							.Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
-							.Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
-							.Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
-							.Define("Top_Mass", TLorentzVectorMass, {"RecoTop"})
-                                                        .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt"})
-                                                        .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta"})
-                                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta"})
-                                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt"})
-                                                        .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR"})
-                                                        .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR"})
-                                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass"})
-                                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass"})
-                                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi"})
-                                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi"})
-                                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi"});
-
-
-
-///////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
-        auto bg_munu_event_selection = bg.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
-                                      .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
-				      .Define("tight_mu_eta", select<floats>, {"Muon_eta", "tight_mus"})
-				      .Define("tight_mu_phi", select<floats>, {"Muon_phi", "tight_mus"})
-                                      .Define("loose_mus", is_good_loose_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_softId", "Muon_pfRelIso04_all"})
-                                      .Define("loose_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
-                                      .Define("MET_phi_Selection",{"MET_phi"})
-                                      .Define("MET_mu_pt_Selection",{"MET_pt"})
-                                      .Filter(mu_met_selection_function, {"MET_mu_pt_Selection"}, "MET PT CUT")
-                                      .Filter(e_cut, {"tight_mu_pt", "loose_mu_pt"}, "lepton cut");
-
-        auto bg_munu_w_selection = bg_munu_event_selection.Define("w_mu_eta", get_w_mu_quantity_selector("eta"))
-                                                        .Define("w_mu_phi", get_w_mu_quantity_selector("phi"))
-                                                        .Define("w_mu_pt", get_w_mu_quantity_selector("pt"))
-                                                        .Define("w_mu_mass", transvers_W_mass, {"w_mu_pt", "w_mu_phi", "MET_mu_pt_Selection", "MET_phi_Selection"});
-                                                        //.Filter(w_mass_cut, {"w_mu_mass"}, "W mass cut");
-
-        auto bg_munu_jets_selection = bg_munu_w_selection.Define("jet_mu_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "w_mu_eta", "w_mu_phi"})
-                                                        .Define("tight_jets", tight_jet_id, {"jet_mu_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
-                                                        .Define("tight_jets_pt", select<floats>, {"Jet_pt", "tight_jets"})
-                                                        .Define("tight_jets_eta", select<floats>, {"Jet_eta", "tight_jets"})
-                                                        .Define("tight_jets_phi", select<floats>, {"Jet_phi", "tight_jets"})
-                                                        .Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
-                                                        .Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
-
-        auto bg_munu_jets_bjets_selection = bg_munu_jets_selection.Define("bjets", bjet_id, {"Jet_btagCSVV2", "Jet_eta"})
-                                                              .Filter(bjet_cut, {"bjets"}, "b jet cut");
-
-  	auto bg_munu_z_rec_selection = bg_munu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
-                                                                .Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "tight_jets", "lead_bjet"})
-                                                                .Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
-                                                                .Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
-                                                                .Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
-                                                                .Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
-                                                                .Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
-								.Define("z_mu_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_mu_eta", "tight_mu_phi"})
-	                                                        .Define("ZW_deltaphi", ZW_deltaphi_func, {"z_pair_phi", "w_mu_phi"})
-                                                                .Define("ZMet_deltaphi", ZMet_deltaphi_func, {"z_pair_phi", "MET_mu_pt_Selection"})
-                                                                .Filter(deltaR_z_l,{"z_mu_min_dR"}, "delta R ZL")
-                                                                .Filter(ZW_deltaphi_cut, {"ZW_deltaphi"}, "delta phi ZW cut")
-                                                                .Filter(ZMet_deltaphi_cut, {"ZMet_deltaphi"}, "Z met cut ");
-                                                                //.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
-
-        auto bg_munu_brec_selection = bg_munu_z_rec_selection.Define("bjetmass", bjet_variable, bjet_mass_strings)
-                                                        .Define("bjetpt", bjet_variable, bjet_pt_strings)
-                                                        .Define("bjeteta", bjet_variable, bjet_eta_strings)
-                                                        .Define("bjetphi", bjet_variable, bjet_phi_strings)
-                                                        .Define("nbjets", numberofbjets, {"bjets"})
-                                                        .Define("BJets", BLorentzVector, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "nbjets"});
-
-        auto bg_munu_top_selection = bg_munu_brec_selection.Define("RecoTop", top_reconstruction_function, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "w_mu_pt", "w_mu_eta", "w_mu_phi", "w_mu_mass"})
-                                                        .Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
-                                                        .Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
-                                                        .Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
-							.Define("Top_Mass", TLorentzVectorMass, {"RecoTop"})
-                                                        .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt"})
-                                                        .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta"})
-                                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta"})
-                                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt"})
-                                                        .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR"})
-                                                        .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR"})
-                                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass"})
-                                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass"})
-                                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi"})
-                                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi"})
-                                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi"});
-
-
-*/
-//////////////////////////////////////////////////////////////////////  Single Electron /////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////// Data Single Electron /////////////////////////////////////////////////////////////////////////
 /*	auto se_enu_event_selection = Se.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
                    			.Define("tight_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
 					.Define("tight_ele_eta", select<floats>, {"Electron_eta", "tight_eles"})
@@ -3652,7 +3515,7 @@ void analyse(int argc, char* argv[])
         h_events_non_btag_denom_PtVsEta_canvas->SaveAs("hist_non_btag_denom_PtVsEta.root");
         h_events_non_btag_denom_PtVsEta_canvas->SaveAs("hist_non_btag_denom_PtVsEta.pdf");
 
-*/
+
 	auto h_events_btag_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
 	TH2D *btag_ratio = new TH2D("ei","b tag ei",50,0,400,50,-3,3);
 	btag_ratio = (TH2D*)h_d_enu_events_btag_numer_PtVsEta->Clone();
