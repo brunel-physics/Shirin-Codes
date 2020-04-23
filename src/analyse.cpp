@@ -163,12 +163,12 @@ template<typename T>
 
 void analyse(int argc, char* argv[])
 {
-       //ROOT::EnableImplicitMT();
+       //ROOT::EnableImplicitMT();// parrallel functioning
 
         std::cout << "I am starting"<<std::endl;
 	setTDRStyle();
 
-   	ROOT::RDataFrame d{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
+   	ROOT::RDataFrame dc{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
 
 	//TChain
 	/*TChain MCBG("Events");
@@ -205,14 +205,9 @@ void analyse(int argc, char* argv[])
 
 	ROOT::RDataFrame Smc(SingleMuon);
 
-
-
-	//ROOT::RDataFrame Se{"Events","/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_Run*/*.root"};
-	//ROOT::RDataFrame Sm{"Events","/data/disk3/nanoAOD_2017/SingleMuon_*/*.root"};
 	//ROOT::RDataFrame met{"Events","/data/disk0/nanoAOD_2017/MET*/*.root"};
 
-	//auto d = dc.Range(0, 10000);
-	//auto bg = bgc.Range(0, 10000);
+	auto d = dc.Range(0, 10000);
 
 	auto ww = wwc.Range(0, 10000);
 	auto wz = wzc.Range(0, 10000);
@@ -1343,11 +1338,14 @@ void analyse(int argc, char* argv[])
 					.Define("Pi_sfei",Sfi_EffBTaggedProduct, {"EffBTagged", "sfi"})
 					.Define("Pi_sfej", Sfj_EffNonBTaggedProduct, {"NonEffBTagged", "sfj"})
 					.Define("P_MC", P_MC_func, {"Pi_ei", "Pi_ej"})
-					.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"})
-					.Define("btag_w", btag_weight, {"P_Data","P_MC"})
+					//.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"})
+					//.Define("btag_w", btag_weight, {"P_Data","P_MC"})
 					.Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"});
+
+	auto denu_P_MC = d_enu_P_btag.Take<float>("P_MC"); //stores the column from this rdf as a pointer column of float
+	cout<< "denu_P_MC is "<<&denu_P_MC.GetValue()<<endl;
 
 	auto h_dummy = d_enu_P_btag.Histo1D({"jet smearing","jet smearing", 50,0,400}, "cjer");
 	h_dummy->Write();
@@ -1371,8 +1369,8 @@ void analyse(int argc, char* argv[])
 	auto h_d_enu_Pi_sfei = d_enu_P_btag.Histo1D({"Pi sfei histogram","Pi sfei histogram",50,0,400},"Pi_sfei"); h_d_enu_Pi_sfei->Write();
 	auto h_d_enu_Pi_sfej = d_enu_P_btag.Histo1D({"Pi sfej histogram","Pi sfej histogram",50,0,400},"Pi_sfej"); h_d_enu_Pi_sfej->Write();
 	auto h_d_enu_P_MC = d_enu_P_btag.Histo1D({"P(MC) histogram","P(MC) histogram",50,0,400},"P_MC"); h_d_enu_P_MC->Write();
-	auto h_d_enu_P_Data = d_enu_P_btag.Histo1D({"P(Data) histogram","P(Data) histogram",50,0,400},"P_Data"); h_d_enu_P_Data->Write();
-	auto btag_w = d_enu_P_btag.Histo1D({"btag w","btag w",50,0,300},"btag_w"); btag_w->Write();
+	//auto h_d_enu_P_Data = d_enu_P_btag.Histo1D({"P(Data) histogram","P(Data) histogram",50,0,400},"P_Data"); h_d_enu_P_Data->Write();
+	//auto btag_w = d_enu_P_btag.Histo1D({"btag w","btag w",50,0,300},"btag_w"); btag_w->Write();
         auto histo_jetsmearing_pt_resol = d_enu_P_btag.Histo1D({"i am test","i am test",50,0,10}, "pt_resol");histo_jetsmearing_pt_resol->Write();
         auto histo_jetsmearing_Sjer = d_enu_P_btag.Histo1D({"i am test","i am test", 50,0,10}, "Sjer");histo_jetsmearing_Sjer->Write();
         auto histo_jetsmearing_deltaR = d_enu_P_btag.Histo1D({"i am test", "i am test", 50,0,10}, "cjer");histo_jetsmearing_deltaR->Write();
@@ -2010,7 +2008,7 @@ void analyse(int argc, char* argv[])
 
 
 ///////////////////////////////////////////////////////////////////// Data Single Electron /////////////////////////////////////////////////////////////////////////
-/*	auto se_enu_event_selection = Se.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
+	auto se_enu_event_selection = se.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
                    			.Define("tight_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
 					.Define("tight_ele_eta", select<floats>, {"Electron_eta", "tight_eles"})
 					.Define("tight_ele_phi", select<floats>, {"Electron_phi", "tight_eles"})
@@ -2037,7 +2035,22 @@ void analyse(int argc, char* argv[])
                    					.Filter(jet_cut, {"tight_jets"}, "Jet cut   ");
 
 	auto se_enu_jets_bjets_selection = se_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
-                    					      .Filter(bjet_cut, {"bjets"}, "b jet cut");
+								.Define("non_bjets", non_bjet_id,{"tight_jets", "Jet_eta"})
+								//.Define("btag_numer", bjet_num, {"Jet_partonFlavour", "bjets"})
+								//.Define("btag_denom", bjet_denom, {"Jet_partonFlavour", "non_bjets"})
+								//.Define("non_btag_numer", non_bjet_num, {"Jet_partonFlavour", "bjets"})
+								//.Define("non_btag_denom", non_bjet_denom, {"Jet_partonFlavour", "non_bjets"})
+								//.Define("btag_numer_pt", select<floats>, {"Jet_pt", "btag_numer"})
+								//.Define("btag_numer_eta", select<floats>, {"Jet_eta", "btag_numer"})
+								//.Define("btag_denom_pt", select<floats>, {"Jet_pt", "btag_denom"})
+								//.Define("btag_denom_eta", select<floats>, {"Jet_eta", "btag_denom"})
+                                                                //.Define("non_btag_numer_pt", select<floats>, {"Jet_pt", "non_btag_numer"})
+                                                                //.Define("non_btag_numer_eta",select<floats>, {"Jet_eta", "non_btag_numer"})
+                                                                //.Define("non_btag_denom_pt", select<floats>, {"Jet_pt", "non_btag_denom"})
+                                                                //.Define("non_btag_denom_eta",select<floats>, {"Jet_eta", "non_btag_denom"})
+								.Define("sfi", btag_CSVv2_formula, {"Jet_btagCSVV2","tight_jets_pt","tight_jets_eta"})
+								.Define("sfj", non_btag_CSVv2_formula, {"Jet_btagCSVV2","tight_jets_pt","tight_jets_eta"})
+                    					        .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
 
 	auto se_enu_z_rec_selection = se_enu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
@@ -2048,7 +2061,6 @@ void analyse(int argc, char* argv[])
                  						.Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
                  						.Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
                                                                 .Define("z_e_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_ele_eta", "tight_ele_phi"})
-							        .Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
                                                                 .Define("ZW_deltaphi", ZW_deltaphi_func, {"z_pair_phi", "w_e_phi"})
                                                                 .Define("ZMet_deltaphi", ZMet_deltaphi_func, {"z_pair_phi", "MET_electron_pt_Selection"});
                                                                 //.Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
@@ -2068,8 +2080,178 @@ void analyse(int argc, char* argv[])
 							.Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
 							.Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
 							.Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
-							.Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
+							.Define("Top_Mass", TLorentzVectorMass, {"RecoTop"})
+							.Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt"})
+							.Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta"})
+							.Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta"})
+							.Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt"})
+							.Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR"})
+							.Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR"})
+							.Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass"})
+							.Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass"})
+							.Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi"})
+							.Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi"})
+                                                       .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi"});
+
+/*        auto h_se_enu_events_btag_numer_PtVsEta = se_enu_top_selection.Histo2D({"SE btag_Pt_vs_eta_enu_Channel","SE btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"btag_numer_pt", "btag_numer_eta");
+        auto h_se_enu_events_non_btag_numer_PtVsEta = se_enu_top_selection.Histo2D({"SE non btag_Pt_vs_eta_enu_Channel","SE non btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"non_btag_numer_pt","non_btag_numer_eta");
+        auto h_se_enu_events_btag_denom_PtVsEta = se_enu_top_selection.Histo2D({"SE btag_Pt_vs_eta_enu_Channel","SE btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"btag_denom_pt","btag_denom_eta");
+        auto h_se_enu_events_non_btag_denom_PtVsEta = se_enu_top_selection.Histo2D({"SE non btag_Pt_vs_eta_enu_Channel","SE non btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"non_btag_denom_pt","non_btag_denom_eta");
+
+        auto h_se_btag_numer_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
+
+        h_se_enu_events_btag_numer_PtVsEta->GetXaxis()->SetTitle("b tag numer pt");
+        h_se_enu_events_btag_numer_PtVsEta->GetYaxis()->SetTitle("b tag numer eta");
+
+        h_se_btag_numer_PtVsEta_canvas->BuildLegend();
+        h_se_enu_events_btag_numer_PtVsEta->Draw("COLZ");
+
+        h_se_btag_numer_PtVsEta_canvas->SaveAs("hist_se_btag_numer_PtVsEta.root");
+        h_se_btag_numer_PtVsEta_canvas->SaveAs("hist_se_btag_numer_PtVsEta.pdf");
+
+
+        auto h_se_non_btag_numer_PtVsEta_canvas = new TCanvas("non b tag pt Vs eta", "non b tag pt Vs eta",10,10,900,900);
+
+        h_se_enu_events_non_btag_numer_PtVsEta->GetXaxis()->SetTitle("non b tag numer pt");
+        h_se_enu_events_non_btag_numer_PtVsEta->GetYaxis()->SetTitle("non b tag numer eta");
+
+        h_se_non_btag_numer_PtVsEta_canvas->BuildLegend();
+        h_se_enu_events_non_btag_numer_PtVsEta->Draw("COLZ");
+
+        h_se_non_btag_numer_PtVsEta_canvas->SaveAs("hist_se_non_btag_numer_PtVsEta.root");
+        h_se_non_btag_numer_PtVsEta_canvas->SaveAs("hist_se_non_btag_numer_PtVsEta.pdf");
+
+
+        auto h_se_btag_denom_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
+
+        h_se_enu_events_btag_denom_PtVsEta->GetXaxis()->SetTitle("b tag denom pt");
+        h_se_enu_events_btag_denom_PtVsEta->GetYaxis()->SetTitle("b tag denom eta");
+
+        h_se_btag_denom_PtVsEta_canvas->BuildLegend();
+        h_se_enu_events_btag_denom_PtVsEta->Draw("COLZ");
+
+        h_se_btag_denom_PtVsEta_canvas->SaveAs("hist_se_btag_denom_PtVsEta.root");
+        h_se_btag_denom_PtVsEta_canvas->SaveAs("hist_se_btag_denom_PtVsEta.pdf");
+
+
+        auto h_se_non_btag_denom_PtVsEta_canvas = new TCanvas("non b tag pt Vs eta", "non b tag pt Vs eta",10,10,900,900);
+
+        h_se_enu_events_non_btag_denom_PtVsEta->GetXaxis()->SetTitle("non b tag denom pt");
+        h_se_enu_events_non_btag_denom_PtVsEta->GetYaxis()->SetTitle("non b tag denom eta");
+
+        h_se_non_btag_denom_PtVsEta_canvas->BuildLegend();
+        h_se_enu_events_non_btag_denom_PtVsEta->Draw("COLZ");
+
+        h_se_non_btag_denom_PtVsEta_canvas->SaveAs("hist_se_non_btag_denom_PtVsEta.root");
+        h_se_non_btag_denom_PtVsEta_canvas->SaveAs("hist_se_non_btag_denom_PtVsEta.pdf");
+
+
+
+
+//Write histogram to a root file:
+	h_se_enu_events_btag_numer_PtVsEta->Write();
+        h_se_enu_events_non_btag_numer_PtVsEta->Write();
+        h_se_enu_events_btag_denom_PtVsEta->Write();
+        h_se_enu_events_non_btag_denom_PtVsEta->Write();
+
+	auto h_se_btag_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
+	TH2D *se_btag_ratio = new TH2D("ei","b tag ei",50,0,400,50,-3,3);
+	se_btag_ratio = (TH2D*)h_se_enu_events_btag_numer_PtVsEta->Clone();
+	se_btag_ratio->GetXaxis()->SetTitle(" b tag Pt");
+	se_btag_ratio->GetYaxis()->SetTitle("b tag eta");
+	se_btag_ratio->Divide(h_se_enu_events_btag_denom_PtVsEta.GetPtr());
+	h_se_btag_PtVsEta_canvas->BuildLegend();
+	se_btag_ratio->Draw("COLZ");
+	h_se_btag_PtVsEta_canvas->SaveAs("h_se_btag_PtVsEta_canvas.root");
+	h_se_btag_PtVsEta_canvas->SaveAs("h_se_btag_PtVsEta_canvas.pdf");
+
+	auto h_se_non_btag_PtVsEta_canvas = new TCanvas("non b tag pt Vs eta", "non b tag pt Vs eta",10,10,900,900);
+	TH2D *se_non_btag_ratio = new TH2D("ej","non b tag ei",50,0,400,50,-3,3);
+	se_non_btag_ratio = (TH2D*)h_se_enu_events_non_btag_numer_PtVsEta->Clone();
+	se_non_btag_ratio->GetXaxis()->SetTitle("non b tag Pt");
+	se_non_btag_ratio->GetYaxis()->SetTitle("non b tag eta");
+	se_non_btag_ratio->Divide(h_se_enu_events_non_btag_denom_PtVsEta.GetPtr());
+	h_se_non_btag_PtVsEta_canvas->BuildLegend();
+	se_non_btag_ratio->Draw("COLZ");
+	h_se_non_btag_PtVsEta_canvas->SaveAs("h_se_non_btag_PtVsEta_canvas.root");
+	h_se_non_btag_PtVsEta_canvas->SaveAs("h_se_non_btag_PtVsEta_canvas.pdf");
+
+        auto se_BTaggedBinFunction{[&se_btag_ratio](const floats& pts, const floats& etas){
+                floats BTaggedEff;
+                //for(int i{0};i<pts.size();i++)BTaggedEff.push_back(0);
+		cout<<"in btag bin "<<pts.size()<<" "<<etas.size()<<endl;
+                for(int i{0}; i < pts.size(); i++)
+                {
+			int PtBin = se_btag_ratio->GetXaxis()->FindBin(pts.at(i));
+                        int EtaBin = se_btag_ratio->GetYaxis()->FindBin(etas.at(i));
+                        cout<<"pt "<<pts.at(i)<<" eta "<<etas.at(i)<<endl;
+                        cout<<"PtBin "<<PtBin<<" EtaBin "<<EtaBin<<endl;
+
+                        float eff = se_btag_ratio->GetBinContent(PtBin, EtaBin);
+                        cout<<"eff "<<eff<<endl;
+		        if(eff != 0) BTaggedEff.push_back(eff);
+                }
+                cout<<"BTAGF EFF from hist is "<<BTaggedEff<<endl;
+                return BTaggedEff;
+        }};
+
+        auto se_NonBTaggedBinFunction{[&se_non_btag_ratio](const floats& pts, const floats& etas){
+                floats NonBTaggedEff;
+		//for(int i{0};i<pts.size();i++) NonBTaggedEff.push_back(0);
+                cout<<"in non_btag bin "<<pts.size()<<" "<<etas.size()<<endl;
+                for(int i = 0; i < pts.size(); i++)
+                {
+                        int PtBin = se_non_btag_ratio->GetXaxis()->FindBin(pts.at(i));
+                        int EtaBin = se_non_btag_ratio->GetYaxis()->FindBin(etas.at(i));
+                        cout<<"pt "<<pts.at(i)<<" eta "<<etas.at(i)<<endl;
+                        cout<<"PtBin "<<PtBin<<" EtaBin "<<EtaBin<<endl;
+
+			float eff = se_non_btag_ratio ->GetBinContent(PtBin, EtaBin);
+			if(eff != 0) NonBTaggedEff.push_back(eff);
+                }
+		cout<<"NonBTagged EFF from hist is "<<NonBTaggedEff<<endl;
+                return NonBTaggedEff;
+        }};
+
+
+	auto se_enu_btag_eff = se_enu_top_selection.Define("EffBTagged", BTaggedBinFunction, {"tight_jets_pt", "tight_jets_eta"})
+						.Define("NonEffBTagged", NonBTaggedBinFunction, {"tight_jets_pt", "tight_jets_eta"});
 */
+	//auto h_se_enu_events_btag_eff = se_enu_btag_eff.Histo1D({"SE btag EFF","SE btag EFF electro and neutrino channel",50,0,400},"EffBTagged");
+        //auto h_se_enu_events_non_btag_eff = se_enu_btag_eff.Histo1D({"SE non btag EFF","SE non btag EFF electro and neutrino channel",50,0,400},"NonEffBTagged");
+
+	//Taking epsilon i and epsilon j from single electron MC.
+	auto denu_EffBTagged = d_enu_btag_eff.Take<floats>("EffBTagged");
+	auto denu_NonEffBTagged = d_enu_btag_eff.Take<floats>("NonEffBTagged");
+
+	auto se_enu_P_btag = se_enu_top_selection.Define("denu_se_EffBTagged", [=]{return denu_EffBTagged.GetValue();}) //need to join denu_EffBTagged to this table
+ 					.Define("denu_se_NonEffBTagged", [=]{return denu_NonEffBTagged.GetPtr();})
+					.Define("Pi_sfei",Sfi_EffBTaggedProduct, {"denu_se_EffBTagged", "sfi"})
+					.Define("Pi_sfej", Sfj_EffNonBTaggedProduct, {"denu_se_NonEffBTagged", "sfj"})
+					.Define("denu_se_P_MC", [=]{return denu_P_MC.GetPtr();})
+					.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"});
+					//.Define("btag_w", btag_weight, {"P_Data","P_MC"})
+					//.Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
+                                        //.Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
+                                        //.Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"});
+
+	// trying RDataFrame .Take
+	//auto se_P_Data = se_enu_P_btag.Take<float>("P_Data");
+
+	auto denu_se_P_btag = se_enu_P_btag.Define("enu_btag", btag_weight, {"P_Data","denu_se_P_MC"}); //defining btag for the MC signal.
+
+	//auto h_se_enu_Pi_ei = se_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_se_enu_Pi_ei->Write();
+	//auto h_se_enu_Pi_ej = se_enu_P_btag.Histo1D({"Pi ej histogram","Pi ej histogram",50,0,400},"Pi_ej"); h_se_enu_Pi_ej->Write();
+	auto h_se_enu_sfi = se_enu_P_btag.Histo1D({"sfi histogram","sfi histogram",50,0,400},"sfi"); h_se_enu_sfi->Write();
+	auto h_se_enu_sfj = se_enu_P_btag.Histo1D({"sfj histogram","sfj histogram",50,0,400},"sfj"); h_se_enu_sfj->Write();
+	auto h_se_enu_Pi_sfei = se_enu_P_btag.Histo1D({"Pi sfei histogram","Pi sfei histogram",50,0,400},"Pi_sfei"); h_se_enu_Pi_sfei->Write();
+	auto h_se_enu_Pi_sfej = se_enu_P_btag.Histo1D({"Pi sfej histogram","Pi sfej histogram",50,0,400},"Pi_sfej"); h_se_enu_Pi_sfej->Write();
+	//auto h_se_enu_P_MC = se_enu_P_btag.Histo1D({"P(MC) histogram","P(MC) histogram",50,0,400},"P_MC"); h_se_enu_P_MC->Write();
+	auto h_se_enu_P_Data = se_enu_P_btag.Histo1D({"P(Data) histogram","P(Data) histogram",50,0,400},"P_Data"); h_se_enu_P_Data->Write();
+	auto denu_btag_w = denu_se_P_btag.Histo1D({"btag w","btag w",50,0,300},"enu_btag_w"); denu_btag_w->Write(); //defining the btag efficiency using both MC & Data
+        //auto histo_se_jetsmearing_pt_resol = se_enu_P_btag.Histo1D({"i am test","i am test",50,0,10}, "pt_resol");histo_se_jetsmearing_pt_resol->Write();
+        //auto histo_se_jetsmearing_Sjer = se_enu_P_btag.Histo1D({"i am test","i am test", 50,0,10}, "Sjer");histo_se_jetsmearing_Sjer->Write();
+        //auto histo_se_jetsmearing_deltaR = se_enu_P_btag.Histo1D({"i am test", "i am test", 50,0,10}, "cjer");histo_se_jetsmearing_deltaR->Write();
 
 //////////////////////////////////////////////////////////////////////////////Data Single Muon///////////////////////////////////////////////////////////////////////////
 /*	auto sm_munu_event_selection = Sm.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
