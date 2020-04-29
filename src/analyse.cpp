@@ -96,6 +96,15 @@ constexpr double ZZLLQQ_W{0.0485};
 
 
 
+auto poissonf(Double_t *x,Double_t *par)
+{
+  return par[0]*TMath::Poisson(x[0],par[1]);
+}
+/*auto endpointf(Double_t *x,Double_t *par)
+{
+ return x[0] < par[0];
+}// or write this function as a lambda function in the fit itself.
+*/
 enum class channels
 {
     enu,
@@ -169,11 +178,11 @@ void analyse(int argc, char* argv[])
         std::cout << "I am starting"<<std::endl;
 	setTDRStyle();
 	//MC datasets
-   	ROOT::RDataFrame dc{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
-	ROOT::RDataFrame wwc{"Events", "/data/disk0/nanoAOD_2017/WWToLNuQQ/*.root"};
-	ROOT::RDataFrame wzc{"Events", "/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root"};
-	ROOT::RDataFrame ttZc{"Events", "/data/disk0/nanoAOD_2017/ttZToQQ/*.root"};
-	ROOT::RDataFrame zzc{"Events", "/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root"};
+   	ROOT::RDataFrame d{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
+	ROOT::RDataFrame ww{"Events", "/data/disk0/nanoAOD_2017/WWToLNuQQ/*.root"};
+	ROOT::RDataFrame wz{"Events", "/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root"};
+	ROOT::RDataFrame ttZ{"Events", "/data/disk0/nanoAOD_2017/ttZToQQ/*.root"};
+	ROOT::RDataFrame zz{"Events", "/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root"};
 
 //need to add the chain for real data...
 
@@ -185,7 +194,7 @@ void analyse(int argc, char* argv[])
 	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunE/*.root");
         SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunF/*.root");
 
-	ROOT::RDataFrame sec(SingleElectron);
+	ROOT::RDataFrame se(SingleElectron);
 
         TChain SingleMuon("Events");
         SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunB/*.root");
@@ -194,18 +203,18 @@ void analyse(int argc, char* argv[])
         SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunE/*.root");
         SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunF/*.root");
 
-	ROOT::RDataFrame smc(SingleMuon);
+	ROOT::RDataFrame sm(SingleMuon);
 
 	//ROOT::RDataFrame metc{"Events","/data/disk0/nanoAOD_2017/MET*/*.root"};
 
-	auto d = dc.Range(0, 1000);
+	//auto d = dc.Range(0, 1000);
 
-	auto ww = wwc.Range(0, 100);
-	auto wz = wzc.Range(0, 100);
-	auto ttZ = ttZc.Range(0, 100);
-	auto zz = zzc.Range(0, 100);
-	auto se = sec.Range(0, 100);
-	auto sm = smc.Range(0, 100);
+	//auto ww = wwc.Range(0, 100);
+	//auto wz = wzc.Range(0, 100);
+	//auto ttZ = ttZc.Range(0, 100);
+	//auto zz = zzc.Range(0, 100);
+	//auto se = sec.Range(0, 100);
+	//auto sm = smc.Range(0, 100);
 	//auto met = metc.Range(0, 100);
 
 	std::cout << "I have looked up the dataset"<<std::endl;
@@ -479,11 +488,11 @@ void analyse(int argc, char* argv[])
 			neu.SetPtEtaPhiM(cal_metpt,lep_eta.at(i),cal_metphi,0.0);
 			lepnu_mass = (lep+neu).M();
 		}
-		cout<<"lepnu_mass is "<<lepnu_mass<<endl;
+		//cout<<"lepnu_mass is "<<lepnu_mass<<endl;
 		return lepnu_mass;
 	}};
 
-        auto W_mass_jacob_fit{[](const floats& x){
+/*        auto W_mass_jacob_fit{[](const floats& x){
                 //this function should be fitted the leptonic pt.
                 //For W bosons at rest, the transverse-momentum distributions of the W decay leptons have a Jacobian edge at a value of m/2 = (W_MASS/2).
                 // whereas the distribution of the transverse mass has an endpoint at the value of m,
@@ -498,9 +507,14 @@ void analyse(int argc, char* argv[])
                 //int  bin = h_trans_w_mass->GetXaxis()->FindBin(m); //location of the bin for the end point of histogram  = m (invariant mass of charged lepton and neutrino
                 return poisson;
         }};//pls test this
-	TF1 * jacob_fit = new TF1("jacob_fit",W_mass_jacob_fit,0,W_MASS);
-
-
+*/
+	//TF1 * jacob_fit = new TF1("jacob_fit",W_mass_jacob_fit,0,150);
+	TF1 * jacob_fit = new TF1("jacob_fit",poissonf,0,150,2);
+	jacob_fit->SetParameter(0, W_MASS/2); // you MUST set non-zero initial values for parameters
+	jacob_fit->SetParameter(1, 2.71828);
+	//hPois->Fit("f1", "R"); // "R" = fit between "xmin" and "xmax" of the "f1"
+	TF1 * endpoint_fit = new TF1("endpoint_fit","[&](double *x, double *p){return x[0] =< p[0];}}",0,150,1);
+	//endpoint_fit->SetParameter(0,); -> point to invariant mass of lepton and neutrino :D
 	auto jet_lep_min_deltaR{[](const floats& jet_etas, const floats& jet_phis, const floats& lep_etas, const floats& lep_phis) {
         	floats min_dRs{};
         	std::transform(jet_etas.begin(), jet_etas.end(), jet_phis.begin(), std::back_inserter(min_dRs), [&](float jet_eta, float jet_phi) { return deltaR(jet_eta, jet_phi, lep_etas.at(0), lep_phis.at(0));});
@@ -1355,20 +1369,6 @@ void analyse(int argc, char* argv[])
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"});
 
 	auto denu_P_MC = d_enu_P_btag.Take<float>("P_MC"); //stores the column from this rdf as a pointer column of float
-	auto h_dummy = d_enu_P_btag.Histo1D({"jet smearing","jet smearing", 50,0,400}, "cjer");
-	h_dummy->Write();
-
-        auto h_dummy_canvas = new TCanvas("dummy", "dummy",10,10,900,900);
-
-        h_dummy->GetXaxis()->SetTitle("dummy");
-        h_dummy->GetYaxis()->SetTitle("dummy");
-
-        //h_dummy->BuildLegend();
-        h_dummy->Draw();
-
-        h_dummy_canvas->SaveAs("hist_dummy.root");
-        h_dummy->SaveAs("hist_dummy.pdf");
-
 
 	auto h_d_enu_Pi_ei = d_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_d_enu_Pi_ei->Write();
 	auto h_d_enu_Pi_ej = d_enu_P_btag.Histo1D({"Pi ej histogram","Pi ej histogram",50,0,400},"Pi_ej"); h_d_enu_Pi_ej->Write();
@@ -2391,7 +2391,7 @@ void analyse(int argc, char* argv[])
         //legend_smd.AddEntry(h_smu_munu_events_mupt.GetPtr(),"Signal muon pt","l");
         //legend_mmet.AddEntry(h_met_munu_events_mupt.GetPtr(),"MET data,muon pt","l");
 
-
+	h_d_enu_events_ept->Fit("jacob_fit");
 	h_d_enu_events_ept->Draw();
         //h_bg_enu_events_ept->Draw("SAME");
         h_d_munu_events_mupt->Draw("SAME");
