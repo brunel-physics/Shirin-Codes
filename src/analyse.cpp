@@ -1,9 +1,21 @@
-//add cjer SF to pt, eta phi, M tight jets and use the tight jets to reconstruct the Z, make hists for inv mas lep and neutrino and scatte rplot for mWt vs zmass
-#include "analyse.hpp"
+//add cjer SF to pt, eta phi, M , make hists and stack for tight jet phi and tight jet mass
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstring>
 #include <algorithm>
-#include "TLorentzVector.h"
-#include "sf.hpp"
-#include "csv.h"
+#include <cmath>
+#include <numeric>
+#include <random>
+#include <limits>
+#include <stdexcept>
+#include <typeinfo>
+
+#include <vdt/vdtMath.h>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <ROOT/RResultPtr.hxx>
+#include <TLorentzVector.h>
 #include <TCanvas.h>
 #include <TText.h>
 #include <THStack.h>
@@ -11,56 +23,45 @@
 #include <TTreeReaderArray.h>
 #include <TLegend.h>
 #include <TF1.h>
-#include "eval_complex.hpp"
 #include <TStyle.h>
-#include "tdrstyle.C"
 #include <TChain.h>
 #include <TRandom3.h>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <cstring>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-#include <random>
-#include <ROOT/RResultPtr.hxx>
-#include <ROOT/RDataFrame.hxx>
-#include <ROOT/RVec.hxx>
 #include <boost/numeric/conversion/cast.hpp>
-#include <cmath>
-#include <limits>
-#include <stdexcept>
-#include <vdt/vdtMath.h>
-#include <numeric>
-#include <typeinfo>
 
+#include "csv.h"
+#include "analyse.hpp"
+#include "sf.hpp"
+#include "eval_complex.hpp"
+#include "tdrstyle.C"
 
 using namespace std;
 
 using doubles = ROOT::VecOps::RVec<double>;
-using floats = ROOT::VecOps::RVec<float>;
-using ints = ROOT::VecOps::RVec<int>;
-using bools = ROOT::VecOps::RVec<bool>;
-using chars = ROOT::VecOps::RVec<UChar_t>; // aka 1 byte ints
+using  floats = ROOT::VecOps::RVec<float>;
+using    ints = ROOT::VecOps::RVec<int>;
+using   bools = ROOT::VecOps::RVec<bool>;
+using   chars = ROOT::VecOps::RVec<UChar_t>; // aka 1 byte ints
 using strings = ROOT::VecOps::RVec<string>;
-
 
 namespace
 {
 
 constexpr double MAX_ELE_NUM{1};
-constexpr double MIN_ELE_PT{45}; //{15}//min 12, AP 45, 
-constexpr float MIN_ELE_LEADING_PT{35.f};
+constexpr double MIN_ELE_PT {45}; //{15}//min 12, AP 45, 
+constexpr float  MIN_ELE_LEADING_PT{35.f};
 constexpr double MAX_ELE_ETA{2.5};
 constexpr double ENDCAP_MIN_ETA{1.566};
 constexpr double BARREL_MAX_ETA{1.4442};
 
 constexpr double MAX_MU_NUM{1};
-constexpr double MIN_MU_PT{40};//min 33,40 AP
-constexpr float MIN_MU_LEADING_PT{26.f};
+constexpr double MIN_MU_PT {40};//min 33,40 AP
+constexpr float  MIN_MU_LEADING_PT{26.f};
 constexpr double MAX_MU_ETA{2.4};
-constexpr float MU_LOOSE_ISO{0.15f};
-constexpr float MU_TIGHT_ISO{0.25f};
+constexpr float  MU_LOOSE_ISO{0.15f};
+constexpr float  MU_TIGHT_ISO{0.25f};
 
 constexpr double MIN_MET_PT{40};
 
@@ -88,11 +89,11 @@ constexpr float DELTA_R_ZL{1.6f};
 constexpr float DELTA_PHI_ZW{2};
 constexpr float DELTA_PHI_ZMET{2};
 
-constexpr double PI{3.14};
-constexpr double TZQ_W{0.0128};
+constexpr double       PI{3.14};
+constexpr double    TZQ_W{0.0128};
 constexpr double WWLNQQ_W{2.1740};
 constexpr double WZLNQQ_W{0.2335};
-constexpr double TTZQQ_W{0.0237};
+constexpr double  TTZQQ_W{0.0237};
 constexpr double ZZLLQQ_W{0.0485};
 
 
@@ -174,53 +175,48 @@ template<typename T>
 
 void analyse(int argc, char* argv[])
 {
-       //ROOT::EnableImplicitMT();// parrallel functioning
-
-        std::cout << "I am starting"<<std::endl;
+	//ROOT::EnableImplicitMT();// parallel functioning
+	std::cout << "I am starting"<<std::endl;
 	setTDRStyle();
 	//MC datasets
-   	ROOT::RDataFrame dc{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
-	ROOT::RDataFrame wwc{"Events", "/data/disk0/nanoAOD_2017/WWToLNuQQ/*.root"};
-	ROOT::RDataFrame wzc{"Events", "/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root"};
+	ROOT::RDataFrame   dc{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
+	ROOT::RDataFrame  wwc{"Events", "/data/disk0/nanoAOD_2017/WWToLNuQQ/*.root"};
+	ROOT::RDataFrame  wzc{"Events", "/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root"};
 	ROOT::RDataFrame ttZc{"Events", "/data/disk0/nanoAOD_2017/ttZToQQ/*.root"};
-	ROOT::RDataFrame zzc{"Events", "/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root"};
+	ROOT::RDataFrame  zzc{"Events", "/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root"};
 
 //need to add the chain for real data...
 
 	//TChain for Data
-        TChain SingleElectron("Events");
+	TChain SingleElectron("Events");
 	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunB/*.root");
 	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunC/*.root");
 	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunD/*.root");
 	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunE/*.root");
-        SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunF/*.root");
+	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunF/*.root");
 
 	ROOT::RDataFrame sec(SingleElectron);
-
-        TChain SingleMuon("Events");
-        SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunB/*.root");
-        SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunC/*.root");
-        SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunD/*.root");
-        SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunE/*.root");
-        SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunF/*.root");
+	TChain SingleMuon("Events");
+	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunB/*.root");
+	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunC/*.root");
+	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunD/*.root");
+	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunE/*.root");
+	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunF/*.root");
 
 	ROOT::RDataFrame smc(SingleMuon);
 
 	//ROOT::RDataFrame metc{"Events","/data/disk0/nanoAOD_2017/MET*/*.root"};
 
-	auto d = dc.Range(0, 1000);
-
-	auto ww = wwc.Range(0, 100);
-	auto wz = wzc.Range(0, 100);
+	auto   d =   dc.Range(0, 1000);
+	auto  ww =  wwc.Range(0, 100);
+	auto  wz =  wzc.Range(0, 100);
 	auto ttZ = ttZc.Range(0, 100);
-	auto zz = zzc.Range(0, 100);
-	auto se = sec.Range(0, 100);
-	auto sm = smc.Range(0, 100);
+	auto  zz =  zzc.Range(0, 100);
+	auto  se =  sec.Range(0, 100);
+	auto  sm =  smc.Range(0, 100);
 	//auto met = metc.Range(0, 100);
 
-	std::cout << "I have looked up the dataset"<<std::endl;
-
-
+	std::cout << "I have looked up the dataset" << std::endl;
 
 /////////////////////////////////////////////////////////////////////////// Number of Particles Per Event /////////////////////////////////////////////////////////////////////
 /*	std::cout << " gonna do particle statistics"<<std::endl;
@@ -648,7 +644,7 @@ void analyse(int argc, char* argv[])
         }};
 
 	auto TLorentzVectorMass{[](const TLorentzVector& object){
-		const float mass{object.M()};
+		const float mass = (float) object.M();
 		return mass;
 	}};
 
@@ -695,7 +691,7 @@ void analyse(int argc, char* argv[])
                                	RecoW.SetPtEtaPhiM(w_pair_pt.at(j), w_pair_eta.at(j), w_pair_phi.at(j), w_mass.at(j));
 				if(abs(RecoW.M() - W_MASS) < W_MASS_CUT)
 				{
-		 			if (const float reco_mass{(RecoW + BJets).M()}; std::abs(TOP_MASS - reco_mass) < std::abs(TOP_MASS - t_reco_mass))
+		 			if (const float reco_mass{(float) (RecoW + BJets).M()}; std::abs(TOP_MASS - reco_mass) < std::abs(TOP_MASS - t_reco_mass))
                                         {
 						reco_top = RecoW + BJets;
 						//t_reco_mass = reco_mass;
@@ -711,19 +707,19 @@ void analyse(int argc, char* argv[])
         }};
 
 	vector<string> bjet_mass_strings = {"Jet_mass", "nJet", "lead_bjet"};
-	vector<string> bjet_eta_strings = {"Jet_eta", "nJet", "lead_bjet"};
-	vector<string> bjet_pt_strings = {"Jet_pt", "nJet", "lead_bjet"};
-	vector<string> bjet_phi_strings = {"Jet_phi", "nJet", "lead_bjet"};
+	vector<string>  bjet_eta_strings = {"Jet_eta" , "nJet", "lead_bjet"};
+	vector<string>   bjet_pt_strings = {"Jet_pt"  , "nJet", "lead_bjet"};
+	vector<string>  bjet_phi_strings = {"Jet_phi" , "nJet", "lead_bjet"};
 
 // B Tag Efficiency centre
 	auto btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
 		strings formulae;
-		for(int i{0}; i<pt.size();i++)formulae.push_back("0");
+		for(int i=0; i<pt.size();i++)formulae.push_back("0");
 		floats result;
 		string measure_type;
 		string sys_type;
 		string rawFormula;
-    		float CSVv2;
+		float CSVv2;
 		float jet_flav;
 		float eta_min;
 		float eta_max;
@@ -749,7 +745,7 @@ void analyse(int argc, char* argv[])
             			}
         		}
     		} // No need to close file after this while loop.
-	      	for(int j{0}; j< formulae.size(); j++)
+	      	for(int j=0; j< formulae.size(); j++)
 	        {
 			string form = formulae.at(j);
 			//use the parser
@@ -764,7 +760,7 @@ void analyse(int argc, char* argv[])
 
 	auto non_btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
                 strings formulae;
-		for(int i{0};i<pt.size();i++)formulae.push_back("0");
+		for(int i=0;i<pt.size();i++)formulae.push_back("0");
                 floats result;
 		string measure_type;
                 string sys_type;
@@ -795,7 +791,7 @@ void analyse(int argc, char* argv[])
                         }
                 }
 
-                for(int j{0}; j< formulae.size(); j++)
+                for(int j=0; j< formulae.size(); j++)
                 {
                         string form;
                         form = formulae.at(j);
@@ -832,7 +828,7 @@ void analyse(int argc, char* argv[])
 	//Product formula for MC
 	auto EffBTaggedProduct{[](const floats& EffBTagged){
 		float initial = 1;
-		for(int i{0}; i < EffBTagged.size(); i++)
+		for(int i=0; i < EffBTagged.size(); i++)
 		{
 			initial = EffBTagged.at(i) * initial;
 		}
@@ -841,7 +837,7 @@ void analyse(int argc, char* argv[])
 	auto EffNonBTaggedProduct{[](const floats& EffNonBTagged){
 		float initial = 1;
 
-		for(int i{0}; i < EffNonBTagged.size(); i++ )
+		for(int i=0; i < EffNonBTagged.size(); i++ )
 		{
 			initial = (1 - EffNonBTagged.at(i)) * initial;
 		}
@@ -854,7 +850,7 @@ void analyse(int argc, char* argv[])
         auto Sfi_EffBTaggedProduct{[](const floats& EffBTagged, const floats sfi){
                 float initial = 1;
                 int size = (EffBTagged.size() < sfi.size()) ? EffBTagged.size() : sfi.size();
-                for(int i{0}; i < size; i++)
+                for(int i=0; i < size; i++)
                 {
                         initial = sfi.at(i) * EffBTagged.at(i) * initial;
                 }
@@ -866,7 +862,7 @@ void analyse(int argc, char* argv[])
                 //cout << "inside Si_EffNonBTaggedProduct" << endl;
                 float initial = 1;
                 int size = (EffNonBTagged.size() < sfj.size()) ? EffNonBTagged.size() : sfj.size();
-                for(int i{0}; i < size; i++)
+                for(int i=0; i < size; i++)
                 {
                         initial = (1 - EffNonBTagged.at(i) * sfj.at(i)) * initial;
                 }
@@ -892,20 +888,19 @@ void analyse(int argc, char* argv[])
 
 // jet smearing
  	auto jet_smearing_pt_resol{[](const floats& pt, const floats& eta, const float& rho){
-
-                float min_eta;
-                float max_eta;
-                float min_rho;
-                float max_rho;
-                int Six;
-                float min_pt;
-                float max_pt;
+		float min_eta;
+		float max_eta;
+		float min_rho;
+		float max_rho;
+		int   Six;
+		float min_pt;
+		float max_pt;
 		float a;
 		float b;
 		float c;
 		float d;
 		floats resol;
-		for(int i{0}; i < pt.size() ;++i) resol.push_back(0);
+		for(int i=0; i < pt.size() ;++i) resol.push_back(0);
 
 		//cout<<"pt size "<<pt.size()<<" eta size "<<eta.size()<<" rho "<<rho<<endl;
                 io::CSVReader<11> thisCSVfile("Fall17_V3_MC_PtResolution_AK4PFchs.txt");
@@ -914,7 +909,7 @@ void analyse(int argc, char* argv[])
                 {
 			if(rho > min_rho && rho < max_rho)
 			{
-				for(int i{0}; i < pt.size(); i++)
+				for(int i=0; i < pt.size(); i++)
 				{
 					if(eta.at(i) > min_eta && eta.at(i) < max_eta && pt.at(i) > min_pt && pt.at(i) < max_pt)
 					{
@@ -931,16 +926,16 @@ void analyse(int argc, char* argv[])
 	auto jet_smearing_Sjer{[](const floats& eta){
 		float min_eta;
                 float max_eta;
-                int Three;
+                int   Three;
                 float central_SF;
                 float SF_dn;
                 float SF_up;
                 floats Sjer;
-		for(int i{0};i<eta.size();i++) Sjer.push_back(0);
+		for(int i=0;i < eta.size();i++) Sjer.push_back(0);
                 io::CSVReader<6> thisCSVfile("Fall17_V3_MC_SF_AK4PF.txt");
                 while(thisCSVfile.read_row(min_eta  , max_eta , Three , central_SF , SF_dn , SF_up))
                 {
-                        for(int i{0}; i < eta.size(); i++)
+                        for(int i=0; i < eta.size(); i++)
                         {
                                 if(eta.at(i) > min_eta && eta.at(i) < max_eta)
                                 {
@@ -957,9 +952,9 @@ void analyse(int argc, char* argv[])
 		//cout<<"pt size "<<pt.size()<<" gen_pt size "<<gen_pt.size()<<" resol size "<<resol.size()<<" Sjer "<<Sjer.size()<<" deltaR "<< deltaR.size()<<endl;
 		//cout<<"value of deltaR "<<deltaR<<endl;
 		int size = (pt.size() < gen_pt.size()) ? pt.size() : gen_pt.size();// skeptical about this
-		for(int i{0}; i< size;i++) cjer.push_back(0);
+		for(int i=0; i < size;i++) cjer.push_back(0);
 		//cout<<"size of pt gen_pt resol Sjer deltaR and size is "<<pt.size()<<" "<<gen_pt.size()<<" "<<resol.size()<<" "<<Sjer.size()<<" "<<deltaR.size()<<" "<<size<<endl;
-		for(int i{0}; i < size; i++)
+		for(int i=0; i < size;i++)
 		{
 			if(deltaR.at(i) < (0.4/2) && abs(pt.at(i) - gen_pt.at(i))< 3 * resol.at(i) * pt.at(i))
 			{
@@ -979,60 +974,51 @@ void analyse(int argc, char* argv[])
 
 ////////////// SCALE FACTORS /////////////
 
-// Normalization
-	auto tzq_sf_func{[](const float& dummy){
-		return TZQ_W;
-	}};
-	auto ww_sf_func{[](const float& dummy){
-		return WWLNQQ_W;
-	}};
-        auto wz_sf_func{[](const float& dummy){
-                return WZLNQQ_W;
-        }};
-        auto ttz_sf_func{[](const float& dummy){
-                return TTZQQ_W;
-        }};
-        auto zz_sf_func{[](const float& dummy){
-                return ZZLLQQ_W;
-        }};
+// Normalization * btag weights
+	auto tzq_sf_func = [](const float& b){ return    TZQ_W*b; };
+	auto  ww_sf_func = [](const float& b){ return WWLNQQ_W*b; };
+	auto  wz_sf_func = [](const float& b){ return WZLNQQ_W*b; };
+	auto ttz_sf_func = [](const float& b){ return  TTZQQ_W*b; };
+	auto  zz_sf_func = [](const float& b){ return ZZLLQQ_W*b; };
 // Event Weight, incl. btag & Normalization
-	auto sf_func{[](const floats& i, const float& btag, const double& lum){
-		floats weight;
-                for(int w{0}; w < i.size(); w++)weight.push_back(btag*lum);
-                return weight;
+	auto rvec_rep_const{[](const double& sf, const floats& iRVec){
+	// this function just repeats sf, for the size of iRVec
+		floats weight(iRVec.size(),sf); 
+		return weight;
 	}};
-	auto sf_func_novec{[](const float& i, const float& btag, const double& lum){
-		return btag*lum;
+	auto sf_func_novec{[](const double& sf, const float& i){
+		return i*sf;
 	}};
 
 // Variable Luminosity scale factor for all
-	auto VarFact_func_double{[](const double& i){// this function make the variable which is equal to one and will be used for all scale factors
+	auto VarFact_func_double{[](const double& i){
+	// this function make the variable which is equal to one and will be used for all scale factors
 		return 1.0f;
 	}};
-	auto VarFact_func{[](const float& i){// this function make the variable which is equal to one and will be used for all scale factors
-                return 1.0f;
-        }};
-
-//Signal Luminosity normalization && SFs
-	auto NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw){// this function calculates the weight scale facto
-		floats weight;
-		for(int w{0}; w < i.size(); w++)weight.push_back(btagw*TZQ_W);
-                return weight;
+	auto VarFact_func{[](const float& i){
+	// this function make the variable which is equal to one and will be used for all scale factors
+		return 1.0f;
 	}};
 
-        auto NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw){// this function calculates the weight scale factor
-                floats weight;
-                for(int w{0}; w < i.size(); w++)weight.push_back(btagw*TZQ_W);
-                return weight;
-        }};
-
-        auto NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw){// this function calculates the weight scale factor for no Rvector variables
+//Signal Luminosity normalization && SFs
+	auto NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw){
+	// this function calculates the weight scale factor
+		floats weight;
+		for(int w=0; w < i.size() ;++w) weight.push_back(btagw*TZQ_W);
+		return weight;
+	}};
+	auto NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw){
+	// this function calculates the weight scale factor
+		floats weight(i.size(),btagw*TZQ_W);
+		return weight;
+	}};
+	auto NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw){
+	// this function calculates the weight scale factor for no Rvector variables
 		return btagw*TZQ_W;
+	}};
 
-        }};
 // WW scale factors
-
-        auto WW_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw){// this function calculates the weight scale factor
+	auto WW_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw){// this function calculates the weight scale factor
                 floats weight;
                 for(int w{0}; w < i.size(); w++)weight.push_back(btagw*WWLNQQ_W);
                 return weight;
@@ -1137,97 +1123,134 @@ void analyse(int argc, char* argv[])
                 weight = VarFact_func(i)*TTZQQ_W*btagw;
                 return weight;
         }};
-	auto dummy_func{[](const floats& cjer){//returns cjer as 1.00 for non jet SF
-		float One{1.00};
-		floats n;
-		for(int i{0}; i< cjer.size();i++) n.push_back(One);
+	auto dummy_func{[](const floats& cjer){
+	//returns cjer as 1.00 for non jet SF
+		floats n(cjer.size(),1.f); // vector of same value
 		return n;
 	}};
 //////////////////////////////////////////////////////////////////////////////Signal MC////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////Electron Channel/////////////////////////////////////////////////////////////////////////
-	auto d_enu_event_selection = d.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                   			.Define("tight_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
-					.Define("tight_ele_eta", select<floats>, {"Electron_eta", "tight_eles"})
-					.Define("tight_ele_phi", select<floats>, {"Electron_phi", "tight_eles"})
-                   			.Define("loose_eles", is_good_loose_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
-                   			.Define("loose_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
-					.Define("MET_phi_Selection",{"MET_phi"})
-					.Define("MET_electron_pt_Selection",{"MET_pt"})
-					.Filter(ele_met_selection_function, {"MET_electron_pt_Selection"}, "MET PT CUT")
-					.Filter(e_cut, {"tight_ele_pt", "loose_ele_pt"}, "lepton cut");
+	auto d_enu_event_selection =
+	d.Define("tight_eles"   , is_good_tight_ele,
+	        {"Electron_isPFcand", "Electron_pt", "Electron_eta",
+	         "Electron_cutBased"})
+	 .Define("tight_ele_pt" , select<floats>   , {"Electron_pt" , "tight_eles"})
+	 .Define("tight_ele_eta", select<floats>   , {"Electron_eta", "tight_eles"})
+	 .Define("tight_ele_phi", select<floats>   , {"Electron_phi", "tight_eles"})
+	 .Define("loose_eles"   , is_good_loose_ele,
+	        {"Electron_isPFcand", "Electron_pt", "Electron_eta",
+	         "Electron_cutBased"})
+	 .Define("loose_ele_pt" , select<floats>   , {"Electron_pt" , "tight_eles"})
+	 .Define("MET_phi_Selection"        ,{"MET_phi"})
+	 .Define("MET_electron_pt_Selection",{"MET_pt" })
+	 .Filter(ele_met_selection_function ,
+	        {"MET_electron_pt_Selection"}, "MET PT CUT")
+	 .Filter(e_cut, {"tight_ele_pt", "loose_ele_pt"}, "lepton cut");
 
-	auto d_enu_w_selection = d_enu_event_selection.Define("w_e_eta", get_w_e_quantity_selector("eta"))
-                 					.Define("w_e_phi", get_w_e_quantity_selector("phi"))
-                 					.Define("w_e_pt", get_w_e_quantity_selector("pt"))
-							.Define("w_e_mass", transvers_W_mass, {"w_e_pt", "w_e_phi", "MET_electron_pt_Selection", "MET_phi_Selection"})
-                 					.Define("enu_invmass", lep_nu_invmass,{"tight_ele_pt", "tight_ele_eta", "tight_ele_phi", "Electron_mass","CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt"});
-							//.Filter(w_mass_cut, {"w_e_mass"}, "W mass cut");
+	auto d_enu_w_selection
+	   = d_enu_event_selection
+	 .Define("w_e_eta" , get_w_e_quantity_selector("eta"))
+	 .Define("w_e_phi" , get_w_e_quantity_selector("phi"))
+	 .Define("w_e_pt"  , get_w_e_quantity_selector("pt" ))
+	 .Define("w_e_mass"   , transvers_W_mass, {"w_e_pt", "w_e_phi",
+	         "MET_electron_pt_Selection", "MET_phi_Selection"})
+	 .Define("enu_invmass", lep_nu_invmass  , {"tight_ele_pt", "tight_ele_eta",
+	         "tight_ele_phi", "Electron_mass",
+	         "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt"});
+	 //.Filter(w_mass_cut, {"w_e_mass"}, "W mass cut");
 
-	auto h_enu_mass = d_enu_w_selection.Histo1D({"enu_invmass", "enu_invmass",50,0,200},"enu_invmass"); h_enu_mass->Write();
+	auto h_enu_mass
+	   = d_enu_w_selection
+	 .Histo1D({"enu_invmass", "enu_invmass",50,0,200},"enu_invmass");
+	h_enu_mass->Write();
 
-	auto d_enu_jets_selection = d_enu_w_selection.Define("jet_e_min_dR", jet_lep_min_deltaR, {"Jet_eta", "Jet_phi", "w_e_eta", "w_e_phi"})
-                   					.Define("tight_jets", tight_jet_id, {"jet_e_min_dR", "Jet_pt", "Jet_eta", "Jet_jetId"})
-							.Define("tight_jets_pt", select<floats>, {"Jet_pt", "tight_jets"})
-							.Define("tight_jets_eta", select<floats>, {"Jet_eta", "tight_jets"})
-							.Define("tight_jets_phi", select<floats>, {"Jet_phi", "tight_jets"})
-							.Define("tight_jets_mass", select<floats>, {"Jet_mass", "tight_jets"})
-							.Define("tight_jets_deltaphi", jet_deltaphi_func, {"tight_jets_phi"})
-							.Filter(jet_cut, {"tight_jets"}, "Jet cut");
+	auto d_enu_jets_selection
+	   = d_enu_w_selection
+	 .Define("jet_e_min_dR"   , jet_lep_min_deltaR,
+	        {"Jet_eta", "Jet_phi", "w_e_eta", "w_e_phi"})
+	 .Define("tight_jets", tight_jet_id,
+	        {"jet_e_min_dR"  , "Jet_pt", "Jet_eta", "Jet_jetId"})
+	 .Define("tight_jets_pt"  , select<floats>, {"Jet_pt"  , "tight_jets"})
+	 .Define("tight_jets_eta" , select<floats>, {"Jet_eta" , "tight_jets"})
+	 .Define("tight_jets_phi" , select<floats>, {"Jet_phi" , "tight_jets"})
+	 .Define("tight_jets_mass", select<floats>, {"Jet_mass", "tight_jets"})
+	 .Define("tight_jets_deltaphi", jet_deltaphi_func,  {"tight_jets_phi"})
+	 .Filter(jet_cut, {"tight_jets"}, "Jet cut");
 
-	auto d_enu_jets_bjets_selection = d_enu_jets_selection.Define("bjets", bjet_id, {"tight_jets", "Jet_btagCSVV2", "Jet_eta"})
-								.Define("non_bjets", non_bjet_id,{"tight_jets", "Jet_eta"})
-								.Define("btag_numer", bjet_num, {"Jet_partonFlavour", "bjets"})
-								.Define("btag_denom", bjet_denom, {"Jet_partonFlavour", "non_bjets"})
-								.Define("non_btag_numer", non_bjet_num, {"Jet_partonFlavour", "bjets"})
-								.Define("non_btag_denom", non_bjet_denom, {"Jet_partonFlavour", "non_bjets"})
-								.Define("btag_numer_pt", select<floats>, {"Jet_pt", "btag_numer"})
-								.Define("btag_numer_eta", select<floats>, {"Jet_eta", "btag_numer"})
-								.Define("btag_denom_pt", select<floats>, {"Jet_pt", "btag_denom"})
-								.Define("btag_denom_eta", select<floats>, {"Jet_eta", "btag_denom"})
-                                                                .Define("non_btag_numer_pt", select<floats>, {"Jet_pt", "non_btag_numer"})
-                                                                .Define("non_btag_numer_eta",select<floats>, {"Jet_eta", "non_btag_numer"})
-                                                                .Define("non_btag_denom_pt", select<floats>, {"Jet_pt", "non_btag_denom"})
-                                                                .Define("non_btag_denom_eta",select<floats>, {"Jet_eta", "non_btag_denom"})
-								.Define("sfi", btag_CSVv2_formula, {"Jet_btagCSVV2","tight_jets_pt","tight_jets_eta"})
-								.Define("sfj", non_btag_CSVv2_formula, {"Jet_btagCSVV2","tight_jets_pt","tight_jets_eta"})
-								.Filter(bjet_cut, {"bjets"}, "b jet cut");
+	auto d_enu_jets_bjets_selection
+	   = d_enu_jets_selection
+	 .Define(    "bjets"         ,     bjet_id   , {"tight_jets","Jet_btagCSVV2","Jet_eta"})
+	 .Define("non_bjets"         , non_bjet_id   , {"tight_jets","Jet_eta"})
+	 .Define(    "btag_numer"    ,     bjet_num  , {"Jet_partonFlavour",    "bjets"})
+	 .Define(    "btag_denom"    ,     bjet_denom, {"Jet_partonFlavour","non_bjets"})
+	 .Define("non_btag_numer"    , non_bjet_num  , {"Jet_partonFlavour",    "bjets"})
+	 .Define("non_btag_denom"    , non_bjet_denom, {"Jet_partonFlavour","non_bjets"})
+	 .Define(    "btag_numer_pt" , select<floats>, {"Jet_pt" ,    "btag_numer"})
+	 .Define(    "btag_numer_eta", select<floats>, {"Jet_eta",    "btag_numer"})
+	 .Define(    "btag_denom_pt" , select<floats>, {"Jet_pt" ,    "btag_denom"})
+	 .Define(    "btag_denom_eta", select<floats>, {"Jet_eta",    "btag_denom"})
+	 .Define("non_btag_numer_pt" , select<floats>, {"Jet_pt" ,"non_btag_numer"})
+	 .Define("non_btag_numer_eta", select<floats>, {"Jet_eta","non_btag_numer"})
+	 .Define("non_btag_denom_pt" , select<floats>, {"Jet_pt" ,"non_btag_denom"})
+	 .Define("non_btag_denom_eta", select<floats>, {"Jet_eta","non_btag_denom"})
+	 .Define("sfi",     btag_CSVv2_formula, {"Jet_btagCSVV2","tight_jets_pt","tight_jets_eta"})
+	 .Define("sfj", non_btag_CSVv2_formula, {"Jet_btagCSVV2","tight_jets_pt","tight_jets_eta"})
+	 .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
+	auto d_enu_z_rec_selection
+	   = d_enu_jets_bjets_selection
+	 .Define(    "lead_bjet", find_lead_mask, {"bjets"   , "Jet_pt"})
+	 .Define(  "z_reco_jets", find_z_pair   , {"Jet_pt"  , "Jet_phi",
+	           "Jet_eta", "Jet_mass", "tight_jets", "lead_bjet"})
+	 .Define(  "z_pair_pt"  , select<floats>, {"Jet_pt"  , "z_reco_jets"})
+	 .Define(  "z_pair_eta" , select<floats>, {"Jet_eta" , "z_reco_jets"})
+	 .Define(  "z_pair_phi" , select<floats>, {"Jet_phi" , "z_reco_jets"})
+	 .Define(  "z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
+	 .Define(  "z_mass"     , inv_mass,
+	        {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
+	 .Define(  "z_e_min_dR" , jet_lep_min_deltaR,
+	        {"z_pair_eta", "z_pair_phi", "tight_ele_eta", "tight_ele_phi"})
+	 .Define(  "ZW_deltaphi", ZW_deltaphi_func, {"z_pair_phi", "w_e_phi"})
+	 .Define("ZMet_deltaphi", ZMet_deltaphi_func,
+	        {"z_pair_phi", "MET_electron_pt_Selection"});
+	 //.Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
+	 //.Filter(ZW_deltaphi_cut, {"ZW_deltaphi"}, "delta phi ZW cut")
+	 //.Filter(ZMet_deltaphi_cut, {"ZMet_deltaphi"}, "Z met cut ");
+	 //.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
 
-	auto d_enu_z_rec_selection = d_enu_jets_bjets_selection.Define("lead_bjet", find_lead_mask, {"bjets", "Jet_pt"})
-                 						.Define("z_reco_jets", find_z_pair, {"Jet_pt", "Jet_phi", "Jet_eta", "Jet_mass", "tight_jets", "lead_bjet"})
-                 						.Define("z_pair_pt", select<floats>, {"Jet_pt", "z_reco_jets"})
-                 						.Define("z_pair_eta", select<floats>, {"Jet_eta", "z_reco_jets"})
-                 						.Define("z_pair_phi", select<floats>, {"Jet_phi", "z_reco_jets"})
-                 						.Define("z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
-                 						.Define("z_mass", inv_mass, {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
-                                                                .Define("z_e_min_dR", jet_lep_min_deltaR, {"z_pair_eta", "z_pair_phi", "tight_ele_eta", "tight_ele_phi"})
-							        .Define("ZW_deltaphi", ZW_deltaphi_func, {"z_pair_phi", "w_e_phi"})
-								.Define("ZMet_deltaphi", ZMet_deltaphi_func, {"z_pair_phi", "MET_electron_pt_Selection"});
-								//.Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
-								//.Filter(ZW_deltaphi_cut, {"ZW_deltaphi"}, "delta phi ZW cut")
-								//.Filter(ZMet_deltaphi_cut, {"ZMet_deltaphi"}, "Z met cut ");
-                 						//.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
+	auto d_enu_brec_selection
+	   = d_enu_z_rec_selection
+	 .Define("bjetmass", bjet_variable , bjet_mass_strings)
+	 .Define("bjetpt"  , bjet_variable , bjet_pt_strings  )
+	 .Define("bjeteta" , bjet_variable , bjet_eta_strings )
+	 .Define("bjetphi" , bjet_variable , bjet_phi_strings )
+	 .Define("nbjets"  , numberofbjets , {"bjets"})
+	 .Define("BJets"   , BLorentzVector, {"bjetpt",
+		  "bjeteta", "bjetphi", "bjetmass", "nbjets"});
 
+	auto d_enu_top_selection
+	   = d_enu_brec_selection
+	 .Define("RecoTop" , top_reconstruction_function,
+	        {"bjetpt", "bjeteta", "bjetphi", "bjetmass",
+	         "w_e_pt", "w_e_eta", "w_e_phi", "w_e_mass"})
+	 .Define("Top_Eta" , TLorentzVectorEta , {"RecoTop"})
+	 .Define("Top_Phi" , TLorentzVectorPhi , {"RecoTop"})
+	 .Define("Top_Pt"  , TLorentzVectorPt  , {"RecoTop"})
+	 .Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
 
-	auto d_enu_brec_selection = d_enu_z_rec_selection.Define("bjetmass", bjet_variable, bjet_mass_strings)
-							.Define("bjetpt", bjet_variable, bjet_pt_strings)
-							.Define("bjeteta", bjet_variable, bjet_eta_strings)
-							.Define("bjetphi", bjet_variable, bjet_phi_strings)
-							.Define("nbjets", numberofbjets, {"bjets"})
-							.Define("BJets", BLorentzVector, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "nbjets"});
-
-	auto d_enu_top_selection = d_enu_brec_selection.Define("RecoTop", top_reconstruction_function, {"bjetpt", "bjeteta", "bjetphi", "bjetmass", "w_e_pt", "w_e_eta", "w_e_phi", "w_e_mass"})
-							.Define("Top_Eta", TLorentzVectorEta, {"RecoTop"})
-							.Define("Top_Phi", TLorentzVectorPhi, {"RecoTop"})
-							.Define("Top_Pt", TLorentzVectorPt, {"RecoTop"})
-							.Define("Top_Mass", TLorentzVectorMass, {"RecoTop"});
-
-
-	auto h_d_enu_events_btag_numer_PtVsEta = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"btag_numer_pt", "btag_numer_eta");
-        auto h_d_enu_events_non_btag_numer_PtVsEta = d_enu_top_selection.Histo2D({"MC non btag_Pt_vs_eta_enu_Channel","MC non btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"non_btag_numer_pt","non_btag_numer_eta");
-        auto h_d_enu_events_btag_denom_PtVsEta = d_enu_top_selection.Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"btag_denom_pt","btag_denom_eta");
-        auto h_d_enu_events_non_btag_denom_PtVsEta = d_enu_top_selection.Histo2D({"MC non btag_Pt_vs_eta_enu_Channel","MC non btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"non_btag_denom_pt","non_btag_denom_eta");
+	auto h_d_enu_events_btag_numer_PtVsEta
+	   = d_enu_top_selection
+	 .Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"btag_numer_pt", "btag_numer_eta");
+	auto h_d_enu_events_non_btag_numer_PtVsEta
+		= d_enu_top_selection
+	 .Histo2D({"MC non btag_Pt_vs_eta_enu_Channel","MC non btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"non_btag_numer_pt","non_btag_numer_eta");
+	auto h_d_enu_events_btag_denom_PtVsEta
+	   = d_enu_top_selection
+	 .Histo2D({"MC btag_Pt_vs_eta_enu_Channel","MC btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"btag_denom_pt","btag_denom_eta");
+	auto h_d_enu_events_non_btag_denom_PtVsEta
+	   = d_enu_top_selection
+	 .Histo2D({"MC non btag_Pt_vs_eta_enu_Channel","MC non btag pt Vs eta in electron-neutrino channel",50,0,400,50,-3,3},"non_btag_denom_pt","non_btag_denom_eta");
 
 /*
         auto h_events_btag_numer_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
@@ -1280,13 +1303,12 @@ void analyse(int argc, char* argv[])
 
 //Write histogram to a root file:
 	h_d_enu_events_btag_numer_PtVsEta->Write();
-        h_d_enu_events_non_btag_numer_PtVsEta->Write();
-        h_d_enu_events_btag_denom_PtVsEta->Write();
-        h_d_enu_events_non_btag_denom_PtVsEta->Write();
+	h_d_enu_events_non_btag_numer_PtVsEta->Write();
+	h_d_enu_events_btag_denom_PtVsEta->Write();
+	h_d_enu_events_non_btag_denom_PtVsEta->Write();
 
-
-
-	auto h_events_btag_PtVsEta_canvas = new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
+	auto h_events_btag_PtVsEta_canvas
+	= new TCanvas("b tag pt Vs eta", "b tag pt Vs eta",10,10,900,900);
 	TH2D *btag_ratio = new TH2D("ei","b tag ei",50,0,400,50,-3,3);
 	btag_ratio = (TH2D*)h_d_enu_events_btag_numer_PtVsEta->Clone();
 	btag_ratio->GetXaxis()->SetTitle(" b tag Pt");
@@ -1297,7 +1319,8 @@ void analyse(int argc, char* argv[])
 	h_events_btag_PtVsEta_canvas->SaveAs("h_events_btag_PtVsEta_canvas.root");
 	h_events_btag_PtVsEta_canvas->SaveAs("h_events_btag_PtVsEta_canvas.pdf");
 
-	auto h_events_non_btag_PtVsEta_canvas = new TCanvas("non b tag pt Vs eta", "non b tag pt Vs eta",10,10,900,900);
+	auto h_events_non_btag_PtVsEta_canvas
+	= new TCanvas("non b tag pt Vs eta", "non b tag pt Vs eta",10,10,900,900);
 	TH2D *non_btag_ratio = new TH2D("ej","non b tag ei",50,0,400,50,-3,3);
 	non_btag_ratio = (TH2D*)h_d_enu_events_non_btag_numer_PtVsEta->Clone();
 	non_btag_ratio->GetXaxis()->SetTitle("non b tag Pt");
@@ -1308,66 +1331,68 @@ void analyse(int argc, char* argv[])
 	h_events_non_btag_PtVsEta_canvas->SaveAs("h_events_non_btag_PtVsEta_canvas.root");
 	h_events_non_btag_PtVsEta_canvas->SaveAs("h_events_non_btag_PtVsEta_canvas.pdf");
 
+	auto BTaggedBinFunction{[&btag_ratio](const floats& pts, const floats& etas){
+		floats BTaggedEff;
+		//for(int i=0;i<pts.size();++i) BTaggedEff.push_back(0);
+		for(int i=0; i < pts.size();++i){
+			int  PtBin = btag_ratio->GetXaxis()->FindBin( pts.at(i));
+			int EtaBin = btag_ratio->GetYaxis()->FindBin(etas.at(i));
+			float  eff = btag_ratio->GetBinContent(PtBin, EtaBin);
+			if(eff != 0) BTaggedEff.push_back(eff);
+		}
+		return BTaggedEff;
+	}};
 
-      auto BTaggedBinFunction{[&btag_ratio](const floats& pts, const floats& etas){
-                floats BTaggedEff;
-                //for(int i{0};i<pts.size();i++)BTaggedEff.push_back(0);
-                for(int i{0}; i < pts.size(); i++)
-                {
-			int PtBin = btag_ratio->GetXaxis()->FindBin(pts.at(i));
-                        int EtaBin = btag_ratio->GetYaxis()->FindBin(etas.at(i));
-
-                        float eff = btag_ratio->GetBinContent(PtBin, EtaBin);
-		        if(eff != 0) BTaggedEff.push_back(eff);
-                }
-                return BTaggedEff;
-        }};
-
-        auto NonBTaggedBinFunction{[&non_btag_ratio](const floats& pts, const floats& etas){
-                floats NonBTaggedEff;
-		//for(int i{0};i<pts.size();i++) NonBTaggedEff.push_back(0);
-                for(int i = 0; i < pts.size(); i++)
-                {
-                        int PtBin = non_btag_ratio->GetXaxis()->FindBin(pts.at(i));
-                        int EtaBin = non_btag_ratio->GetYaxis()->FindBin(etas.at(i));
-
-			float eff = non_btag_ratio ->GetBinContent(PtBin, EtaBin);
+	auto NonBTaggedBinFunction{[&non_btag_ratio](const floats& pts, const floats& etas){
+		floats NonBTaggedEff;
+		//for(int i=0; i < pts.size() ;++i) NonBTaggedEff.push_back(0);
+		for(int i=0; i < pts.size() ;++i){
+			int  PtBin = non_btag_ratio->GetXaxis()->FindBin( pts.at(i));
+			int EtaBin = non_btag_ratio->GetYaxis()->FindBin(etas.at(i));
+			float  eff = non_btag_ratio ->GetBinContent(PtBin, EtaBin);
 			if(eff != 0) NonBTaggedEff.push_back(eff);
-                }
-                return NonBTaggedEff;
-        }};
+		}
+		return NonBTaggedEff;
+	}};
 
-	auto d_enu_btag_eff = d_enu_top_selection.Define("EffBTagged", BTaggedBinFunction, {"tight_jets_pt", "tight_jets_eta"})
-						.Define("NonEffBTagged", NonBTaggedBinFunction, {"tight_jets_pt", "tight_jets_eta"});
+	auto d_enu_btag_eff
+	   = d_enu_top_selection
+	 .Define(   "EffBTagged",    BTaggedBinFunction, {"tight_jets_pt", "tight_jets_eta"})
+	 .Define("NonEffBTagged", NonBTaggedBinFunction, {"tight_jets_pt", "tight_jets_eta"});
 
-	//auto h_d_enu_events_btag_eff = d_enu_btag_eff.Histo1D({"MC btag EFF","MC btag EFF electro and neutrino channel",50,0,400},"EffBTagged");
-        //auto h_d_enu_events_non_btag_eff = d_enu_btag_eff.Histo1D({"MC non btag EFF","MC non btag EFF electro and neutrino channel",50,0,400},"NonEffBTagged");
+	//auto h_d_enu_events_btag_eff
+	//   = d_enu_btag_eff
+	// .Histo1D({    "MC btag EFF",    "MC btag EFF electro and neutrino channel",50,0,400},   "EffBTagged");
+	//auto h_d_enu_events_non_btag_eff
+	//   = d_enu_btag_eff
+	// .Histo1D({"MC non btag EFF","MC non btag EFF electro and neutrino channel",50,0,400},"NonEffBTagged");
 
-
-	auto d_enu_P_btag = d_enu_btag_eff.Define("Pi_ei",EffBTaggedProduct, {"EffBTagged"})
-					.Define("Pi_ej", EffNonBTaggedProduct,{"NonEffBTagged"})
-					.Define("Pi_sfei",Sfi_EffBTaggedProduct, {"EffBTagged", "sfi"})
-					.Define("Pi_sfej", Sfj_EffNonBTaggedProduct, {"NonEffBTagged", "sfj"})
-					.Define("P_MC", P_MC_func, {"Pi_ei", "Pi_ej"})
-					.Define("P_Data", P_data_func, {"Pi_sfei", "Pi_sfej"})
-					.Define("btag_w", btag_weight, {"P_Data","P_MC"})
-					.Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
-                                        .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
-                                        .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
-					.Define("lum","TZQ_W")
-                                        .Define("nw_tight_ele_pt", sf_func, {"tight_ele_pt","btag_w","lum" })
-                                        .Define("nw_tight_ele_eta", sf_func, {"tight_ele_eta","btag_w","lum" })
-                                        .Define("nw_tight_jets_eta", sf_func, {"tight_jets_eta","btag_w","lum" })
-                                        .Define("nw_tight_jets_pt", sf_func, {"tight_jets_pt","btag_w","lum" })
-					.Define("nw_tight_jets_phi", sf_func, {"tight_jets_phi","btag_w","lum" })
-					.Define("nw_tight_jets_mass", sf_func, {"tight_jets_mass","btag_w","lum" })
-                                        .Define("nw_jet_e_min_dR", sf_func, {"jet_e_min_dR","btag_w","lum" })
-                                        .Define("nw_z_e_min_dR", sf_func, {"z_e_min_dR","btag_w","lum" })
-                                        .Define("nw_w_e_mass", sf_func, {"w_e_mass","btag_w","lum" })
-                                        .Define("nw_z_mass", sf_func_novec, {"z_mass","btag_w","lum" })
-                                        .Define("nw_tight_jets_deltaphi", sf_func, {"tight_jets_deltaphi","btag_w","lum" })
-                                        .Define("nw_ZMet_deltaphi", sf_func, {"ZMet_deltaphi","btag_w","lum" })
-                                        .Define("nw_ZW_deltaphi", sf_func, {"ZW_deltaphi","btag_w","lum"});
+	auto d_enu_P_btag
+	   = d_enu_btag_eff
+	 .Define("Pi_ei"   ,   EffBTaggedProduct,     {   "EffBTagged"})
+	 .Define("Pi_ej"   ,EffNonBTaggedProduct,     {"NonEffBTagged"})
+	 .Define("Pi_sfei" ,   Sfi_EffBTaggedProduct, {   "EffBTagged","sfi"})
+	 .Define("Pi_sfej" ,Sfj_EffNonBTaggedProduct, {"NonEffBTagged","sfj"})
+	 .Define("P_MC"    ,  P_MC_func,{  "Pi_ei","Pi_ej"})
+	 .Define("P_Data"  ,P_data_func,{"Pi_sfei","Pi_sfej"})
+	 .Define("btag_w"  ,btag_weight,{"P_Data","P_MC"})
+	 .Define("pt_resol",jet_smearing_pt_resol,{"tight_jets_pt" , "tight_jets_eta", "fixedGridRhoFastjetAll"})
+	 .Define("Sjer"    ,jet_smearing_Sjer    ,{"tight_jets_eta"})
+	 .Define("cjer"    ,delta_R_jet_smearing ,{"tight_jets_pt" , "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
+	 .Define("sf"      ,tzq_sf_func,{"btag_w"})
+	 .Define("nw_tight_ele_pt"   ,rvec_rep_const, {"sf","tight_ele_pt"   })
+	 .Define("nw_tight_ele_eta"  ,rvec_rep_const, {"sf","tight_ele_eta"  })
+	 .Define("nw_tight_jets_eta" ,rvec_rep_const, {"sf","tight_jets_eta" })
+	 .Define("nw_tight_jets_pt"  ,rvec_rep_const, {"sf","tight_jets_pt"  })
+	 .Define("nw_tight_jets_phi" ,rvec_rep_const, {"sf","tight_jets_phi" })
+	 .Define("nw_tight_jets_mass",rvec_rep_const, {"sf","tight_jets_mass"})
+	 .Define("nw_jet_e_min_dR"   ,rvec_rep_const, {"sf",  "jet_e_min_dR" })
+	 .Define(  "nw_z_e_min_dR"   ,rvec_rep_const, {"sf",    "z_e_min_dR" })
+	 .Define(  "nw_w_e_mass"     ,rvec_rep_const, {"sf",    "w_e_mass"   })
+	 .Define(    "nw_z_mass"     ,"sf") // nw_z_mass is just one value, = sf
+	 .Define("nw_tight_jets_deltaphi",rvec_rep_const, {"sf","tight_jets_deltaphi"})
+	 .Define(      "nw_ZMet_deltaphi",rvec_rep_const, {"sf",      "ZMet_deltaphi"})
+	 .Define(        "nw_ZW_deltaphi",rvec_rep_const, {"sf",        "ZW_deltaphi"});
 
 /*	auto h_d_enu_Pi_ei = d_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_d_enu_Pi_ei->Write();
 	auto h_d_enu_Pi_ej = d_enu_P_btag.Histo1D({"Pi ej histogram","Pi ej histogram",50,0,400},"Pi_ej"); h_d_enu_Pi_ej->Write();
