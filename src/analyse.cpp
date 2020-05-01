@@ -1,4 +1,4 @@
-//add cjer SF to pt, eta phi, M , make hists and stack for tight jet phi and tight jet mass
+//add cjer SF to pt, eta phi, M tight jets and use the tight jets to reconstruct the Z, make hists for inv mas lep and neutrino and scatte rplot for mWt vs zmass
 #include "analyse.hpp"
 #include <algorithm>
 #include "TLorentzVector.h"
@@ -1354,7 +1354,7 @@ void analyse(int argc, char* argv[])
 					.Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
-					.Define("lum",tzq_sf_func,{"btag_w"})
+					.Define("lum","TZQ_W")
                                         .Define("nw_tight_ele_pt", sf_func, {"tight_ele_pt","btag_w","lum" })
                                         .Define("nw_tight_ele_eta", sf_func, {"tight_ele_eta","btag_w","lum" })
                                         .Define("nw_tight_jets_eta", sf_func, {"tight_jets_eta","btag_w","lum" })
