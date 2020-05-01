@@ -976,6 +976,35 @@ void analyse(int argc, char* argv[])
 		//cout<<"cjer is"<<cjer<<endl;
 		return cjer;
 	}};
+
+////////////// SCALE FACTORS /////////////
+
+// Normalization
+	auto tzq_sf_func{[](const float& dummy){
+		return TZQ_W;
+	}};
+	auto ww_sf_func{[](const float& dummy){
+		return WWLNQQ_W;
+	}};
+        auto wz_sf_func{[](const float& dummy){
+                return WZLNQQ_W;
+        }};
+        auto ttz_sf_func{[](const float& dummy){
+                return TTZQQ_W;
+        }};
+        auto zz_sf_func{[](const float& dummy){
+                return ZZLLQQ_W;
+        }};
+// Event Weight, incl. btag & Normalization
+	auto sf_func{[](const floats& i, const float& btag, const double& lum){
+		floats weight;
+                for(int w{0}; w < i.size(); w++)weight.push_back(btag*lum);
+                return weight;
+	}};
+	auto sf_func_novec{[](const float& i, const float& btag, const double& lum){
+		return btag*lum;
+	}};
+
 // Variable Luminosity scale factor for all
 	auto VarFact_func_double{[](const double& i){// this function make the variable which is equal to one and will be used for all scale factors
 		return 1.0f;
@@ -985,184 +1014,126 @@ void analyse(int argc, char* argv[])
         }};
 
 //Signal Luminosity normalization && SFs
-	auto NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor
-		doubles weight_vec;
-		floats test;
-		float One{1.00};
-		int size{i.size() - cjer.size()};
-		floats nw;
-		auto it = find_if(cbegin(cjer), cend(cjer), [](int i){return i == 1.00;});
-		while (it != cend(cjer))
-		{
-   			test.emplace_back(distance(begin(cjer), it));
-   			it = find_if(next(it), end(cjer), [](int i){return i == 1.00;});
-		}
-		if(test.size() == cjer.size()) for(int i{0}; i<cjer.size(); i++)nw.push_back(cjer[i]);
-		for(int i{0};i< size; i++)cjer.push_back(One);
-                cout <<"i and cjer"<< i<< "  "<<cjer<<endl;
-		for(int w{0}; w < i.size(); w++)
-		{
-			double n_w;
-			n_w = VarFact_func_double(i.at(w))*TZQ_W*btagw*cjer.at(w);
-		        weight_vec.push_back(n_w);
-
-		}
-		return weight_vec;
+	auto NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw){// this function calculates the weight scale facto
+		floats weight;
+		for(int w{0}; w < i.size(); w++)weight.push_back(btagw*TZQ_W);
+                return weight;
 	}};
 
-        auto NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor
-                floats weight_vec;
-                floats test;
-		float One{1.00};
-                int size{i.size() - cjer.size()};
-                auto it = find_if(cbegin(cjer), cend(cjer), [](int i){return i == 1.00;});
-                while (it != cend(cjer))
-                {
-                        test.emplace_back(distance(begin(cjer), it));
-                        it = find_if(next(it), end(cjer), [](int i){return i == 1.00;});
-                }
-                if(test.size() == cjer.size()) for(int i{0};i< size; i++)cjer.push_back(One);
-                cout <<"i and cjer in Norm "<< i<< "  "<<cjer<<endl;
-                for(int w{0}; w < i.size(); w++)
-                {
-			float n_w;
-                        n_w = VarFact_func(i.at(w))*TZQ_W*btagw*cjer.at(w);
-			weight_vec.push_back(n_w);
-                }
-                return weight_vec;
+        auto NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw){// this function calculates the weight scale factor
+                floats weight;
+                for(int w{0}; w < i.size(); w++)weight.push_back(btagw*TZQ_W);
+                return weight;
         }};
 
-        auto NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor for no Rvector variables
-                float weight;
-                weight = VarFact_func(i)*TZQ_W*btagw;
-		return weight;
+        auto NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw){// this function calculates the weight scale factor for no Rvector variables
+		return btagw*TZQ_W;
+
         }};
 // WW scale factors
 
-        auto WW_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor
-                doubles weight_vec;
-                cout <<"i and cjer in WW db "<< i<< "  "<<cjer<<endl;
-                for(int w{0}; w < i.size(); w++)
-                {
-                        double n_w;
-                        n_w =  VarFact_func_double(i.at(w))*WWLNQQ_W*btagw*cjer.at(w);
-                        weight_vec.push_back(n_w);
-                }
-                return weight_vec;
-        }};
-
-        auto WW_NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor
-                floats weight_vec;
-                cout <<"i and cjer in WW "<< i<< "  "<<cjer<<endl;
-                for(int w{0}; w < i.size(); w++)
-                {
-                        float n_w;
-                        n_w = VarFact_func(i.at(w))*WWLNQQ_W*btagw*cjer.at(w);
-                        weight_vec.push_back(n_w);
-                }
-                return weight_vec;
-        }};
-
-        auto WW_NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor for no Rvector variables
-                float weight;
-                cout <<"i and cjer in WW no "<< i<< "  "<<cjer<<endl;
-                weight = VarFact_func(i)*WWLNQQ_W*btagw;
+        auto WW_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw){// this function calculates the weight scale factor
+                floats weight;
+                for(int w{0}; w < i.size(); w++)weight.push_back(btagw*WWLNQQ_W);
                 return weight;
+
+        }};
+
+        auto WW_NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw){// this function calculates the weight scale factor
+                floats weight;
+                for(int w{0}; w < i.size(); w++)weight.push_back(btagw*WWLNQQ_W);
+                return weight;
+
+        }};
+
+        auto WW_NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw){// this function calculates the weight scale factor for no Rvector variables
+                return btagw*WWLNQQ_W;
         }};
 
 
 //WZ
-	auto WZ_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor
-                doubles weight_vec;
-                cout <<"i and cjer in WZ db "<< i<< "  "<<cjer<<endl;
-                for(int w{0}; w < i.size(); w++)
+	auto WZ_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw){// this function calculates the weight scale factor
+		floats weight_vec;
+		for(int w{0}; w < i.size(); w++)
                 {
                         double n_w;
-                        n_w = VarFact_func_double(i.at(w))*WZLNQQ_W*btagw*cjer.at(w);
+                        n_w = VarFact_func_double(i.at(w))*WZLNQQ_W*btagw;
                         weight_vec.push_back(n_w);
                 }
                 return weight_vec;
         }};
 
-	auto WZ_NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor
+	auto WZ_NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw){// this function calculates the weight scale factor
                 floats weight_vec;
-                cout <<"i and cjer in WZ "<< i<< "  "<<cjer<<endl;
                 for(int w{0}; w < i.size(); w++)
                 {
                         float n_w;
-                        n_w = VarFact_func(i.at(w))*WZLNQQ_W*btagw*cjer.at(w);
+                        n_w = VarFact_func(i.at(w))*WZLNQQ_W*btagw ;
                         weight_vec.push_back(n_w);
                 }
                 return weight_vec;
      	}};
 
-	auto WZ_NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor for no Rvector variables
+	auto WZ_NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw){// this function calculates the weight scale factor for no Rvector variables
                 float weight;
-                cout <<"i and cjer in WZ no "<< i<< "  "<<cjer<<endl;
                 weight = VarFact_func(i)*WZLNQQ_W*btagw;
                 return weight;
         }};
 
 //ZZ
-	auto ZZ_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor
+	auto ZZ_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw){// this function calculates the weight scale factor
                 doubles weight_vec;
-                cout <<"i and cjer in ZZ db"<< i<< "  "<<cjer<<endl;
                 for(int w{0}; w < i.size(); w++)
                 {
                         double n_w;
-                        n_w =  VarFact_func_double(i.at(w))*ZZLLQQ_W*btagw*cjer.at(w);
+                        n_w =  VarFact_func_double(i.at(w))*ZZLLQQ_W*btagw ;
                         weight_vec.push_back(n_w);
                 }
                 return weight_vec;
         }};
 
-        auto ZZ_NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor
+        auto ZZ_NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw){// this function calculates the weight scale factor
                 floats weight_vec;
-                cout <<"i and cjer in ZZ"<< i<< "  "<<cjer<<endl;
                 for(int w{0}; w < i.size(); w++)
                 {
                         float n_w;
-                        n_w = VarFact_func(i.at(w))*ZZLLQQ_W*btagw*cjer.at(w);
+                        n_w = VarFact_func(i.at(w))*ZZLLQQ_W*btagw ;
                         weight_vec.push_back(n_w);
                 }
                 return weight_vec;
         }};
 
-        auto ZZ_NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor for no Rvector variables
+        auto ZZ_NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw){// this function calculates the weight scale factor for no Rvector variables
                 float weight;
-                cout <<"i and cjer in ZZ no "<< i<< "  "<<cjer<<endl;
                 weight = VarFact_func(i)*ZZLLQQ_W*btagw;
                 return weight;
         }};
 
 //TTZ
-        auto TTZ_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor
+        auto TTZ_NormScaleFact_func_double{[&VarFact_func_double](const doubles& i, const float& btagw){// this function calculates the weight scale factor
                 doubles weight_vec;
-                cout <<"i and cjer ttZ db "<< i<< "  "<<cjer<<endl;
                 for(int w{0}; w < i.size(); w++)
                 {
                         double n_w;
-                        n_w =  VarFact_func_double(i.at(w))*TTZQQ_W*btagw*cjer.at(w);
+                        n_w =  VarFact_func_double(i.at(w))*TTZQQ_W*btagw ;
                         weight_vec.push_back(n_w);
                 }
                 return weight_vec;
         }};
 
-	auto TTZ_NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor
+	auto TTZ_NormScaleFact_func{[&VarFact_func](const floats& i, const float& btagw){// this function calculates the weight scale factor
                 floats weight_vec;
-                cout <<"i and cjer in ttZ "<< i<< "  "<<cjer<<endl;
                 for(int w{0}; w < i.size(); w++)
                 {
                         float n_w;
-                        n_w = VarFact_func(i.at(w))*TTZQQ_W*btagw*cjer.at(w);
+                        n_w = VarFact_func(i.at(w))*TTZQQ_W*btagw ;
                         weight_vec.push_back(n_w);
                 }
                 return weight_vec;
         }};
 
-        auto TTZ_NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw, const floats& cjer){// this function calculates the weight scale factor for no Rvector variables
+        auto TTZ_NormScaleFact_func_novec{[&VarFact_func](const float& i, const float& btagw){// this function calculates the weight scale factor for no Rvector variables
                 float weight;
-                cout <<"i and cjer in ttZ no "<< i<< "  "<<cjer<<endl;
                 weight = VarFact_func(i)*TTZQQ_W*btagw;
                 return weight;
         }};
@@ -1383,20 +1354,20 @@ void analyse(int argc, char* argv[])
 					.Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
-					.Define("dummy",dummy_func,{"cjer"})
-                                        .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w","dummy"})
-                                        .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w","dummy"})
-                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w","cjer"})
-                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w","cjer"})
-					.Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w","cjer"})
-					.Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w","cjer"})
-                                        .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w","dummy"})
-                                        .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w","dummy"})
-                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w","dummy"})
-                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w","dummy"})
-                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w","dummy"});
+					.Define("lum",tzq_sf_func,{"btag_w"})
+                                        .Define("nw_tight_ele_pt", sf_func, {"tight_ele_pt","btag_w","lum" })
+                                        .Define("nw_tight_ele_eta", sf_func, {"tight_ele_eta","btag_w","lum" })
+                                        .Define("nw_tight_jets_eta", sf_func, {"tight_jets_eta","btag_w","lum" })
+                                        .Define("nw_tight_jets_pt", sf_func, {"tight_jets_pt","btag_w","lum" })
+					.Define("nw_tight_jets_phi", sf_func, {"tight_jets_phi","btag_w","lum" })
+					.Define("nw_tight_jets_mass", sf_func, {"tight_jets_mass","btag_w","lum" })
+                                        .Define("nw_jet_e_min_dR", sf_func, {"jet_e_min_dR","btag_w","lum" })
+                                        .Define("nw_z_e_min_dR", sf_func, {"z_e_min_dR","btag_w","lum" })
+                                        .Define("nw_w_e_mass", sf_func, {"w_e_mass","btag_w","lum" })
+                                        .Define("nw_z_mass", sf_func_novec, {"z_mass","btag_w","lum" })
+                                        .Define("nw_tight_jets_deltaphi", sf_func, {"tight_jets_deltaphi","btag_w","lum" })
+                                        .Define("nw_ZMet_deltaphi", sf_func, {"ZMet_deltaphi","btag_w","lum" })
+                                        .Define("nw_ZW_deltaphi", sf_func, {"ZW_deltaphi","btag_w","lum"});
 
 /*	auto h_d_enu_Pi_ei = d_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_d_enu_Pi_ei->Write();
 	auto h_d_enu_Pi_ej = d_enu_P_btag.Histo1D({"Pi ej histogram","Pi ej histogram",50,0,400},"Pi_ej"); h_d_enu_Pi_ej->Write();
@@ -1559,19 +1530,19 @@ void analyse(int argc, char* argv[])
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_mu_min_dR"})
 					.Define("dummy",dummy_func,{"cjer"})
-                                        .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w","dummy"})
-                                        .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w","dummy"})
-                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w","cjer"})
-                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w","cjer"})
-                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w","cjer"})
-                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w","cjer"})
-                                        .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w","dummy"})
-                                        .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w","dummy"})
-                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w","dummy"})
-                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w","dummy"})
-                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w","dummy"});
+                                        .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w" })
+                                        .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w" })
+                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
+                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w" })
+                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w" })
+                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
+                                        .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w" })
+                                        .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w" })
+                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
+                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
+                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
+                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
+                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w" });
 
 
 
@@ -1726,19 +1697,19 @@ void analyse(int argc, char* argv[])
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
                                         .Define("dummy",dummy_func,{"cjer"})
-                                        .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w","dummy"})
-                                        .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w","dummy"})
-                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w","cjer"})
-                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w","cjer"})
-                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w","cjer"})
-                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w","cjer"})
-                                        .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w","dummy"})
-                                        .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w","dummy"})
-                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w","dummy"})
-                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w","dummy"})
-                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w","dummy"});
+                                        .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w" })
+                                        .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w" })
+                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
+                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w" })
+                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w" })
+                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
+                                        .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w" })
+                                        .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w" })
+                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
+                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
+                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
+                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
+                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w" });
 
 
 ///////////////////////////////////////////////////////////////////////// Muon Channel/////////////////////////////////////////////////////////////////////////////
@@ -1888,19 +1859,19 @@ void analyse(int argc, char* argv[])
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_mu_min_dR"})
                                         .Define("dummy",dummy_func,{"cjer"})
-                                        .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w","dummy"})
-                                        .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w","dummy"})
-                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w","cjer"})
-                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w","cjer"})
-                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w","cjer"})
-                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w","cjer"})
-                                        .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w","dummy"})
-                                        .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w","dummy"})
-                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w","dummy"})
-                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w","dummy"})
-                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w","dummy"});
+                                        .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w" })
+                                        .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w" })
+                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
+                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w" })
+                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w" })
+                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
+                                        .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w" })
+                                        .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w" })
+                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
+                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
+                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
+                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
+                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w" });
 
 /////////////////////////////////////////////////////////////////////////// wz Electron Channel/////////////////////////////////////////////////////////////////////////
 	auto wz_enu_event_selection = wz.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
@@ -2052,19 +2023,19 @@ void analyse(int argc, char* argv[])
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
                                         .Define("dummy",dummy_func,{"cjer"})
-                                        .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w","dummy"})
-                                        .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w","dummy"})
-                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w","cjer"})
-                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w","cjer"})
-                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w","cjer"})
-                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w","cjer"})
-                                        .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w","dummy"})
-                                        .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w","dummy"})
-                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w","dummy"})
-                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w","dummy"})
-                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w","dummy"});
+                                        .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w" })
+                                        .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w" })
+                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
+                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w" })
+                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w" })
+                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
+                                        .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w" })
+                                        .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w" })
+                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
+                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
+                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
+                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
+                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w" });
 /////////////////////////////////////////////////////////////////////////wz Muon Channel/////////////////////////////////////////////////////////////////////////////
         auto wz_munu_event_selection = wz.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
                                       .Define("tight_mu_pt", select<floats>, {"Muon_pt", "tight_mus"})
@@ -2213,19 +2184,19 @@ void analyse(int argc, char* argv[])
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_mu_min_dR"})
                                         .Define("dummy",dummy_func,{"cjer"})
-                                        .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w","dummy"})
-                                        .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w","dummy"})
-                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w","cjer"})
-                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w","cjer"})
-                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w","cjer"})
-                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w","cjer"})
-                                        .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w","dummy"})
-                                        .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w","dummy"})
-                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w","dummy"})
-                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w","dummy"})
-                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w","dummy"});
+                                        .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w" })
+                                        .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w" })
+                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
+                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w" })
+                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w" })
+                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
+                                        .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w" })
+                                        .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w" })
+                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
+                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
+                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
+                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
+                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w" });
 
 
 ///////////////////////////////////////////////////////////////////////////ttz Electron Channel/////////////////////////////////////////////////////////////////////////
@@ -2379,19 +2350,19 @@ void analyse(int argc, char* argv[])
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
                                         .Define("dummy",dummy_func,{"cjer"})
-                                        .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w","dummy"})
-                                        .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w","dummy"})
-                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w","cjer"})
-                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w","cjer"})
-                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w","cjer"})
-                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w","cjer"})
-                                        .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w","dummy"})
-                                        .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w","dummy"})
-                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w","dummy"})
-                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w","dummy"})
-                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w","dummy"});
+                                        .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w" })
+                                        .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w" })
+                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
+                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w" })
+                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w" })
+                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
+                                        .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w" })
+                                        .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w" })
+                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
+                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
+                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
+                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
+                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w" });
 
 /////////////////////////////////////////////////////////////////////////ttz Muon Channel/////////////////////////////////////////////////////////////////////////////
         auto ttZ_munu_event_selection = ttZ.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
@@ -2540,19 +2511,19 @@ void analyse(int argc, char* argv[])
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_mu_min_dR"})
                                         .Define("dummy",dummy_func,{"cjer"})
-                                        .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w","dummy"})
-                                        .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w","dummy"})
-                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w","cjer"})
-                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w","cjer"})
-                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w","cjer"})
-                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w","cjer"})
-                                        .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w","dummy"})
-                                        .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w","dummy"})
-                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w","dummy"})
-                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w","dummy"})
-                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w","dummy"});
+                                        .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w" })
+                                        .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w" })
+                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
+                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w" })
+                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w" })
+                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
+                                        .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w" })
+                                        .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w" })
+                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
+                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
+                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
+                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
+                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w" });
 
 
 
@@ -2706,19 +2677,19 @@ void analyse(int argc, char* argv[])
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
                                         .Define("dummy",dummy_func,{"cjer"})
-                                        .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w","dummy"})
-                                        .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w","dummy"})
-                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w","cjer"})
-                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w","cjer"})
-                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w","cjer"})
-                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w","cjer"})
-                                        .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w","dummy"})
-                                        .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w","dummy"})
-                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w","dummy"})
-                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w","dummy"})
-                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w","dummy"});
+                                        .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w" })
+                                        .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w" })
+                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
+                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w" })
+                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w" })
+                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
+                                        .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w" })
+                                        .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w" })
+                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
+                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
+                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
+                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
+                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w" });
 
 /////////////////////////////////////////////////////////////////////////zz Muon Channel/////////////////////////////////////////////////////////////////////////////
         auto zz_munu_event_selection = zz.Define("tight_mus", is_good_tight_mu, {"Muon_isPFcand", "Muon_pt", "Muon_eta", "Muon_tightId", "Muon_pfRelIso04_all"})
@@ -2867,19 +2838,19 @@ void analyse(int argc, char* argv[])
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_mu_min_dR"})
 					.Define("dummy",dummy_func,{"cjer"})
-                                        .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w","dummy"})
-                                        .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w","dummy"})
-                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w","cjer"})
-                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w","cjer"})
-                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w","cjer"})
-                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w","cjer"})
-                                        .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w","dummy"})
-                                        .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w","dummy"})
-                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w","dummy"})
-                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w","dummy"})
-                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w","dummy"})
-                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w","dummy"});
+                                        .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w" })
+                                        .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w" })
+                                        .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
+                                        .Define("nw_tight_jets_pt", NormScaleFact_func, {"tight_jets_pt","btag_w" })
+                                        .Define("nw_tight_jets_phi", NormScaleFact_func, {"tight_jets_phi","btag_w" })
+                                        .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
+                                        .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w" })
+                                        .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w" })
+                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
+                                        .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
+                                        .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
+                                        .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
+                                        .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w" });
 //////////////////////////////////////////////////////////////// Signal Single Electron Neutrino ////////////////////////////////////////////////////////////////////
 
 	auto se_enu_event_selection = se.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
