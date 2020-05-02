@@ -101,17 +101,7 @@ constexpr double ZZLLQQ_W{0.0485};
 auto poissonf(Double_t *x,Double_t *par)
 {
   return par[0]*TMath::Poisson(x[0],par[1]);
-}
-/*auto endpointf(Double_t *x,Double_t *par)
-{
- return x[0] < par[0];
-}// or write this function as a lambda function in the fit itself.
-*/
-enum class channels
-{
-    enu,
-    mnu
-};
+}// be used for fitting purposes
 
 [[gnu::const]] auto delta_phi(const float phi1, const float phi2)
 {
@@ -173,17 +163,20 @@ template<typename T>
 }
 } // namespace
 
-void analyse(int argc, char* argv[])
+void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 {
+
+//void analyse(int argc, char* argv[])
+//{
 	//ROOT::EnableImplicitMT();// parallel functioning
 	std::cout << "I am starting"<<std::endl;
 	setTDRStyle();
 	//MC datasets
-	ROOT::RDataFrame   dc{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
-	ROOT::RDataFrame  wwc{"Events", "/data/disk0/nanoAOD_2017/WWToLNuQQ/*.root"};
-	ROOT::RDataFrame  wzc{"Events", "/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root"};
-	ROOT::RDataFrame ttZc{"Events", "/data/disk0/nanoAOD_2017/ttZToQQ/*.root"};
-	ROOT::RDataFrame  zzc{"Events", "/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root"};
+	ROOT::RDataFrame   d{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
+	ROOT::RDataFrame  ww{"Events", "/data/disk0/nanoAOD_2017/WWToLNuQQ/*.root"};
+	ROOT::RDataFrame  wz{"Events", "/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root"};
+	ROOT::RDataFrame ttZ{"Events", "/data/disk0/nanoAOD_2017/ttZToQQ/*.root"};
+	ROOT::RDataFrame  zz{"Events", "/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root"};
 
 //need to add the chain for real data...
 
@@ -195,7 +188,8 @@ void analyse(int argc, char* argv[])
 	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunE/*.root");
 	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunF/*.root");
 
-	ROOT::RDataFrame sec(SingleElectron);
+	ROOT::RDataFrame cms(SingleElectron);
+
 	TChain SingleMuon("Events");
 	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunB/*.root");
 	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunC/*.root");
@@ -203,19 +197,19 @@ void analyse(int argc, char* argv[])
 	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunE/*.root");
 	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunF/*.root");
 
-	ROOT::RDataFrame smc(SingleMuon);
+	ROOT::RDataFrame sm(SingleMuon);
 
 	//ROOT::RDataFrame metc{"Events","/data/disk0/nanoAOD_2017/MET*/*.root"};
-
+/*
 	auto   d =   dc.Range(0, 1000);
 	auto  ww =  wwc.Range(0, 100);
 	auto  wz =  wzc.Range(0, 100);
 	auto ttZ = ttZc.Range(0, 100);
 	auto  zz =  zzc.Range(0, 100);
-	auto  se =  sec.Range(0, 100);
+	auto  cms =  cmsc.Range(0, 100);
 	auto  sm =  smc.Range(0, 100);
 	//auto met = metc.Range(0, 100);
-
+*/
 	std::cout << "I have looked up the dataset" << std::endl;
 
 /////////////////////////////////////////////////////////////////////////// Number of Particles Per Event /////////////////////////////////////////////////////////////////////
@@ -463,12 +457,12 @@ void analyse(int argc, char* argv[])
 			w_mass_vec.push_back(reco_mass);
 		}
 		cout<<"transverse W mass"<<w_mass_vec<<endl;
-		return w_mass_vec;
+		return w_mass_vec[0];
 	}};
 
 
-	/*auto w_mass_cut{[](const floats& w_mass){
-        	return std::abs(w_mass - W_MASS) < W_MASS_CUT;
+	/*auto w_mass_cut{[](const float& w_mass){
+        	return abs(w_mass - W_MASS) < W_MASS_CUT;
    	}};*/
 
 
@@ -671,7 +665,7 @@ void analyse(int argc, char* argv[])
 	}};
 
 	auto top_reconstruction_function{[](const floats& bjets_pt, const floats& bjets_eta, const floats& bjets_phi, const floats& bjets_mass,
-		const floats& w_pair_pt, const floats& w_pair_eta, const floats& w_pair_phi, const floats& w_mass){
+		const floats& w_pair_pt, const floats& w_pair_eta, const floats& w_pair_phi, const float& w_mass){
 
 		float t_reco_mass{std::numeric_limits<float>::infinity()};
 		const size_t nbjets{bjets_pt.size()};
@@ -688,7 +682,7 @@ void analyse(int argc, char* argv[])
 			for(int j{0}; j < nWs; j++)
 			{
                                	BJets.SetPtEtaPhiM(bjets_pt.at(i), bjets_eta.at(i), bjets_phi.at(i), bjets_mass.at(i));
-                               	RecoW.SetPtEtaPhiM(w_pair_pt.at(j), w_pair_eta.at(j), w_pair_phi.at(j), w_mass.at(j));
+                               	RecoW.SetPtEtaPhiM(w_pair_pt.at(j), w_pair_eta.at(j), w_pair_phi.at(j), w_mass);
 				if(abs(RecoW.M() - W_MASS) < W_MASS_CUT)
 				{
 		 			if (const float reco_mass{(float) (RecoW + BJets).M()}; std::abs(TOP_MASS - reco_mass) < std::abs(TOP_MASS - t_reco_mass))
@@ -900,7 +894,7 @@ void analyse(int argc, char* argv[])
 		float c;
 		float d;
 		floats resol;
-		for(int i=0; i < pt.size() ;++i) resol.push_back(0);
+		for(int i{0}; i < pt.size() ;++i) resol.push_back(0);
 
 		//cout<<"pt size "<<pt.size()<<" eta size "<<eta.size()<<" rho "<<rho<<endl;
                 io::CSVReader<11> thisCSVfile("Fall17_V3_MC_PtResolution_AK4PFchs.txt");
@@ -931,7 +925,7 @@ void analyse(int argc, char* argv[])
                 float SF_dn;
                 float SF_up;
                 floats Sjer;
-		for(int i=0;i < eta.size();i++) Sjer.push_back(0);
+		for(int i{0};i < eta.size();i++) Sjer.push_back(0);
                 io::CSVReader<6> thisCSVfile("Fall17_V3_MC_SF_AK4PF.txt");
                 while(thisCSVfile.read_row(min_eta  , max_eta , Three , central_SF , SF_dn , SF_up))
                 {
@@ -973,6 +967,12 @@ void analyse(int argc, char* argv[])
 	}};
 
 ////////////// SCALE FACTORS /////////////
+// cjer application to tight jets
+	auto cjer_func   = [](const floats& jet, const floats& cjer){
+		floats weighted;
+		for(int i{0}; i< jet.size(); i++) weighted.push_back(jet.at(i)*cjer.at(i));
+		return weighted;
+	};
 
 // Normalization * btag weights
 	auto tzq_sf_func = [](const float& b){ return    TZQ_W*b; };
@@ -983,7 +983,7 @@ void analyse(int argc, char* argv[])
 // Event Weight, incl. btag & Normalization
 	auto rvec_rep_const{[](const double& sf, const floats& iRVec){
 	// this function just repeats sf, for the size of iRVec
-		floats weight(iRVec.size(),sf); 
+		floats weight(iRVec.size(),sf);
 		return weight;
 	}};
 	auto sf_func_novec{[](const double& sf, const float& i){
@@ -1123,11 +1123,7 @@ void analyse(int argc, char* argv[])
                 weight = VarFact_func(i)*TTZQQ_W*btagw;
                 return weight;
         }};
-	auto dummy_func{[](const floats& cjer){
-	//returns cjer as 1.00 for non jet SF
-		floats n(cjer.size(),1.f); // vector of same value
-		return n;
-	}};
+
 //////////////////////////////////////////////////////////////////////////////Signal MC////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////Electron Channel/////////////////////////////////////////////////////////////////////////
@@ -1198,15 +1194,25 @@ void analyse(int argc, char* argv[])
 	 .Define("sfj", non_btag_CSVv2_formula, {"Jet_btagCSVV2","tight_jets_pt","tight_jets_eta"})
 	 .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
-	auto d_enu_z_rec_selection
+	auto d_enu_jec_selection
 	   = d_enu_jets_bjets_selection
+         .Define(     "pt_resol"	, jet_smearing_pt_resol	, {"tight_jets_pt"  , "tight_jets_eta", "fixedGridRhoFastjetAll"})
+         .Define(       "Sjer" 		, jet_smearing_Sjer    	, {"tight_jets_eta"})
+         .Define(       "cjer" 		, delta_R_jet_smearing	, {"tight_jets_pt"  ,  "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
+	 .Define("jec_tight_jets_pt"	, cjer_func		, {"tight_jets_pt"  ,  "cjer"})
+         .Define("jec_tight_jets_eta"   , cjer_func       	, {"tight_jets_eta" ,  "cjer"})
+         .Define("jec_tight_jets_phi"   , cjer_func       	, {"tight_jets_phi" ,  "cjer"})
+         .Define("jec_tight_jets_ms"    , cjer_func       	, {"tight_jets_mass",  "cjer"});
+
+	auto d_enu_z_rec_selection
+	   = d_enu_jec_selection
 	 .Define(    "lead_bjet", find_lead_mask, {"bjets"   , "Jet_pt"})
-	 .Define(  "z_reco_jets", find_z_pair   , {"Jet_pt"  , "Jet_phi",
-	           "Jet_eta", "Jet_mass", "tight_jets", "lead_bjet"})
-	 .Define(  "z_pair_pt"  , select<floats>, {"Jet_pt"  , "z_reco_jets"})
-	 .Define(  "z_pair_eta" , select<floats>, {"Jet_eta" , "z_reco_jets"})
-	 .Define(  "z_pair_phi" , select<floats>, {"Jet_phi" , "z_reco_jets"})
-	 .Define(  "z_pair_mass", select<floats>, {"Jet_mass", "z_reco_jets"})
+	 .Define(  "z_reco_jets", find_z_pair   , {"jec_tight_jets_pt"  , "jec_tight_jets_phi",
+	           "jec_tight_jets_eta", "jec_tight_jets_ms", "tight_jets", "lead_bjet"})
+	 .Define(  "z_pair_pt"  , select<floats>, {"jec_tight_jets_pt"    , "z_reco_jets"})
+	 .Define(  "z_pair_eta" , select<floats>, {"jec_tight_jets_eta"   , "z_reco_jets"})
+	 .Define(  "z_pair_phi" , select<floats>, {"jec_tight_jets_phi"   , "z_reco_jets"})
+	 .Define(  "z_pair_mass", select<floats>, {"jec_tight_jets_ms"    , "z_reco_jets"})
 	 .Define(  "z_mass"     , inv_mass,
 	        {"z_pair_pt", "z_pair_eta", "z_pair_phi", "z_pair_mass"})
 	 .Define(  "z_e_min_dR" , jet_lep_min_deltaR,
@@ -1376,23 +1382,28 @@ void analyse(int argc, char* argv[])
 	 .Define("P_MC"    ,  P_MC_func,{  "Pi_ei","Pi_ej"})
 	 .Define("P_Data"  ,P_data_func,{"Pi_sfei","Pi_sfej"})
 	 .Define("btag_w"  ,btag_weight,{"P_Data","P_MC"})
-	 .Define("pt_resol",jet_smearing_pt_resol,{"tight_jets_pt" , "tight_jets_eta", "fixedGridRhoFastjetAll"})
-	 .Define("Sjer"    ,jet_smearing_Sjer    ,{"tight_jets_eta"})
-	 .Define("cjer"    ,delta_R_jet_smearing ,{"tight_jets_pt" , "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
+	 //.Define("pt_resol",jet_smearing_pt_resol,{"tight_jets_pt" , "tight_jets_eta", "fixedGridRhoFastjetAll"})
+	 //.Define("Sjer"    ,jet_smearing_Sjer    ,{"tight_jets_eta"})
+	 //.Define("cjer"    ,delta_R_jet_smearing ,{"tight_jets_pt" , "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
 	 .Define("sf"      ,tzq_sf_func,{"btag_w"})
-	 .Define("nw_tight_ele_pt"   ,rvec_rep_const, {"sf","tight_ele_pt"   })
-	 .Define("nw_tight_ele_eta"  ,rvec_rep_const, {"sf","tight_ele_eta"  })
-	 .Define("nw_tight_jets_eta" ,rvec_rep_const, {"sf","tight_jets_eta" })
-	 .Define("nw_tight_jets_pt"  ,rvec_rep_const, {"sf","tight_jets_pt"  })
-	 .Define("nw_tight_jets_phi" ,rvec_rep_const, {"sf","tight_jets_phi" })
-	 .Define("nw_tight_jets_mass",rvec_rep_const, {"sf","tight_jets_mass"})
-	 .Define("nw_jet_e_min_dR"   ,rvec_rep_const, {"sf",  "jet_e_min_dR" })
-	 .Define(  "nw_z_e_min_dR"   ,rvec_rep_const, {"sf",    "z_e_min_dR" })
-	 .Define(  "nw_w_e_mass"     ,rvec_rep_const, {"sf",    "w_e_mass"   })
+	 .Define("nw_tight_ele_pt"   ,rvec_rep_const, {"sf",    "tight_ele_pt"   })
+	 .Define("nw_tight_ele_eta"  ,rvec_rep_const, {"sf",    "tight_ele_eta"  })
+	 .Define("nw_tight_jets_eta" ,rvec_rep_const, {"sf","jec_tight_jets_eta" })
+	 .Define("nw_tight_jets_pt"  ,rvec_rep_const, {"sf","jec_tight_jets_pt"  })
+	 .Define("nw_tight_jets_phi" ,rvec_rep_const, {"sf","jec_tight_jets_phi" })
+	 .Define("nw_tight_jets_mass",rvec_rep_const, {"sf","jec_tight_jets_ms"  })
+	 .Define("nw_jet_e_min_dR"   ,rvec_rep_const, {"sf",  "jet_e_min_dR"     })
+	 .Define(  "nw_z_e_min_dR"   ,rvec_rep_const, {"sf",    "z_e_min_dR"     })
+	 .Define(  "nw_w_e_mass"     ,"sf")
 	 .Define(    "nw_z_mass"     ,"sf") // nw_z_mass is just one value, = sf
 	 .Define("nw_tight_jets_deltaphi",rvec_rep_const, {"sf","tight_jets_deltaphi"})
 	 .Define(      "nw_ZMet_deltaphi",rvec_rep_const, {"sf",      "ZMet_deltaphi"})
 	 .Define(        "nw_ZW_deltaphi",rvec_rep_const, {"sf",        "ZW_deltaphi"});
+
+	auto wtype = d_enu_P_btag.GetColumnType("w_e_mass");
+	cout<< "w e mass type is "<<wtype<<endl;
+	auto ztype = d_enu_P_btag.GetColumnType("z_mass");
+	cout<< "z mass type is "<< ztype<<endl;
 
 /*	auto h_d_enu_Pi_ei = d_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_d_enu_Pi_ei->Write();
 	auto h_d_enu_Pi_ej = d_enu_P_btag.Histo1D({"Pi ej histogram","Pi ej histogram",50,0,400},"Pi_ej"); h_d_enu_Pi_ej->Write();
@@ -1554,7 +1565,6 @@ void analyse(int argc, char* argv[])
                                         .Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_mu_min_dR"})
-					.Define("dummy",dummy_func,{"cjer"})
                                         .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w" })
                                         .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w" })
                                         .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
@@ -1563,7 +1573,7 @@ void analyse(int argc, char* argv[])
                                         .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
                                         .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w" })
                                         .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w" })
-                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
+                                        //.Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
                                         .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
                                         .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
                                         .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
@@ -1721,7 +1731,6 @@ void analyse(int argc, char* argv[])
                                         .Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
-                                        .Define("dummy",dummy_func,{"cjer"})
                                         .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w" })
                                         .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w" })
                                         .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
@@ -1730,7 +1739,7 @@ void analyse(int argc, char* argv[])
                                         .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
                                         .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w" })
                                         .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w" })
-                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
+                                        //.Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
                                         .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
                                         .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
                                         .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
@@ -1883,7 +1892,6 @@ void analyse(int argc, char* argv[])
                                         .Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_mu_min_dR"})
-                                        .Define("dummy",dummy_func,{"cjer"})
                                         .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w" })
                                         .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w" })
                                         .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
@@ -1892,7 +1900,7 @@ void analyse(int argc, char* argv[])
                                         .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
                                         .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w" })
                                         .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w" })
-                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
+                                        //.Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
                                         .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
                                         .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
                                         .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
@@ -2047,7 +2055,6 @@ void analyse(int argc, char* argv[])
                                         .Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
-                                        .Define("dummy",dummy_func,{"cjer"})
                                         .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w" })
                                         .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w" })
                                         .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
@@ -2056,7 +2063,7 @@ void analyse(int argc, char* argv[])
                                         .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
                                         .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w" })
                                         .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w" })
-                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
+                                        //.Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
                                         .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
                                         .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
                                         .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
@@ -2208,7 +2215,6 @@ void analyse(int argc, char* argv[])
                                         .Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_mu_min_dR"})
-                                        .Define("dummy",dummy_func,{"cjer"})
                                         .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w" })
                                         .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w" })
                                         .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
@@ -2217,7 +2223,7 @@ void analyse(int argc, char* argv[])
                                         .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
                                         .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w" })
                                         .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w" })
-                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
+                                        //.Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
                                         .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
                                         .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
                                         .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
@@ -2374,7 +2380,6 @@ void analyse(int argc, char* argv[])
                                         .Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
-                                        .Define("dummy",dummy_func,{"cjer"})
                                         .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w" })
                                         .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w" })
                                         .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
@@ -2383,7 +2388,7 @@ void analyse(int argc, char* argv[])
                                         .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
                                         .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w" })
                                         .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w" })
-                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
+                                        //.Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
                                         .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
                                         .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
                                         .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
@@ -2535,7 +2540,6 @@ void analyse(int argc, char* argv[])
                                         .Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_mu_min_dR"})
-                                        .Define("dummy",dummy_func,{"cjer"})
                                         .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w" })
                                         .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w" })
                                         .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
@@ -2544,7 +2548,7 @@ void analyse(int argc, char* argv[])
                                         .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
                                         .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w" })
                                         .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w" })
-                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
+                                        //.Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
                                         .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
                                         .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
                                         .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
@@ -2701,7 +2705,6 @@ void analyse(int argc, char* argv[])
                                         .Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
-                                        .Define("dummy",dummy_func,{"cjer"})
                                         .Define("nw_tight_ele_pt", NormScaleFact_func, {"tight_ele_pt","btag_w" })
                                         .Define("nw_tight_ele_eta", NormScaleFact_func, {"tight_ele_eta","btag_w" })
                                         .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
@@ -2710,7 +2713,7 @@ void analyse(int argc, char* argv[])
                                         .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
                                         .Define("nw_jet_e_min_dR", NormScaleFact_func, {"jet_e_min_dR","btag_w" })
                                         .Define("nw_z_e_min_dR", NormScaleFact_func, {"z_e_min_dR","btag_w" })
-                                        .Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
+                                        //.Define("nw_w_e_mass", NormScaleFact_func, {"w_e_mass","btag_w" })
                                         .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
                                         .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
                                         .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
@@ -2862,7 +2865,6 @@ void analyse(int argc, char* argv[])
                                         .Define("pt_resol", jet_smearing_pt_resol, {"tight_jets_pt", "tight_jets_eta", "fixedGridRhoFastjetAll"})
                                         .Define("Sjer", jet_smearing_Sjer, {"tight_jets_eta"})
                                         .Define("cjer", delta_R_jet_smearing, {"tight_jets_pt", "GenJet_pt", "pt_resol", "Sjer", "jet_mu_min_dR"})
-					.Define("dummy",dummy_func,{"cjer"})
                                         .Define("nw_tight_mu_pt", NormScaleFact_func, {"tight_mu_pt","btag_w" })
                                         .Define("nw_tight_mu_eta", NormScaleFact_func, {"tight_mu_eta","btag_w" })
                                         .Define("nw_tight_jets_eta", NormScaleFact_func, {"tight_jets_eta","btag_w" })
@@ -2871,14 +2873,14 @@ void analyse(int argc, char* argv[])
                                         .Define("nw_tight_jets_mass", NormScaleFact_func, {"tight_jets_mass","btag_w" })
                                         .Define("nw_jet_mu_min_dR", NormScaleFact_func, {"jet_mu_min_dR","btag_w" })
                                         .Define("nw_z_mu_min_dR", NormScaleFact_func, {"z_mu_min_dR","btag_w" })
-                                        .Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
+                                        //.Define("nw_w_mu_mass", NormScaleFact_func, {"w_mu_mass","btag_w" })
                                         .Define("nw_z_mass", NormScaleFact_func_novec, {"z_mass","btag_w" })
                                         .Define("nw_tight_jets_deltaphi", NormScaleFact_func, {"tight_jets_deltaphi","btag_w" })
                                         .Define("nw_ZMet_deltaphi", NormScaleFact_func, {"ZMet_deltaphi","btag_w" })
                                         .Define("nw_ZW_deltaphi", NormScaleFact_func, {"ZW_deltaphi","btag_w" });
 //////////////////////////////////////////////////////////////// Signal Single Electron Neutrino ////////////////////////////////////////////////////////////////////
 
-	auto se_enu_event_selection = se.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
+	auto se_enu_event_selection = cms.Define("tight_eles", is_good_tight_ele, {"Electron_isPFcand", "Electron_pt", "Electron_eta", "Electron_cutBased"})
                    			.Define("tight_ele_pt", select<floats>, {"Electron_pt", "tight_eles"})
 					.Define("tight_ele_eta", select<floats>, {"Electron_eta", "tight_eles"})
 					.Define("tight_ele_phi", select<floats>, {"Electron_phi", "tight_eles"})
@@ -3171,6 +3173,24 @@ void analyse(int argc, char* argv[])
         legend_mmet.SetBorderSize(1);
         legend_mmet.SetFillColor(kWhite);
 //	gStyle->SetOptStat(1111111);
+/////////////////////////////////////////////////////////////////// mWt Vs. Z mass scatter plots /////////////////////////////////////////////////////////////////////
+	auto h_d_enu_mWtvsZm  = d_enu_P_btag.Histo2D({"MC mWt vs Z mass enu channel", "MC mWt vs Z mass enu channel",50,0,150,50,0,150},"w_e_mass","z_mass");
+
+	auto h_d_enu_mWtvsZm_canvas  = new TCanvas("mWt vs. Z mass enu channel", "mWt vs. Z mass enu channel",10,10,900,900);
+
+	h_d_enu_mWtvsZm->SetLineColor(kBlack);
+        h_d_enu_mWtvsZm->GetXaxis()->SetTitle("mWt Gev/c^2");
+        h_d_enu_mWtvsZm->GetYaxis()->SetTitle("Z mass GeV/c^2");
+
+	h_d_enu_mWtvsZm->SetLineColor(kBlack);
+	h_d_enu_mWtvsZm->SetMarkerStyle(2);
+
+	h_d_enu_mWtvsZm->Draw();
+
+        h_d_enu_mWtvsZm_canvas->BuildLegend();
+        h_d_enu_mWtvsZm_canvas->SaveAs("h_d_enu_mWtvsZm.root");
+	h_d_enu_mWtvsZm_canvas->SaveAs("h_d_enu_mWtvsZm.png");
+
 
 
 	auto h_d_enu_events_ept = d_enu_P_btag.Histo1D({"MC electron_pt_enu_Channel","MC electron pt in electron-neutrino channel",50,0,250},"tight_ele_pt", "nw_tight_ele_pt");
@@ -3710,7 +3730,7 @@ void analyse(int argc, char* argv[])
 //        legend_mmet.Clear();
 
 
-
+/*
         auto h_d_enu_events_wmass = d_enu_P_btag.Histo1D({"MC enu_w_mass","MC electron-neutrino transverse w mass",50,0,400},"w_e_mass", "nw_w_e_mass");
         auto h_d_munu_events_wmass = d_munu_P_btag.Histo1D({"MC munu_w_mass","MC Muon-neutrino transverse w mass",50,0,400},"w_mu_mass","nw_w_mu_mass");
         auto h_se_enu_events_wmass = se_enu_top_selection.Histo1D({"Single Electron enu_w_mass","Single Electron electron-neutrino transverse w mass",50,0,400}, "w_e_mass");
@@ -3797,7 +3817,7 @@ void analyse(int argc, char* argv[])
 //        legend_emet.Clear();
         legend_smd.Clear();
 //        legend_mmet.Clear();
-
+*/
         auto h_d_enu_events_zmass = d_enu_P_btag.Histo1D({"MC Z_mass_enu_Channel","MC Z mass in electron-neutrino channel",50,0,450},"z_mass","nw_z_mass");
         auto h_d_munu_events_zmass = d_munu_P_btag.Histo1D({"MC Z_mass_munu_Channel","MC Z mass in Muon-neutrino channel",50,0,450},"z_mass","nw_z_mass");
         auto h_se_enu_events_zmass = se_enu_top_selection.Histo1D({"Single Electron Z_mass_enu_Channel","Single Electron Z mass in electron-neutrino channel",50,0,450},"z_mass");

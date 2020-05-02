@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 
     if (const auto command{std::string_view(argv[1])}; command == "analyse")
     {
-        analyse(argc, argv);
+        analyse(0); //analyse(1); //analyse(argc, argv);
     }
     else if (command == "badbranches")
     {
