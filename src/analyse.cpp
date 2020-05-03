@@ -1,4 +1,3 @@
-//add cjer SF to pt, eta phi, M , make hists and stack for tight jet phi and tight jet mass
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -443,7 +442,8 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
         }};
 
 	auto transvers_W_mass{[](const floats& lep_pt, const floats& lep_phi,const float& met_pt,const float& met_phi){
-  		//float w_reco_mass{std::numeric_limits<float>::infinity()};
+  		cout<<"in transverse mass"<<endl;
+		//float w_reco_mass{std::numeric_limits<float>::infinity()};
                 //size_t l_index_1{std::numeric_limits<size_t>::max()};
 		floats w_mass_vec;
 		for(int i{0}; i< lep_pt.size();i++)
@@ -456,7 +456,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
                         //}
 			w_mass_vec.push_back(reco_mass);
 		}
-		cout<<"transverse W mass"<<w_mass_vec<<endl;
+		//cout<<"transverse W mass"<<w_mass_vec<<endl;
 		return w_mass_vec[0];
 	}};
 
@@ -468,6 +468,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 
 	auto lep_nu_invmass{[](const floats& lep_pt,const floats& lep_eta,const floats& lep_phi,const floats& lep_mass ,
 		const float& cal_metphi, const float& cal_metpt, const float& cal_metEt){
+		cout<<"lep nu invmass"<<endl;
 		//This function computes the invariant mass of charged lepton and neutrino system, in order to calcualte the W mass later on.
 		auto lep{TLorentzVector{}};
 		auto neu{TLorentzVector{}};
@@ -707,6 +708,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 
 // B Tag Efficiency centre
 	auto btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
+		cout<<"bag csvv2"<<endl;
 		strings formulae;
 		for(int i=0; i<pt.size();i++)formulae.push_back("0");
 		floats result;
@@ -753,6 +755,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	}};
 
 	auto non_btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
+		cout<<"non btag csvv2"<<endl;
                 strings formulae;
 		for(int i=0;i<pt.size();i++)formulae.push_back("0");
                 floats result;
@@ -842,6 +845,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 		return pi_ei * pi_ej;
 	}};
         auto Sfi_EffBTaggedProduct{[](const floats& EffBTagged, const floats sfi){
+		cout<<"sfi eff btagged prod"<<endl;
                 float initial = 1;
                 int size = (EffBTagged.size() < sfi.size()) ? EffBTagged.size() : sfi.size();
                 for(int i=0; i < size; i++)
@@ -853,7 +857,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
         }};
 
         auto Sfj_EffNonBTaggedProduct{[](const floats& EffNonBTagged, const floats sfj){
-                //cout << "inside Si_EffNonBTaggedProduct" << endl;
+                cout << "inside Si_EffNonBTaggedProduct" << endl;
                 float initial = 1;
                 int size = (EffNonBTagged.size() < sfj.size()) ? EffNonBTagged.size() : sfj.size();
                 for(int i=0; i < size; i++)
@@ -882,6 +886,8 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 
 // jet smearing
  	auto jet_smearing_pt_resol{[](const floats& pt, const floats& eta, const float& rho){
+		cout<<"jet smearing pt resol"<<endl;
+		cout<<"pt eta size "<<pt.size()<<" "<<eta.size()<<endl;
 		float min_eta;
 		float max_eta;
 		float min_rho;
@@ -914,10 +920,12 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 			}
 		}
 		//cout<< "resol is "<<resol<<endl;
+		cout<<"resol is "<<resol<<endl;
 		return resol;
 	}};
 
 	auto jet_smearing_Sjer{[](const floats& eta){
+		cout<<"jet smearing sjer"<<endl;
 		float min_eta;
                 float max_eta;
                 int   Three;
@@ -937,17 +945,20 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
                                 }
                         }
                 }
-                //cout<< "Sjer is "<<Sjer<<endl;
+                cout<< "Sjer is "<<Sjer<<endl;
                 return Sjer;
 	}};
 
 	auto delta_R_jet_smearing{[](const floats& pt, const floats& gen_pt, const floats& resol, const floats& Sjer, const floats& deltaR){
+		cout<<"delta r jet smearing"<<endl;
 		floats cjer; //  correction factor
-		//cout<<"pt size "<<pt.size()<<" gen_pt size "<<gen_pt.size()<<" resol size "<<resol.size()<<" Sjer "<<Sjer.size()<<" deltaR "<< deltaR.size()<<endl;
+		cout<<"pt size "<<pt.size()<<" gen_pt size "<<gen_pt.size()<<" resol size "<<resol.size()<<" Sjer "<<Sjer.size()<<" deltaR "<< deltaR.size()<<endl;
 		//cout<<"value of deltaR "<<deltaR<<endl;
+		int size_diff = pt.size() - gen_pt.size(); //difference of sizes used for out of range error handling
+		int abs_size = abs(size_diff);
 		int size = (pt.size() < gen_pt.size()) ? pt.size() : gen_pt.size();// skeptical about this
+		cout<<"size diff is "<< abs_size<<endl;
 		for(int i=0; i < size;i++) cjer.push_back(0);
-		//cout<<"size of pt gen_pt resol Sjer deltaR and size is "<<pt.size()<<" "<<gen_pt.size()<<" "<<resol.size()<<" "<<Sjer.size()<<" "<<deltaR.size()<<" "<<size<<endl;
 		for(int i=0; i < size;i++)
 		{
 			if(deltaR.at(i) < (0.4/2) && abs(pt.at(i) - gen_pt.at(i))< 3 * resol.at(i) * pt.at(i))
@@ -956,19 +967,28 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 			}
 			else
 			{
-				//cout<<"Sjer is"<<Sjer.at(i)<<endl;
 				float Normdist = gRandom->Gaus(0, Sjer.at(i)); //needs TRandom3 library
 				float max_val = Sjer.at(i) * Sjer.at(i) - 1;
 				cjer[i] += (1+ Normdist * sqrt(MaxValue(max_val, 0)));
 			}
 		}
+		if(cjer.size()!=pt.size())for(int i{0}; i < abs_size; i++)cjer.push_back((float) 0.0);
 		//cout<<"cjer is"<<cjer<<endl;
 		return cjer;
+	}};
+	auto jets_cjer_cut{[](const floats& jets){
+		cout<<"jet_cjer_cut"<<endl;
+		bool good_jets;
+		for(int i =0; i< jets.size(); i++)if(jets[i] > 0.0f) good_jets = true; // jets which have elements > 0.0f
+		cout<<"good_jets"<<endl;
+		return good_jets;
 	}};
 
 ////////////// SCALE FACTORS /////////////
 // cjer application to tight jets
 	auto cjer_func   = [](const floats& jet, const floats& cjer){
+		cout<<"cjer_func"<<endl;
+		cout<<"jet and cjer size "<< jet<<" "<<cjer<<endl;
 		floats weighted;
 		for(int i{0}; i< jet.size(); i++) weighted.push_back(jet.at(i)*cjer.at(i));
 		return weighted;
@@ -1196,13 +1216,17 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 
 	auto d_enu_jec_selection
 	   = d_enu_jets_bjets_selection
-         .Define(     "pt_resol"	, jet_smearing_pt_resol	, {"tight_jets_pt"  , "tight_jets_eta", "fixedGridRhoFastjetAll"})
-         .Define(       "Sjer" 		, jet_smearing_Sjer    	, {"tight_jets_eta"})
-         .Define(       "cjer" 		, delta_R_jet_smearing	, {"tight_jets_pt"  ,  "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
-	 .Define("jec_tight_jets_pt"	, cjer_func		, {"tight_jets_pt"  ,  "cjer"})
-         .Define("jec_tight_jets_eta"   , cjer_func       	, {"tight_jets_eta" ,  "cjer"})
-         .Define("jec_tight_jets_phi"   , cjer_func       	, {"tight_jets_phi" ,  "cjer"})
-         .Define("jec_tight_jets_ms"    , cjer_func       	, {"tight_jets_mass",  "cjer"});
+         .Define(     "pt_resol"	  , jet_smearing_pt_resol, {"tight_jets_pt"  	 ,  "tight_jets_eta", "fixedGridRhoFastjetAll"})
+         .Define(       "Sjer" 		  , jet_smearing_Sjer    , {"tight_jets_eta"})
+         .Define(       "cjer" 		  , delta_R_jet_smearing , {"tight_jets_pt"  	 ,  "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
+	 .Define("jec_tight_jets_pt"	  , cjer_func		 , {"tight_jets_pt"  	 ,  "cjer"})
+         .Define("jec_tight_jets_eta"     , cjer_func       	 , {"tight_jets_eta" 	 ,  "cjer"})
+         .Define("jec_tight_jets_phi"     , cjer_func       	 , {"tight_jets_phi" 	 ,  "cjer"})
+         .Define("jec_tight_jets_ms"      , cjer_func       	 , {"tight_jets_mass"	 ,  "cjer"})
+	 .Filter( jets_cjer_cut 	  , {"jec_tight_jets_pt"      }	, "tight jets cjer cut"	   )
+	 .Filter( jets_cjer_cut           , {"jec_tight_jets_eta"     }	, "tight jets cjer cut"    )
+         .Filter( jets_cjer_cut           , {"jec_tight_jets_phi"     }	, "tight jets cjer cut"    )
+         .Filter( jets_cjer_cut           , {"jec_tight_jets_ms"      }	, "tight jets cjer cut"    );// does this filter need to be applied on every field?Think!
 
 	auto d_enu_z_rec_selection
 	   = d_enu_jec_selection
@@ -1363,8 +1387,8 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 
 	auto d_enu_btag_eff
 	   = d_enu_top_selection
-	 .Define(   "EffBTagged",    BTaggedBinFunction, {"tight_jets_pt", "tight_jets_eta"})
-	 .Define("NonEffBTagged", NonBTaggedBinFunction, {"tight_jets_pt", "tight_jets_eta"});
+	 .Define(   "EffBTagged",    BTaggedBinFunction, {"jec_tight_jets_pt", "jec_tight_jets_eta"})
+	 .Define("NonEffBTagged", NonBTaggedBinFunction, {"jec_tight_jets_pt", "jec_tight_jets_eta"});
 
 	//auto h_d_enu_events_btag_eff
 	//   = d_enu_btag_eff
@@ -1397,13 +1421,8 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	 .Define(  "nw_w_e_mass"     ,"sf")
 	 .Define(    "nw_z_mass"     ,"sf") // nw_z_mass is just one value, = sf
 	 .Define("nw_tight_jets_deltaphi",rvec_rep_const, {"sf","tight_jets_deltaphi"})
-	 .Define(      "nw_ZMet_deltaphi",rvec_rep_const, {"sf",      "ZMet_deltaphi"})
-	 .Define(        "nw_ZW_deltaphi",rvec_rep_const, {"sf",        "ZW_deltaphi"});
-
-	auto wtype = d_enu_P_btag.GetColumnType("w_e_mass");
-	cout<< "w e mass type is "<<wtype<<endl;
-	auto ztype = d_enu_P_btag.GetColumnType("z_mass");
-	cout<< "z mass type is "<< ztype<<endl;
+	 .Define(      "nw_ZMet_deltaphi",rvec_rep_const, {"sf",          "ZMet_deltaphi"})
+	 .Define(        "nw_ZW_deltaphi",rvec_rep_const, {"sf",            "ZW_deltaphi"});
 
 /*	auto h_d_enu_Pi_ei = d_enu_P_btag.Histo1D({"Pi ei histogram","Pi ei histogram",50,0,400},"Pi_ei"); h_d_enu_Pi_ei->Write();
 	auto h_d_enu_Pi_ej = d_enu_P_btag.Histo1D({"Pi ej histogram","Pi ej histogram",50,0,400},"Pi_ej"); h_d_enu_Pi_ej->Write();
