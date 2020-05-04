@@ -805,7 +805,7 @@ void calchisto(const dataSource ds){
 	// Read a chain of exptData
 	TChain elnuEvents("Events");
 	TChain munuEvents("Events");
-	temp_footer = "/*.root"; // just to be sure
+	temp_footer = "/*.root"; // just to be sure /**/
 	temp_header =
 		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_Run";
 	for(std::string c:{"B","C","D","E","F"}){ // guaranteed sequential
@@ -818,7 +818,7 @@ void calchisto(const dataSource ds){
 		munuEvents.Add(temp_opener.c_str());
 	}
 	ROOT::RDataFrame metEvents{"Events" , // channels unified?
-		"/data/disk0/nanoAOD_2017/MET*/*.root"};
+		"/data/disk0/nanoAOD_2017/MET*/*.root"}; /**/
 	ROOT::RDataFrame elnudfc(elnuEvents); // TODO: CMS and MET
 	ROOT::RDataFrame munudfc(munuEvents); // if channels unified still make two
 	auto dssbdf=dssbdfc.Range(0,100); // make test runs faster by restriction
@@ -946,28 +946,28 @@ void calchisto(const dataSource ds){
 	auto h_elnu_is_btag_numer_PtVsEta
 	   = elnu_top_selection
 	.Histo2D({static_cast<const char*>((        "is_numer" + temp_header).c_str()),
-	          static_cast<const char*>(("MC is btag numer" + temp_header).c_str()),
+	          static_cast<const char*>(("MC is btag numer" + temp_footer).c_str()),
 	          50,0,400,50,-3,3},
 	          "is_btag_numer_pt",
 	          "is_btag_numer_eta");
 	auto h_elnu_no_btag_numer_PtVsEta
 	   = elnu_top_selection
 	.Histo2D({static_cast<const char*>((        "no_numer" + temp_header).c_str()),
-	          static_cast<const char*>(("MC no btag numer" + temp_header).c_str()),
+	          static_cast<const char*>(("MC no btag numer" + temp_footer).c_str()),
 	          50,0,400,50,-3,3},
 	          "no_btag_numer_pt",
 	          "no_btag_numer_eta");
 	auto h_elnu_is_btag_denom_PtVsEta
 	   = elnu_top_selection
 	.Histo2D({static_cast<const char*>((        "is_denom" + temp_header).c_str()),
-	          static_cast<const char*>(("MC is btag denom" + temp_header).c_str()),
+	          static_cast<const char*>(("MC is btag denom" + temp_footer).c_str()),
 	          50,0,400,50,-3,3},
 	          "is_btag_denom_pt",
 	          "is_btag_denom_eta");
 	auto h_elnu_no_btag_denom_PtVsEta
 	   = elnu_top_selection
 	.Histo2D({static_cast<const char*>((        "no_denom" + temp_header).c_str()),
-	          static_cast<const char*>(("MC no btag denom" + temp_header).c_str()),
+	          static_cast<const char*>(("MC no btag denom" + temp_footer).c_str()),
 	          50,0,400,50,-3,3},
 	          "no_btag_denom_pt",
 	          "no_btag_denom_eta");

@@ -1,3 +1,4 @@
+//TO DO: CJER to not allow tight jets excluding gen pt , apply it before bjets on tight jets
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -171,11 +172,11 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	std::cout << "I am starting"<<std::endl;
 	setTDRStyle();
 	//MC datasets
-	ROOT::RDataFrame   d{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
-	ROOT::RDataFrame  ww{"Events", "/data/disk0/nanoAOD_2017/WWToLNuQQ/*.root"};
-	ROOT::RDataFrame  wz{"Events", "/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root"};
-	ROOT::RDataFrame ttZ{"Events", "/data/disk0/nanoAOD_2017/ttZToQQ/*.root"};
-	ROOT::RDataFrame  zz{"Events", "/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root"};
+	ROOT::RDataFrame   dc{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
+	ROOT::RDataFrame  wwc{"Events", "/data/disk0/nanoAOD_2017/WWToLNuQQ/*.root"};
+	ROOT::RDataFrame  wzc{"Events", "/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root"};
+	ROOT::RDataFrame ttZc{"Events", "/data/disk0/nanoAOD_2017/ttZToQQ/*.root"};
+	ROOT::RDataFrame  zzc{"Events", "/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root"};
 
 //need to add the chain for real data...
 
@@ -187,7 +188,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunE/*.root");
 	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunF/*.root");
 
-	ROOT::RDataFrame cms(SingleElectron);
+	ROOT::RDataFrame cmsc(SingleElectron);
 
 	TChain SingleMuon("Events");
 	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunB/*.root");
@@ -196,10 +197,10 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunE/*.root");
 	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunF/*.root");
 
-	ROOT::RDataFrame sm(SingleMuon);
+	ROOT::RDataFrame smc(SingleMuon);
 
 	//ROOT::RDataFrame metc{"Events","/data/disk0/nanoAOD_2017/MET*/*.root"};
-/*
+
 	auto   d =   dc.Range(0, 1000);
 	auto  ww =  wwc.Range(0, 100);
 	auto  wz =  wzc.Range(0, 100);
@@ -208,7 +209,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	auto  cms =  cmsc.Range(0, 100);
 	auto  sm =  smc.Range(0, 100);
 	//auto met = metc.Range(0, 100);
-*/
+
 	std::cout << "I have looked up the dataset" << std::endl;
 
 /////////////////////////////////////////////////////////////////////////// Number of Particles Per Event /////////////////////////////////////////////////////////////////////
@@ -954,12 +955,12 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 		floats cjer; //  correction factor
 		cout<<"pt size "<<pt.size()<<" gen_pt size "<<gen_pt.size()<<" resol size "<<resol.size()<<" Sjer "<<Sjer.size()<<" deltaR "<< deltaR.size()<<endl;
 		//cout<<"value of deltaR "<<deltaR<<endl;
-		int size_diff = pt.size() - gen_pt.size(); //difference of sizes used for out of range error handling
-		int abs_size = abs(size_diff);
-		int size = (pt.size() < gen_pt.size()) ? pt.size() : gen_pt.size();// skeptical about this
-		cout<<"size diff is "<< abs_size<<endl;
-		for(int i=0; i < size;i++) cjer.push_back(0);
-		for(int i=0; i < size;i++)
+		//int size_diff = pt.size() - gen_pt.size(); //difference of sizes used for out of range error handling
+		//int abs_size = abs(size_diff);
+		//int size = (pt.size() < gen_pt.size()) ? pt.size() : gen_pt.size();// skeptical about this
+		//cout<<"size diff is "<< abs_size<<endl;
+		for(int i=0; i < pt.size();i++) cjer.push_back(0);
+		for(int i=0; i < pt.size();i++)
 		{
 			if(deltaR.at(i) < (0.4/2) && abs(pt.at(i) - gen_pt.at(i))< 3 * resol.at(i) * pt.at(i))
 			{
@@ -972,15 +973,19 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 				cjer[i] += (1+ Normdist * sqrt(MaxValue(max_val, 0)));
 			}
 		}
-		if(cjer.size()!=pt.size())for(int i{0}; i < abs_size; i++)cjer.push_back((float) 0.0);
+		//if(cjer.size()!=pt.size())for(int i{0}; i < abs_size; i++)cjer.push_back((float) 0.0);
 		//cout<<"cjer is"<<cjer<<endl;
 		return cjer;
 	}};
-	auto jets_cjer_cut{[](const floats& jets){
-		cout<<"jet_cjer_cut"<<endl;
-		bool good_jets;
-		for(int i =0; i< jets.size(); i++)if(jets[i] > 0.0f) good_jets = true; // jets which have elements > 0.0f
-		cout<<"good_jets"<<endl;
+	auto jets_gen_selec{[](const floats& gen, const floats& jet){ //selects jets which have generated level information which will be used at JEC.
+		cout<<"jet_gen_cut"<<endl;                         //This function shouldn't be used fot CMS DATA.  ONLY MCs.
+		floats good_jets;
+		if(gen.size() >= jet.size()){
+			for(int i=0; i < jet.size(); i++) good_jets.push_back(jet[i]);
+		}
+		else{
+			for(int i=0; i < gen.size(); i++) good_jets.push_back(jet[i]);
+		}
 		return good_jets;
 	}};
 
@@ -1185,17 +1190,31 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	   = d_enu_w_selection
 	 .Define("jet_e_min_dR"   , jet_lep_min_deltaR,
 	        {"Jet_eta", "Jet_phi", "w_e_eta", "w_e_phi"})
-	 .Define("tight_jets", tight_jet_id,
-	        {"jet_e_min_dR"  , "Jet_pt", "Jet_eta", "Jet_jetId"})
+	 .Define("tight_jets"     , tight_jet_id,
+	        {"jet_e_min_dR"   , "Jet_pt", "Jet_eta", "Jet_jetId"})
 	 .Define("tight_jets_pt"  , select<floats>, {"Jet_pt"  , "tight_jets"})
 	 .Define("tight_jets_eta" , select<floats>, {"Jet_eta" , "tight_jets"})
 	 .Define("tight_jets_phi" , select<floats>, {"Jet_phi" , "tight_jets"})
 	 .Define("tight_jets_mass", select<floats>, {"Jet_mass", "tight_jets"})
 	 .Define("tight_jets_deltaphi", jet_deltaphi_func,  {"tight_jets_phi"})
-	 .Filter(jet_cut, {"tight_jets"}, "Jet cut");
+	 .Define( "good_jets_pt"   , jets_gen_selec, {"GenPart_pt"   ,"tight_jets_pt"  }) // GOOD jets are tight jets which have generated level information.
+	 .Define( "good_jets_eta"  , jets_gen_selec, {"GenPart_eta"  ,"tight_jets_eta" }) // By neglecting the ones which exlcude generated level of info,
+	 .Define( "good_jets_phi"  , jets_gen_selec, {"GenPart_phi"  ,"tight_jets_phi" }) // we make sure the jec is computing correctly
+	 .Define( "good_jets_mass" , jets_gen_selec, {"GenPart_mass" ,"tight_jets_mass"}) // & jets excluding JEC will be excluded too.
+	 .Filter(jet_cut	   , {"tight_jets"}, "Jet cut");
+
+	auto d_enu_jec_selection
+           = d_enu_jets_selection
+         .Define(     "pt_resol"          , jet_smearing_pt_resol, {"good_jets_pt"   ,  "good_jets_eta", "fixedGridRhoFastjetAll"})
+         .Define(       "Sjer"            , jet_smearing_Sjer    , {"good_jets_eta"})
+         .Define(       "cjer"            , delta_R_jet_smearing , {"good_jets_pt"   ,  "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
+         .Define("jec_tight_jets_pt"      , cjer_func            , {"good_jets_pt"   ,  "cjer"})
+         .Define("jec_tight_jets_eta"     , cjer_func            , {"good_jets_eta"  ,  "cjer"})
+         .Define("jec_tight_jets_phi"     , cjer_func            , {"good_jets_phi"  ,  "cjer"})
+         .Define("jec_tight_jets_ms"      , cjer_func            , {"good_jets_mass" ,  "cjer"});
 
 	auto d_enu_jets_bjets_selection
-	   = d_enu_jets_selection
+	   = d_enu_jec_selection
 	 .Define(    "bjets"         ,     bjet_id   , {"tight_jets","Jet_btagCSVV2","Jet_eta"})
 	 .Define("non_bjets"         , non_bjet_id   , {"tight_jets","Jet_eta"})
 	 .Define(    "btag_numer"    ,     bjet_num  , {"Jet_partonFlavour",    "bjets"})
@@ -1214,22 +1233,8 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	 .Define("sfj", non_btag_CSVv2_formula, {"Jet_btagCSVV2","tight_jets_pt","tight_jets_eta"})
 	 .Filter(bjet_cut, {"bjets"}, "b jet cut");
 
-	auto d_enu_jec_selection
-	   = d_enu_jets_bjets_selection
-         .Define(     "pt_resol"	  , jet_smearing_pt_resol, {"tight_jets_pt"  	 ,  "tight_jets_eta", "fixedGridRhoFastjetAll"})
-         .Define(       "Sjer" 		  , jet_smearing_Sjer    , {"tight_jets_eta"})
-         .Define(       "cjer" 		  , delta_R_jet_smearing , {"tight_jets_pt"  	 ,  "GenJet_pt", "pt_resol", "Sjer", "jet_e_min_dR"})
-	 .Define("jec_tight_jets_pt"	  , cjer_func		 , {"tight_jets_pt"  	 ,  "cjer"})
-         .Define("jec_tight_jets_eta"     , cjer_func       	 , {"tight_jets_eta" 	 ,  "cjer"})
-         .Define("jec_tight_jets_phi"     , cjer_func       	 , {"tight_jets_phi" 	 ,  "cjer"})
-         .Define("jec_tight_jets_ms"      , cjer_func       	 , {"tight_jets_mass"	 ,  "cjer"})
-	 .Filter( jets_cjer_cut 	  , {"jec_tight_jets_pt"      }	, "tight jets cjer cut"	   )
-	 .Filter( jets_cjer_cut           , {"jec_tight_jets_eta"     }	, "tight jets cjer cut"    )
-         .Filter( jets_cjer_cut           , {"jec_tight_jets_phi"     }	, "tight jets cjer cut"    )
-         .Filter( jets_cjer_cut           , {"jec_tight_jets_ms"      }	, "tight jets cjer cut"    );// does this filter need to be applied on every field?Think!
-
 	auto d_enu_z_rec_selection
-	   = d_enu_jec_selection
+	   = d_enu_jets_bjets_selection
 	 .Define(    "lead_bjet", find_lead_mask, {"bjets"   , "Jet_pt"})
 	 .Define(  "z_reco_jets", find_z_pair   , {"jec_tight_jets_pt"  , "jec_tight_jets_phi",
 	           "jec_tight_jets_eta", "jec_tight_jets_ms", "tight_jets", "lead_bjet"})
