@@ -443,7 +443,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
         }};
 
 	auto transvers_W_mass{[](const floats& lep_pt, const floats& lep_phi,const float& met_pt,const float& met_phi){
-  		cout<<"in transverse mass"<<endl;
+  		//cout<<"in transverse mass"<<endl;
 		//float w_reco_mass{std::numeric_limits<float>::infinity()};
                 //size_t l_index_1{std::numeric_limits<size_t>::max()};
 		floats w_mass_vec;
@@ -469,7 +469,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 
 	auto lep_nu_invmass{[](const floats& lep_pt,const floats& lep_eta,const floats& lep_phi,const floats& lep_mass ,
 		const float& cal_metphi, const float& cal_metpt, const float& cal_metEt){
-		cout<<"lep nu invmass"<<endl;
+		//cout<<"lep nu invmass"<<endl;
 		//This function computes the invariant mass of charged lepton and neutrino system, in order to calcualte the W mass later on.
 		auto lep{TLorentzVector{}};
 		auto neu{TLorentzVector{}};
@@ -709,7 +709,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 
 // B Tag Efficiency centre
 	auto btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
-		cout<<"bag csvv2"<<endl;
+		//cout<<"bag csvv2"<<endl;
 		strings formulae;
 		for(int i=0; i<pt.size();i++)formulae.push_back("0");
 		floats result;
@@ -756,7 +756,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	}};
 
 	auto non_btag_CSVv2_formula{[](const floats& btag, const floats& pt, const floats& eta){
-		cout<<"non btag csvv2"<<endl;
+		//cout<<"non btag csvv2"<<endl;
                 strings formulae;
 		for(int i=0;i<pt.size();i++)formulae.push_back("0");
                 floats result;
@@ -846,7 +846,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 		return pi_ei * pi_ej;
 	}};
         auto Sfi_EffBTaggedProduct{[](const floats& EffBTagged, const floats sfi){
-		cout<<"sfi eff btagged prod"<<endl;
+		//cout<<"sfi eff btagged prod"<<endl;
                 float initial = 1;
                 int size = (EffBTagged.size() < sfi.size()) ? EffBTagged.size() : sfi.size();
                 for(int i=0; i < size; i++)
@@ -858,7 +858,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
         }};
 
         auto Sfj_EffNonBTaggedProduct{[](const floats& EffNonBTagged, const floats sfj){
-                cout << "inside Si_EffNonBTaggedProduct" << endl;
+                //cout << "inside Si_EffNonBTaggedProduct" << endl;
                 float initial = 1;
                 int size = (EffNonBTagged.size() < sfj.size()) ? EffNonBTagged.size() : sfj.size();
                 for(int i=0; i < size; i++)
@@ -887,8 +887,8 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 
 // jet smearing
  	auto jet_smearing_pt_resol{[](const floats& pt, const floats& eta, const float& rho){
-		cout<<"jet smearing pt resol"<<endl;
-		cout<<"pt eta size "<<pt.size()<<" "<<eta.size()<<endl;
+		//cout<<"jet smearing pt resol"<<endl;
+		//cout<<"pt eta size "<<pt.size()<<" "<<eta.size()<<endl;
 		float min_eta;
 		float max_eta;
 		float min_rho;
@@ -926,7 +926,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	}};
 
 	auto jet_smearing_Sjer{[](const floats& eta){
-		cout<<"jet smearing sjer"<<endl;
+		//cout<<"jet smearing sjer"<<endl;
 		float min_eta;
                 float max_eta;
                 int   Three;
@@ -951,9 +951,9 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	}};
 
 	auto delta_R_jet_smearing{[](const floats& pt, const floats& gen_pt, const floats& resol, const floats& Sjer, const floats& deltaR){
-		cout<<"delta r jet smearing"<<endl;
+		//cout<<"delta r jet smearing"<<endl;
 		floats cjer; //  correction factor
-		cout<<"pt size "<<pt.size()<<" gen_pt size "<<gen_pt.size()<<" resol size "<<resol.size()<<" Sjer "<<Sjer.size()<<" deltaR "<< deltaR.size()<<endl;
+		cout<<"pt "<<pt<<" gen_pt "<<gen_pt<<" resol "<<resol<<" Sjer "<<Sjer<<" deltaR "<< deltaR<<endl;
 		//cout<<"value of deltaR "<<deltaR<<endl;
 		//int size_diff = pt.size() - gen_pt.size(); //difference of sizes used for out of range error handling
 		//int abs_size = abs(size_diff);
@@ -965,20 +965,22 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 			if(deltaR.at(i) < (0.4/2) && abs(pt.at(i) - gen_pt.at(i))< 3 * resol.at(i) * pt.at(i))
 			{
 				cjer[i] += (1 + (1+ Sjer.at(i)) * ((pt.at(i) - gen_pt.at(i))/pt.at(i)));
+				cout<<cjer[i]<<" deltaR "<<deltaR[i]<<" pt "<<pt[i]<<" gen_pt "<< gen_pt[i]<< " resol "<<resol[i]<<endl;
 			}
 			else
 			{
 				float Normdist = gRandom->Gaus(0, Sjer.at(i)); //needs TRandom3 library
 				float max_val = Sjer.at(i) * Sjer.at(i) - 1;
 				cjer[i] += (1+ Normdist * sqrt(MaxValue(max_val, 0)));
+				cout<<cjer[i]<<" Sjer "<<Sjer[i]<<" Normdist "<<Normdist<<endl;
 			}
 		}
 		//if(cjer.size()!=pt.size())for(int i{0}; i < abs_size; i++)cjer.push_back((float) 0.0);
-		//cout<<"cjer is"<<cjer<<endl;
+		cout<<"cjer is"<<cjer<<endl;
 		return cjer;
 	}};
 	auto jets_gen_selec{[](const floats& gen, const floats& jet){ //selects jets which have generated level information which will be used at JEC.
-		cout<<"jet_gen_cut"<<endl;                         //This function shouldn't be used fot CMS DATA.  ONLY MCs.
+		//cout<<"jet_gen_select"<<endl;                         //This function shouldn't be used fot CMS DATA.  ONLY MCs.
 		floats good_jets;
 		if(gen.size() >= jet.size()){
 			for(int i=0; i < jet.size(); i++) good_jets.push_back(jet[i]);
@@ -992,8 +994,8 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 ////////////// SCALE FACTORS /////////////
 // cjer application to tight jets
 	auto cjer_func   = [](const floats& jet, const floats& cjer){
-		cout<<"cjer_func"<<endl;
-		cout<<"jet and cjer size "<< jet<<" "<<cjer<<endl;
+		//cout<<"cjer_func"<<endl;
+		//cout<<"jet and cjer "<< jet<<" "<<cjer<<endl;
 		floats weighted;
 		for(int i{0}; i< jet.size(); i++) weighted.push_back(jet.at(i)*cjer.at(i));
 		return weighted;
@@ -1215,8 +1217,8 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 
 	auto d_enu_jets_bjets_selection
 	   = d_enu_jec_selection
-	 .Define(    "bjets"         ,     bjet_id   , {"tight_jets","Jet_btagCSVV2","Jet_eta"})
-	 .Define("non_bjets"         , non_bjet_id   , {"tight_jets","Jet_eta"})
+	 .Define(    "bjets"         ,     bjet_id   , {"tight_jets","Jet_btagCSVV2","Jet_eta"})//defining new function , changin Jet eta to jec version
+	 .Define("non_bjets"         , non_bjet_id   , {"tight_jets","Jet_eta"})		// give different size vector error
 	 .Define(    "btag_numer"    ,     bjet_num  , {"Jet_partonFlavour",    "bjets"})
 	 .Define(    "btag_denom"    ,     bjet_denom, {"Jet_partonFlavour","non_bjets"})
 	 .Define("non_btag_numer"    , non_bjet_num  , {"Jet_partonFlavour",    "bjets"})
