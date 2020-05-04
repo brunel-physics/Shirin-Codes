@@ -3204,7 +3204,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	h_d_enu_mWtvsZm->SetLineColor(kBlack);
 	h_d_enu_mWtvsZm->SetMarkerStyle(2);
 
-	h_d_enu_mWtvsZm->Draw();
+	h_d_enu_mWtvsZm->Draw("SCAT");
 
         h_d_enu_mWtvsZm_canvas->BuildLegend();
         h_d_enu_mWtvsZm_canvas->SaveAs("h_d_enu_mWtvsZm.root");
