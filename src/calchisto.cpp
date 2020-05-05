@@ -1,4 +1,4 @@
-_// clang++ -std=c++17 src/calchisto.cpp src/eval_complex.cpp -o calchisto.o ` root-config --libs` 
+// clang++ -std=c++17 src/calchisto.cpp src/eval_complex.cpp -o calchisto.o ` root-config --libs`
 // TODO: get bjets from jec, now diff size vector error. new method required
 // TODO: tight_jets deltaphi, get from jec
 #include <ROOT/RDataFrame.hxx>
@@ -188,8 +188,7 @@ auto lep_nu_invmass(const floats& lep_pt    ,
                     const floats& lep_phi   ,
                     const floats& lep_mass  ,
                     const float & cal_metphi,
-                    const float & cal_metpt ,
-                    const float & cal_metEt ){// cal_metEt is unused
+                    const float & cal_metpt ){
 	// this function computes the invariant mass of charged lepton
 	// and neutrino system, in order to calculate the W mass later on.
 	TLorentzVector lep,neu;
@@ -407,12 +406,14 @@ auto delta_R_jet_smear(const floats& pt,
                        const floats& resol,
                        const floats& Sjer,
                        const floats& deltaR){
-	if(!all_equal(pt.size(),resol.size(),Sjer.size(),deltaR.size()))
+	if(!all_equal(pt.size(),resol.size(),Sjer.size()))
 		throw std::logic_error("Collections must be the same size in deltaR_Jsmear");
 	else if(gen_pt.size() < pt.size())
 		throw std::logic_error("gen_pt shorter than pt");
 	else if(pt.empty())
 		throw std::logic_error("Collections must not be empty in deltaR_Jsmear");
+	else if(pt.size() < deltaR.size())
+		throw std::logic_error("deltaR in Delta_R_jet_smear lacks sufficienct data");
 	const size_t  size = pt.size();
 	floats cjers(    size,0.f);// correction factor
 	for(size_t i=0;i<size;++i){
@@ -721,9 +722,10 @@ void calchisto(const dataSource ds){
 	auto elnu_event_selection = dssbdf// data source signal background data frame
 	.Define("tight_els"    ,el_sel(EL_TIGHT_ID),
 	   {"Electron_isPFcand","Electron_pt","Electron_eta","Electron_cutBased"})
-	.Define("tight_el_pt"  ,select<floats>, {"Electron_pt" , "tight_els"})
-	.Define("tight_el_eta" ,select<floats>, {"Electron_eta", "tight_els"})
-	.Define("tight_el_phi" ,select<floats>, {"Electron_phi", "tight_els"})
+	.Define("tight_el_pt"  ,select<floats>, {"Electron_pt"  , "tight_els"})
+	.Define("tight_el_eta" ,select<floats>, {"Electron_eta" , "tight_els"})
+	.Define("tight_el_phi" ,select<floats>, {"Electron_phi" , "tight_els"})
+	.Define("tight_el_mas" ,select<floats>, {"Electron_mass", "tight_els"})
 	.Define("loose_els"    ,el_sel(EL_LOOSE_ID),
 	   {"Electron_isPFcand","Electron_pt","Electron_eta","Electron_cutBased"})
 	.Define("loose_el_pt"  ,select<floats>, {"Electron_pt" , "loose_els"})
@@ -740,8 +742,8 @@ void calchisto(const dataSource ds){
 	.Define("w_el_mass",transverse_w_mass, {"w_el_pt","w_el_phi",
 	        "MET_el_pt_sel","MET___phi_sel"})
 	.Define("elnu_invmass" ,lep_nu_invmass, {"tight_el_pt","tight_el_eta",
-	        "tight_el_phi" ,"Electron_mass",
-	         "CaloMET_phi" ,"CaloMET_pt", "CaloMET_sumEt"});
+	        "tight_el_phi" ,"tight_el_mas",
+	         "CaloMET_phi" ,"CaloMET_pt"});
 	//.Filter(w_mass_cut, {"w_el_mass"}, "W mass cut");
 	
 	// There is a Histogram1D done on w_selection
@@ -823,10 +825,10 @@ void calchisto(const dataSource ds){
 	
 	auto elnu_brec_selection
 	   = elnu_z_rec_selection
-	.Define("bjetpt"  ,bjet_variable ,{"Jet_pt"  ,"nJet","lead_bjet"})
-	.Define("bjeteta" ,bjet_variable ,{"Jet_eta" ,"nJet","lead_bjet"})
-	.Define("bjetphi" ,bjet_variable ,{"Jet_phi" ,"nJet","lead_bjet"})
-	.Define("bjetmass",bjet_variable ,{"Jet_mass","nJet","lead_bjet"})
+	.Define("bjetpt"  ,bjet_variable ,{"jec_jets_pt"  ,"nJet","lead_bjet"})
+	.Define("bjeteta" ,bjet_variable ,{"jec_jets_eta" ,"nJet","lead_bjet"})
+	.Define("bjetphi" ,bjet_variable ,{"jec_jets_phi" ,"nJet","lead_bjet"})
+	.Define("bjetmass",bjet_variable ,{"jec_jets_mass","nJet","lead_bjet"})
 	.Define("nbjets"  ,numberofbjets ,{"is_bjets"});
 	
 	auto elnu_top_selection
@@ -919,7 +921,7 @@ void calchisto(const dataSource ds){
 	.Define("nw_top_mass","sf");
 	
 // Testing top mass histo
-//auto h_elnu_transTopmass = elnu_P_btag.Histo1D({"trans. Top mass","trans. Top mass",50,0,200},"Top_pt","nw_top_pt");
+auto h_elnu_transTopmass = elnu_P_btag.Histo1D({"trans. Top mass","trans. Top mass",50,0,200},"Top_pt","nw_top_pt");
 	// write histograms to a root file
 	temp_opener  = "elnu_";
 	switch(ds){
