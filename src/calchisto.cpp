@@ -1,4 +1,4 @@
-// clang++ -std=c++17 src/calchisto.cpp src/eval_complex.cpp -o calchisto.o ` root-config --libs` 
+_// clang++ -std=c++17 src/calchisto.cpp src/eval_complex.cpp -o calchisto.o ` root-config --libs` 
 // TODO: get bjets from jec, now diff size vector error. new method required
 // TODO: tight_jets deltaphi, get from jec
 #include <ROOT/RDataFrame.hxx>
@@ -161,9 +161,9 @@ auto transverse_w_mass(const floats& lep__pt,
                        const float & met__pt,
                        const float & met_phi){
 	if(!all_equal(lep__pt.size(),lep_phi.size()))
-		throw std::logic_error("Collections must be the same size");
+		throw std::logic_error("Collections must be the same size in tWm");
 	else if(lep__pt.empty())
-		throw std::logic_error("Collections must not be empty");
+		throw std::logic_error("Collections must not be empty in tWm");
 	floats   w_mass_vec(lep__pt.size());
 	for(size_t i=0; i < lep__pt.size() ;++i){
 		w_mass_vec[i] = static_cast<float>(
@@ -194,9 +194,9 @@ auto lep_nu_invmass(const floats& lep_pt    ,
 	// and neutrino system, in order to calculate the W mass later on.
 	TLorentzVector lep,neu;
 	if(!all_equal(lep_pt.size(),lep_eta.size(),lep_phi.size(),lep_mass.size()))
-		throw std::logic_error("Collections must be the same size");
+		throw std::logic_error("Collections must be the same size in lep-nu invmass");
 	else if(lep_pt.size() != 1)
-		throw std::logic_error("Should always only have one lepton");
+		throw std::logic_error("Should always only have one lepton in lep-nu invmass");
 	float lepnu_mass = 0.f;
 	for(size_t i=0; i < lep_pt.size()  ;++i){
 		lep.SetPtEtaPhiM(lep_pt[i],lep_eta[i],lep_phi[i],lep_mass[i]);
@@ -209,10 +209,14 @@ auto jet_lep_min_deltaR(const floats& jet_etas,
                         const floats& jet_phis,
                         const floats& lep_etas,
                         const floats& lep_phis){
-	if(!all_equal(jet_etas.size(),jet_phis.size(),lep_etas.size(),lep_phis.size()))
-		throw std::logic_error("Collections must be the same size");
+	if(!all_equal(lep_etas.size(),lep_phis.size()))
+		throw std::logic_error("Collections must be the same size for leps in jet-lep dR");
 	else if(lep_phis.empty())
-		throw std::logic_error("Collections must not be empty");
+		throw std::logic_error("Collections must not be empty for lep in jet-lep dR");
+	if(!all_equal(jet_etas.size(),jet_phis.size()))
+                throw std::logic_error("Collections must be the same size for jets in jet-lep dR");
+        else if(lep_phis.empty())
+                throw std::logic_error("Collections must not be empty for jets in jet-lep dR");
 	floats min_dRs;
 	std::transform(
 		jet_etas.begin(),
@@ -262,53 +266,44 @@ auto bjet_cut(const ints& bjets){
 	return nbjet >= BJETS_MIN && nbjet <= BJETS_MAX;
 }
 auto is_bjet_id(const floats& etas,const floats& btags){// added jec_eta
+
 	ints is_bjets(etas.size(),0);// vector of zero
 	for(size_t i=0;i<etas.size();++i)// etas size <= 6
 	if((btags[i]>BTAG_DISC_MIN)&&(abs(etas[i])<BJET_ETA_MAX))is_bjets[i]+=1;
 	return is_bjets;
-	//{return (btags > BTAG_DISC_MIN) && (abs(etas) < BJET_ETA_MAX );
 }
 auto no_bjet_id   (const floats& etas)
-	{return (abs(etas)<BJET_ETA_MAX);}
+	{cout<<"no_bjet_id"<<endl; return (abs(etas)<BJET_ETA_MAX);}
 auto is_bjet_numer(const ints& id,const ints& is_bjet){
-	//{return abs(id)==5 && is_bjet;}
+	cout<<"is_bjet_numer"<<endl;
 	ints bjet_numer(is_bjet.size(),0);// vector of zero
 	for(int i=0;i<is_bjet.size();i++)if(id[i]==5)bjet_numer[i]+=1;
 	return bjet_numer;
 }
 auto is_bjet_denom(const ints& id,const ints& no_bjet){
+	cout<<"is_bjet_denom"<<endl;
 // using no_bjet_id particles not matching btag criteria
-	//{return abs(id)==5 && no_bjet;}
 	ints bjet_denom(no_bjet.size(),0);// vector of zero
 	for(int i=0;i<no_bjet.size();i++)if(id[i]==5)bjet_denom[i]+=1;
 	return bjet_denom;
 }
 auto no_bjet_numer(const ints& id,const ints& is_bjet){
+	cout<<"no_bjet_numer"<<endl;
 // using bjets which has satisfied is btag conditions
 	const auto aid = abs(id);
 	ints non_bjet_numer(is_bjet.size(),0);// vector of zero
-	//return ((aid > 0 && aid <= 4) || aid == 21 || aid != 5) && is_bjet;
 	for(int i=0;i<is_bjet.size();i++)
 		if((aid[i] > 0&& aid[i] <= 4) || aid[i] == 21 || aid[i] != 5)non_bjet_numer[i]+=1;
 	return non_bjet_numer;
 }
 auto no_bjet_denom(const ints& id,const ints& no_bjet){
+	cout<<"no_bjet_denom"<<endl;
 // using bjets which has satisfied no btag condition
 	const auto aid = abs(id);
 	ints no_bjet_denom(no_bjet.size(),0);// vector of zero
-	//return ((aid > 0 && aid <= 4) || aid == 21 || aid != 5) && no_bjet;
 	for(int i=0;i<no_bjet.size();i++)
 		if((aid[i] > 0 && aid[i] <= 4) || aid[i] == 21 || aid[i] != 5)no_bjet_denom[i]+=1;
 	return no_bjet_denom;
-}
-auto bjet_mask_string(const PtEtaPhiM ss){// I don't think this will be used.
-        std::string result;
-        switch (ss){
-                case  pt:{result="[jec_jets_pt]" ;break;}
-                case eta:{result="[jec_jets_eta]";break;}
-                default :{throw std::invalid_argument("Unimplemented PtEta");}
-        }
-	return result;
 }
 auto btag_CSVv2(const bool    check_CSV){
    return   [=](const floats& btag,
@@ -318,9 +313,9 @@ auto btag_CSVv2(const bool    check_CSV){
 		strings formulae(pt.size(),"0");// vector of "0"
 		floats   results(pt.size());
 		if(!all_equal(pt.size(),eta.size(),btag.size()))
-			throw std::logic_error("Collections must be the same size");
+			throw std::logic_error("Collections must be the same size in btagCSVv2");
 		else if(pt.empty())
-			throw std::logic_error("Collections must not be empty");
+			throw std::logic_error("Collections must not be empty in btagCSVv2");
 		std::string  measure_type,sys_type,rawFormula;
 		float CSVv2  ,jet_flav,
 		       pt_min,  pt_max,
@@ -373,9 +368,9 @@ auto jet_smear_pt_resol
 	float a,b,c,d;
 	floats  resol(pt.size(),0.f);// vector of 0.
 	if(!all_equal(pt.size(),eta.size()))
-		throw std::logic_error("Collections must be the same size");
+		throw std::logic_error("Collections must be the same size in jet_smear");
 	else if(pt.empty())
-		throw std::logic_error("Collections must not be empty");
+		throw std::logic_error("Collections must not be empty in jet_smear");
 	io::CSVReader<11> thisCSVfile("Fall17_V3_MC_PtResolution_AK4PFchs.txt");
 	while(thisCSVfile.read_row(
 	      min_eta,max_eta,min_rho,max_rho,z,min_pt,max_pt,a,b,c,d)){
@@ -413,15 +408,15 @@ auto delta_R_jet_smear(const floats& pt,
                        const floats& Sjer,
                        const floats& deltaR){
 	if(!all_equal(pt.size(),resol.size(),Sjer.size(),deltaR.size()))
-		throw std::logic_error("Collections must be the same size");
+		throw std::logic_error("Collections must be the same size in deltaR_Jsmear");
 	else if(gen_pt.size() < pt.size())
 		throw std::logic_error("gen_pt shorter than pt");
 	else if(pt.empty())
-		throw std::logic_error("Collections must not be empty");
+		throw std::logic_error("Collections must not be empty in deltaR_Jsmear");
 	const size_t  size = pt.size();
 	floats cjers(    size,0.f);// correction factor
 	for(size_t i=0;i<size;++i){
-		if(deltaR.at(i) < RconeBy2
+		if(deltaR[i] < RconeBy2
 		&& std::abs( pt[i]-gen_pt[i]) < 3*resol[i]*pt[i]){
 			cjers[i] += (1+(1+Sjer[i])
 			     * (( pt[i]-gen_pt[i])/pt[i]));
@@ -437,17 +432,17 @@ auto delta_R_jet_smear(const floats& pt,
 auto cjer(const floats& jet,const floats& cjer){
 	floats  weighted(    jet.size());// to use on jets 4-momenta, PtEtaPhiM
 	if(!all_equal(       jet.size(),cjer.size()))
-		throw std::logic_error("Collections must be the same size");
+		throw std::logic_error("Collections must be the same size in Cjer");
 	else if(jet.empty())
-		throw std::logic_error("Collections must not be empty");
+		throw std::logic_error("Collections must not be empty in Cjer");
 	for(size_t i=0; i <  jet.size() ;++i) weighted[i] = jet[i]*cjer[i];
 	return weighted;
 }
 auto find_lead_mask(const ints& mask,const floats& vals){
 	if(!all_equal(mask.size(),vals.size()))
-		throw std::logic_error("Collections must be the same size");
+		throw std::logic_error("Collections must be the same size in lead_mask");
 	else if(mask.empty())
-		throw std::logic_error("Collections must not be empty");
+		throw std::logic_error("Collections must not be empty in lead_mask");
 	const auto masked_vals = mask * vals;
 	ints lead_mask(masked_vals .size(),0);// vector of zeroes
 	const auto max_idx = static_cast<size_t>(std::distance(
@@ -470,9 +465,9 @@ auto find_z_pair(const floats& pts,
 	const size_t njets = tight_jets.size();
 	if(!all_equal(pts.size(),etas.size(),phis.size(),ms.size(),
 		njets,lead_bjet.size()))
-		throw std::logic_error("Collections must be the same size");
+		throw std::logic_error("Collections must be the same size in Z-pair");
 	else if(    njets==0)
-		throw std::logic_error("Collections must not be empty");
+		throw std::logic_error("Collections must not be empty in Z-pair");
 	ints z_pair(njets, 0);// vector of zeroes
 	// The next two for loops stack correctly with the if
 	for(size_t   i=0; i < njets-1 ;++i){
@@ -495,9 +490,9 @@ auto find_z_pair(const floats& pts,
 [[gnu::const]] auto inv_mass(
 	const floats& pts,const floats& etas,const floats& phis,const floats& ms){
 	if(!all_equal(pts.size(),etas.size(),phis.size(),ms.size()))
-		throw std::logic_error("Collections must be the same size");
+		throw std::logic_error("Collections must be the same size in inv_mass");
 	else if(pts.empty())
-		throw std::logic_error("Collections must not be empty");
+		throw std::logic_error("Collections must not be empty in inv_mass");
 	TLorentzVector vec,p;
 	for(size_t i=0; i < pts.size() ;++i){
 		p.SetPtEtaPhiM(pts[i],etas[i],phis[i],ms[i]);
@@ -564,9 +559,9 @@ auto top_reconst(const floats& bjets_pt,
 	const size_t    nWs = wpair_pt.size();
 	if(!all_equal(nbjets,bjets_eta.size(),bjets_phi.size(),bjets_mass.size())
 	&& !all_equal(nWs   ,wpair_eta.size(),wpair_phi.size(),wpair_mass.size()))
-		throw std::logic_error("Collections must be the same size");
+		throw std::logic_error("Collections must be the same size in top_reconst");
 	else if(nbjets == 0 || nWs == 0)
-		throw std::logic_error("Collections must not be empty");
+		throw std::logic_error("Collections must not be empty in top_reconst");
 //	size_t bjet_index = std::numeric_limits<size_t>::max();
 //	size_t    W_index = std::numeric_limits<size_t>::max();
 	TLorentzVector BJets,RecoW,reco_top;
@@ -602,9 +597,9 @@ auto TLVex(   const PtEtaPhiM         what){
 auto BTaggedEffGiver(TH2D* ratio){
 	return [=](const floats& pts,const floats& etas){
 		if(!all_equal(pts.size(),etas.size()))
-			throw std::logic_error("Collections must be the same size");
+			throw std::logic_error("Collections must be the same size in BTaggedEffGiver");
 		else if(pts.empty())
-			throw std::logic_error("Collections must not be empty");
+			throw std::logic_error("Collections must not be empty in BTaggedEffGiver");
 		floats BTaggedEff;
 		for(size_t   i=0; i < pts.size() ;++i){
 			int  PtBin = ratio->GetXaxis()->FindBin( pts[i]);
@@ -919,8 +914,12 @@ void calchisto(const dataSource ds){
 	.Define(    "nw_z_mass"      ,"sf")// nw_z_mass is just one value, = sf
 	.Define("nw_tight_jets_deltaphi",rep_const,{"sf","tight_jets_deltaphi"})
 	.Define(      "nw_zmet_deltaphi",rep_const,{"sf",      "zmet_deltaphi"})
-	.Define(        "nw_zw_deltaphi",rep_const,{"sf",        "zw_deltaphi"});
+	.Define(        "nw_zw_deltaphi",rep_const,{"sf",        "zw_deltaphi"})
+	.Define("nw_top_pt"  ,"sf")
+	.Define("nw_top_mass","sf");
 	
+// Testing top mass histo
+//auto h_elnu_transTopmass = elnu_P_btag.Histo1D({"trans. Top mass","trans. Top mass",50,0,200},"Top_pt","nw_top_pt");
 	// write histograms to a root file
 	temp_opener  = "elnu_";
 	switch(ds){
@@ -939,8 +938,9 @@ void calchisto(const dataSource ds){
 	h_elnu_no_btag_numer_PtVsEta->Write();
 	h_elnu_is_btag_denom_PtVsEta->Write();
 	h_elnu_no_btag_denom_PtVsEta->Write();
+	h_elnu_transTopmass->Write();
 	
 	hf.Close();
-	std::cout << "btag scale factor is" 
+	std::cout << "btag scale factor is"
 	<< elnu_P_btag.Take<float>("sf").GetValue()[0] << std::endl;
 }
