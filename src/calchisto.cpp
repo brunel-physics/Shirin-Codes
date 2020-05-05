@@ -188,8 +188,8 @@ auto lep_nu_invmass(const floats& lep_pt    ,
                     const floats& lep_phi   ,
                     const floats& lep_mass  ,
                     const float & cal_metphi,
-                    const float & cal_metpt , 
-                    const float & cal_metEt ){// TODO: cal_metEt unused
+                    const float & cal_metpt ,
+                    const float & cal_metEt ){// cal_metEt is unused
 	// this function computes the invariant mass of charged lepton
 	// and neutrino system, in order to calculate the W mass later on.
 	TLorentzVector lep,neu;
@@ -262,28 +262,53 @@ auto bjet_cut(const ints& bjets){
 	return nbjet >= BJETS_MIN && nbjet <= BJETS_MAX;
 }
 auto is_bjet_id(const floats& etas,const floats& btags){// added jec_eta
-	ints is_bjets;// TODO: this function looks broken
-	for(size_t i = 0; i < etas.size() ;++i)// TODO: etas size <= btags size?
-	if((btags[i] > BTAG_DISC_MIN) && (abs(etas[i]) < BJET_ETA_MAX)) is_bjets.push_back(1);
+	ints is_bjets(etas.size(),0);// vector of zero
+	for(size_t i=0;i<etas.size();++i)// etas size <= 6
+	if((btags[i]>BTAG_DISC_MIN)&&(abs(etas[i])<BJET_ETA_MAX))is_bjets[i]+=1;
 	return is_bjets;
 	//{return (btags > BTAG_DISC_MIN) && (abs(etas) < BJET_ETA_MAX );
 }
 auto no_bjet_id   (const floats& etas)
-	{return (abs(etas) < BJET_ETA_MAX);}
-auto is_bjet_numer(const ints& id,const ints& is_bjet)
-	{return abs(id)==5 && is_bjet;}
-auto is_bjet_denom(const ints& id,const ints& no_bjet)
+	{return (abs(etas)<BJET_ETA_MAX);}
+auto is_bjet_numer(const ints& id,const ints& is_bjet){
+	//{return abs(id)==5 && is_bjet;}
+	ints bjet_numer(is_bjet.size(),0);// vector of zero
+	for(int i=0;i<is_bjet.size();i++)if(id[i]==5)bjet_numer[i]+=1;
+	return bjet_numer;
+}
+auto is_bjet_denom(const ints& id,const ints& no_bjet){
 // using no_bjet_id particles not matching btag criteria
-	{return abs(id)==5 && no_bjet;}
+	//{return abs(id)==5 && no_bjet;}
+	ints bjet_denom(no_bjet.size(),0);// vector of zero
+	for(int i=0;i<no_bjet.size();i++)if(id[i]==5)bjet_denom[i]+=1;
+	return bjet_denom;
+}
 auto no_bjet_numer(const ints& id,const ints& is_bjet){
 // using bjets which has satisfied is btag conditions
 	const auto aid = abs(id);
-	return ((aid > 0 && aid <= 4) || aid == 21 || aid != 5) && is_bjet;
+	ints non_bjet_numer(is_bjet.size(),0);// vector of zero
+	//return ((aid > 0 && aid <= 4) || aid == 21 || aid != 5) && is_bjet;
+	for(int i=0;i<is_bjet.size();i++)
+		if((aid[i] > 0&& aid[i] <= 4) || aid[i] == 21 || aid[i] != 5)non_bjet_numer[i]+=1;
+	return non_bjet_numer;
 }
 auto no_bjet_denom(const ints& id,const ints& no_bjet){
 // using bjets which has satisfied no btag condition
 	const auto aid = abs(id);
-	return ((aid > 0 && aid <= 4) || aid == 21 || aid != 5) && no_bjet;
+	ints no_bjet_denom(no_bjet.size(),0);// vector of zero
+	//return ((aid > 0 && aid <= 4) || aid == 21 || aid != 5) && no_bjet;
+	for(int i=0;i<no_bjet.size();i++)
+		if((aid[i] > 0 && aid[i] <= 4) || aid[i] == 21 || aid[i] != 5)no_bjet_denom[i]+=1;
+	return no_bjet_denom;
+}
+auto bjet_mask_string(const PtEtaPhiM ss){// I don't think this will be used.
+        std::string result;
+        switch (ss){
+                case  pt:{result="[jec_jets_pt]" ;break;}
+                case eta:{result="[jec_jets_eta]";break;}
+                default :{throw std::invalid_argument("Unimplemented PtEta");}
+        }
+	return result;
 }
 auto btag_CSVv2(const bool    check_CSV){
    return   [=](const floats& btag,
