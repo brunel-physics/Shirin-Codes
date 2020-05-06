@@ -351,10 +351,12 @@ auto btag_CSVv2(const bool    check_CSV){
 		bool b;// magic btag checker; heavily reused
 		strings formulae(pt.size(),"0");// vector of "0"
 		floats   results(pt.size());
-		if(!all_equal(pt.size(),eta.size(),btag.size()))
+		if(!all_equal(pt.size(),eta.size()))
 			throw std::logic_error("Collections must be the same size in btagCSVv2");
 		else if(pt.empty())
 			throw std::logic_error("Collections must not be empty in btagCSVv2");
+		else if(btag.size() < pt.size())
+			throw std::logic_error("insufficient btagCSVv2 in btag_CSVv2");
 		std::string  measure_type,sys_type,rawFormula;
 		float CSVv2  ,jet_flav,
 		       pt_min,  pt_max,
@@ -489,7 +491,7 @@ auto find_lead_mask(const ints& mask,const floats& vals){
 	const auto max_idx = static_cast<size_t>(std::distance(
 		masked_vals.begin(),
 		max_element(masked_vals.begin(),
-		            masked_vals  .end())));
+		            masked_vals  .end())));// Leading bjet = bjet with highest pt.
 	lead_mask[max_idx] = 1;
 	return lead_mask;
 }
@@ -545,6 +547,7 @@ auto zw_deltaphi(const floats& phis1,const floats& phis2){
 	const size_t   p1s = phis1.size();
 	const size_t   p2s = phis2.size();
 	floats results(p2s * p1s);
+	cout<<"zw_deltaphi"<<endl;
 	// The following two for loops stack correctly
 	for(size_t i=0; i < p1s ;++i)
 	for(size_t j=0; j < p2s ;++j)
@@ -570,13 +573,12 @@ auto zmet_deltaphi(const floats& z_phi,const float& met_pt){
 	              [](float delta){return delta >= DELTA_PHI_ZMET;});
 }*/
 auto bjet_variable(const        floats&  Jet_variable,
-                   const unsigned int & nJet,
                    const          ints& lead_bjet){
 	// this function needs to be modified to include jec
 	floats vec;// TODO: input length equality checks
-	for(size_t i=0; i < nJet ;++i)
-		if(lead_bjet.at(i) == 1)
-			vec.push_back(Jet_variable.at(i));
+	for(size_t i=0; i < Jet_variable.size() ;++i)
+		if(lead_bjet[i] == 1)
+			vec.push_back(Jet_variable[i]);
 	return vec;
 }
 auto numberofbjets(const ints& bjets){
@@ -726,7 +728,7 @@ void calchisto(const dataSource ds){
 	// Read MC data source
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
-	switch(ds){// tzq has a different disk !
+	switch(ds){// tzq and Data use disk3!
 	case tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root";break;}/**/
 	case  ww:{temp_opener=temp_header+  "WWToLNuQQ"    +temp_footer;break;}
 	case  wz:{temp_opener=temp_header+  "WZTo1L1Nu2Q"  +temp_footer;break;}
@@ -755,9 +757,9 @@ void calchisto(const dataSource ds){
 		"/data/disk0/nanoAOD_2017/MET*/*.root"};/**/
 	ROOT::RDataFrame elnudfc(elnuEvents);// TODO: CMS and MET
 	ROOT::RDataFrame munudfc(munuEvents);// if channels unified still make two
-	auto dssbdf=dssbdfc.Range(0,100);// make test runs faster by restriction
-	auto elnudf=elnudfc.Range(0,100);// real run should not Range
-	auto munudf=munudfc.Range(0,100);
+	auto dssbdf=dssbdfc.Range(0,10000);// make test runs faster by restriction
+	auto elnudf=elnudfc.Range(0,10000);// real run should not Range
+	auto munudf=munudfc.Range(0,10000);
 	
 	channels ch = elnu;
 	switch(ch){
@@ -854,11 +856,17 @@ void calchisto(const dataSource ds){
 	.Define("no_btag_denom_eta" , select<floats> ,{"jec_jets_eta","no_btag_denom"})
 	.Define("sfi",btag_CSVv2( true),{"Jet_btagCSVV2","jec_jets_pt","jec_jets_eta"})// checks CSV
 	.Define("sfj",btag_CSVv2(false),{"Jet_btagCSVV2","jec_jets_pt","jec_jets_eta"})// dont check
-	.Filter(bjet_cut, {"is_bjets"}, "b jet cut");
+        .Define("lead_bjet"     , find_lead_mask,{"is_bjets", "jec_jets_pt"})
+        .Define(     "bjetpt"   ,"jec_jets_pt[lead_bjet]" )// Leading bjets 4-momentum
+        .Define(     "bjeteta"  ,"jec_jets_eta[lead_bjet]" )// used for top-reconst.
+        .Define(     "bjetphi"  ,"jec_jets_phi[lead_bjet]" )
+        .Define(     "bjetmass" ,"jec_jets_mass[lead_bjet]")
+        .Define("nbjets"  ,numberofbjets ,{"is_bjets"})
+	.Filter(bjet_cut, {"is_bjets"}, "b jet cut");// The three highest pts should be kept
 	
 	auto elnu_z_rec_selection
 	   = elnu_jets_bjets_selection
-	.Define(    "lead_bjet", find_lead_mask,{"is_bjets", "jec_jets_pt"})
+	//.Define(    "lead_bjet", find_lead_mask,{"is_bjets", "jec_jets_pt"})
 	.Define(  "z_reco_jets", find_z_pair   ,{"jec_jets_pt",
 	   "jec_jets_phi","jec_jets_eta","jec_jets_mass",
 	           "tight_jets","lead_bjet"})
@@ -878,16 +886,16 @@ void calchisto(const dataSource ds){
 	//.Filter(ZMet_deltaphi_cut, {"ZMet_deltaphi"}, "Z met cut ");
 	//.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
 	
-	auto elnu_brec_selection
+	/*auto elnu_brec_selection
 	   = elnu_z_rec_selection
-	.Define("bjetpt"  ,bjet_variable ,{"jec_jets_pt"  ,"nJet","lead_bjet"})
-	.Define("bjeteta" ,bjet_variable ,{"jec_jets_eta" ,"nJet","lead_bjet"})
-	.Define("bjetphi" ,bjet_variable ,{"jec_jets_phi" ,"nJet","lead_bjet"})
-	.Define("bjetmass",bjet_variable ,{"jec_jets_mass","nJet","lead_bjet"})
-	.Define("nbjets"  ,numberofbjets ,{"is_bjets"});
+	.Define("bjetpt"  ,"jec_jets_pt[lead_bjets]" )
+	.Define("bjeteta" ,"jec_jets_eta[lead_bjet]" )
+	.Define("bjetphi" ,"jec_jets_phi[lead_bjet]" )
+	.Define("bjetmass","jec_jets_mass[lead_bjet]")
+	.Define("nbjets"  ,numberofbjets ,{"is_bjets"});*/
 	
 	auto elnu_top_selection
-	   = elnu_brec_selection
+	   = elnu_z_rec_selection
 	.Define("recoTop" ,top_reconst,
 	       {"bjetpt"  ,"bjeteta" , "bjetphi" ,  "bjetmass",
 	        "w_el_pt" ,"w_el_eta", "w_el_phi", "w_el_mass"})
