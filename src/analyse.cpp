@@ -172,11 +172,11 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	std::cout << "I am starting"<<std::endl;
 	setTDRStyle();
 	//MC datasets
-	ROOT::RDataFrame   dc{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
-	ROOT::RDataFrame  wwc{"Events", "/data/disk0/nanoAOD_2017/WWToLNuQQ/*.root"};
-	ROOT::RDataFrame  wzc{"Events", "/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root"};
-	ROOT::RDataFrame ttZc{"Events", "/data/disk0/nanoAOD_2017/ttZToQQ/*.root"};
-	ROOT::RDataFrame  zzc{"Events", "/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root"};
+	ROOT::RDataFrame   d{"Events", "/data/disk3/nanoAOD_2017/tZqlvqq/*.root"};
+	ROOT::RDataFrame  ww{"Events", "/data/disk0/nanoAOD_2017/WWToLNuQQ/*.root"};
+	ROOT::RDataFrame  wz{"Events", "/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root"};
+	ROOT::RDataFrame ttZ{"Events", "/data/disk0/nanoAOD_2017/ttZToQQ/*.root"};
+	ROOT::RDataFrame  zz{"Events", "/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root"};
 
 //need to add the chain for real data...
 
@@ -188,7 +188,7 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunE/*.root");
 	SingleElectron.Add("/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_RunF/*.root");
 
-	ROOT::RDataFrame cmsc(SingleElectron);
+	ROOT::RDataFrame cms(SingleElectron);
 
 	TChain SingleMuon("Events");
 	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunB/*.root");
@@ -197,17 +197,17 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunE/*.root");
 	SingleMuon.Add("/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_RunF/*.root");
 
-	ROOT::RDataFrame smc(SingleMuon);
+	ROOT::RDataFrame sm(SingleMuon);
 
 	//ROOT::RDataFrame metc{"Events","/data/disk0/nanoAOD_2017/MET*/*.root"};
 
-	auto   d =   dc.Range(0, 1000);
+	/*auto   d =   dc.Range(0, 1000);
 	auto  ww =  wwc.Range(0, 100);
 	auto  wz =  wzc.Range(0, 100);
 	auto ttZ = ttZc.Range(0, 100);
 	auto  zz =  zzc.Range(0, 100);
 	auto  cms =  cmsc.Range(0, 100);
-	auto  sm =  smc.Range(0, 100);
+	auto  sm =  smc.Range(0, 100);*/
 	//auto met = metc.Range(0, 100);
 
 	std::cout << "I have looked up the dataset" << std::endl;

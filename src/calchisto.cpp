@@ -42,7 +42,7 @@ constexpr double MET_EL_PT   = 80;
 constexpr double MET_MU_PT   = 40;
 
 constexpr double   Z_MASS     = 91.1876;
-//constexpr double   Z_MASS_CUT = 20.;
+constexpr double   Z_MASS_CUT = 20.f;
 constexpr double   W_MASS     = 80.385;
 constexpr double   W_MASS_CUT = 20.;
 constexpr float  TOP_MASS     = 172.5f;
@@ -223,9 +223,9 @@ auto transverse_w_mass(const floats& lep__pt,
 /*auto w_mass_cut	= [](const floats& w_mass){
 	return std::abs(w_mass-W_MASS)<W_MASS_CUT;
 };*/
-/*auto z_mass_cut = [](const float& z_mass){
+auto z_mass_cut = [](const float& z_mass){
 	return std::abs(z_mass-Z_MASS)<Z_MASS_CUT;
-};*/
+};
 // TODO: top_mass_cut belongs here
 auto lep_nu_invmass(const floats& lep_pt    ,
                     const floats& lep_eta   ,
@@ -506,8 +506,7 @@ auto find_z_pair(const floats& pts,
 	size_t jet_index_1 = std::numeric_limits<size_t>::max();
 	size_t jet_index_2 = std::numeric_limits<size_t>::max();
 	const size_t njets = tight_jets.size();
-	if(!all_equal(pts.size(),etas.size(),phis.size(),ms.size(),
-		njets,lead_bjet.size()))
+	if(!all_equal(pts.size(),etas.size(),phis.size(),ms.size()))
 		throw std::logic_error("Collections must be the same size in Z-pair");
 	else if(    njets==0)
 		throw std::logic_error("Collections must not be empty in Z-pair");
@@ -757,9 +756,9 @@ void calchisto(const dataSource ds){
 		"/data/disk0/nanoAOD_2017/MET*/*.root"};/**/
 	ROOT::RDataFrame elnudfc(elnuEvents);// TODO: CMS and MET
 	ROOT::RDataFrame munudfc(munuEvents);// if channels unified still make two
-	auto dssbdf=dssbdfc.Range(0,10000);// make test runs faster by restriction
-	auto elnudf=elnudfc.Range(0,10000);// real run should not Range
-	auto munudf=munudfc.Range(0,10000);
+	auto dssbdf=dssbdfc.Range(0,1000000);// make test runs faster by restriction
+	auto elnudf=elnudfc.Range(0,1000000);// real run should not Range
+	auto munudf=munudfc.Range(0,1000000);
 	
 	channels ch = elnu;
 	switch(ch){
@@ -866,7 +865,6 @@ void calchisto(const dataSource ds){
 	
 	auto elnu_z_rec_selection
 	   = elnu_jets_bjets_selection
-	//.Define(    "lead_bjet", find_lead_mask,{"is_bjets", "jec_jets_pt"})
 	.Define(  "z_reco_jets", find_z_pair   ,{"jec_jets_pt",
 	   "jec_jets_phi","jec_jets_eta","jec_jets_mass",
 	           "tight_jets","lead_bjet"})
@@ -880,19 +878,11 @@ void calchisto(const dataSource ds){
 	       {  "z_pair_eta" ,"z_pair_phi","w_el_eta","w_el_phi"})
 	.Define(  "zw_deltaphi",   zw_deltaphi, {"z_pair_phi","w_el_phi"})
 	.Define("zmet_deltaphi", zmet_deltaphi,
-	       {"z_pair_phi", "MET_el_pt_sel"});
+	       {"z_pair_phi", "MET_el_pt_sel"})
 	//.Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
 	//.Filter(ZW_deltaphi_cut, {"ZW_deltaphi"}, "delta phi ZW cut")
 	//.Filter(ZMet_deltaphi_cut, {"ZMet_deltaphi"}, "Z met cut ");
-	//.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
-	
-	/*auto elnu_brec_selection
-	   = elnu_z_rec_selection
-	.Define("bjetpt"  ,"jec_jets_pt[lead_bjets]" )
-	.Define("bjeteta" ,"jec_jets_eta[lead_bjet]" )
-	.Define("bjetphi" ,"jec_jets_phi[lead_bjet]" )
-	.Define("bjetmass","jec_jets_mass[lead_bjet]")
-	.Define("nbjets"  ,numberofbjets ,{"is_bjets"});*/
+	.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
 	
 	auto elnu_top_selection
 	   = elnu_z_rec_selection
@@ -987,6 +977,9 @@ void calchisto(const dataSource ds){
 	auto h_elnu_transTopmass = elnu_P_btag.Histo1D({
 		"trans. Top mass",
 		"trans. Top mass",50,0,200},"Top_pt", "nw_top_pt");
+	auto h_elnu_tWmVsZmass_calc = elnu_P_btag.Histo2D({"mWt vs Zmass","mWt vs Zmass",50,0,150,50,0,150},"w_lep_mas","z_mass");
+	h_elnu_tWmVsZmass_calc->GetXaxis()->SetTitle( "mWt GeV/C^2");
+	h_elnu_tWmVsZmass_calc->GetYaxis()->SetTitle( "Zmass GeV/C^2");
 	// write histograms to a root file
 	temp_opener  = "elnu_";
 	switch(ds){
@@ -1006,6 +999,7 @@ void calchisto(const dataSource ds){
 	h_elnu_is_btag_denom_PtVsEta->Write();
 	h_elnu_no_btag_denom_PtVsEta->Write();
 	h_elnu_transTopmass->Write();
+	h_elnu_tWmVsZmass_calc->Write();
 	
 	hf.Close();
 	std::cout << "btag scale factor is "
