@@ -1250,11 +1250,11 @@ void analyse(const int ch)  // ch = 0 for el-nu, 1 for mu-nu
 	        {"z_pair_eta", "z_pair_phi", "tight_ele_eta", "tight_ele_phi"})
 	 .Define(  "ZW_deltaphi", ZW_deltaphi_func, {"z_pair_phi", "w_e_phi"})
 	 .Define("ZMet_deltaphi", ZMet_deltaphi_func,
-	        {"z_pair_phi", "MET_electron_pt_Selection"});
+	        {"z_pair_phi", "MET_electron_pt_Selection"})
 	 //.Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
 	 //.Filter(ZW_deltaphi_cut, {"ZW_deltaphi"}, "delta phi ZW cut")
 	 //.Filter(ZMet_deltaphi_cut, {"ZMet_deltaphi"}, "Z met cut ");
-	 //.Filter(z_mass_cut, {"z_mass"}, "z mass cut");
+	 .Filter(z_mass_cut, {"z_mass"}, "z mass cut");
 
 	auto d_enu_brec_selection
 	   = d_enu_z_rec_selection

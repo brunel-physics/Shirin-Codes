@@ -1,6 +1,6 @@
 .POSIX:
 .SUFFIXES:
-CXX   ?= g++
+CXX    = clang++
 SHELL  = /bin/sh
 
 TARGET = eta
