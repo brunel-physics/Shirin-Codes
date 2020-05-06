@@ -1,4 +1,4 @@
-// clang++ -std=c++17 src/calchisto.cpp src/eval_complex.cpp -o calchisto.o ` root-config --libs`
+// clang++ -std=c++17 src/calchisto.cpp src/eval_complex.cpp -o calchisto.o ` root-config --libs` 
 // TODO: get bjets from jec, now diff size vector error. new method required
 // TODO: tight_jets deltaphi, get from jec
 #include <ROOT/RDataFrame.hxx>
@@ -34,12 +34,12 @@ constexpr double BARREL_ETA_MAX = 1.4442;
 constexpr double MU__PT_MIN   = 40;//min 33, AP 40,
 //constexpr float  MU_LPT_MIN   = 26.f;// Leading
 constexpr double MU_ETA_MAX   = 2.4;
-//constexpr float  MU_LOOSE_ISO = .15f;
-//constexpr float  MU_TIGHT_ISO = .25f;
+constexpr float  MU_LOOSE_ISO = .15f;
+constexpr float  MU_TIGHT_ISO = .25f;
 
 //constexpr double MET__PT_MIN = 40;
 constexpr double MET_EL_PT   = 80;
-//constexpr double MET_MU_PT   = 40;
+constexpr double MET_MU_PT   = 40;
 
 constexpr double   Z_MASS     = 91.1876;
 //constexpr double   Z_MASS_CUT = 20.;
@@ -102,7 +102,7 @@ auto   mu_sel(const float   target_iso){
 		return (   ids      && isPFs
 		       &&  pts      >  MU__PT_MIN
 		       &&  abs_etas <  MU_ETA_MAX
-		       &&  isos     <= target_iso);
+		       &&  isos     <= target_iso);// TODO: WEIRD
 	};
 }
 auto lep_cut(const floats& tight_pts,const floats& loose_pts){
@@ -118,18 +118,62 @@ auto get_w_lep_string(const channels ch,const PtEtaPhiM ss){
 		case eta:{result="eta" ;break;}
 		case phi:{result="phi" ;break;}
 		case   m:{result="mass";break;}// Plotting histograms
-		default :{throw std::invalid_argument("Unimplemented PtEtaPhiM");}
+		default :{throw std::invalid_argument(
+			"Unimplemented PtEtaPhiM (get_w_lep_string)");}
 	}
 	switch (ch){
 		case elnu:{result="Electron_"+ result +"[tight_els]";break;}
 		case munu:{result=    "Muon_"+ result +"[tight_mus]";break;}
-		default  :{throw std::invalid_argument("Unimplemented ch");}
+		default  :{throw std::invalid_argument(
+			"Unimplemented ch (get_w_lep_string)");}
 	}
 	return result;
 }
 auto lep_met_selector(const float lower_bound){
 	return [=](const float&  met_lep_pt_sel)->bool
 	   {return lower_bound < met_lep_pt_sel;};
+}
+auto met_pt_cut(const channels ch){
+	switch(ch){// TODO: lep_met_selector should be merged
+		case elnu:return lep_met_selector(MET_EL_PT);
+		case munu:return lep_met_selector(MET_MU_PT);
+		default  :throw std::invalid_argument(
+		"Unimplemented ch (met_pt_cut)");
+	}
+}
+auto lep_sel(const channels ch){
+  return [=](const  bools& isPFs,
+             const floats& pts,
+             const floats& etas,
+             const   ints& elids,
+             const  bools& muids,
+             const floats& isos){
+		switch(ch){
+			case elnu:return el_sel(EL_LOOSE_ID )(isPFs,pts,etas,elids);
+			case munu:return mu_sel(MU_LOOSE_ISO)(isPFs,pts,etas,muids,isos);
+			default  :throw std::invalid_argument(
+			"Unimplemented ch (lep_sel)");
+		}
+	};
+}
+auto lep_tight_cut(const channels ch){
+        return [=](const ints& mask,
+                   const   ints& elids,
+                   const floats& isos){
+		bool result;
+		      if(ch==elnu){
+			ints   temp = elids[mask];
+			result = temp.size() == 1;
+			result = result && temp[0] >= EL_TIGHT_ID;
+		}else if(ch==munu){
+			floats temp = isos[mask];
+			result = temp.size() == 1;// TODO: WEIRD
+			result = result && temp[0] >= MU_TIGHT_ISO;
+		}else{throw std::invalid_argument(
+			"Unimplemented ch (lep_tight_cut)"
+		);}
+		return result;
+	};
 }
 /*
 auto el_met_selector
@@ -187,8 +231,9 @@ auto lep_nu_invmass(const floats& lep_pt    ,
                     const floats& lep_eta   ,
                     const floats& lep_phi   ,
                     const floats& lep_mass  ,
-                    const float & cal_metphi,
-                    const float & cal_metpt ){
+                    const float & cal_metpt ,
+                    const float & cal_metphi){//,
+                    //const float & cal_metEt ){// cal_metEt is unused
 	// this function computes the invariant mass of charged lepton
 	// and neutrino system, in order to calculate the W mass later on.
 	TLorentzVector lep,neu;
@@ -213,9 +258,9 @@ auto jet_lep_min_deltaR(const floats& jet_etas,
 	else if(lep_phis.empty())
 		throw std::logic_error("Collections must not be empty for lep in jet-lep dR");
 	if(!all_equal(jet_etas.size(),jet_phis.size()))
-                throw std::logic_error("Collections must be the same size for jets in jet-lep dR");
-        else if(lep_phis.empty())
-                throw std::logic_error("Collections must not be empty for jets in jet-lep dR");
+		throw std::logic_error("Collections must be the same size for jets in jet-lep dR");
+	else if(lep_phis.empty())
+		throw std::logic_error("Collections must not be empty for jets in jet-lep dR");
 	floats min_dRs;
 	std::transform(
 		jet_etas.begin(),
@@ -265,42 +310,37 @@ auto bjet_cut(const ints& bjets){
 	return nbjet >= BJETS_MIN && nbjet <= BJETS_MAX;
 }
 auto is_bjet_id(const floats& etas,const floats& btags){// added jec_eta
-
 	ints is_bjets(etas.size(),0);// vector of zero
 	for(size_t i=0;i<etas.size();++i)// etas size <= 6
 	if((btags[i]>BTAG_DISC_MIN)&&(abs(etas[i])<BJET_ETA_MAX))is_bjets[i]+=1;
 	return is_bjets;
 }
 auto no_bjet_id   (const floats& etas)
-	{cout<<"no_bjet_id"<<endl; return (abs(etas)<BJET_ETA_MAX);}
+	{return (abs(etas)<BJET_ETA_MAX);}
 auto is_bjet_numer(const ints& id,const ints& is_bjet){
-	cout<<"is_bjet_numer"<<endl;
 	ints bjet_numer(is_bjet.size(),0);// vector of zero
-	for(int i=0;i<is_bjet.size();i++)if(id[i]==5)bjet_numer[i]+=1;
+	for(size_t i=0;i<is_bjet.size();i++)if(id[i]==5)bjet_numer[i]+=1;
 	return bjet_numer;
 }
 auto is_bjet_denom(const ints& id,const ints& no_bjet){
-	cout<<"is_bjet_denom"<<endl;
 // using no_bjet_id particles not matching btag criteria
 	ints bjet_denom(no_bjet.size(),0);// vector of zero
-	for(int i=0;i<no_bjet.size();i++)if(id[i]==5)bjet_denom[i]+=1;
+	for(size_t i=0;i<no_bjet.size();i++)if(id[i]==5)bjet_denom[i]+=1;
 	return bjet_denom;
 }
 auto no_bjet_numer(const ints& id,const ints& is_bjet){
-	cout<<"no_bjet_numer"<<endl;
 // using bjets which has satisfied is btag conditions
 	const auto aid = abs(id);
 	ints non_bjet_numer(is_bjet.size(),0);// vector of zero
-	for(int i=0;i<is_bjet.size();i++)
+	for(size_t i=0;i<is_bjet.size();i++)
 		if((aid[i] > 0&& aid[i] <= 4) || aid[i] == 21 || aid[i] != 5)non_bjet_numer[i]+=1;
 	return non_bjet_numer;
 }
 auto no_bjet_denom(const ints& id,const ints& no_bjet){
-	cout<<"no_bjet_denom"<<endl;
 // using bjets which has satisfied no btag condition
 	const auto aid = abs(id);
 	ints no_bjet_denom(no_bjet.size(),0);// vector of zero
-	for(int i=0;i<no_bjet.size();i++)
+	for(size_t i=0;i<no_bjet.size();i++)
 		if((aid[i] > 0 && aid[i] <= 4) || aid[i] == 21 || aid[i] != 5)no_bjet_denom[i]+=1;
 	return no_bjet_denom;
 }
@@ -412,8 +452,8 @@ auto delta_R_jet_smear(const floats& pt,
 		throw std::logic_error("gen_pt shorter than pt");
 	else if(pt.empty())
 		throw std::logic_error("Collections must not be empty in deltaR_Jsmear");
-	else if(pt.size() < deltaR.size())
-		throw std::logic_error("deltaR in Delta_R_jet_smear lacks sufficienct data");
+	else if(pt.size() > deltaR.size())
+		throw std::logic_error("deltaR in Delta_R_jet_smear lacks sufficient data");
 	const size_t  size = pt.size();
 	floats cjers(    size,0.f);// correction factor
 	for(size_t i=0;i<size;++i){
@@ -660,7 +700,7 @@ auto sf(const dataSource ds){
 			case  wz:{result = WZLNQQ_W;break;}
 			case  zz:{result = ZZLLQQ_W;break;}
 			case ttz:{result =  TTZQQ_W;break;}
-			default :{throw std::invalid_argument("Unimplemented ds");}
+			default :{throw std::invalid_argument("Unimplemented ds (infile)");}
 		}
 		return result * b;
 	};
@@ -692,7 +732,7 @@ void calchisto(const dataSource ds){
 	case  wz:{temp_opener=temp_header+  "WZTo1L1Nu2Q"  +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+  "ZZTo2L2Q"     +temp_footer;break;}
 	case ttz:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
-	default :{throw std::invalid_argument("Unimplemented ds");}
+	default :{throw std::invalid_argument("Unimplemented ds (rdfopen)");}
 	}
 	ROOT::RDataFrame dssbdfc{"Events",temp_opener};
 	
@@ -719,37 +759,52 @@ void calchisto(const dataSource ds){
 	auto elnudf=elnudfc.Range(0,100);// real run should not Range
 	auto munudf=munudfc.Range(0,100);
 	
-	auto elnu_event_selection = dssbdf// data source signal background data frame
-	.Define("tight_els"    ,el_sel(EL_TIGHT_ID),
-	   {"Electron_isPFcand","Electron_pt","Electron_eta","Electron_cutBased"})
-	.Define("tight_el_pt"  ,select<floats>, {"Electron_pt"  , "tight_els"})
-	.Define("tight_el_eta" ,select<floats>, {"Electron_eta" , "tight_els"})
-	.Define("tight_el_phi" ,select<floats>, {"Electron_phi" , "tight_els"})
-	.Define("tight_el_mas" ,select<floats>, {"Electron_mass", "tight_els"})
-	.Define("loose_els"    ,el_sel(EL_LOOSE_ID),
-	   {"Electron_isPFcand","Electron_pt","Electron_eta","Electron_cutBased"})
-	.Define("loose_el_pt"  ,select<floats>, {"Electron_pt" , "loose_els"})
-	.Define("MET___phi_sel",{"MET_phi"})
-	.Define("MET_el_pt_sel",{"MET_pt" })
-	.Filter(lep_met_selector(MET_EL_PT),{"MET_el_pt_sel"}, "MET PT CUT")
-	.Filter(lep_cut, {"tight_el_pt", "loose_el_pt"}, "lepton cut");
-	
-	auto elnu_w_selection
-	   = elnu_event_selection
-	.Define("w_el_pt"  ,get_w_lep_string(elnu,pt ))
-	.Define("w_el_eta" ,get_w_lep_string(elnu,eta))
-	.Define("w_el_phi" ,get_w_lep_string(elnu,phi))
-	.Define("w_el_mass",transverse_w_mass, {"w_el_pt","w_el_phi",
-	        "MET_el_pt_sel","MET___phi_sel"})
-	.Define("elnu_invmass" ,lep_nu_invmass, {"tight_el_pt","tight_el_eta",
-	        "tight_el_phi" ,"tight_el_mas",
-	         "CaloMET_phi" ,"CaloMET_pt"});
+	channels ch = elnu;
+	switch(ch){
+		case elnu:{temp_header = "Electron_";break;}
+		case munu:{temp_header =     "Muon_";break;}
+		default  :{throw std::invalid_argument("Unimplemented ch (rdfopen)");}
+	}
+	auto w_selection = dssbdf
+	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
+	.Define("loose_leps",lep_sel(ch),
+	       {temp_header+"isPFcand",
+	        temp_header+"pt" ,
+	        temp_header+"eta",
+	        "Electron_cutBased",
+	        "Muon_tightId",
+	        "Muon_pfRelIso04_all"})
+	.Filter(lep_tight_cut(ch),{"loose_leps",
+	        "Electron_cutBased",
+	        "Muon_pfRelIso04_all"},"lepton cut")// cuts out all loose leptons.
+	.Define("w_lep__pt",temp_header+  "pt[loose_leps]")
+	.Define("w_lep_eta",temp_header+ "eta[loose_leps]")
+	.Define("w_lep_phi",temp_header+ "phi[loose_leps]")
+	.Define(  "lep_mas",temp_header+"mass[loose_leps]")
+	.Define("w_lep_mas",transverse_w_mass,
+	       {"w_lep__pt",
+	        "w_lep_phi","MET_pt","MET_phi"})
+	.Define("lep_nu_invmass",lep_nu_invmass,
+	       {"w_lep__pt",
+	        "w_lep_eta",
+	        "w_lep_phi",
+	          "lep_mas",
+	       "CaloMET_pt",//     TODO: unwrap RVec of 1 element
+	       "CaloMET_phi"})
+//	       "CaloMET_sumEt"})// TODO: add this back
+	.Define("w_el_pt"  ,"w_lep__pt")// Shortcut to get the code working for now
+	.Define("w_el_eta" ,"w_lep_eta")
+	.Define("w_el_phi" ,"w_lep_phi")
+	.Define("w_el_mass","w_lep_mas")
+        .Define("MET___phi_sel",{"MET_phi"})
+        .Define("MET_el_pt_sel",{"MET_pt" })
+	;
 	//.Filter(w_mass_cut, {"w_el_mass"}, "W mass cut");
 	
 	// There is a Histogram1D done on w_selection
 	
 	auto elnu_jets_selection
-	   = elnu_w_selection
+	   = w_selection
 	.Define("jet_el_min_dR"  , jet_lep_min_deltaR,
 	       {"Jet_eta","Jet_phi","w_el_eta","w_el_phi"})
 	.Define("tight_jets"     , tight_jet_id   ,
@@ -803,7 +858,7 @@ void calchisto(const dataSource ds){
 	
 	auto elnu_z_rec_selection
 	   = elnu_jets_bjets_selection
-	.Define(    "lead_bjet", find_lead_mask,{"is_bjets", "Jet_pt"})
+	.Define(    "lead_bjet", find_lead_mask,{"is_bjets", "jec_jets_pt"})
 	.Define(  "z_reco_jets", find_z_pair   ,{"jec_jets_pt",
 	   "jec_jets_phi","jec_jets_eta","jec_jets_mass",
 	           "tight_jets","lead_bjet"})
@@ -814,7 +869,7 @@ void calchisto(const dataSource ds){
 	.Define(  "z_mass"     , inv_mass,
 	       {  "z_pair_pt"  ,"z_pair_eta","z_pair_phi","z_pair_mass"})
 	.Define(  "z_el_min_dR", jet_lep_min_deltaR,
-	       {  "z_pair_eta" ,"z_pair_phi","tight_el_eta","tight_el_phi"})
+	       {  "z_pair_eta" ,"z_pair_phi","w_el_eta","w_el_phi"})
 	.Define(  "zw_deltaphi",   zw_deltaphi, {"z_pair_phi","w_el_phi"})
 	.Define("zmet_deltaphi", zmet_deltaphi,
 	       {"z_pair_phi", "MET_el_pt_sel"});
@@ -836,16 +891,16 @@ void calchisto(const dataSource ds){
 	.Define("recoTop" ,top_reconst,
 	       {"bjetpt"  ,"bjeteta" , "bjetphi" ,  "bjetmass",
 	        "w_el_pt" ,"w_el_eta", "w_el_phi", "w_el_mass"})
-	.Define("Top_Pt"  ,TLVex(pt ),{"recoTop"})
-	.Define("Top_Eta" ,TLVex(eta),{"recoTop"})
-	.Define("Top_Phi" ,TLVex(phi),{"recoTop"})
-	.Define("Top_Mass",TLVex( m ),{"recoTop"});
+	.Define("Top_pt"  ,TLVex(pt ),{"recoTop"})
+	.Define("Top_eta" ,TLVex(eta),{"recoTop"})
+	.Define("Top_phi" ,TLVex(phi),{"recoTop"})
+	.Define("Top_mass",TLVex( m ),{"recoTop"});
 	
 	temp_header = "_elnu_tzq";// repeated for histogram names
 	temp_footer = " pt vs eta in electron-neutrino channel for tZq";// histogram titles
 	auto h_elnu_mass
-	   = elnu_w_selection
-	.Histo1D({"elnu_invmass", "elnu_invmass",50,0,200},"elnu_invmass");// lepton and neutrino system invariant mass histogram
+	   = w_selection
+	.Histo1D({"elnu_invmass", "elnu_invmass",50,0,200},"lep_nu_invmass");// lepton and neutrino system invariant mass histogram
 	auto h_elnu_is_btag_numer_PtVsEta
 	   = elnu_top_selection
 	.Histo2D({static_cast<const char*>((        "is_numer" + temp_header).c_str()),
@@ -904,8 +959,8 @@ void calchisto(const dataSource ds){
 	.Define("P_Data" ,"Pi_sfei * Pi_sfej")
 	.Define("btag_w" ,btag_weight,{"P_Data","P_MC"})
 	.Define("sf"     ,sf(ds)     ,{"btag_w"})
-	.Define("nw_tight_el_pt"     ,rep_const,{"sf","tight_el_pt"    })
-	.Define("nw_tight_el_eta"    ,rep_const,{"sf","tight_el_eta"   })
+	.Define("nw_tight_el_pt"     ,rep_const,{"sf","w_el_pt"    })
+	.Define("nw_tight_el_eta"    ,rep_const,{"sf","w_el_eta"   })
 	.Define("nw_tight_jets_pt"   ,rep_const,{"sf","jec_jets_pt"  })
 	.Define("nw_tight_jets_eta"  ,rep_const,{"sf","jec_jets_eta" })
 	.Define("nw_tight_jets_phi"  ,rep_const,{"sf","jec_jets_phi" })
@@ -920,8 +975,10 @@ void calchisto(const dataSource ds){
 	.Define("nw_top_pt"  ,"sf")
 	.Define("nw_top_mass","sf");
 	
-// Testing top mass histo
-auto h_elnu_transTopmass = elnu_P_btag.Histo1D({"trans. Top mass","trans. Top mass",50,0,200},"Top_pt","nw_top_pt");
+	// Testing top mass histo
+	auto h_elnu_transTopmass = elnu_P_btag.Histo1D({
+		"trans. Top mass",
+		"trans. Top mass",50,0,200},"Top_pt", "nw_top_pt");
 	// write histograms to a root file
 	temp_opener  = "elnu_";
 	switch(ds){
@@ -930,7 +987,7 @@ auto h_elnu_transTopmass = elnu_P_btag.Histo1D({"trans. Top mass","trans. Top ma
 		case  wz:{temp_opener+="wz_";break;}
 		case  zz:{temp_opener+="zz_";break;}
 		case ttz:{temp_opener+="ttz";break;}
-		default :{throw std::invalid_argument("Unimplemented ds");}
+		default :{throw std::invalid_argument("Unimplemented ds (outfile)");}
 	}
 	temp_opener += ".histo";
 	TFile hf(static_cast<const char*>(temp_opener.c_str()),"RECREATE");
@@ -943,6 +1000,6 @@ auto h_elnu_transTopmass = elnu_P_btag.Histo1D({"trans. Top mass","trans. Top ma
 	h_elnu_transTopmass->Write();
 	
 	hf.Close();
-	std::cout << "btag scale factor is"
-	<< elnu_P_btag.Take<float>("sf").GetValue()[0] << std::endl;
+	std::cout << "btag scale factor is "
+	<< *sf << std::endl;
 }
