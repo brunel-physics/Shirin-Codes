@@ -213,6 +213,7 @@ auto jet_lep_min_deltaR(const floats& jet_etas,
 	else if(lep_phis.empty())
 		throw std::logic_error(
 		      "Collections must not be empty for (jet)(jet-lep dR)");
+	cout<<"in jet_lep_min_dR"<<endl;
 	floats min_dRs;
 	std::transform(
 		jet_etas.begin(),
@@ -1049,16 +1050,21 @@ void calchisto(const dataSource ds){
 //		static_cast<const char*>(("trans. Top mass" + temp_header).c_str()),
 //		50,0,200},
 //		"ttop__pt","nw_ttop__pt");
-	auto 
+/*	auto
 	h_tWmVsZmass_calc = P_btag.Histo2D({
 		static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
 		static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
-		50,0,150,50,0,150},
-		"tw_lep_mas","z_mass");
+		50,0,200,50,0,200},
+		"z_mass","tw_lep_mas");
 	h_tWmVsZmass_calc->GetXaxis()->SetTitle("tWm   GeV/C^2");
 	h_tWmVsZmass_calc->GetYaxis()->SetTitle("Zmass GeV/C^2");
-
+*/
 	// write histograms to a root file
+
+	auto h_Zmass_calc = P_btag.Histo1D({"z mass" ,"z mass",50,0,200},"z_mass"    ,"nw__z_mass");
+	auto h_tWm_calc   = P_btag.Histo1D({"tW mass","z_mass",50,0,200},"tw_lep_mas","nw_tw_lep_mas");
+	auto h_tWmVsZmass_calc = P_btag.Histo2D({"test","test",50,0,200,50,0,200},"bjet__pt","bjet_eta");
+
 	switch(ch){
 		case elnu:{temp_opener ="elnu_";break;}
 		case munu:{temp_opener ="munu_";break;}
@@ -1084,7 +1090,8 @@ void calchisto(const dataSource ds){
 	h_no_btag_denom_PtVsEta->Write();
 //	h_transTopmass->Write();
 	h_tWmVsZmass_calc->Write();
-	
+	h_Zmass_calc->Write();
+	h_tWm_calc->Write();
 	hf.Close();
 //	std::cout << "btag weight is " << std::endl;
 //	<< *btag_w << std::endl;
