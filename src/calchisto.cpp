@@ -1,6 +1,4 @@
-// clang++ -std=c++17 src/calchisto.cpp src/eval_complex.cpp -o calchisto.o `root-config --libs`
-// TODO: get bjets from jec, now diff size vector error. new method required
-// TODO: tight_jets deltaphi, get from jec
+// TODO: fix the break segmentation what comes after inv_mass?
 #include <ROOT/RDataFrame.hxx>
 #include <TLorentzVector.h>
 #include <TRandom3.h>
@@ -20,6 +18,7 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
+constexpr int    debug = 1;
 //constexpr double EL_MAX_NUM  = 1;
 constexpr double EL__PT_MIN  = 45;//{15}//min 12, AP 45,
 //constexpr float  EL_LPT_MIN  = 35.f;// Leading
@@ -99,7 +98,7 @@ auto lep_tight_cut(const channels ch){
 			result = result && temp[0] >= EL_TIGHT_ID;
 		}else if(ch==munu){
 			floats temp = isos[mask];
-			result = temp.size() == 1;
+			result = temp.size() == 1;// TODO: WEIRD
 			result = result && temp[0] >= MU_TIGHT_ISO;
 		}else{throw std::invalid_argument(
 			"Unimplemented ch (lep_tight_cut)"
@@ -228,11 +227,11 @@ auto tight_jet_id(const floats& jet_lep_min_dRs,
                   const floats& pts,
                   const floats& etas,
                   const   ints& ids){
-	cout<<"tight_jet_id"<<endl;
+	if(debug>0) std::cout<<"tight_jet_id"<<std::endl;
 	return pts>JET__PT_MIN&&abs(etas)<JET_ETA_MAX&&jet_lep_min_dRs>JET_ISO&&ids>=2;
 }
 auto jet_deltaphi(const floats& phis){
-	cout<<"jet deltaphi"<<endl;
+	if(debug>0) std::cout<<"jet deltaphi"<<std::endl;
 	floats deltaphis;// half of anti-symmetric matrix has n(n-1)/2 elements
 	deltaphis.reserve((phis.size()*(phis.size()-1))/2);
 	// The following two for loops stack correctly
@@ -243,19 +242,18 @@ auto jet_deltaphi(const floats& phis){
 	return deltaphis;
 }
 auto jets_gen_select(const floats& gen, const floats& jet){
-	cout<<"gen select"<<endl;
+	if(debug>0) std::cout<<"gen select"<<std::endl;
 // select jets that have generated level info; used @ JEC
 // use this function ONLY for Monte Carlo, not CMS / MET
-	size_t size = gen.size() < jet.size() ? gen.size() : jet.size();
-	floats good_jets(size);
-	/*if(jet.size() == gen.size())for(size_t i=0;i<jet.size();i++)good_jets[i]=jet[i];
-	if(jet.size() <  gen.size())for(size_t i=0;i<jet.size();i++)good_jets[i]=jet[i];
-	if(jet.size() >  gen.size())for(size_t i=0;i<gen.size();i++)good_jets[i]=jet[i];*/
-	for(size_t i=0;i<size;i++)good_jets[i]=jet[i];
-	return good_jets;
+	if(gen.size() < jet.size()){
+		size_t size = gen.size();
+		floats good_jets(size);
+		for(size_t i=0; i < size ;++i) good_jets[i] = jet[i];
+		return good_jets;
+	}else	return   jet;
 }
 auto  jet_cut(const ints& tight_jets){
-	cout<<"jet cut"<<endl;
+	if(debug>0) std::cout<<"jet cut"<<std::endl;
 	const auto njet = std::count_if(
 		tight_jets.begin(),
 		tight_jets  .end(),
@@ -263,7 +261,7 @@ auto  jet_cut(const ints& tight_jets){
 	return (njet >= JETS_MIN) && (njet <= JETS_MAX);
 }
 auto bjet_cut(const ints& bjets){
-	cout<<"bjet cut"<<endl;
+	if(debug>0) std::cout<<"bjet cut"<<std::endl;
 	const auto nbjet = std::count_if(
 		bjets.begin(),
 		bjets  .end(),
@@ -272,7 +270,7 @@ auto bjet_cut(const ints& bjets){
 }
 auto jet_smear_pt_resol
 	(const floats& pt,const floats& eta,const float& rho){
-	cout<<"jet smear pt resol"<<endl;
+	if(debug>0) std::cout<<"jet smear pt resol"<<std::endl;
 	float min_eta,max_eta,min_rho,max_rho;
 	float min_pt,max_pt;
 	int   z;// CSV provided parameter we are not using
@@ -297,7 +295,7 @@ auto jet_smear_pt_resol
 	return resol;
 }
 auto jet_smear_Sjer(const floats& eta){
-	cout<<"jet smear sjer"<<endl;
+	if(debug>0) std::cout<<"jet smear sjer"<<std::endl;
 	float min_eta,max_eta;
 	int   z;// unwanted
 	float central_SF,SF_dn,SF_up;
@@ -319,7 +317,7 @@ auto delta_R_jet_smear(const floats& pt,
                        const floats& resol,
                        const floats& Sjer,
                        const floats& deltaR){
-	cout<<"delta r jet smear"<<endl;
+	if(debug>0) std::cout<<"delta r jet smear"<<std::endl;
 	if(!all_equal(pt.size(),resol.size(),Sjer.size()))
 		throw std::logic_error("Collections must be the same size in deltaR_Jsmear");
 	else if(gen_pt.size() < pt.size())
@@ -345,7 +343,7 @@ auto delta_R_jet_smear(const floats& pt,
 	return cjers;
 }
 auto cjer(const floats& jet,const floats& cjer){
-	cout<<"cjer"<<endl;
+	if(debug>0) std::cout<<"cjer"<<std::endl;
 	floats  weighted(    jet.size());// to use on jets 4-momenta, PtEtaPhiM
 	if(!all_equal(       jet.size(),cjer.size()))
 		throw std::logic_error("Collections must be the same size in Cjer");
@@ -354,51 +352,50 @@ auto cjer(const floats& jet,const floats& cjer){
 	for(size_t i=0; i <  jet.size() ;++i) weighted[i] = jet[i]*cjer[i];
 	return weighted;
 }
-auto is_bjet_id(const floats& etas,const floats& btags){// added jec_eta
-	cout<<"is bjet id"<<endl;
-	ints is_bjets(etas.size(),0);// vector of zero
+auto      is_bjet_id(const floats& etas,const floats& btags){// added jec_eta
+	ints   is_bjets(etas.size(),0);// vector of zero
 	for(size_t i=0;i<etas.size();++i)// etas size <= 6
-	if((btags[i]>BTAG_DISC_MIN)&&(abs(etas[i])<BJET_ETA_MAX))is_bjets[i]+=1;
+	if(btags[i]>BTAG_DISC_MIN&&abs(etas[i])<BJET_ETA_MAX)is_bjets[i]+=1;
 	return is_bjets;
 }
-auto no_bjet_id   (const floats& etas)
-	{return (abs(etas)<BJET_ETA_MAX);}
-auto is_bjet_numer(const ints& id,const ints& is_bjet){
-	cout<<"is bjet numer"<<endl;
-	ints bjet_numer(is_bjet.size(),0);// vector of zero
-	for(size_t i=0;i<is_bjet.size();i++)if(id[i]==5)bjet_numer[i]+=1;
-	return bjet_numer;
+auto      no_bjet_id(const floats& etas)
+	{return abs(etas)<BJET_ETA_MAX;}
+
+auto      is_bjet_numer(const ints& id,const ints& is_bjet){
+	ints   is_bjet_numer(is_bjet.size(),0);// vector of zero
+	for(size_t i=0; i < is_bjet.size() ;i++)
+		if(id[i]==5) is_bjet_numer[i]+=1;
+	return is_bjet_numer;
 }
-auto no_bjet_numer(const ints& id,const ints& is_bjet){
-	cout<<"no bjet numer"<<endl;
+auto      no_bjet_numer(const ints& id,const ints& is_bjet){
 // using bjets which has satisfied is btag conditions
 	const auto aid = abs(id);
-	ints non_bjet_numer(is_bjet.size(),0);// vector of zero
+	ints   no_bjet_numer(is_bjet.size(),0);// vector of zero
 	for(size_t i=0;i<is_bjet.size();i++)
-		if((aid[i] > 0&& aid[i] <= 4) || aid[i] == 21 || aid[i] != 5)non_bjet_numer[i]+=1;
-	return non_bjet_numer;
+		if((aid[i] >  0  && aid[i] <= 4)
+		||  aid[i] == 21 || aid[i] != 5) no_bjet_numer[i]+=1;
+	return no_bjet_numer;
 }
-auto is_bjet_denom(const ints& id,const ints& no_bjet){
-	cout<<"is bjet denom"<<endl;
+auto      is_bjet_denom(const ints& id,const ints& no_bjet){
 // using no_bjet_id particles not matching btag criteria
-	ints bjet_denom(no_bjet.size(),0);// vector of zero
-	for(size_t i=0;i<no_bjet.size();i++)if(id[i]==5)bjet_denom[i]+=1;
-	return bjet_denom;
+	ints   is_bjet_denom(no_bjet.size(),0);// vector of zero
+	for(size_t i=0; i < no_bjet.size() ;i++) 
+		if(id[i]==5) is_bjet_denom[i]+=1;
+	return is_bjet_denom;
 }
-auto no_bjet_denom(const ints& id,const ints& no_bjet){
-	cout<<"no bjet denom"<<endl;
+auto      no_bjet_denom(const ints& id,const ints& no_bjet){
 // using bjets which has satisfied no btag condition
 	const auto aid = abs(id);
-	ints no_bjet_denom(no_bjet.size(),0);// vector of zero
+	ints   no_bjet_denom(no_bjet.size(),0);// vector of zero
 	for(size_t i=0;i<no_bjet.size();i++)
-		if((aid[i] > 0 && aid[i] <= 4) || aid[i] == 21 || aid[i] != 5)no_bjet_denom[i]+=1;
+		if((aid[i] >  0  && aid[i] <= 4)
+		||  aid[i] == 21 || aid[i] != 5) no_bjet_denom[i]+=1;
 	return no_bjet_denom;
 }
-auto btag_CSVv2(const bool    check_CSV){
-   return   [=](const floats& btag,
-                const floats& pt,
-                const floats& eta){
-		cout<<"btag csvv2"<<endl;
+auto btagCSVv2(const bool    check_CSV){
+   return  [=](const floats& btag,
+               const floats& pt,
+               const floats& eta){
 		bool b;// magic btag checker; heavily reused
 		strings formulae(pt.size(),"0");// vector of "0"
 		floats   results(pt.size());
@@ -453,7 +450,7 @@ auto btag_CSVv2(const bool    check_CSV){
 	};
 }
 auto find_lead_mask(const ints& mask,const floats& vals){
-	cout<<"lead mask"<<endl;
+	if(debug>0) std::cout<<"lead mask"<<std::endl;
 	if(!all_equal(mask.size(),vals.size()))
 		throw std::logic_error("Collections must be the same size in lead_mask");
 	else if(mask.empty())
@@ -473,7 +470,7 @@ auto find_z_pair(const floats& pts,
                  const floats& ms,
                  const   ints& tight_jets,
                  const   ints& lead_bjet){
-	cout<<"find z pair"<<endl;
+	if(debug>0) std::cout<<"find z pair"<<std::endl;
 	// This function finds the pair nearest to z mass
 	double z_reco_mass = std::numeric_limits<double>::infinity();
 	size_t jet_index_1 = std::numeric_limits<size_t>::max();
@@ -485,8 +482,8 @@ auto find_z_pair(const floats& pts,
 		throw std::logic_error("Collections must not be empty in Z-pair");
 	ints z_pair(njets, 0);// vector of zeroes
 	// The next two for loops stack correctly with the if
-	for(size_t   i=0; i < njets ;++i){
-	for(size_t j=i+1; j < njets ;++j){
+	for(size_t   i=0; i < njets-1 ;++i){
+	for(size_t j=i+1; j < njets   ;++j){
 	if(tight_jets[i] != 0 || tight_jets[j] != 0 || lead_bjet[i] != 1 || lead_bjet[j] != 1){
 		TLorentzVector jet1,jet2;
 		jet1.SetPtEtaPhiM(pts[i],etas[i],phis[i],ms[i]);
@@ -500,12 +497,12 @@ auto find_z_pair(const floats& pts,
 	}}}
 	z_pair[jet_index_1] = 1;
 	z_pair[jet_index_2] = 1;
-	cout<<"z pair"<<z_pair<<endl;
+	if(debug>0) std::cout<<"z pair"<<z_pair<<std::endl;
 	return z_pair;
 }
 [[gnu::const]] auto inv_mass(
 	const floats& pts,const floats& etas,const floats& phis,const floats& ms){
-	cout<<"inv mass"<<endl;
+	if(debug>0) std::cout<<"inv mass"<<std::endl;
 	if(!all_equal(pts.size(),etas.size(),phis.size(),ms.size()))
 		throw std::logic_error("Collections must be the same size in inv_mass");
 	else if(pts.empty())
@@ -515,10 +512,11 @@ auto find_z_pair(const floats& pts,
 		p.SetPtEtaPhiM(pts[i],etas[i],phis[i],ms[i]);
 		vec += p;
 	}
+	if(debug>0) std::cout<<"inv mass "<< static_cast<float>(vec.M()) <<std::endl;
 	return static_cast<float>(vec.M());
 }
 auto zw_deltaphi(const floats& phis1,const floats& phis2){
-	cout<<"zw deltaphi"<<endl;
+	if(debug>0) std::cout<<"zw deltaphi"<<std::endl;
 	const size_t   p1s = phis1.size();
 	const size_t   p2s = phis2.size();
 	floats results(p2s * p1s);
@@ -531,7 +529,7 @@ auto zw_deltaphi(const floats& phis1,const floats& phis2){
 	return results;
 }
 auto zmet_deltaphi(const floats& z_phi,const float& met_pt){
-	cout<<"zmet deltaphi"<<endl;
+	if(debug>0) std::cout<<"zmet deltaphi"<<std::endl;
 	floats      results(z_phi.size());
 	for(size_t i=0; i < z_phi.size() ;++i)
 		results[i] = std::abs(delta_phi(z_phi[i]-met_pt));
@@ -550,18 +548,18 @@ auto zmet_deltaphi_cut(const floats& deltaPhi){
 	              [](float delta){return delta >= DELTA_PHI_ZMET;});
 }*/
 
-auto bjet_variable(const        floats&  Jet_variable,
-                   const          ints& lead_bjet){
+auto bjet_variable(const floats& Jet_variable,
+                   const   ints& lead_bjet){
 	// this function needs to be modified to include jec
-	cout<<"b jet variable"<<endl;
+	if(debug>0) std::cout<<"b jet variable"<<std::endl;
 	floats vec;// TODO: input length equality checks
 	for(size_t i=0; i < Jet_variable.size() ;++i)
-		if(lead_bjet[i] == 1)
+		if(lead_bjet[i] != 0)
 			vec.push_back(Jet_variable[i]);
 	return vec;
 }
 auto numberofbjets(const ints& bjets){
-	cout<<"number of bjets"<<endl;
+	if(debug>0) std::cout<<"number of bjets"<<std::endl;
 	const auto nbjet = std::count_if(
 		bjets.begin(),
 		bjets  .end(),
@@ -576,7 +574,7 @@ auto top_reconst(const floats& bjets_pt,
                  const floats& wpair_eta,
                  const floats& wpair_phi,
                  const floats& wpair_mass){
-	cout<<"top recnst"<<endl;
+	if(debug>0) std::cout<<"top recnst"<<std::endl;
 	// This function finds the closest to top mass
 	float   t_reco_mass = std::numeric_limits<float>::infinity();
 	const size_t nbjets = bjets_pt.size();
@@ -606,22 +604,22 @@ auto top_reconst(const floats& bjets_pt,
 }
 auto TLVex(   const PtEtaPhiM         what){
 	return [=](const TLorentzVector& object){
-		cout<<"TLVex"<<endl;
+		if(debug>0) std::cout<<"TLVex"<<std::endl;
 		float result;
 		switch(what){
 			case  pt:{result = static_cast<float>(object .Pt());break;}
 			case eta:{result = static_cast<float>(object.Eta());break;}
 			case phi:{result = static_cast<float>(object.Phi());break;}
 			case   m:{result = static_cast<float>(object  .M());break;}
-			default :{throw std::invalid_argument(
-				"TLorentzVector extraction not recognised");}
+			default :throw std::invalid_argument(
+				"TLorentzVector extraction not recognised");
 		}
 		return result;
 	};
 }
 auto BTaggedEffGiver(TH2D* ratio){
 	return [=](const floats& pts,const floats& etas){
-		cout<<"btagged eff giver"<<endl;
+		if(debug>0) std::cout<<"bt eff giver"<<std::endl;
 		if(!all_equal(pts.size(),etas.size()))
 			throw std::logic_error(
 			      "Collections must be the same size (EffGiver)");
@@ -688,7 +686,7 @@ auto sf(const dataSource ds){
 			case  wz:{result = WZLNQQ_W;break;}
 			case  zz:{result = ZZLLQQ_W;break;}
 			case ttz:{result =  TTZQQ_W;break;}
-			default :{throw std::invalid_argument("Unimplemented ds (infile)");}
+			default :throw std::invalid_argument("Unimplemented ds (infile)");
 		}
 		return result * b;
 	};
@@ -706,13 +704,13 @@ void calchisto(const dataSource ds){
 	// Read MC data source
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
-	switch(ds){// tzq and Data use disk3!
+	switch(ds){// tzq and exptData use disk3!
 	case tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root";break;}/**/
 	case  ww:{temp_opener=temp_header+  "WWToLNuQQ"    +temp_footer;break;}
 	case  wz:{temp_opener=temp_header+  "WZTo1L1Nu2Q"  +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+  "ZZTo2L2Q"     +temp_footer;break;}
 	case ttz:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
-	default :{throw std::invalid_argument("Unimplemented ds (rdfopen)");}
+	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	ROOT::RDataFrame dssbdfc{"Events",temp_opener};
 	
@@ -743,7 +741,7 @@ void calchisto(const dataSource ds){
 	switch(ch){
 		case elnu:{temp_header = "Electron_";break;}
 		case munu:{temp_header =     "Muon_";break;}
-		default  :{throw std::invalid_argument("Unimplemented ch (rdfopen)");}
+		default  :throw std::invalid_argument("Unimplemented ch (rdfopen)");
 	}
 	auto w_selection = dssbdf
 	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
@@ -792,10 +790,10 @@ void calchisto(const dataSource ds){
 	.Define("tight_jets_mas" ,"Jet_mass[tight_jets]")
 	.Define("tight_jets_deltaphi",jet_deltaphi, {"tight_jets_phi"})
 	// TODO: jet_deltaphi from jec
-	.Define( "good_jets__pt" ,jets_gen_select , {"GenPart_pt"  ,"tight_jets__pt"})
-	.Define( "good_jets_eta" ,jets_gen_select , {"GenPart_eta" ,"tight_jets_eta"})
-	.Define( "good_jets_phi" ,jets_gen_select , {"GenPart_phi" ,"tight_jets_phi"})
-	.Define( "good_jets_mas" ,jets_gen_select , {"GenPart_mass","tight_jets_mas"})
+	.Define( "good_jets__pt" ,jets_gen_select , {"GenJet_pt"  ,"tight_jets__pt"})
+	.Define( "good_jets_eta" ,jets_gen_select , {"GenJet_eta" ,"tight_jets_eta"})
+	.Define( "good_jets_phi" ,jets_gen_select , {"GenJet_phi" ,"tight_jets_phi"})
+	.Define( "good_jets_mas" ,jets_gen_select , {"GenJet_mass","tight_jets_mas"})
 	.Filter(jet_cut, {"tight_jets"}, "Jet cut")
 	;
 	// JEC == tight_jets inc. Jet Energy Correction
@@ -832,35 +830,35 @@ void calchisto(const dataSource ds){
 	.Define("no_btag_numer_eta" , "jec_jets_eta[no_btag_numer]")
 	.Define("is_btag_denom_eta" , "jec_jets_eta[is_btag_denom]")
 	.Define("no_btag_denom_eta" , "jec_jets_eta[no_btag_denom]")
-	.Define("sfi",btag_CSVv2( true)/* checks CSV */,
-	         {"Jet_btagCSVV2","jec_jets__pt","jec_jets_eta"})
-	.Define("sfj",btag_CSVv2(false)/* ignore CSV */,
-	         {"Jet_btagCSVV2","jec_jets__pt","jec_jets_eta"})
-	.Define( "lead_bjet"     , find_lead_mask,{"is_bjets","jec_jets__pt"})
-	//.Define(      "bjet__pt" ,"jec_jets__pt[lead_bjet]")// Leading bjets
-	//.Define(      "bjet_eta" ,"jec_jets_eta[lead_bjet]")// 4-momentum
-	//.Define(      "bjet_phi" ,"jec_jets_phi[lead_bjet]")// used for top
-	//.Define(      "bjet_mas" ,"jec_jets_mas[lead_bjet]")// reconstruction
-	.Define(      "bjet__pt",bjet_variable ,{"jec_jets__pt","lead_bjet"})
-	.Define(      "bjet_eta",bjet_variable ,{"jec_jets_eta","lead_bjet"})
-	.Define(      "bjet_phi",bjet_variable ,{"jec_jets_phi","lead_bjet"})
-	.Define(      "bjet_mas",bjet_variable ,{"jec_jets_mas","lead_bjet"})
-	.Define(     "nbjets"   ,numberofbjets ,{"is_bjets"})
+	.Define("sfi",btagCSVv2( true),// checks CSV
+	        {"Jet_btagCSVV2","jec_jets__pt","jec_jets_eta"})
+	.Define("sfj",btagCSVv2(false),// ignore CSV
+	        {"Jet_btagCSVV2","jec_jets__pt","jec_jets_eta"})
+	.Define("lead_bjet"     , find_lead_mask,{"is_bjets","jec_jets__pt"})
+//	.Define(     "bjet__pt" ,"jec_jets__pt[lead_bjet]")// Leading bjets
+//	.Define(     "bjet_eta" ,"jec_jets_eta[lead_bjet]")// 4-momentum
+//	.Define(     "bjet_phi" ,"jec_jets_phi[lead_bjet]")// used for top
+//	.Define(     "bjet_mas" ,"jec_jets_mas[lead_bjet]")// reconstruction
+	.Define(     "bjet__pt" ,bjet_variable,{"jec_jets__pt","lead_bjet"})
+	.Define(     "bjet_eta" ,bjet_variable,{"jec_jets_eta","lead_bjet"})
+	.Define(     "bjet_phi" ,bjet_variable,{"jec_jets_phi","lead_bjet"})
+	.Define(     "bjet_mas" ,bjet_variable,{"jec_jets_mas","lead_bjet"})
+	.Define(    "nbjets"    ,numberofbjets,{"is_bjets"})
 	.Filter(bjet_cut, {"is_bjets"}, "b jet cut")
 	// The three highest pts should be kept
 	;
 	auto z_rec_selection
 	   = jets_bjets_selection
-	.Define( "z_reco_jets"  , find_z_pair   ,
+	.Define( "z_reco_jets"  , find_z_pair  ,
 	       {"jec_jets__pt"  ,
 	        "jec_jets_eta"  ,
 	        "jec_jets_phi"  ,
-	        "jec_jets_mas"  , "tight_jets"  ,"lead_bjet"})
+	        "jec_jets_mas"  , "tight_jets" ,"lead_bjet" })
 	.Define(  "z_pair__pt"  , "jec_jets__pt[z_reco_jets]")
 	.Define(  "z_pair_eta"  , "jec_jets_eta[z_reco_jets]")
 	.Define(  "z_pair_phi"  , "jec_jets_phi[z_reco_jets]")
 	.Define(  "z_pair_mas"  , "jec_jets_mas[z_reco_jets]")
-	.Define(  "z_mass"      , inv_mass      ,
+	.Define(  "z_mass"      , inv_mass     ,
 	       {  "z_pair__pt"  ,
 	          "z_pair_eta"  ,
 	          "z_pair_phi"  ,
@@ -870,8 +868,8 @@ void calchisto(const dataSource ds){
 	          "z_pair_phi"  ,
 	             "lep_eta"  ,
 	             "lep_phi" })
-	.Define(  "zw_deltaphi" ,   zw_deltaphi, {"z_pair_phi","tw_lep_phi"})
-	.Define("zmet_deltaphi" , zmet_deltaphi, {"z_pair_phi","MET_pt"})
+	.Define(  "zw_deltaphi" ,   zw_deltaphi,{"z_pair_phi","tw_lep_phi"})
+	.Define("zmet_deltaphi" , zmet_deltaphi,{"z_pair_phi","MET_pt"})
 //	.Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
 //	.Filter(zw_deltaphi_cut, {"zw_deltaphi"}, "delta phi ZW cut")
 //	.Filter(zmet_deltaphi_cut, {"zmet_deltaphi"}, "Z met cut ");
@@ -1042,7 +1040,7 @@ void calchisto(const dataSource ds){
 	h_tWmVsZmass_calc->Write();
 	
 	hf.Close();
-	std::cout << "btag weight is " << std::endl;
+//	std::cout << "btag weight is " << std::endl;
 //	<< *btag_w << std::endl;
-//	<< P_btag.Take<float>("sf").GetValue()[0] << std::endl;
+//	<< P_btag.Take<float>("btag_w").GetValue()[0] << std::endl;
 }
