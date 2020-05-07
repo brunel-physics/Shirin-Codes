@@ -232,6 +232,7 @@ auto tight_jet_id(const floats& jet_lep_min_dRs,
 	return pts>JET__PT_MIN&&abs(etas)<JET_ETA_MAX&&jet_lep_min_dRs>JET_ISO&&ids>=2;
 }
 auto jet_deltaphi(const floats& phis){
+	cout<<"jet deltaphi"<<endl;
 	floats deltaphis;// half of anti-symmetric matrix has n(n-1)/2 elements
 	deltaphis.reserve((phis.size()*(phis.size()-1))/2);
 	// The following two for loops stack correctly
@@ -242,14 +243,19 @@ auto jet_deltaphi(const floats& phis){
 	return deltaphis;
 }
 auto jets_gen_select(const floats& gen, const floats& jet){
+	cout<<"gen select"<<endl;
 // select jets that have generated level info; used @ JEC
 // use this function ONLY for Monte Carlo, not CMS / MET
-	const size_t size = gen.size() < jet.size() ? gen.size() : jet.size();
+	size_t size = gen.size() < jet.size() ? gen.size() : jet.size();
 	floats good_jets(size);
-	for(size_t i=0; i < size ;++i) good_jets[i] = jet[i];
+	/*if(jet.size() == gen.size())for(size_t i=0;i<jet.size();i++)good_jets[i]=jet[i];
+	if(jet.size() <  gen.size())for(size_t i=0;i<jet.size();i++)good_jets[i]=jet[i];
+	if(jet.size() >  gen.size())for(size_t i=0;i<gen.size();i++)good_jets[i]=jet[i];*/
+	for(size_t i=0;i<size;i++)good_jets[i]=jet[i];
 	return good_jets;
 }
 auto  jet_cut(const ints& tight_jets){
+	cout<<"jet cut"<<endl;
 	const auto njet = std::count_if(
 		tight_jets.begin(),
 		tight_jets  .end(),
@@ -257,6 +263,7 @@ auto  jet_cut(const ints& tight_jets){
 	return (njet >= JETS_MIN) && (njet <= JETS_MAX);
 }
 auto bjet_cut(const ints& bjets){
+	cout<<"bjet cut"<<endl;
 	const auto nbjet = std::count_if(
 		bjets.begin(),
 		bjets  .end(),
@@ -265,6 +272,7 @@ auto bjet_cut(const ints& bjets){
 }
 auto jet_smear_pt_resol
 	(const floats& pt,const floats& eta,const float& rho){
+	cout<<"jet smear pt resol"<<endl;
 	float min_eta,max_eta,min_rho,max_rho;
 	float min_pt,max_pt;
 	int   z;// CSV provided parameter we are not using
@@ -289,6 +297,7 @@ auto jet_smear_pt_resol
 	return resol;
 }
 auto jet_smear_Sjer(const floats& eta){
+	cout<<"jet smear sjer"<<endl;
 	float min_eta,max_eta;
 	int   z;// unwanted
 	float central_SF,SF_dn,SF_up;
@@ -310,6 +319,7 @@ auto delta_R_jet_smear(const floats& pt,
                        const floats& resol,
                        const floats& Sjer,
                        const floats& deltaR){
+	cout<<"delta r jet smear"<<endl;
 	if(!all_equal(pt.size(),resol.size(),Sjer.size()))
 		throw std::logic_error("Collections must be the same size in deltaR_Jsmear");
 	else if(gen_pt.size() < pt.size())
@@ -335,6 +345,7 @@ auto delta_R_jet_smear(const floats& pt,
 	return cjers;
 }
 auto cjer(const floats& jet,const floats& cjer){
+	cout<<"cjer"<<endl;
 	floats  weighted(    jet.size());// to use on jets 4-momenta, PtEtaPhiM
 	if(!all_equal(       jet.size(),cjer.size()))
 		throw std::logic_error("Collections must be the same size in Cjer");
@@ -344,6 +355,7 @@ auto cjer(const floats& jet,const floats& cjer){
 	return weighted;
 }
 auto is_bjet_id(const floats& etas,const floats& btags){// added jec_eta
+	cout<<"is bjet id"<<endl;
 	ints is_bjets(etas.size(),0);// vector of zero
 	for(size_t i=0;i<etas.size();++i)// etas size <= 6
 	if((btags[i]>BTAG_DISC_MIN)&&(abs(etas[i])<BJET_ETA_MAX))is_bjets[i]+=1;
@@ -352,11 +364,13 @@ auto is_bjet_id(const floats& etas,const floats& btags){// added jec_eta
 auto no_bjet_id   (const floats& etas)
 	{return (abs(etas)<BJET_ETA_MAX);}
 auto is_bjet_numer(const ints& id,const ints& is_bjet){
+	cout<<"is bjet numer"<<endl;
 	ints bjet_numer(is_bjet.size(),0);// vector of zero
 	for(size_t i=0;i<is_bjet.size();i++)if(id[i]==5)bjet_numer[i]+=1;
 	return bjet_numer;
 }
 auto no_bjet_numer(const ints& id,const ints& is_bjet){
+	cout<<"no bjet numer"<<endl;
 // using bjets which has satisfied is btag conditions
 	const auto aid = abs(id);
 	ints non_bjet_numer(is_bjet.size(),0);// vector of zero
@@ -365,12 +379,14 @@ auto no_bjet_numer(const ints& id,const ints& is_bjet){
 	return non_bjet_numer;
 }
 auto is_bjet_denom(const ints& id,const ints& no_bjet){
+	cout<<"is bjet denom"<<endl;
 // using no_bjet_id particles not matching btag criteria
 	ints bjet_denom(no_bjet.size(),0);// vector of zero
 	for(size_t i=0;i<no_bjet.size();i++)if(id[i]==5)bjet_denom[i]+=1;
 	return bjet_denom;
 }
 auto no_bjet_denom(const ints& id,const ints& no_bjet){
+	cout<<"no bjet denom"<<endl;
 // using bjets which has satisfied no btag condition
 	const auto aid = abs(id);
 	ints no_bjet_denom(no_bjet.size(),0);// vector of zero
@@ -382,6 +398,7 @@ auto btag_CSVv2(const bool    check_CSV){
    return   [=](const floats& btag,
                 const floats& pt,
                 const floats& eta){
+		cout<<"btag csvv2"<<endl;
 		bool b;// magic btag checker; heavily reused
 		strings formulae(pt.size(),"0");// vector of "0"
 		floats   results(pt.size());
@@ -436,6 +453,7 @@ auto btag_CSVv2(const bool    check_CSV){
 	};
 }
 auto find_lead_mask(const ints& mask,const floats& vals){
+	cout<<"lead mask"<<endl;
 	if(!all_equal(mask.size(),vals.size()))
 		throw std::logic_error("Collections must be the same size in lead_mask");
 	else if(mask.empty())
@@ -455,20 +473,21 @@ auto find_z_pair(const floats& pts,
                  const floats& ms,
                  const   ints& tight_jets,
                  const   ints& lead_bjet){
+	cout<<"find z pair"<<endl;
 	// This function finds the pair nearest to z mass
 	double z_reco_mass = std::numeric_limits<double>::infinity();
 	size_t jet_index_1 = std::numeric_limits<size_t>::max();
 	size_t jet_index_2 = std::numeric_limits<size_t>::max();
-	const size_t njets = tight_jets.size();
+	const size_t njets = pts.size();
 	if(!all_equal(pts.size(),etas.size(),phis.size(),ms.size()))
 		throw std::logic_error("Collections must be the same size in Z-pair");
-	else if(    njets==0)
+	else if(    pts.size()==0)
 		throw std::logic_error("Collections must not be empty in Z-pair");
 	ints z_pair(njets, 0);// vector of zeroes
 	// The next two for loops stack correctly with the if
-	for(size_t   i=0; i < njets-1 ;++i){
-	for(size_t j=i+1; j < njets   ;++j){
-	if(tight_jets[i] == 0 || tight_jets[j] == 0 || lead_bjet[i] == 1 || lead_bjet[j] == 1){
+	for(size_t   i=0; i < njets ;++i){
+	for(size_t j=i+1; j < njets ;++j){
+	if(tight_jets[i] != 0 || tight_jets[j] != 0 || lead_bjet[i] != 1 || lead_bjet[j] != 1){
 		TLorentzVector jet1,jet2;
 		jet1.SetPtEtaPhiM(pts[i],etas[i],phis[i],ms[i]);
 		jet2.SetPtEtaPhiM(pts[j],etas[j],phis[j],ms[j]);
@@ -481,10 +500,12 @@ auto find_z_pair(const floats& pts,
 	}}}
 	z_pair[jet_index_1] = 1;
 	z_pair[jet_index_2] = 1;
+	cout<<"z pair"<<z_pair<<endl;
 	return z_pair;
 }
 [[gnu::const]] auto inv_mass(
 	const floats& pts,const floats& etas,const floats& phis,const floats& ms){
+	cout<<"inv mass"<<endl;
 	if(!all_equal(pts.size(),etas.size(),phis.size(),ms.size()))
 		throw std::logic_error("Collections must be the same size in inv_mass");
 	else if(pts.empty())
@@ -497,6 +518,7 @@ auto find_z_pair(const floats& pts,
 	return static_cast<float>(vec.M());
 }
 auto zw_deltaphi(const floats& phis1,const floats& phis2){
+	cout<<"zw deltaphi"<<endl;
 	const size_t   p1s = phis1.size();
 	const size_t   p2s = phis2.size();
 	floats results(p2s * p1s);
@@ -509,6 +531,7 @@ auto zw_deltaphi(const floats& phis1,const floats& phis2){
 	return results;
 }
 auto zmet_deltaphi(const floats& z_phi,const float& met_pt){
+	cout<<"zmet deltaphi"<<endl;
 	floats      results(z_phi.size());
 	for(size_t i=0; i < z_phi.size() ;++i)
 		results[i] = std::abs(delta_phi(z_phi[i]-met_pt));
@@ -530,6 +553,7 @@ auto zmet_deltaphi_cut(const floats& deltaPhi){
 auto bjet_variable(const        floats&  Jet_variable,
                    const          ints& lead_bjet){
 	// this function needs to be modified to include jec
+	cout<<"b jet variable"<<endl;
 	floats vec;// TODO: input length equality checks
 	for(size_t i=0; i < Jet_variable.size() ;++i)
 		if(lead_bjet[i] == 1)
@@ -537,6 +561,7 @@ auto bjet_variable(const        floats&  Jet_variable,
 	return vec;
 }
 auto numberofbjets(const ints& bjets){
+	cout<<"number of bjets"<<endl;
 	const auto nbjet = std::count_if(
 		bjets.begin(),
 		bjets  .end(),
@@ -551,6 +576,7 @@ auto top_reconst(const floats& bjets_pt,
                  const floats& wpair_eta,
                  const floats& wpair_phi,
                  const floats& wpair_mass){
+	cout<<"top recnst"<<endl;
 	// This function finds the closest to top mass
 	float   t_reco_mass = std::numeric_limits<float>::infinity();
 	const size_t nbjets = bjets_pt.size();
@@ -580,6 +606,7 @@ auto top_reconst(const floats& bjets_pt,
 }
 auto TLVex(   const PtEtaPhiM         what){
 	return [=](const TLorentzVector& object){
+		cout<<"TLVex"<<endl;
 		float result;
 		switch(what){
 			case  pt:{result = static_cast<float>(object .Pt());break;}
@@ -594,6 +621,7 @@ auto TLVex(   const PtEtaPhiM         what){
 }
 auto BTaggedEffGiver(TH2D* ratio){
 	return [=](const floats& pts,const floats& etas){
+		cout<<"btagged eff giver"<<endl;
 		if(!all_equal(pts.size(),etas.size()))
 			throw std::logic_error(
 			      "Collections must be the same size (EffGiver)");
