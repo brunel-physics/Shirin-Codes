@@ -1,4 +1,4 @@
-// TODO: fix the break segmentation what comes after inv_mass?
+// TODO: ALL TODOs, PRIORITY: Zpair TLor, Z 4momentum, Create and Write() all histograms.
 //#include <ROOT/RDataFrame.hxx>
 #include <ROOT/RCsvDS.hxx>
 #include <TLorentzVector.h>
@@ -139,7 +139,7 @@ template<typename T,typename U,typename... Types>
 template <typename T>
 [[gnu::const]] auto delta_phi(const T diff_phi){
 	// This function just reduces input from [-2pi,+2pi] to [-pi,+pi]
-	// Domain correctness is the user's responsibility
+	// Domain correctness is the user's responsibility(subtrack phis in advance)
 	// A more general function is just one fmod function away
 	     if(diff_phi >  PI<T>)  return diff_phi - TPI<T>;
 	else if(diff_phi < -PI<T>)  return diff_phi + TPI<T>;
@@ -147,7 +147,7 @@ template <typename T>
 }
 [[gnu::const]] auto deltaR(
 	const float eta1,const float phi1,const float eta2,const float phi2)
-{return std::hypot(eta1-eta2,delta_phi(phi1-phi2));}
+{return std::hypot(eta1-eta2,delta_phi(phi1-phi2));}//hypot from geometry
 float transverse_w_mass(const float lep__pt,
                         const float lep_phi,
                         const float met__pt,
@@ -155,13 +155,6 @@ float transverse_w_mass(const float lep__pt,
 	return static_cast<float>(
 		      std::sqrt(2*lep__pt*met__pt
 		*(1-cos(delta_phi(lep_phi-met_phi)))));
-		/*
-		if(std::abs(W_MASS-reco_mass)<std::abs(W_MASS-w_reco_mass)){
-			w_reco_mass = reco_mass;
-			l_index_1 = i;
-		}
-	}
-	return w_mass_vec;*/
 }
 auto lep_nu_invmass(const float& lep_pt    ,
                     const float& lep_eta   ,
@@ -178,7 +171,7 @@ auto lep_nu_invmass(const float& lep_pt    ,
 	return static_cast<float>((lep+neu).M());
 }
 /*
-auto w_mass_cut = [](const floats& w_mass){
+auto w_mass_cut = [](const float& w_mass){
 	return std::abs(w_mass-W_MASS)<W_MASS_CUT;
 };*/
 auto z_mass_cut = [](const float& z_mass){
@@ -216,9 +209,9 @@ auto tight_jet_id(const floats& jet_lep_min_dRs,
 auto jet_deltaphi(const floats& phis){
 	if(debug>0) std::cout<<"jet deltaphi"<<std::endl;
 	floats deltaphis;// half of anti-symmetric matrix has n(n-1)/2 elements
-	deltaphis.reserve((phis.size()*(phis.size()-1))/2);
-	// The following two for loops stack correctly
-	for(size_t   i=0; i < phis.size()-1 ;++i)
+	deltaphis.reserve((phis.size()*(phis.size()-1))/2);// reserving size
+	// The following two for loops stack correctly     // no need to initiate
+	for(size_t   i=0; i < phis.size()-1 ;++i)	   // elements.
 	for(size_t j=i+1; j < phis.size()   ;++j)
 		deltaphis.push_back(  static_cast<float>(
 			std::abs(delta_phi(phis[i]-phis[j]))));
@@ -244,8 +237,8 @@ auto jetCutter(const unsigned jmin, const unsigned jmax){
 		return jmin <= nj && nj <= jmax;
 	};
 }
-template<typename T>auto retVar(const T& v){return[&](){return v;};}
-auto jet_smear_pt_resol
+template<typename T>auto retVar(const T& v){return[&](){return v;};}// due to unsure
+auto jet_smear_pt_resol						    // data type
 	(const floats& pt,const floats& eta,const float& rho){
 	if(debug>0) std::cout<<"jet smear pt resol"<<std::endl;
 /*	float min_eta,max_eta,min_rho,max_rho;
@@ -258,7 +251,7 @@ auto jet_smear_pt_resol
 	else if(pt.empty()) throw std::logic_error(
 		"Collections must not be empty in  (jet_smear_pt_resol)");
 	const auto csvname = "Fall17_V3_MC_PtResolution_AK4PFchs.txt";
-	if(!gSystem->AccessPathName(csvname)) throw std::runtime_error(
+	if(!gSystem->AccessPathName(csvname)) throw std::runtime_error( // file not found
 		"RCsvDS would hang on access failure (jet_smear_pt_resol)");
 	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname,false)// no header
 		.Define("rho",retVar(rho))
@@ -266,7 +259,7 @@ auto jet_smear_pt_resol
 	;
 	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
 		resol[i] = static_cast<float>( csvdf
-		.Define( "pt",retVar( pt[i]))
+		.Define( "pt",retVar( pt[i]))// retVar used due to external pt[i].
 		.Define("eta",retVar(eta[i]))
 		.Filter("Col5 <  pt &&  pt < Col6")
 		.Filter("Col0 < eta && eta < Col1")
@@ -300,10 +293,10 @@ auto jet_smear_Sjer(const floats& eta){
 		"RCsvDS would hang on access failure (jet_smear_Sjer)");
 	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname,false)// no header
 	;// this loop is necessary
-	for(size_t i=0; i < eta.size() ;++i) 
+	for(size_t i=0; i < eta.size() ;++i)
 		Sjer[i] = static_cast<float>( csvdf
-		.Define("eta" ,retVar(eta[i]))
-		.Filter("Col0 < eta && eta < Col1")
+		.Define("eta" ,retVar(eta[i]))// TODO: add sf up and down columns
+		.Filter("Col0 < eta && eta < Col1") // for uncertainty
 		.Sum(   "Col3").GetValue());// sum all filtered central_SF
 /*	float min_eta,max_eta;
 	int   z;// unwanted
@@ -352,9 +345,9 @@ auto delta_R_jet_smear(const floats& pt,
 	return cjers;
 }
 auto      is_bjet_id(const floats& etas,const floats& btags){// added jec_eta
-	ints   is_bjet_id = BTAG_DISC_MIN < btags;
+	ints   is_bjet_id = BTAG_DISC_MIN < btags;// A MASK!
 	       is_bjet_id.resize(etas.size());// discard tail
-	return abs(etas) < BJET_ETA_MAX && is_bjet_id;
+	return abs(etas) < BJET_ETA_MAX && is_bjet_id;// now same size,no more error
 }
 auto      no_bjet_id(const floats& etas){
 	return abs(etas) < BJET_ETA_MAX;}
@@ -386,11 +379,11 @@ auto      no_bjet_denom(const ints& id,const ints& no_bjet){
 	aid.resize(no_bjet.size());// discard tail
 	return aid;
 }
-auto btagCSVv2(const bool    check_CSV){
+auto btagCSVv2(const bool    check_CSVv2){
    return  [=](const floats& btag,
                const floats& pt,
                const floats& eta){
-	bool b = !check_CSV;// magic btag checker; heavily reused
+	bool b = !check_CSVv2;// magic btag checker; heavily reused
 	strings formulae(pt.size() ,"0");// vector of "0"
 	floats   results(pt.size());
 	if(!all_equal(pt.size(),eta.size()))
@@ -404,10 +397,10 @@ auto btagCSVv2(const bool    check_CSV){
 		"RCsvDS would hang on access failure (btagCSVv2)");
 	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname,false)// no header
 	//       measure_type     ,  sys_type            ,  jet_flav
-	.Filter("Col1 == \"comb\" && Col2 == \"central\" && Col3 == 0.f")
+	.Filter("Col1 == \"comb\" && Col2 == \"central\" && Col3 == 0.f")// TODO: jet flav 5 or 0?
 	.Define("ignore",retVar(b))// if true ignore btag and CSVv2
 	.Define("bdm"   ,retVar(BTAG_DISC_MIN))
-	.Filter("ignore || bdm <= Col0")
+	.Filter("ignore || bdm <= Col0")// Col0 = CSVv2, checks if u read CSV or not
 	;
 	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
 		std::string tmpFormula = csvdf
@@ -418,7 +411,7 @@ auto btagCSVv2(const bool    check_CSV){
 		.Filter("Col6 < pt  && pt  < Col7")
 		.Filter("Col4 < eta && eta < Col5")
 		.Range(1)// get FIRST formula
-		.Take<std::string>("Col10").GetValue()[0];
+		.Take<std::string>("Col10").GetValue()[0];// Take always takes RVec -> [0]
 		if(tmpFormula.find("x") != std::string::npos){
 			boost::replace_all(tmpFormula,"x",std::to_string(pt[i]));
 			formulae[i] = tmpFormula;
@@ -459,7 +452,7 @@ auto btagCSVv2(const bool    check_CSV){
 		}}}}}
 		}// No need to close file after this while loop.
 		// resume indentation*/
-	for(size_t j=0; j < formulae.size() ;++j){
+	for(size_t j=0; j < formulae.size() ;++j){// Parser for formula
 		Eval ev;
 		results[j] = static_cast<float>(
 		ev.eval(      const_cast<char*>(
@@ -527,7 +520,7 @@ auto find_z_pair(const floats& pts,
 	else if(pts.size() != 2)
 		throw std::logic_error("Not pair of Z (inv_mass)");
 	TLorentzVector vec,p;
-	for(size_t i=0; i < pts.size() ;++i){
+	for(size_t i=0; i < pts.size() ;++i){// TODO: add error handling, don't allow more than two jets
 		p.SetPtEtaPhiM(pts[i],etas[i],phis[i],ms[i]);
 		vec += p;
 	}
@@ -536,14 +529,14 @@ auto find_z_pair(const floats& pts,
 }
 auto zw_deltaphi(const floats& phis,const float& phi){
 	if(debug>0)        std::cout<<"zw dPhi"<<std::endl;
-	if(phis.size()!=2) std::cout<<"zw dPhi, assumes pair, violated"<<std::endl;
+	if(phis.size()!=2) std::cout<<"zw dPhi, assumes pair, violated"<<std::endl;// TODO: No RVec, float
 	floats results( 2);
 	for(size_t i=0; i < 2 ;++i)
 		results[i] = static_cast<float>(
 		std::abs(delta_phi(phis[i]-phi)));
 	return results;
 }
-auto zmet_deltaphi(const floats& zPhi,const float& met_phi){
+auto zmet_deltaphi(const floats& zPhi,const float& met_phi){// TODO: same as above
 	if(debug>0)        std::cout<<"zmet dPhi"<<std::endl;
 	if(zPhi.size()!=2) std::cout<<"zmet dPhi, assumes pair, violated"<<std::endl;
 	floats      results(2);
@@ -623,9 +616,9 @@ auto BTaggedEffGiver(TH2D* ratio){
 			int  PtBin = ratio->GetXaxis()->FindBin( pts[i]);
 			int EtaBin = ratio->GetYaxis()->FindBin(etas[i]);
 			float  eff = static_cast<float>(ratio->GetBinContent(PtBin,EtaBin));
-			if(FP_NORMAL == std::fpclassify(eff)) 
+			if(FP_NORMAL == std::fpclassify(eff))// if eff not Floating point
 				BTaggedEff.push_back(eff);
-			// what if eff==0? check with kathryn
+			// TODO: what if eff==0? check with kathryn
 		}
 		return BTaggedEff;
 	};
@@ -699,7 +692,7 @@ void calchisto(const dataSource ds){
 	case  ww:{temp_opener=temp_header+  "WWToLNuQQ"    +temp_footer;break;}
 	case  wz:{temp_opener=temp_header+  "WZTo1L1Nu2Q"  +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+  "ZZTo2L2Q"     +temp_footer;break;}
-	case ttz:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
+	case ttz:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}// TODO: ADD DATA DS
 	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	ROOT::RDataFrame dssbdfc{"Events",temp_opener};
@@ -727,8 +720,8 @@ void calchisto(const dataSource ds){
 	auto elnudf=elnudfc.Range(0,1000000);// real run should not Range
 	auto munudf=munudfc.Range(0,1000000);
 	
-	channels ch = elnu;
-	switch(ch){
+	channels ch = elnu;// Changing channels
+	switch(ch){ // TODO: Email Ivan , how to submit jobs.
 		case elnu:{temp_header = "Electron_";break;}
 		case munu:{temp_header =     "Muon_";break;}
 		default  :throw std::invalid_argument("Unimplemented ch (rdfopen)");
@@ -820,9 +813,9 @@ void calchisto(const dataSource ds){
 	.Define("no_btag_numer_eta","jec_jets_eta[no_btag_numer]")
 	.Define("is_btag_denom_eta","jec_jets_eta[is_btag_denom]")
 	.Define("no_btag_denom_eta","jec_jets_eta[no_btag_denom]")
-	.Define("sfi",btagCSVv2( true),// checks CSV
+	.Define("sfi",btagCSVv2( true),// checks CSVv2
 	        {"Jet_btagCSVV2","jec_jets__pt","jec_jets_eta"})
-	.Define("sfj",btagCSVv2(false),// ignore CSV
+	.Define("sfj",btagCSVv2(false),// ignore CSVv2
 	        {"Jet_btagCSVV2","jec_jets__pt","jec_jets_eta"})
 	.Define("lead_bjet"     ,find_lead_mask,{"is_bjets","jec_jets__pt"})
 	.Define(     "bjet__pt" ,"jec_jets__pt[lead_bjet]")// Leading bjet
@@ -837,7 +830,7 @@ void calchisto(const dataSource ds){
 	.Define( "z_reco_jets"  , find_z_pair  ,
 	       {"jec_jets__pt"  ,
 	        "jec_jets_eta"  ,
-	        "jec_jets_phi"  ,
+	        "jec_jets_phi"  ,//easier to push bac
 	        "jec_jets_mas"  , "tight_jets" ,"lead_bjet" })
 	.Define(  "z_pair__pt"  , "jec_jets__pt[z_reco_jets]")
 	.Define(  "z_pair_eta"  , "jec_jets_eta[z_reco_jets]")
@@ -847,13 +840,13 @@ void calchisto(const dataSource ds){
 	       {  "z_pair__pt"  ,
 	          "z_pair_eta"  ,
 	          "z_pair_phi"  ,
-	          "z_pair_mas" })
-	.Define(  "z_lep_min_dR", jet_lep_min_deltaR,
+	          "z_pair_mas" })// TODO: Create TLorentz for Z and get pt,eta,phi
+	.Define(  "z_lep_min_dR", jet_lep_min_deltaR, // TODO: Check if input correct.
 	       {  "z_pair_eta"  ,
 	          "z_pair_phi"  ,
 	             "lep_eta"  ,
 	             "lep_phi" })
-	.Define(  "zw_deltaphi" ,   zw_deltaphi,{"z_pair_phi","tw_lep_phi"})
+	.Define(  "zw_deltaphi" ,   zw_deltaphi,{"z_pair_phi","tw_lep_phi"})// TODO: Wrong input
 	.Define("zmet_deltaphi" , zmet_deltaphi,{"z_pair_phi","MET_phi"})
 //	.Filter(deltaR_z_l,{"z_e_min_dR"}, "delta R ZL")
 //	.Filter(zw_deltaphi_cut, {"zw_deltaphi"}, "delta phi ZW cut")
@@ -898,7 +891,7 @@ void calchisto(const dataSource ds){
 	
 	auto h_invmass// lepton-neutrino invariant mass histogram
 	   = w_selection
-	.Histo1D({static_cast<const char*>(
+	.Histo1D({static_cast<const char*>(// TODO: WRONG NAMING CON.
 	          (        "no_numer" + temp_header).c_str()),
 	          static_cast<const char*>(
 	          ("MC no btag numer" + temp_footer).c_str()),
@@ -953,7 +946,7 @@ void calchisto(const dataSource ds){
 	auto btag_eff
 	   = top_selection
 	.Define("IsEffBTagged",BTaggedEffGiver(is_btag_ratio),
-	       {"jec_jets__pt","jec_jets_eta"})// remember to use the jec version
+	       {"jec_jets__pt","jec_jets_eta"})
 	.Define("NoEffBTagged",BTaggedEffGiver(no_btag_ratio),
 	       {"jec_jets__pt","jec_jets_eta"})
 	;
@@ -1001,7 +994,7 @@ void calchisto(const dataSource ds){
 //		50,0,200},
 //		"ttop__pt","nw_ttop__pt");
 	auto
-	h_tWmVsZmass_calc = P_btag.Histo2D({
+	h_tWmVsZmass_calc = P_btag.Histo2D({// TODO: DECLARE ALL HISTO WITH THIS TECHNIQUE
 		static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
 		static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
 		50,0,200,50,0,200},
