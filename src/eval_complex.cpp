@@ -4,9 +4,6 @@
 #include <complex>
 #include <math.h>
 #include "eval_complex.hpp"
-using namespace std;
-
-
 
 void Eval::eatspace() {
   // überliest Spaces, Tabs usw.
@@ -28,9 +25,9 @@ void Eval::expect(char ch) {
   next();
 }
 
-complex<double> Eval::eval(char *expr) {
+std::complex<double> Eval::eval(char *expr) {
   // wertet kompletten Ausdruck aus
-  complex<double> res;
+  std::complex<double> res;
   m_cptr = expr;
   eatspace();
   res = sum();
@@ -39,9 +36,9 @@ complex<double> Eval::eval(char *expr) {
   return res;
 }
 
-complex<double> Eval::sum() {
+std::complex<double> Eval::sum() {
   // wertet Summe (evtl. mit nur 1 Summand) aus
-  complex<double> res = prod();
+  std::complex<double> res = prod();
   for(;;) {
     if(cur() == '+') {
       next();
@@ -57,9 +54,9 @@ complex<double> Eval::sum() {
   return res;
 }
 
-complex<double> Eval::prod() {
+std::complex<double> Eval::prod() {
   // wertet Produkt (evtl. mit nur 1 Faktor) aus
-  complex<double> res = power();
+  std::complex<double> res = power();
   for(;;) {
     if(cur() == '*') {
       next();
@@ -75,12 +72,12 @@ complex<double> Eval::prod() {
   return res;
 }
 
-complex<double> Eval::power() {
+std::complex<double> Eval::power() {
   // wertet Potenz mit optionalem Vorzeichen (evtl. ohne Exponent) aus
   // ^ ist rechtsassoziativ und soll (wie in den meisten Programmiersprachen
   // mit Potenzoperator) stärker binden als das unäre + und -v (Vorzeichen),
   // d.h. -3^2 = -(3^2) = -9
-  complex<double> res;
+  std::complex<double> res;
   switch(cur()) {
     case '+':
       next();
@@ -94,15 +91,15 @@ complex<double> Eval::power() {
       res = basexp();
       if(cur() == '^') {
         next();
-        res = pow(res, power());
+        res = std::pow(res, power());
       }
   }
   return res;
 }
 
-complex<double> Eval::basexp() {
+std::complex<double> Eval::basexp() {
   // wertet Basis oder Exponent (Klammerausdruck oder Konstante) aus
-  complex<double> res;
+  std::complex<double> res;
   if(cur() == '(') {
     next();
     res = sum();
@@ -119,85 +116,85 @@ complex<double> Eval::basexp() {
   return res;
 }
 
-complex<double> complex_fabs(const complex<double>& num)
+std::complex<double> complex_fabs(const std::complex<double>& num)
 {
   double re = num.real();
   double im = num.imag();
-  return sqrt(re*re + im*im);
+  return std::sqrt(re*re + im*im);
 }
 
-complex<double> complex_ceil(const complex<double>& num)
+std::complex<double> complex_ceil(const std::complex<double>& num)
 {
   double re = ceil(num.real());
   double im = ceil(num.imag());
-  return complex<double>(re, im);
+  return std::complex<double>(re, im);
 }
 
-complex<double> complex_floor(const complex<double>& num)
+std::complex<double> complex_floor(const std::complex<double>& num)
 {
   double re = floor(num.real());
   double im = floor(num.imag());
-  return complex<double>(re, im);
+  return std::complex<double>(re, im);
 }
 
-complex<double> re(const complex<double>& num)
+std::complex<double> re(const std::complex<double>& num)
 {
   return num.real();
 }
 
-complex<double> im(const complex<double>& num)
+std::complex<double> im(const std::complex<double>& num)
 {
   return num.imag();
 }
 
-complex<double> angle(const complex<double>& num)
+std::complex<double> angle(const std::complex<double>& num)
 {
-  return atan2(num.imag(), num.real());
+  return std::atan2(num.imag(), num.real());
 }
 
-complex<double> conj(const complex<double>& num)
+std::complex<double> conj(const std::complex<double>& num)
 {
-  return complex<double>(num.real(), -num.imag());
+  return std::complex<double>(num.real(), -num.imag());
 }
 
-complex<double> complex_log2(const complex<double>& num)
+std::complex<double> complex_log2(const std::complex<double>& num)
 {
-  const complex<double> l2 = log(2.0);
-  const complex<double> lnum = log(num);
+  const std::complex<double> l2 = log(2.0);
+  const std::complex<double> lnum = log(num);
   return lnum / l2;
 }
 
 double nthroot(double root, double num)
 {
-  return pow(num, 1/root);
+  return std::pow(num, 1/root);
 }
 
-complex<double> complex_round(const complex<double>& num)
+std::complex<double> complex_round(const std::complex<double>& num)
 {
   double re = round(num.real());
   double im = round(num.imag());
-  return complex<double>(re, im);
+  return std::complex<double>(re, im);
 }
 
-complex<double> Eval::function() {
+std::complex<double> Eval::function() {
   // wertet symbolische Konstante oder Funktion mit einem oder zwei Argumenten
   // aus
 
   // Konstanten
   static struct {
     const char *name;
-    complex<double> value;
+    std::complex<double> value;
   } consts[] = {
     { "pi",    3.14159265358979323846 },
     { "e",     2.71828182845904523536 },
-    { "i",     1i },
-    { "j",     1i }
+    { "i",     std::complex(0.,1.) },
+    { "j",     std::complex(0.,1.) }
   };
 
   // einstellige Funktionen
   static struct {
     const char *name;
-    complex<double> (*func)(const complex<double>&);
+    std::complex<double> (*func)(const std::complex<double>&);
   } funcs1[] = {
     { "sin",   sin },
     { "cos",   cos },
@@ -255,7 +252,7 @@ complex<double> Eval::function() {
   for(i = 0; i < sizeof funcs1 / sizeof funcs1[0]; i++) {
     if(!strcmp(name, funcs1[i].name)) {
       expect('(');
-      complex<double> arg1 = sum();
+      std::complex<double> arg1 = sum();
       expect(')');
       return funcs1[i].func(arg1);
     }
@@ -263,9 +260,9 @@ complex<double> Eval::function() {
   for(i = 0; i < sizeof funcs2 / sizeof funcs2[0]; i++) {
     if(!strcmp(name, funcs2[i].name)) {
       expect('(');
-      complex<double> arg1 = sum();
+      std::complex<double> arg1 = sum();
       expect(',');
-      complex<double> arg2 = sum();
+      std::complex<double> arg2 = sum();
       expect(')');
       if(arg1.imag() != 0)
         throw 2;
@@ -278,7 +275,7 @@ complex<double> Eval::function() {
   throw 1;
 }
 
-complex<double> Eval::number() {
+std::complex<double> Eval::number() {
   // wertet Gleitkommazahl in Dezimaldarstellung aus
   double res = 0., p;
   int e, esign;
@@ -294,7 +291,7 @@ complex<double> Eval::number() {
     p = 1.;
     while(isdigit(cur())) {
       p /= 10.;
-      res += (double)(cur() - '0') * p;
+      res += static_cast<double>(cur() - '0') * p;
       next();
     }
   }
@@ -313,14 +310,14 @@ complex<double> Eval::number() {
       e = 10 * e + cur() - '0';
       next();
     }
-    res = res * pow(10., esign*e);
+    res = res * std::pow(10., esign*e);
   }
   if(cur() == 'i' || cur() == 'j')
   {
     next();
-    return complex<double>(0.0, res);
+    return std::complex<double>(0.0, res);
   }
-  return complex<double>(res, 0.0);
+  return std::complex<double>(res, 0.0);
 }
 
 //int main() {

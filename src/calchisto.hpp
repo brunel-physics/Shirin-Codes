@@ -1,18 +1,14 @@
 #ifndef calchisto_hpp
 #define calchisto_hpp
 
-enum  channels  {elnu,munu};
-const channels
-channelsAll[] = {elnu,munu};
+enum  channel  {elnu,munu};
+const channel
+channelAll[] = {elnu,munu};
 
-enum  dataSource  {tzq,ww,wz,zz,ttz};
+enum  dataSource  {tzq,ww,wz,zz,ttz,met,cms};
 const dataSource
-dataSourceAll[] = {tzq,ww,wz,zz,ttz};
-/*
-enum  exptData  {CMS,MET};
-const exptData
-exptDataAll[] = {CMS,MET};
-*/
-void calchisto(const dataSource); 
+dataSourceAll[] = {tzq,ww,wz,zz,ttz,met,cms};
 
-#endif
+void calchisto(const channel, const dataSource); 
+
+#endif /* calchisto_hpp */

@@ -1,14 +1,16 @@
-// TODO: ALL TODOs, PRIORITY: Zpair TLor, Z 4momentum, Create and Write() all histograms.
-//#include <ROOT/RDataFrame.hxx>
-#include <ROOT/RCsvDS.hxx>
+// TODO: ALL TODOs, PRIORITY: Zpair TLV, Z 4momentum,
+// TODO: Create and Write() all histograms.
+// TODO: lep_nu_invmass should be 2-particle TLV adding
+// THEN use TLVex to get invmass
+// TODO: Turn off stuff for CMS and MET
+#include <ROOT/RCsvDS.hxx>//#include <ROOT/RDataFrame.hxx>
 #include <TLorentzVector.h>
-#include <TRandom3.h>
+#include <TRandom3.h>// used Gaussian once
 #include <TSystem.h>// for safer RCsvDS via gSystem
 #include <TChain.h>
 
 #include <boost/algorithm/string.hpp>
 
-//#include "csv.h"
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
 
@@ -78,18 +80,18 @@ template <typename T> constexpr T TPI = PI<T> * 2;
 
 enum PtEtaPhiM {pt,eta,phi,m};
 
-auto met_pt_cut(const channels ch){
+auto met_pt_cut(const channel ch){
 	float lower_bound;
 	switch(ch){
 		case elnu:{lower_bound = MET_EL_PT;break;}
 		case munu:{lower_bound = MET_MU_PT;break;}
 		default  :throw std::invalid_argument(
-		"Unimplemented ch (met_pt_cut)");
+			"Unimplemented ch (met_pt_cut)");
 	}
 	return [=](const float&  met_lep_pt_sel)->bool
 	   {return lower_bound < met_lep_pt_sel;};
 }
-auto lep_sel(    const channels ch){
+auto lep_sel(    const channel ch){
       return [=](const  bools& isPFs,
                  const floats& pts,
                  const floats& etas,
@@ -108,11 +110,11 @@ auto lep_sel(    const channels ch){
 			                 &&   abs_etas <  MU_ETA_MAX
 			                 &&   isos     <= MU_LOOSE_ISO);// TODO: WEIRD
 			default  :throw std::invalid_argument(
-			                "Unimplemented ch (lep_sel)");
+				"Unimplemented ch (lep_sel)");
 		}
 	};
 }
-auto lep_tight_cut(const channels ch){
+auto lep_tight_cut(const channel ch){
         return [=](const   ints& mask,
                    const   ints& elids,
                    const floats& isos){
@@ -139,7 +141,7 @@ template<typename T,typename U,typename... Types>
 template <typename T>
 [[gnu::const]] auto delta_phi(const T diff_phi){
 	// This function just reduces input from [-2pi,+2pi] to [-pi,+pi]
-	// Domain correctness is the user's responsibility(subtrack phis in advance)
+	// Domain correctness is the user's responsibility(eg.subtract phis)
 	// A more general function is just one fmod function away
 	     if(diff_phi >  PI<T>)  return diff_phi - TPI<T>;
 	else if(diff_phi < -PI<T>)  return diff_phi + TPI<T>;
@@ -210,8 +212,8 @@ auto jet_deltaphi(const floats& phis){
 	if(debug>0) std::cout<<"jet deltaphi"<<std::endl;
 	floats deltaphis;// half of anti-symmetric matrix has n(n-1)/2 elements
 	deltaphis.reserve((phis.size()*(phis.size()-1))/2);// reserving size
-	// The following two for loops stack correctly     // no need to initiate
-	for(size_t   i=0; i < phis.size()-1 ;++i)	   // elements.
+	// The following two for loops stack correctly     // yet leave
+	for(size_t   i=0; i < phis.size()-1 ;++i)	         // empty.
 	for(size_t j=i+1; j < phis.size()   ;++j)
 		deltaphis.push_back(  static_cast<float>(
 			std::abs(delta_phi(phis[i]-phis[j]))));
@@ -222,9 +224,9 @@ auto jets_gen_select(const floats& gen, const floats& jet){
 // select jets that have generated level info; used @ JEC
 // use this function ONLY for Monte Carlo, not CMS / MET
 	if(gen.size()  < jet.size()){//    GenJet often shorter than Jet
-		floats good_jets = jet;//       deep copy
-		good_jets.resize(gen.size());// discard tail
-		return good_jets;
+	   floats good_jets = jet;//       deep copy
+	   good_jets.resize(gen.size());// discard tail
+	   return good_jets;
 	}else	return   jet;
 }
 auto jetCutter(const unsigned jmin, const unsigned jmax){
@@ -237,26 +239,24 @@ auto jetCutter(const unsigned jmin, const unsigned jmax){
 		return jmin <= nj && nj <= jmax;
 	};
 }
-template<typename T>auto retVar(const T& v){return[&](){return v;};}// due to unsure
-auto jet_smear_pt_resol						    // data type
+template<typename T>// allow us to return w/o knowing data type
+auto retVar(const T& v){return[&](){return v;};}
+auto jet_smear_pt_resol
 	(const floats& pt,const floats& eta,const float& rho){
 	if(debug>0) std::cout<<"jet smear pt resol"<<std::endl;
-/*	float min_eta,max_eta,min_rho,max_rho;
-	float min_pt,max_pt;
-	int   z;// CSV provided parameter we are not using
-	float a,b,c,d;*/
 	floats  resol(pt.size());
 	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
 		"Collections must be the same size (jet_smear_pt_resol)");
 	else if(pt.empty()) throw std::logic_error(
 		"Collections must not be empty in  (jet_smear_pt_resol)");
 	const auto csvname = "Fall17_V3_MC_PtResolution_AK4PFchs.txt";
-	if(!gSystem->AccessPathName(csvname)) throw std::runtime_error( // file not found
+	if(!gSystem->AccessPathName(csvname)) throw std::runtime_error(// FileNotFound
 		"RCsvDS would hang on access failure (jet_smear_pt_resol)");
 	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname,false)// no header
 		.Define("rho",retVar(rho))
 		.Filter("Col2 < rho && rho < Col3")
 	;
+//      min_eta,max_eta,min_rho,max_rho,z,min_pt,max_pt,a,b,c,d
 	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
 		resol[i] = static_cast<float>( csvdf
 		.Define( "pt",retVar( pt[i]))// retVar used due to external pt[i].
@@ -271,18 +271,6 @@ auto jet_smear_pt_resol						    // data type
 		.Define("partial","std::sqrt(signAsq/ptSq + bSq*ptPow + cSq)")
 		.Sum(   "partial").GetValue());// total of partials is answer
 	}
-/*	io::CSVReader<11> thisCSVfile("Fall17_V3_MC_PtResolution_AK4PFchs.txt");
-//	while(thisCSVfile.read_row(
-//	      min_eta,max_eta,min_rho,max_rho,z,min_pt,max_pt,a,b,c,d)){
-		// the following if for if stacks correctly
-		if(   rho > min_rho && rho    < max_rho)
-		for(size_t i=0;   i <  pt.size() ;++i)
-		if(eta[i] > min_eta && eta[i] < max_eta
-		&&  pt[i] > min_pt  &&  pt[i] < max_pt){
-			resol[i] += std::sqrt(  a * std::abs(a)/(pt[i]*pt[i])
-			                    + b*b * std::pow(pt[i],d) + c*c);
-		}
-	}// no need to close file after this while loop*/
 	return resol;
 }
 auto jet_smear_Sjer(const floats& eta){
@@ -297,17 +285,8 @@ auto jet_smear_Sjer(const floats& eta){
 		Sjer[i] = static_cast<float>( csvdf
 		.Define("eta" ,retVar(eta[i]))// TODO: add sf up and down columns
 		.Filter("Col0 < eta && eta < Col1") // for uncertainty
+//        min_eta,max_eta,z,central_SF,SF_dn,SF_up
 		.Sum(   "Col3").GetValue());// sum all filtered central_SF
-/*	float min_eta,max_eta;
-	int   z;// unwanted
-	float central_SF,SF_dn,SF_up;
-	floats     Sjer(eta.size(),0.f);// vector of zeroes
-//	io::CSVReader<6> thisCSVfile("Fall17_V3_MC_SF_AK4PF.txt");
-//	while(thisCSVfile.read_row(min_eta,max_eta,z,central_SF,SF_dn,SF_up)){
-		for(size_t i=0; i  <  eta.size() ;++i)
-		   if(      eta[i] >  min_eta && eta[i] < max_eta)
-		           Sjer[i] += central_SF;
-	}*/
 	return Sjer;
 }
 [[gnu::const]] auto ramp(const float Sjer){
@@ -365,20 +344,8 @@ auto      no_bjet_numer(const ints& id,const ints& is_bjet){
 	aid.resize(is_bjet.size());// discard tail
 	return aid;
 }
-auto      is_bjet_denom(const ints& id,const ints& no_bjet){
-// using no_bjet_id particles not matching btag criteria
-	ints   is_bjet_denom = id == 5;
-	       is_bjet_denom.resize(no_bjet.size());// discard tail
-	return is_bjet_denom;
-}
-auto      no_bjet_denom(const ints& id,const ints& no_bjet){
-// using bjets which has satisfied no btag condition
-	auto aid = abs(id);
-	aid = (( aid >  0  && aid <= 4)
-	      || aid == 21 || aid != 5);
-	aid.resize(no_bjet.size());// discard tail
-	return aid;
-}
+auto      is_bjet_denom = is_bjet_numer;// same functions, just 
+auto      no_bjet_denom = no_bjet_numer;// different input mask
 auto btagCSVv2(const bool    check_CSVv2){
    return  [=](const floats& btag,
                const floats& pt,
@@ -397,11 +364,14 @@ auto btagCSVv2(const bool    check_CSVv2){
 		"RCsvDS would hang on access failure (btagCSVv2)");
 	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname,false)// no header
 	//       measure_type     ,  sys_type            ,  jet_flav
-	.Filter("Col1 == \"comb\" && Col2 == \"central\" && Col3 == 0.f")// TODO: jet flav 5 or 0?
+	.Filter("Col1 == \"comb\" && Col2 == \"central\" && Col3 == 0")
+	// TODO: jet flav 5 or 0?
 	.Define("ignore",retVar(b))// if true ignore btag and CSVv2
 	.Define("bdm"   ,retVar(BTAG_DISC_MIN))
-	.Filter("ignore || bdm <= Col0")// Col0 = CSVv2, checks if u read CSV or not
+	.Filter("ignore || bdm <= Col0")// Col0 = CSVv2; checks against CSVv2 or not
 	;
+//		while(thisCSVfile.read_row(CSVv2,measure_type,sys_type,jet_flav,
+//		      eta_min,eta_max,pt_min,pt_max,CSV_min,CSV_max,rawFormula)){
 	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
 		std::string tmpFormula = csvdf
 		.Define("btag",retVar(btag[i]))
@@ -410,50 +380,15 @@ auto btagCSVv2(const bool    check_CSVv2){
 		.Filter("ignore || (Col8 < btag && btag < Col9)")
 		.Filter("Col6 < pt  && pt  < Col7")
 		.Filter("Col4 < eta && eta < Col5")
+		.Filter("Col10.find(\"x\") != std::string::npos")
 		.Range(1)// get FIRST formula
-		.Take<std::string>("Col10").GetValue()[0];// Take always takes RVec -> [0]
-		if(tmpFormula.find("x") != std::string::npos){
-			boost::replace_all(tmpFormula,"x",std::to_string(pt[i]));
-			formulae[i] = tmpFormula;
-		}
+		.Take<std::string>("Col10").GetValue()[0];// Take gives RVec thus [0]
+		// now guaranteed one good formula with x in it
+		boost::replace_all(tmpFormula,"x",std::to_string(pt[i]));
+		formulae[i] = tmpFormula;
 	}
-/*		std::string  measure_type,sys_type,rawFormula;
-		float CSVv2  ,jet_flav,
-		       pt_min,  pt_max,
-		      eta_min, eta_max,
-		      CSV_min, CSV_max;
-//		io::CSVReader<11> thisCSVfile("CSVv2_94XSF_V2_B_F.csv");
-		// The following nests too much, so we do not indent
-		// Each blank line means nesting deeper
-//		while(thisCSVfile.read_row(CSVv2,measure_type,sys_type,jet_flav,
-//		      eta_min,eta_max,pt_min,pt_max,CSV_min,CSV_max,rawFormula)){
-		
-		// always true if dont check CSV
-		b = (!check_CSV) || BTAG_DISC_MIN <= CSVv2;
-		if(measure_type == "comb" && b
-		&& sys_type  == "central" && jet_flav == 0.f){
-		
-		for(size_t i=0; i < pt.size() ;++i){
-		
-		// always true if dont check CSV
-		b = (!check_CSV)
-		||(btag[i] > CSV_min && btag[i] < CSV_max);
-		std::string tempFormula = rawFormula;
-		if( eta[i] > eta_min &&  eta[i] < eta_max
-		&&   pt[i] > pt_min  &&   pt[i] <  pt_max
-		&&   b){
-		
-		if(formulae[i] == "0"){// only 1st found wins
-		
-		if(tempFormula.find("x") != std::string::npos){
-		
-		boost::replace_all(tempFormula,"x",std::to_string(pt[i]));
-		formulae[i] = tempFormula;
-		}}}}}
-		}// No need to close file after this while loop.
-		// resume indentation*/
-	for(size_t j=0; j < formulae.size() ;++j){// Parser for formula
-		Eval ev;
+	for(size_t j=0; j < formulae.size() ;++j){
+		Eval ev;// numbers calculator
 		results[j] = static_cast<float>(
 		ev.eval(      const_cast<char*>(
 		        formulae[j].c_str())).real());
@@ -520,7 +455,8 @@ auto find_z_pair(const floats& pts,
 	else if(pts.size() != 2)
 		throw std::logic_error("Not pair of Z (inv_mass)");
 	TLorentzVector vec,p;
-	for(size_t i=0; i < pts.size() ;++i){// TODO: add error handling, don't allow more than two jets
+	for(size_t i=0; i < pts.size() ;++i){
+		// TODO: add error handling, don't allow more than two jets
 		p.SetPtEtaPhiM(pts[i],etas[i],phis[i],ms[i]);
 		vec += p;
 	}
@@ -529,7 +465,8 @@ auto find_z_pair(const floats& pts,
 }
 auto zw_deltaphi(const floats& phis,const float& phi){
 	if(debug>0)        std::cout<<"zw dPhi"<<std::endl;
-	if(phis.size()!=2) std::cout<<"zw dPhi, assumes pair, violated"<<std::endl;// TODO: No RVec, float
+	if(phis.size()!=2) std::cout<<"zw dPhi, assumes pair, violated"<<std::endl;
+	// TODO: No RVec, float
 	floats results( 2);
 	for(size_t i=0; i < 2 ;++i)
 		results[i] = static_cast<float>(
@@ -607,18 +544,19 @@ auto BTaggedEffGiver(TH2D* ratio){
 		if(debug>0) std::cout<<"bt eff giver"<<std::endl;
 		if(!all_equal(pts.size(),etas.size()))
 			throw std::logic_error(
-			      "Collections must be the same size (EffGiver)");
+				"Collections must be the same size (EffGiver)");
 		else if(pts.empty())
 			throw std::logic_error(
-			      "Collections must not be empty in  (EffGiver)");
+				"Collections must not be empty in  (EffGiver)");
 		floats BTaggedEff;
 		for(size_t   i=0; i < pts.size() ;++i){
 			int  PtBin = ratio->GetXaxis()->FindBin( pts[i]);
 			int EtaBin = ratio->GetYaxis()->FindBin(etas[i]);
 			float  eff = static_cast<float>(ratio->GetBinContent(PtBin,EtaBin));
-			if(FP_NORMAL == std::fpclassify(eff))// if eff not Floating point
+			if(FP_NORMAL == std::fpclassify(eff))// if eff non-zero/inf/NaN
 				BTaggedEff.push_back(eff);
-			// TODO: what if eff==0? check with kathryn
+			// above only pushed back nonzero nice eff
+			// what do we do with eff==0? check with kathryn
 		}
 		return BTaggedEff;
 	};
@@ -669,7 +607,10 @@ auto sf(const dataSource ds){
 			case  wz:{result = WZLNQQ_W;break;}
 			case  zz:{result = ZZLLQQ_W;break;}
 			case ttz:{result =  TTZQQ_W;break;}
-			default :throw std::invalid_argument("Unimplemented ds (infile)");
+			case met:
+			case cms:// fall through to throw
+			default :throw std::invalid_argument(
+				"Unimplemented ds (infile)");
 		}
 		return result * b;
 	};
@@ -681,10 +622,13 @@ auto rep_const(const float& sf,const floats& iRVec){
 	return weight;
 }
 }// namespace
-void calchisto(const dataSource ds){
-//	ROOT::EnableImplicitMT();// parallel functioning
+void calchisto(const channel ch,const dataSource ds){
+	// Open data files even if unused
+	// then programmatically choose which one to read from
+	// No penalty for opening and leaving unused
+	// Can even open multiple times at once in parallel
 	
-	// Read MC data source
+	// Open MC data source EVEN IF UNUSED
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// tzq and exptData use disk3!
@@ -692,41 +636,60 @@ void calchisto(const dataSource ds){
 	case  ww:{temp_opener=temp_header+  "WWToLNuQQ"    +temp_footer;break;}
 	case  wz:{temp_opener=temp_header+  "WZTo1L1Nu2Q"  +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+  "ZZTo2L2Q"     +temp_footer;break;}
-	case ttz:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}// TODO: ADD DATA DS
+	case ttz:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
+	case met:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
+	case cms:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
 	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
-	}
-	ROOT::RDataFrame dssbdfc{"Events",temp_opener};
+	}// CMS and MET MUST do some OPENABLE file ; reject later
+	ROOT::RDataFrame mcdf{"Events",temp_opener};// Monte Carlo
 	
-	// Read a chain of exptData
-	TChain elnuEvents("Events");
-	TChain munuEvents("Events");
-	temp_footer = "/*.root";/* just to be sure */
+	// Open chains of exptData EVEN IF UNUSED
+	TChain elnuCMS("Events");
+	TChain munuCMS("Events");
+	temp_footer = "/*.root" ;/* just to be sure */
 	temp_header =
 		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_Run";
 	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
-		elnuEvents.Add(temp_opener.c_str());
+		elnuCMS.Add(temp_opener.c_str());
 	}
 	temp_header="/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_Run";
 	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
-		munuEvents.Add(temp_opener.c_str());
+		munuCMS.Add(temp_opener.c_str());
 	}
-	ROOT::RDataFrame metEvents{"Events" ,// channels unified?
+	ROOT::RDataFrame  metdf{"Events" ,// TODO: channel unified?
 		"/data/disk0/nanoAOD_2017/MET*/*.root"};/**/
-	ROOT::RDataFrame elnudfc(elnuEvents);// TODO: CMS and MET
-	ROOT::RDataFrame munudfc(munuEvents);// if channels unified still make two
-	auto dssbdf=dssbdfc.Range(0,1000000);// make test runs faster by restriction
-	auto elnudf=elnudfc.Range(0,1000000);// real run should not Range
-	auto munudf=munudfc.Range(0,1000000);
-	
-	channels ch = elnu;// Changing channels
-	switch(ch){ // TODO: Email Ivan , how to submit jobs.
+	ROOT::RDataFrame  elnudf(elnuCMS);
+	ROOT::RDataFrame  munudf(munuCMS);
+	ROOT::RDataFrame *pointerMagicRDF;
+	// Need pointer magic to programmatically get correct data
+	switch(ds){
+		case tzq:
+		case  ww:// fall through!
+		case  wz:
+		case  zz:
+		case ttz:{pointerMagicRDF =  &mcdf;break;}
+		case met:{pointerMagicRDF = &metdf;break;}
+		case cms:{switch(ch){
+		           case elnu:{pointerMagicRDF = &elnudf;break;}
+		           case munu:{pointerMagicRDF = &munudf;break;}
+		           default  :throw std::invalid_argument(
+			"Unimplemented ch (rdf set)");
+			}break;}
+		default :throw std::invalid_argument(
+			"Unimplemented ds (rdf set)");
+	}
+	switch(ch){// TODO: Email Ivan , how to submit jobs.
 		case elnu:{temp_header = "Electron_";break;}
 		case munu:{temp_header =     "Muon_";break;}
-		default  :throw std::invalid_argument("Unimplemented ch (rdfopen)");
+		default  :throw std::invalid_argument(
+			"Unimplemented ch (init)");
 	}
-	auto w_selection = dssbdf
+	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
+	// make test runs faster by restriction. Real run should not
+	auto dfr = df.Range(1000000);
+	auto w_selection = dfr// remove one letter to do all
 	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
 	       {temp_header+"isPFcand",
@@ -742,9 +705,9 @@ void calchisto(const dataSource ds){
 	.Define(   "lep_eta",temp_header+ "eta[loose_leps][0]")
 	.Define(   "lep_phi",temp_header+ "phi[loose_leps][0]")
 	.Define(   "lep_mas",temp_header+"mass[loose_leps][0]")
-	.Define("tw_lep__pt" ,"lep__pt")
-	.Define("tw_lep_eta" ,"lep_eta")
-	.Define("tw_lep_phi" ,"lep_phi")
+	 .Alias("tw_lep__pt" ,"lep__pt")
+	 .Alias("tw_lep_eta" ,"lep_eta")
+	 .Alias("tw_lep_phi" ,"lep_phi")
 	.Define("tw_lep_mas",transverse_w_mass,
 	       {"tw_lep__pt",
 	        "tw_lep_phi","MET_pt","MET_phi"})
@@ -830,7 +793,7 @@ void calchisto(const dataSource ds){
 	.Define( "z_reco_jets"  , find_z_pair  ,
 	       {"jec_jets__pt"  ,
 	        "jec_jets_eta"  ,
-	        "jec_jets_phi"  ,//easier to push bac
+	        "jec_jets_phi"  ,//easier to push back
 	        "jec_jets_mas"  , "tight_jets" ,"lead_bjet" })
 	.Define(  "z_pair__pt"  , "jec_jets__pt[z_reco_jets]")
 	.Define(  "z_pair_eta"  , "jec_jets_eta[z_reco_jets]")
@@ -876,7 +839,7 @@ void calchisto(const dataSource ds){
 		case munu:{temp_header = "_munu";temp_opener="munu_";
 		           temp_footer =     " muon-neutrino";break;}
 		default  :throw std::invalid_argument(
-		                "Unimplemented ch (hist titles)");
+			"Unimplemented ch (hist titles)");
 	}
 	temp_footer = " pt vs eta in" + temp_footer + " channel for ";
 	switch(ds){
@@ -885,23 +848,25 @@ void calchisto(const dataSource ds){
 		case  wz:{temp_header+="__wz";temp_footer+=" WZ";break;}
 		case  zz:{temp_header+="__zz";temp_footer+=" ZZ";break;}
 		case ttz:{temp_header+="_ttz";temp_footer+="ttZ";break;}
+		case met:{temp_header+="_met";temp_footer+="MET";break;}
+		case cms:{temp_header+="_cms";temp_footer+="CMS";break;}
 		default :throw std::invalid_argument(
-		                "Unimplemented ds (hist titles)");
+			"Unimplemented ds (hist titles)");
 	}
 	
 	auto h_invmass// lepton-neutrino invariant mass histogram
 	   = w_selection
-	.Histo1D({static_cast<const char*>(// TODO: WRONG NAMING CON.
-	          (        "no_numer" + temp_header).c_str()),
+	.Histo1D({static_cast<const char*>(
+	          (         "invmass" + temp_header).c_str()),
 	          static_cast<const char*>(
-	          ("MC no btag numer" + temp_footer).c_str()),
+	          (         "invmass" + temp_header).c_str()),// _header correct
 	          50,0,200},"lep_nu_invmass");
 	auto h_is_btag_numer_PtVsEta
 	   = top_selection
 	.Histo2D({static_cast<const char*>(
-	          (         "invmass" + temp_header).c_str()),
+	          (        "is_numer" + temp_header).c_str()),
 	          static_cast<const char*>(
-	          (         "invmass" + temp_header).c_str()),// not mistake
+	          ("MC is btag numer" + temp_footer).c_str()),
 	          50,0,400,50,-3,3},
 	          "is_btag_numer__pt",
 	          "is_btag_numer_eta");
@@ -971,30 +936,102 @@ void calchisto(const dataSource ds){
 	.Define("P_Data" , "Pi_sfei * Pi_sfej")
 	.Define("btag_w" , btag_weight  ,{"P_Data","P_MC"})
 	.Define("sf"     , sf(ds)       ,{"btag_w"})
-	.Define("nw_lep__pt"            ,"sf")// is just one value, == sf
-	.Define("nw_lep_eta"            ,"sf")
-	.Define("nw_tight_jets__pt"     ,rep_const,{"sf","jec_jets__pt"   })
+	 .Alias("nw_lep__pt"            ,"sf")// is just one value, == sf
+	 .Alias("nw_lep_eta"            ,"sf")// LOL WHY SO DUMB, JUST NEED TO weight the hist
+	.Define("nw_tight_jets__pt"     ,rep_const,{"sf","jec_jets__pt"   })// BY "sf" then!
 	.Define("nw_tight_jets_eta"     ,rep_const,{"sf","jec_jets_eta"   })
 	.Define("nw_tight_jets_phi"     ,rep_const,{"sf","jec_jets_phi"   })
 	.Define("nw_tight_jets_mas"     ,rep_const,{"sf","jec_jets_mas"   })
 	.Define("nw_jet_lep_min_dR"     ,rep_const,{"sf", "jet_lep_min_dR"})
 	.Define( "nw__z_lep_min_dR"     ,rep_const,{"sf",   "z_lep_min_dR"})
-	.Define( "nw_tw_lep_mas"        ,"sf")
-	.Define( "nw__z_mass"           ,"sf")
+	 .Alias( "nw_tw_lep_mas"        ,"sf")
+	 .Alias( "nw__z_mass"           ,"sf")
 	.Define("nw_tight_jets_deltaphi",rep_const,{"sf","tight_jets_deltaphi"})
 	.Define(      "nw_zmet_deltaphi",rep_const,{"sf",      "zmet_deltaphi"})
 	.Define(        "nw_zw_deltaphi",rep_const,{"sf",        "zw_deltaphi"})
-//	.Define("nw_ttop__pt"  ,"sf")
-//	.Define("nw_ttop_mas","sf")
+//	 .Alias("nw_ttop__pt"  ,"sf")
+//	 .Alias("nw_ttop_mas","sf")
 	;
-	// Testing top mass histo
-//	auto h_transTopmass = P_btag.Histo1D({
-//		static_cast<const char*>((       "ttopmass" + temp_header).c_str()),
-//		static_cast<const char*>(("trans. Top mass" + temp_header).c_str()),
-//		50,0,200},
-//		"ttop__pt","nw_ttop__pt");
+// Lepton hists.
 	auto
-	h_tWmVsZmass_calc = P_btag.Histo2D({// TODO: DECLARE ALL HISTO WITH THIS TECHNIQUE
+	h_lep_pt = P_bag.Histo1D({
+	static_cast<const char*(temp_header + "pT").c_str(),
+	static_cast<const char*(temp_header + "pT").c_str(),
+	50,0,200},
+	"lep__pt","nw_lep__pt");
+        h_lep_pt->GetXaxis()->SetTitle("pT/GeV");
+        h_lep_pt->GetYaxis()->SetTitle( "Event");
+	
+        auto
+	h_lep_eta = P_bag.Histo1D({
+        static_cast<const char*(temp_header + "Eta").c_str(),
+        static_cast<const char*(temp_header + "Eta").c_str(),
+        50,-3,3},
+        "lep_eta","nw_lep_eta");
+        h_lep_eta->GetXaxis()->SetTitle("eta");
+        h_lep_eta->GetYaxis()->SetTitle( "Events");
+/*							// TODO: Declare lep phi and lep mass
+	auto
+	h_lep_phi = P_bag.Histo1D({
+        static_cast<const char*(temp_header + "Phi").c_str(),
+        static_cast<const char*(temp_header + "Phi").c_str(),
+        50,-7,7},
+        "lep__pt","nw_lep__pt");
+        h_lep_phi->GetXaxis()->SetTitle("Azimuthal angle, phi/rad");
+        h_lep_phi->GetYaxis()->SetTitle( "Event");
+	
+        auto
+	h_lep_mass = P_bag.Histo1D({
+        static_cast<const char*(temp_header + "mass").c_str(),
+        static_cast<const char*(temp_header + "mass").c_str(),
+        50,0,30},
+        "lep_mass","nw_lep_mass");
+        h_lep_mass->GetXaxis()->SetTitle("mass GeV/C^2");
+        h_lep_mass->GetYaxis()->SetTitle( "Event");
+*/
+// JEC Jets hists
+        auto
+	h_lep_pt = P_bag.Histo1D({
+        static_cast<const char*(temp_header + "pT").c_str(),
+        static_cast<const char*(temp_header + "pT").c_str(),
+        50,0,200},
+        "jec_jets_pt","nw_jec_jets_pt");
+        h_jets_pt->GetXaxis()->SetTitle("pT/GeV");
+        h_jets_pt->GetYaxis()->SetTitle( "Event");
+	
+       	auto
+	h_jets_eta = P_bag.Histo1D({
+        static_cast<const char*(temp_header + "Eta").c_str(),
+        static_cast<const char*(temp_header + "Eta").c_str(),
+        50,-3,3},
+        "jec_jets_eta","jec_jets_eta");
+        h_jets_eta->GetXaxis()->SetTitle("eta");
+        h_jets_eta->GetYaxis()->SetTitle( "Events");
+	
+        auto
+        h_jets_phi = P_bag.Histo1D({
+        static_cast<const char*(temp_header + "Phi").c_str(),
+        static_cast<const char*(temp_header + "Phi").c_str(),
+        50,-7,7},
+        "jec_jets_phi","jec_jets_phi");
+        h_jets_phi->GetXaxis()->SetTitle("Azimuthal angle, phi/rad");
+        h_jets_phi->GetYaxis()->SetTitle( "Event");
+	
+        auto
+        h_jets_mass = P_bag.Histo1D({
+        static_cast<const char*(temp_header + "mass").c_str(),
+        static_cast<const char*(temp_header + "mass").c_str(),
+        50,0,30},
+        "jec_jets_mass","jec_jets_mass");
+        h_jets_mass->GetXaxis()->SetTitle("mass GeV/C^2");
+        h_jets_mass->GetYaxis()->SetTitle( "Event");
+// BOSONs hists
+
+
+
+	auto
+	h_tWmVsZmass_calc = P_btag.Histo2D({
+		// TODO: DECLARE ALL HISTO WITH THIS TECHNIQUE
 		static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
 		static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
 		50,0,200,50,0,200},
@@ -1004,18 +1041,13 @@ void calchisto(const dataSource ds){
 
 	// write histograms to a root file
 
-	auto h_Zmass_calc = P_btag.Histo1D({"z mass",
-		"z mass",50,0,200},"z_mass"    ,"nw__z_mass");
-	auto h_tWm_calc   = P_btag.Histo1D({"tW mass",
-		"z_mass",50,0,200},"tw_lep_mas","nw_tw_lep_mas");
-	//auto h_tWmVsZmass_calc = P_btag.Histo2D({"test",
-	//	"test",50,0,200,50,0,200},"bjet__pt","bjet_eta");
+
 
 	switch(ch){
 		case elnu:{temp_opener ="elnu_";break;}
 		case munu:{temp_opener ="munu_";break;}
 		default  :throw std::invalid_argument(
-		                "Unimplemented ch (outfile)");
+			"Unimplemented ch (outfile)");
 	}
 	switch(ds){
 		case tzq: {temp_opener+=  "tzq";break;}
@@ -1023,8 +1055,10 @@ void calchisto(const dataSource ds){
 		case  wz: {temp_opener+=  "_wz";break;}
 		case  zz: {temp_opener+=  "_zz";break;}
 		case ttz: {temp_opener+=  "ttz";break;}
+		case met: {temp_opener+=  "met";break;}
+		case cms: {temp_opener+=  "cms";break;}
 		default :throw std::invalid_argument(
-		               "Unimplemented ds (outfile)");
+			"Unimplemented ds (outfile)");
 	}
 	temp_opener += ".histo";
 	TFile hf(static_cast<const char*>(temp_opener.c_str()),"RECREATE");
@@ -1040,7 +1074,4 @@ void calchisto(const dataSource ds){
 	h_tWmVsZmass_calc->Write();
 	
 	hf.Close();
-//	std::cout << "btag weight is " << std::endl;
-//	<< *btag_w << std::endl;
-//	<< P_btag.Take<float>("btag_w").GetValue()[0] << std::endl;
 }

@@ -13,8 +13,9 @@ DEPS   = $(OBJS:.o=.d)
 INCD    =$(shell find $(SRCD) -type d)
 INCFLAGS=$(addprefix -I,$(INCD)) -isystem${CPATH}
 
-CXXFLAGS=$(INCFLAGS) -MMD -MP -std=c++17 -march=native -pipe\
-	-O3 -Wall -Wextra -Wpedantic -Wold-style-cast -Wno-sign-compare
+CXXFLAGS=$(INCFLAGS) -MMD -MP -std=c++17 -march=native -pipe -O3\
+	-Wall -Wextra -Wpedantic\
+	-Weverything -Wno-double-promotion -Wno-covered-switch-default -Wno-c++98-compat
 
 LDPATH =-L$(shell root-config --libdir) \
 	-L/cvmfs/sft.cern.ch/lcg/views/LCG_95/x86_64-slc6-gcc8-opt/lib

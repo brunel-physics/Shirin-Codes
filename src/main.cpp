@@ -12,10 +12,10 @@ int main(int argc,char* argv[]){
 		return 1;
 	}
 	     if(const auto command  = std::string_view(argv[1]);
-	        command ==     "analyse"){}//analyse(    argc,argv);}
-	else if(command == "badbranches"){badbranches(argc,argv);}
-	else if(command ==      "dedupe"){dedupe(     argc,argv);}
-	else if(command ==   "calchisto"){calchisto(tzq);}
+	        command ==     "analyse"){  }//analyse(    argc,argv);}
+	else if(command == "badbranches"){badbranches();}//argc,argv);}
+	else if(command ==      "dedupe"){dedupe();}//     argc,argv);}
+	else if(command ==   "calchisto"){calchisto(elnu,tzq);}
 	else{
 		std::cout << "Error: command " 
 		          <<         command 

@@ -1,20 +1,16 @@
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
+#ifndef EVAL_COMPLEX_HPP
+#define EVAL_COMPLEX_HPP
 #include <complex>
-#include <math.h>
-
-using namespace std;
 
 class Eval {
   public:
-    complex<double> eval(char *expr);
-    complex<double> sum();
-    complex<double> prod();
-    complex<double> power();
-    complex<double> basexp();
-    complex<double> function();
-    complex<double> number();
+    std::complex<double> eval(char *expr);
+    std::complex<double> sum();
+    std::complex<double> prod();
+    std::complex<double> power();
+    std::complex<double> basexp();
+    std::complex<double> function();
+    std::complex<double> number();
   private:
     void eatspace();
     char cur() { return *m_cptr; }
@@ -22,3 +18,4 @@ class Eval {
     void expect(char ch);
     char *m_cptr;
 };
+#endif /* EVAL_COMPLEX_HPP */

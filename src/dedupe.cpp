@@ -22,7 +22,7 @@ bool seen(const unsigned run, const ULong64_t event)
 }
 } // namespace
 
-void dedupe(int argc, char* argv[])
+void dedupe()//int argc, char* argv[])
 {
     // No faster (and perhaps even slower) to multi thread.
     // Bottleneck as only one thread can access the map at a time

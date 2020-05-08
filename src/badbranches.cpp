@@ -8,6 +8,8 @@
 #include <string_view>
 #include <vector>
 
+using namespace std;
+
 namespace
 {
 std::vector<std::string> get_branches(const std::string_view& f)
@@ -17,7 +19,7 @@ std::vector<std::string> get_branches(const std::string_view& f)
 }
 } // namespace
 
-void badbranches(int argc, char* argv[])
+void badbranches()//int argc, char* argv[])
 {
     const std::vector<std::string> files{
         "/home/data/nanoAOD_2017/mumuRun2017B/1CEF9BDB-BC44-E811-996F-801844DF001C.root",
