@@ -524,6 +524,19 @@ auto top_reconst(const floats& bjets_pt,
 	}
 	return reco_top;
 }
+auto TLcreator(const floats& pt__pair, // Create TLorentz from 2 jets 4-mom
+	       const floats& eta_pair,
+	       const floats& phi_pair,
+	       const floats& mas_pair){
+        if(debug>0) std::cout<<"TLcreator"<<std::endl;
+        if(pt__pair.size() != 2)
+                throw std::logic_error("Not pair of Z (TLcreator)");
+	TLorentzVector v,p;
+	for(size_t i; i < pt__pair.size(); i++){
+		p.SetPtEtaPhiM(pt__pair[i],eta_pair[i], phi_pair[i],mas_pair[i]);
+                v += p;
+	)
+	return v;
 auto TLVex(   const PtEtaPhiM         what){
 	return [=](const TLorentzVector& object){
 		if(debug>0) std::cout<<"TLVex"<<std::endl;
@@ -799,11 +812,15 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define(  "z_pair_eta"  , "jec_jets_eta[z_reco_jets]")
 	.Define(  "z_pair_phi"  , "jec_jets_phi[z_reco_jets]")
 	.Define(  "z_pair_mas"  , "jec_jets_mas[z_reco_jets]")
-	.Define(  "z_mass"      , inv_mass     ,
+	.Define(  "z_Tlorent"	, TLcreator    ,
 	       {  "z_pair__pt"  ,
-	          "z_pair_eta"  ,
-	          "z_pair_phi"  ,
-	          "z_pair_mas" })// TODO: Create TLorentz for Z and get pt,eta,phi
+                  "z_pair_eta"  ,
+                  "z_pair_phi"  ,
+                  "z_pair_mas" })
+        .Define(  "z__pt"  ,TLVex(pt ),{"z_Tlorent"})
+        .Define(  "z_eta"  ,TLVex(eta),{"z_Tlorent"})
+        .Define(  "z_phi"  ,TLVex(phi),{"z_Tlorent"})
+        .Define(  "z_mas"  ,TLVex( m ),{"z_Tlorent"})// Replaced the inv_mass function :)
 	.Define(  "z_lep_min_dR", jet_lep_min_deltaR, // TODO: Check if input correct.
 	       {  "z_pair_eta"  ,
 	          "z_pair_phi"  ,
@@ -954,36 +971,36 @@ void calchisto(const channel ch,const dataSource ds){
 	;
 // Lepton hists.
 	auto
-	h_lep_pt = P_bag.Histo1D({
-	static_cast<const char*(temp_header + "pT").c_str(),
-	static_cast<const char*(temp_header + "pT").c_str(),
+	h_lep_pt = P_btag.Histo1D({
+	static_cast<const char*>(temp_header + "pT").c_str(),
+	static_cast<const char*>(temp_header + "pT").c_str(),
 	50,0,200},
 	"lep__pt","nw_lep__pt");
         h_lep_pt->GetXaxis()->SetTitle("pT/GeV");
         h_lep_pt->GetYaxis()->SetTitle( "Event");
 	
         auto
-	h_lep_eta = P_bag.Histo1D({
-        static_cast<const char*(temp_header + "Eta").c_str(),
-        static_cast<const char*(temp_header + "Eta").c_str(),
+	h_lep_eta = P_btag.Histo1D({
+        static_cast<const char*>(temp_header + "Eta").c_str(),
+        static_cast<const char*>(temp_header + "Eta").c_str(),
         50,-3,3},
         "lep_eta","nw_lep_eta");
         h_lep_eta->GetXaxis()->SetTitle("eta");
         h_lep_eta->GetYaxis()->SetTitle( "Events");
 /*							// TODO: Declare lep phi and lep mass
 	auto
-	h_lep_phi = P_bag.Histo1D({
-        static_cast<const char*(temp_header + "Phi").c_str(),
-        static_cast<const char*(temp_header + "Phi").c_str(),
+	h_lep_phi = P_btag.Histo1D({
+        static_cast<const char*>(temp_header + "Phi").c_str(),
+        static_cast<const char*>(temp_header + "Phi").c_str(),
         50,-7,7},
         "lep__pt","nw_lep__pt");
         h_lep_phi->GetXaxis()->SetTitle("Azimuthal angle, phi/rad");
         h_lep_phi->GetYaxis()->SetTitle( "Event");
 	
         auto
-	h_lep_mass = P_bag.Histo1D({
-        static_cast<const char*(temp_header + "mass").c_str(),
-        static_cast<const char*(temp_header + "mass").c_str(),
+	h_lep_mass = P_btag.Histo1D({
+        static_cast<const char*>(temp_header + "mass").c_str(),
+        static_cast<const char*>(temp_header + "mass").c_str(),
         50,0,30},
         "lep_mass","nw_lep_mass");
         h_lep_mass->GetXaxis()->SetTitle("mass GeV/C^2");
@@ -991,41 +1008,59 @@ void calchisto(const channel ch,const dataSource ds){
 */
 // JEC Jets hists
         auto
-	h_lep_pt = P_bag.Histo1D({
-        static_cast<const char*(temp_header + "pT").c_str(),
-        static_cast<const char*(temp_header + "pT").c_str(),
+	h_lep_pt = P_btag.Histo1D({
+        static_cast<const char*>(temp_header + "pT").c_str(),
+        static_cast<const char*>(temp_header + "pT").c_str(),
         50,0,200},
         "jec_jets_pt","nw_jec_jets_pt");
         h_jets_pt->GetXaxis()->SetTitle("pT/GeV");
         h_jets_pt->GetYaxis()->SetTitle( "Event");
 	
        	auto
-	h_jets_eta = P_bag.Histo1D({
-        static_cast<const char*(temp_header + "Eta").c_str(),
-        static_cast<const char*(temp_header + "Eta").c_str(),
+	h_jets_eta = P_btag.Histo1D({
+        static_cast<const char*>(temp_header + "Eta").c_str(),
+        static_cast<const char*>(temp_header + "Eta").c_str(),
         50,-3,3},
-        "jec_jets_eta","jec_jets_eta");
+        "jec_jets_eta","nw_jec_jets_eta");
         h_jets_eta->GetXaxis()->SetTitle("eta");
         h_jets_eta->GetYaxis()->SetTitle( "Events");
 	
         auto
-        h_jets_phi = P_bag.Histo1D({
-        static_cast<const char*(temp_header + "Phi").c_str(),
-        static_cast<const char*(temp_header + "Phi").c_str(),
+        h_jets_phi = P_btag.Histo1D({
+        static_cast<const char*>(temp_header + "Phi").c_str(),
+        static_cast<const char*>(temp_header + "Phi").c_str(),
         50,-7,7},
-        "jec_jets_phi","jec_jets_phi");
+        "jec_jets_phi","nw_jec_jets_phi");
         h_jets_phi->GetXaxis()->SetTitle("Azimuthal angle, phi/rad");
         h_jets_phi->GetYaxis()->SetTitle( "Event");
 	
         auto
-        h_jets_mass = P_bag.Histo1D({
-        static_cast<const char*(temp_header + "mass").c_str(),
-        static_cast<const char*(temp_header + "mass").c_str(),
+        h_jets_mass = P_btag.Histo1D({
+        static_cast<const char*>(temp_header + "mass").c_str(),
+        static_cast<const char*>(temp_header + "mass").c_str(),
         50,0,30},
-        "jec_jets_mass","jec_jets_mass");
+        "jec_jets_mass","nw_jec_jets_mass");
         h_jets_mass->GetXaxis()->SetTitle("mass GeV/C^2");
         h_jets_mass->GetYaxis()->SetTitle( "Event");
 // BOSONs hists
+	auto
+	h_trans_w = P_btag.Histo1D({
+        static_cast<const char*>("Transverse W mass" + temp_header).c_str(),
+        static_cast<const char*>("Transverse W mass" + temp_header).c_str(),
+        50,0,180},
+        "tw_lep_mas","sf");
+        h_trans_w->GetXaxis()->SetTitle("mass GeV/C^2");
+        h_trans_w->GetYaxis()->SetTitle( "Event");
+	
+	auto
+	h_Winvmass = P_btag.Histo1D({
+	static_cast<const char*>("W invariant mass" + temp_header).c_str(),
+        static_cast<const char*>("W invariant mass" + temp_header).c_str(),
+        50,0,180},
+        "lep_nu_invmass","sf");
+        h_Winvmass->GetXaxis()->SetTitle("mass GeV/C^2");
+        h_Winvmass->GetYaxis()->SetTitle( "Event");
+
 
 
 
