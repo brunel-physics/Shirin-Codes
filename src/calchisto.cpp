@@ -240,27 +240,24 @@ auto jet_smear_pt_resol(
 	if(pt.empty()) throw std::logic_error(
 		"Collections must not be empty in  (jet_smear_pt_resol)");
 	const char csvname[] = "Fall17_V3_MC_PtResolution_AK4PFchs.txt";
-	//if(!gSystem->AccessPathName(csvname)) throw std::runtime_error(// FileNotFound
-	//	"RCsvDS would hang on access failure (jet_smear_pt_resol)");
-	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname,false)// no header
+	if(gSystem->AccessPathName(csvname)) throw std::runtime_error(// FileNotFound
+		"RCsvDS would hang on access failure (jet_smear_pt_resol)");
+	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname)// no header
 		.Define("rho",retVar(rho))
-		.Filter("Col2 < rho && rho < Col3")
+		.Filter("rhoMin < rho && rho < rhoMax")
 	;
-//	      min_eta,max_eta,min_rho,max_rho,z,min_pt,max_pt,a,b,c,d
 	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
 		resol[i] = static_cast<float>( csvdf
-		.Define( "pt",retVar( pt[i]))// retVar used due to external pt[i].
-		.Define("eta",retVar(eta[i]))
-		.Filter("Col5 < pt  &&  pt < Col6")
-		.Filter("Col0 < eta && eta < Col1")
-		.Define("absA"   ,[](const float& y){return std::abs(y);},{"Col7"})
-		.Define("signAsq","Col7 * absA")
+		.Define("pt" ,retVar((float) pt[i]))// retVar used due to external pt[i].
+		.Define("eta",retVar((float) eta[i]))
+		.Filter(" ptMin < pt  &&  pt <  ptMax")
+		.Filter("etaMin < eta && eta < etaMax")
+		.Define("signAsq",[](double a){return a*std::abs(a);},{"a"})
 		.Define("ptSq"   ,"  pt * pt")
-		.Define("ptPow"  ,[](const float& x, const float& y){return std::pow(x, y);},{"pt","Col10"})
-		.Define("bSq"    ,"Col8 * Col8")
-		.Define("cSq"    ,"Col9 * Col9")
-		.Define("pSq"    ,"signAsq / ptSq + bSq * ptPow + cSq")
-		.Define("partial",[](const float& x){return std::sqrt(x);},{"pSq"})
+		.Define("ptPow"  ,[](float p, double d){return std::pow(p,d);},
+		                 {  "pt","d"})
+		.Define("pSq"    ,"signAsq/(pt*pt) + b*b * ptPow + c*c")
+		.Define("partial",[](double x){return std::sqrt(x);},{"pSq"})
 		.Sum(   "partial").GetValue());// total of partials is answer
 	}
 	return resol;
@@ -269,16 +266,15 @@ auto jet_smear_Sjer(const floats& eta){
 	if(debug>0) std::cout<<"jet smear sjer"<<std::endl;
         floats Sjer(              eta.size());
 	const char csvname[] = "Fall17_V3_MC_SF_AK4PF.txt";
-	//if(!gSystem->AccessPathName(csvname)) throw std::runtime_error(
-	//	"RCsvDS would hang on access failure (jet_smear_Sjer)");
-	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname,false)// no header
+	if(gSystem->AccessPathName(csvname)) throw std::runtime_error(
+		"RCsvDS would hang on access failure (jet_smear_Sjer)");
+	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname)
 	;// next loop is necessary
 	for(size_t i=0; i < eta.size() ;++i)
 		Sjer[i] = static_cast<float>( csvdf
 		.Define("eta" ,retVar(eta[i]))// TODO: add sf up and down columns
-		.Filter("Col0 < eta && eta < Col1") // for uncertainty
-//		     min_eta,max_eta,z,central_SF,SF_dn,SF_up
-		.Sum(   "Col3").GetValue() );// sum all filtered central_SF
+		.Filter("etaMin < eta && eta < etaMax") // for uncertainty
+		.Sum(   "centralSF").GetValue() );// sum all filtered central_SF
 	return Sjer;
 }
 [[gnu::const]] auto ramp(const float Sjer){
@@ -352,29 +348,27 @@ auto btagCSVv2(const bool    check_CSVv2){
 	if(btag.size() < pt.size()) throw std::logic_error(
 		"insufficient btagCSVv2");
 	const char csvname[] = "CSVv2_94XSF_V2_B_F.csv";
-	//if(!gSystem->AccessPathName(csvname)) throw std::runtime_error(
-	//	"RCsvDS would hang on access failure (btagCSVv2)");
-	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname,false)// no header
-	//       measure_type     ,  sys_type            ,  jet_flav
-	.Filter("Col1 == \"comb\" && Col2 == \"central\" && Col3 == 0")
+	if(gSystem->AccessPathName(csvname)) throw std::runtime_error(
+		"RCsvDS would hang on access failure (btagCSVv2)");
+	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname)
+	.Filter("measureType==\"comb\"&&sysType==\"central\"&&jetFlav==0")
 	// TODO: jet flav 5 or 0?
 	.Define("ignore",retVar(b))// if true ignore btag and CSVv2
 	.Define("bdm"   ,retVar(BTAG_DISC_MIN))
-	.Filter("ignore || bdm <= Col0")// Col0 = CSVv2; checks against CSVv2 or not
+	.Filter("ignore || bdm <= CSVv2")// checks against CSVv2 or not
 	;
-//	while(thisCSVfile.read_row(CSVv2,measure_type,sys_type,jet_flav,
-//	      eta_min,eta_max,pt_min,pt_max,CSV_min,CSV_max,rawFormula)){
 	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
 		std::string tmpFormula = csvdf
 		.Define("btag",retVar(btag[i]))
 		.Define("pt"  ,retVar(  pt[i]))
 		.Define("eta" ,retVar( eta[i]))
-		.Filter("ignore || (Col8 < btag && btag < Col9)")
-		.Filter("Col6 < pt  && pt  < Col7")
-		.Filter("Col4 < eta && eta < Col5")
-		.Filter([](std::string y){return y.find("x")!=std::string::npos;},{"Col10"})
+		.Filter("ignore || (CSVmin < btag && btag < CSVmax)")
+		.Filter(" ptMin < pt  && pt  <  ptMax")
+		.Filter("etaMin < eta && eta < etaMax")
+		.Filter([](std::string y)
+			{return y.find("x")!=std::string::npos;},{"formula"})
 		.Range(1)// get FIRST formula
-		.Take<std::string>("Col10").GetValue()[0];// Take gives RVec thus [0]
+		.Take<std::string>("formula").GetValue()[0];// Take gives RVec thus [0]
 		// now guaranteed one good formula with x in it
 		boost::replace_all(tmpFormula,"x",std::to_string(pt[i]));
 		formulae[i] = tmpFormula;
