@@ -1,5 +1,6 @@
-// TODO: ALL TODO, PRIORITY: Zpair TLV, Z 4momentum,
-// TODO: Create and Write() all histograms.
+// TODO: BtagEffGiver has issue reading the 2d hist. 
+// TODO: Create and Write() Boson and special angles hist.
+// TODO: ADD AXIS to stack plotter
 // TODO: CMS and MET need weights, lest crash
 #include <ROOT/RCsvDS.hxx>//#include <ROOT/RDataFrame.hxx>
 #include <TLorentzVector.h>
@@ -567,7 +568,7 @@ auto top_reconst(const floats& bjets_pt,
 	}
 	return reco_top;
 }
-auto BTaggedEffGiver(TH2D* ratio){
+auto BTaggedEffGiver(TH2D* &ratio){
 return [=](const floats& pts,const floats& etas){
 	if(debug>0) std::cout<<"bt eff giver"<<std::endl;
 	if(!all_equal(pts.size(),etas.size())) throw std::logic_error(
@@ -713,7 +714,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(10000);
+	auto dfr = df.Range(50);
 	auto w_selection = dfr// remove one letter to do all
 	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
@@ -981,8 +982,8 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias( "nw_tw_lep_mas"      ,"sf")
 	. Alias( "nw__z_mas"          ,"sf")
 	.Define("nw_fin_jets_deltaphi",rep_const,{"sf","fin_jets_deltaphi"})
-	.Define(    "nw_zmet_deltaphi",rep_const,{"sf",    "zmet_deltaphi"})
-	.Define(      "nw_zw_deltaphi",rep_const,{"sf",      "zw_deltaphi"})
+	. Alias(    "nw_zmet_deltaphi","sf")
+	. Alias(      "nw_zw_deltaphi","sf")
 //	. Alias("nw_ttop__pt","sf")
 //	. Alias("nw_ttop_mas","sf")
 	;
@@ -1021,7 +1022,7 @@ void calchisto(const channel ch,const dataSource ds){
 		static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
 		static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
 		50,0,200,50,0,200},
-		"tw_lep_mas","z_mass");
+		"tw_lep_mas","z_mas");
 	h_tWmVsZmass_calc->GetXaxis()->SetTitle("tWm   GeV/C^2");
 	h_tWmVsZmass_calc->GetYaxis()->SetTitle("Zmass GeV/C^2");
 	
