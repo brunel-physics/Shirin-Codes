@@ -7,8 +7,6 @@
 #include <TSystem.h>// for safer RCsvDS via gSystem
 #include <TChain.h>
 
-#include <boost/algorithm/string.hpp>
-
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
 
@@ -55,7 +53,7 @@ constexpr unsigned    JETS_MIN = 4;
 constexpr unsigned    JETS_MAX = 6;
 
 constexpr float   BJET_ETA_MAX = 2.4f;
-constexpr float  BTAG_DISC_MIN =  .8838f;
+constexpr double BTAG_DISC_MIN =  .8838;
 constexpr unsigned   BJETS_MIN = 1;
 constexpr unsigned   BJETS_MAX = 3;
 
@@ -208,7 +206,7 @@ auto tight_jet_id(const floats& jet_lep_min_dRs,
 	return pts>JET__PT_MIN&&abs(etas)<JET_ETA_MAX&&jet_lep_min_dRs>JET_ISO&&ids>=2;
 }
 auto jetCutter(const unsigned jmin, const unsigned jmax){
-	if(debug>0) std::cout<<"jet cut "<< jmin <<" "<< jmax <<std::endl;
+	if(debug>3) std::cout<<"jet cut "<< jmin <<" "<< jmax <<std::endl;
 	return[=](const ints& jetmask){
 		const auto nj = std:: count_if(
 			jetmask.cbegin(),
@@ -242,19 +240,23 @@ auto jet_smear_pt_resol(
 	const char csvname[] = "Fall17_V3_MC_PtResolution_AK4PFchs.txt";
 	if(gSystem->AccessPathName(csvname)) throw std::runtime_error(// FileNotFound
 		"RCsvDS would hang on access failure (jet_smear_pt_resol)");
-	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname)// no header
-		.Define("rho",retVar(rho))
-		.Filter("rhoMin < rho && rho < rhoMax")
+	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname)
+	.Define("rho",retVar(static_cast<double>(rho)))// retVar used b/c external rho
+	.Filter("rhoMin < rho && rho < rhoMax")
 	;
+	if("std::string"==csvdf.GetColumnType("rhoMin"))throw std::logic_error(
+		"RCsvDS deduced rhoMin as  string; no spaces anywhere in csv file pls");
+	if(     "double"!=csvdf.GetColumnType("rhoMin"))throw std::logic_error(
+		"RCsvDS deduced rhoMin as integer; edit file, change 0 to 0. for 1st row");
 	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
 		resol[i] = static_cast<float>( csvdf
-		.Define("pt" ,retVar((float) pt[i]))// retVar used due to external pt[i].
-		.Define("eta",retVar((float) eta[i]))
+		.Define("pt" ,retVar(static_cast<double>( pt[i])))
+		.Define("eta",retVar(static_cast<double>(eta[i])))
 		.Filter(" ptMin < pt  &&  pt <  ptMax")
 		.Filter("etaMin < eta && eta < etaMax")
 		.Define("signAsq",[](double a){return a*std::abs(a);},{"a"})
 		.Define("ptSq"   ,"  pt * pt")
-		.Define("ptPow"  ,[](float p, double d){return std::pow(p,d);},
+		.Define("ptPow"  ,[](double p, double d){return std::pow(p,d);},
 		                 {  "pt","d"})
 		.Define("pSq"    ,"signAsq/(pt*pt) + b*b * ptPow + c*c")
 		.Define("partial",[](double x){return std::sqrt(x);},{"pSq"})
@@ -270,11 +272,13 @@ auto jet_smear_Sjer(const floats& eta){
 		"RCsvDS would hang on access failure (jet_smear_Sjer)");
 	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname)
 	;// next loop is necessary
+	if("std::string"==csvdf.GetColumnType("etaMax"))throw std::logic_error(
+		"RCsvDS deduced etaMax as  string; no spaces anywhere in csv file pls");
 	for(size_t i=0; i < eta.size() ;++i)
-		Sjer[i] = static_cast<float>( csvdf
-		.Define("eta" ,retVar(eta[i]))// TODO: add sf up and down columns
-		.Filter("etaMin < eta && eta < etaMax") // for uncertainty
-		.Sum(   "centralSF").GetValue() );// sum all filtered central_SF
+		Sjer[i] = static_cast<float>( csvdf// TODO: add sf up and 
+		.Define("eta" ,retVar(static_cast<double>(eta[i])))// down
+		.Filter("etaMin < eta && eta < etaMax")// for uncertainty
+		.Sum(   "centralSF").GetValue() );// sum all filtered
 	return Sjer;
 }
 [[gnu::const]] auto ramp(const float Sjer){
@@ -338,7 +342,7 @@ auto btagCSVv2(const bool    check_CSVv2){
     return [=](const floats& btag,
                const floats& pt,
                const floats& eta){
-	bool b = !check_CSVv2;// magic btag checker; heavily reused
+	bool ignore = !check_CSVv2;// magic btag checker; heavily reused
 	strings formulae(pt.size() ,"0");// vector of "0"
 	floats   results(pt.size());
 	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
@@ -353,24 +357,38 @@ auto btagCSVv2(const bool    check_CSVv2){
 	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname)
 	.Filter("measureType==\"comb\"&&sysType==\"central\"&&jetFlav==0")
 	// TODO: jet flav 5 or 0?
-	.Define("ignore",retVar(b))// if true ignore btag and CSVv2
-	.Define("bdm"   ,retVar(BTAG_DISC_MIN))
+	.Define("ignore",retVar(ignore))// if true ignore btag and CSVv2
+	.Define("bdm"   ,retVar(BTAG_DISC_MIN))// the only double we use
 	.Filter("ignore || bdm <= CSVv2")// checks against CSVv2 or not
 	;
+	if("std::string"==csvdf.GetColumnType("CSVmin"))throw std::logic_error(
+		"RCsvDS deduced CSVmin as  string; no spaces anywhere in csv file pls");
+	if(     "double"!=csvdf.GetColumnType("CSVmin"))throw std::logic_error(
+"RCsvDS deduced CSVmin as integer; edit file, change 0,1 to 0.,1. for 1st row");
+	// TODO: uncomment the next two lines if we need CSVv2 as doubles
+	// All of CSVv2 are integer and the code ignores this discrepancy
+//	if(     "double"!=csvdf.GetColumnType("CSVv2" ))throw std::logic_error(
+//		"RCsvDS deduced CSVv2  as integer; edit file, change 0 to 0. for 1st row");
 	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
 		std::string tmpFormula = csvdf
-		.Define("btag",retVar(btag[i]))
-		.Define("pt"  ,retVar(  pt[i]))
-		.Define("eta" ,retVar( eta[i]))
+		.Define("btag",retVar(static_cast<double>(btag[i])))
+		.Define("pt"  ,retVar(static_cast<double>(  pt[i])))
+		.Define("eta" ,retVar(static_cast<double>( eta[i])))
 		.Filter("ignore || (CSVmin < btag && btag < CSVmax)")
 		.Filter(" ptMin < pt  && pt  <  ptMax")
 		.Filter("etaMin < eta && eta < etaMax")
-		.Filter([](std::string y)
+		.Filter([](std::string y)// this filter is only a safety check
 			{return y.find("x")!=std::string::npos;},{"formula"})
 		.Range(1)// get FIRST formula
 		.Take<std::string>("formula").GetValue()[0];// Take gives RVec thus [0]
 		// now guaranteed one good formula with x in it
-		boost::replace_all(tmpFormula,"x",std::to_string(pt[i]));
+		// Time to replace all x with pt ourselves~~ No need boost::replace_all
+		size_t pos  = tmpFormula.find("x");
+		std::string ptstr = std::to_string(pt[i]);
+		while( pos != std::string::npos){
+		   tmpFormula.replace(pos,1,ptstr);// 1 is "x".size()
+		       pos  = tmpFormula.find("x",pos + ptstr.size());
+		}
 		formulae[i] = tmpFormula;
 	}
 	for(size_t j=0; j < formulae.size() ;++j){
@@ -695,7 +713,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(1000000);
+	auto dfr = df.Range(10000);
 	auto w_selection = dfr// remove one letter to do all
 	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
