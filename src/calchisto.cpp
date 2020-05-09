@@ -136,7 +136,7 @@ template <typename T>
 	if(    diff_phi < -PI<T>) return diff_phi + TPI<T>;
 	return diff_phi;
 }
-template <typename T> constexpr auto delta_phi(const T dp)
+template <typename T> inline constexpr auto delta_phi(const T dp)
 	{return fastPrincipalRangeReductor(dp);}
 
 [[gnu::const]] auto deltaR(
@@ -162,17 +162,17 @@ auto lep_nu_invmass(const float& lep_pt    ,
 	// this function computes the invariant mass of charged lepton
 	// and neutrino system, in order to calculate the W mass later on.
 	TLorentzVector lep,neu;
-	lep.SetPtEtaPhiM(   lep_pt,lep_eta,lep_phi,lep_mass);
+	lep.SetPtEtaPhiM(   lep_pt,lep_eta,   lep_phi,lep_mass);
 	neu.SetPtEtaPhiM(cal_metpt,lep_eta,cal_metphi,0.);
 	return static_cast<float>((lep+neu).M());
 }
 /*
-auto w_mass_cut = [](const float& w_mass){
-	return std::abs(w_mass-W_MASS)<W_MASS_CUT;
-};*/
-auto z_mass_cut = [](const float& z_mass){
-	return std::abs(z_mass-Z_MASS)<Z_MASS_CUT;
-};
+auto w_mass_cut(const float& w_mass)
+	{return std::abs(w_mass-W_MASS)<W_MASS_CUT;};
+*/
+auto z_mass_cut(const float& z_mass)
+	{return std::abs(z_mass-Z_MASS)<Z_MASS_CUT;}
+
 // TODO: top_mass_cut belongs here
 template<typename T,typename U>
 [[gnu::const]] bool all_equal(const T& t, const U& u){return t == u;}
@@ -190,13 +190,13 @@ auto jet_lep_min_deltaR(const floats& jet_etas,
 		throw std::logic_error(
 		      "Collections must not be empty for (jet-lep dR)");
 	if(debug>0) std::cout<<"in jet_lep_min_dR"<<std::endl;
-	floats min_dRs;
+	floats min_dRs; min_dRs.reserve(jet_etas.size());
 	std::transform(
-		jet_etas.begin(),
-		jet_etas  .end(),
-		jet_phis.begin(),
+		jet_etas.cbegin(),
+		jet_etas.  cend(),
+		jet_phis.cbegin(),
 		std::back_inserter(min_dRs),
-		[&](float jet_eta, float jet_phi){
+		[=](float jet_eta, float jet_phi){
 			return deltaR(jet_eta,jet_phi,lep_eta,lep_phi);});
 	return min_dRs;
 }
@@ -208,11 +208,11 @@ auto tight_jet_id(const floats& jet_lep_min_dRs,
 	return pts>JET__PT_MIN&&abs(etas)<JET_ETA_MAX&&jet_lep_min_dRs>JET_ISO&&ids>=2;
 }
 auto jetCutter(const unsigned jmin, const unsigned jmax){
-	if(debug>0) std::cout<<"jet cut"<< jmin << jmax <<std::endl;
+	if(debug>0) std::cout<<"jet cut "<< jmin <<" "<< jmax <<std::endl;
 	return[=](const ints& jetmask){
 		const auto nj = std:: count_if(
-			jetmask.begin(),
-			jetmask  .end(),
+			jetmask.cbegin(),
+			jetmask.  cend(),
 			[](int i){return i;});// 0 is false
 		return jmin <= nj && nj <= jmax;
 	};
@@ -230,6 +230,7 @@ auto jets_gen_select(const floats& gen, const floats& jet){
 }
 template<typename T>// allow us to return w/o knowing data type
 auto retVar(const T& v){return[&](){return v;};}
+
 auto jet_smear_pt_resol(
 	const floats& pt,const floats& eta,const float& rho){
 	if(debug>0) std::cout<<"jet smear pt resol"<<std::endl;
@@ -238,9 +239,9 @@ auto jet_smear_pt_resol(
 		"Collections must be the same size (jet_smear_pt_resol)");
 	if(pt.empty()) throw std::logic_error(
 		"Collections must not be empty in  (jet_smear_pt_resol)");
-	const auto csvname = "Fall17_V3_MC_PtResolution_AK4PFchs.txt";
-	if(!gSystem->AccessPathName(csvname)) throw std::runtime_error(// FileNotFound
-		"RCsvDS would hang on access failure (jet_smear_pt_resol)");
+	const char csvname[] = "Fall17_V3_MC_PtResolution_AK4PFchs.txt";
+	//if(!gSystem->AccessPathName(csvname)) throw std::runtime_error(// FileNotFound
+	//	"RCsvDS would hang on access failure (jet_smear_pt_resol)");
 	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname,false)// no header
 		.Define("rho",retVar(rho))
 		.Filter("Col2 < rho && rho < Col3")
@@ -250,14 +251,16 @@ auto jet_smear_pt_resol(
 		resol[i] = static_cast<float>( csvdf
 		.Define( "pt",retVar( pt[i]))// retVar used due to external pt[i].
 		.Define("eta",retVar(eta[i]))
-		.Filter("Col5 <  pt &&  pt < Col6")
+		.Filter("Col5 < pt  &&  pt < Col6")
 		.Filter("Col0 < eta && eta < Col1")
-		.Define("signAsq","Col7 * std::abs(Col7)")
+		.Define("absA"   ,[](const float& y){return std::abs(y);},{"Col7"})
+		.Define("signAsq","Col7 * absA")
 		.Define("ptSq"   ,"  pt * pt")
-		.Define("ptPow"  ,"  std::pow(pt,Col10)")
+		.Define("ptPow"  ,[](const float& x, const float& y){return std::pow(x, y);},{"pt","Col10"})
 		.Define("bSq"    ,"Col8 * Col8")
 		.Define("cSq"    ,"Col9 * Col9")
-		.Define("partial","std::sqrt(signAsq/ptSq + bSq*ptPow + cSq)")
+		.Define("pSq"    ,"signAsq / ptSq + bSq * ptPow + cSq")
+		.Define("partial",[](const float& x){return std::sqrt(x);},{"pSq"})
 		.Sum(   "partial").GetValue());// total of partials is answer
 	}
 	return resol;
@@ -265,9 +268,9 @@ auto jet_smear_pt_resol(
 auto jet_smear_Sjer(const floats& eta){
 	if(debug>0) std::cout<<"jet smear sjer"<<std::endl;
         floats Sjer(              eta.size());
-	const auto csvname = "Fall17_V3_MC_SF_AK4PF.txt";
-	if(!gSystem->AccessPathName(csvname)) throw std::runtime_error(
-		"RCsvDS would hang on access failure (jet_smear_Sjer)");
+	const char csvname[] = "Fall17_V3_MC_SF_AK4PF.txt";
+	//if(!gSystem->AccessPathName(csvname)) throw std::runtime_error(
+	//	"RCsvDS would hang on access failure (jet_smear_Sjer)");
 	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname,false)// no header
 	;// next loop is necessary
 	for(size_t i=0; i < eta.size() ;++i)
@@ -333,8 +336,8 @@ auto      no_bjet_numer(const ints& id,const ints& is_bjet){
 	aid.resize(is_bjet.size(),0);// discard tail or pad zeroes
 	return aid;
 }
-constexpr auto is_bjet_denom = is_bjet_numer;// same functions, just 
-constexpr auto no_bjet_denom = no_bjet_numer;// different input mask
+constexpr auto& is_bjet_denom = is_bjet_numer;// same functions, just 
+constexpr auto& no_bjet_denom = no_bjet_numer;// different input mask
 auto btagCSVv2(const bool    check_CSVv2){
     return [=](const floats& btag,
                const floats& pt,
@@ -348,9 +351,9 @@ auto btagCSVv2(const bool    check_CSVv2){
 		"Collections must not be empty in btagCSVv2");
 	if(btag.size() < pt.size()) throw std::logic_error(
 		"insufficient btagCSVv2");
-	const auto csvname = "CSVv2_94XSF_V2_B_F.csv";
-	if(!gSystem->AccessPathName(csvname)) throw std::runtime_error(
-		"RCsvDS would hang on access failure (btagCSVv2)");
+	const char csvname[] = "CSVv2_94XSF_V2_B_F.csv";
+	//if(!gSystem->AccessPathName(csvname)) throw std::runtime_error(
+	//	"RCsvDS would hang on access failure (btagCSVv2)");
 	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname,false)// no header
 	//       measure_type     ,  sys_type            ,  jet_flav
 	.Filter("Col1 == \"comb\" && Col2 == \"central\" && Col3 == 0")
@@ -369,7 +372,7 @@ auto btagCSVv2(const bool    check_CSVv2){
 		.Filter("ignore || (Col8 < btag && btag < Col9)")
 		.Filter("Col6 < pt  && pt  < Col7")
 		.Filter("Col4 < eta && eta < Col5")
-		.Filter("Col10.find(\"x\") != std::string::npos")
+		.Filter([](std::string y){return y.find("x")!=std::string::npos;},{"Col10"})
 		.Range(1)// get FIRST formula
 		.Take<std::string>("Col10").GetValue()[0];// Take gives RVec thus [0]
 		// now guaranteed one good formula with x in it
@@ -384,6 +387,9 @@ auto btagCSVv2(const bool    check_CSVv2){
 	}
 	return results; };
 }
+auto abs_deltaphi(const float Zphi,const float Wphi)
+	{return std::abs(delta_phi(Zphi-Wphi));}
+
 auto jet_deltaphi(const floats& phis){
 	if(debug>0) std::cout<<"jet deltaphi"<<std::endl;
 	floats deltaphis;// half of anti-symmetric matrix has n(n-1)/2 elements
@@ -391,8 +397,7 @@ auto jet_deltaphi(const floats& phis){
 	// The following two for loops stack correctly     // yet leave
 	for(size_t   i=0; i < phis.size()-1 ;++i)	         // empty.
 	for(size_t j=i+1; j < phis.size()   ;++j)
-		deltaphis.push_back(  static_cast<float>(
-			std::abs(delta_phi(phis[i]-phis[j]))));
+		deltaphis.push_back(abs_deltaphi(phis[i],phis[j]));
 	return deltaphis;
 }
 auto find_lead_mask(const ints& mask,const floats& vals){
@@ -402,11 +407,11 @@ auto find_lead_mask(const ints& mask,const floats& vals){
 	if(mask.empty()) throw std::logic_error(
 		"Collections must not be empty in lead_mask");
 	const auto      masked_vals = mask * vals;
-	ints  lead_mask(masked_vals .size(),0);// vector of zeroes
+	ints  lead_mask(masked_vals.size(),0);// vector of zeroes
 	const auto max_idx = static_cast<size_t>(std::distance(
-		masked_vals.begin(),
-		max_element( masked_vals.begin(),
-		             masked_vals  .end())));// Leading bjet == highest pt.
+		masked_vals.cbegin(),
+		max_element( masked_vals.cbegin(),
+		             masked_vals.  cend())));// Leading bjet == highest pt.
 	lead_mask[max_idx] = 1;
 	return lead_mask;
 }
@@ -465,10 +470,10 @@ auto TLVex(   const PtEtaPhiM         what){
 		if(debug>0) std::cout<<"TLVex"<<std::endl;
 		float result;
 		switch(what){
-			case  pt:{result = static_cast<float>(object .Pt());break;}
+			case  pt:{result = static_cast<float>(object.Pt ());break;}
 			case eta:{result = static_cast<float>(object.Eta());break;}
 			case phi:{result = static_cast<float>(object.Phi());break;}
-			case   m:{result = static_cast<float>(object  .M());break;}
+			case   m:{result = static_cast<float>(object. M ());break;}
 //			default :throw std::invalid_argument(
 //				"TLorentzVector extraction not recognised");
 		}
@@ -492,10 +497,8 @@ auto TLVex(   const PtEtaPhiM         what){
 	if(debug>0) std::cout<<"inv mass "<< static_cast<float>(vec.M()) <<std::endl;
 	return static_cast<float>(vec.M());
 }*/
-auto abs_deltaphi(const float Zphi,const float Wphi)
-	{return std::abs(delta_phi(Zphi-Wphi));}
-
 /*
+// NOTE: abs_deltaphi is defined above and used
 auto zw_deltaphi(const float& Zphi,const float& Wphi){
 	return static_cast<float>(std::abs(delta_phi(Zphi-Wphi)));}
 auto zmet_deltaphi = zw_deltaphi;
@@ -503,21 +506,21 @@ auto zmet_deltaphi = zw_deltaphi;
 /*
 auto deltaphi_cut(const float    x){
       return  [=](const floats& dps){
-		return std::any_of(dps.begin(),
-		                   dps.  end(),
+		return std::any_of(dps.cbegin(),
+		                   dps.  cend(),
 		                   [](float dp){return dp >= x;});
 	};
 }*/
 /*
 auto zw_deltaphi_cut(const floats& deltaphi){
 	return any_of(deltaphi.cbegin(),
-	              deltaphi  .cend(),
+	              deltaphi.  cend(),
 	              [](float delta){return delta >= DELTA_PHI_ZW;});
 }*/
 /*
 auto zmet_deltaphi_cut(const floats& deltaPhi){
 	return any_of(deltaPhi.cbegin(),
-	              deltaPhi  .cend(),
+	              deltaPhi.  cend(),
 	              [](float delta){return delta >= DELTA_PHI_ZMET;});
 }*/
 auto top_reconst(const floats& bjets_pt,
