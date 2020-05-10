@@ -576,10 +576,14 @@ auto BTaggedEffGiver(TH2D* &ratio){
 	if(pts.empty()) throw std::logic_error(
 		"Collections must not be empty in  (EffGiver)");
 	floats BTaggedEff; BTaggedEff.reserve(pts.size());
+	std::cout<<"BtaggedEff size "<<BTaggedEff.size()<<std::endl;
 	for(size_t   i=0; i < pts.size() ;++i){
 		int  PtBin = ratio->GetXaxis()->FindBin( pts[i]);
+		std::cout<< "Pt Bin "<<PtBin<<std::endl;
 		int EtaBin = ratio->GetYaxis()->FindBin(etas[i]);
+		std::cout<< "Eta Bin "<<EtaBin<<std::endl;
 		float  eff = static_cast<float>(ratio->GetBinContent(PtBin,EtaBin));
+		std::cout<<"eff "<<eff<<std::endl;
 		if(FP_NORMAL == std::fpclassify(eff))// if eff non-zero/inf/NaN
 			BTaggedEff.push_back(eff);
 		// above only pushed back nonzero nice eff
