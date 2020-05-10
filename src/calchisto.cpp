@@ -303,7 +303,7 @@ auto delta_R_jet_smear(const  floats& pt,
 	if(pt.size() > deltaR.size())
 		throw std::logic_error("deltaR in Delta_R_jet_smear lacks sufficient data");
 	const   size_t      size = pt.size();
-	doubles cjers(      size ,0.f);// correction factor
+	doubles cjers(      size , 0.);// correction factor
 	for(size_t i=0; i < size ;++i){
 		if(deltaR[i] < RconeBy2
 		&& std::abs( pt[i]-gen_pt[i]) < 3*resol[i]*pt[i]){
@@ -361,7 +361,7 @@ auto btagCSVv2(const bool    check_CSVv2){
 	.Filter("measureType==\"comb\"&&sysType==\"central\"&&jetFlav==0")
 	// TODO: jet flav 5 or 0?
 	.Define("ignore",retVar(ignore))// if true ignore btag and CSVv2
-	.Define("bdm"   ,retVar(BTAG_DISC_MIN))// the only double we use
+	.Define("bdm"   ,retVar(BTAG_DISC_MIN))
 	.Filter("ignore || bdm <= CSVv2")// checks against CSVv2 or not
 	;
 	if("std::string"==csvdf.GetColumnType("CSVmin"))throw std::logic_error(
@@ -401,7 +401,8 @@ auto btagCSVv2(const bool    check_CSVv2){
 	}
 	return results; };
 }
-auto abs_deltaphi(const double Zphi,const double Wphi)
+template <typename T>
+auto abs_deltaphi(const double Zphi,const T Wphi)
 	{return std::abs(delta_phi(Zphi-Wphi));}
 
 auto jet_deltaphi(const doubles& phis){
@@ -558,6 +559,41 @@ return [=](const doubles& pts,const doubles& etas){
 	return   BTaggedEff;
 };// did not indent the lambda
 }
+auto EffIsBTaggedProduct(const doubles& EffIsBTagged){
+	double     result  = 1.;
+	for(size_t i=0;  i < EffIsBTagged.size() ;++i)
+	           result *= EffIsBTagged[i];
+	if(debug>1) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
+	return     result;
+}
+auto EffNoBTaggedProduct(const doubles& EffNoBTagged){
+	double result  = 1.;
+	for(size_t i=0;  i < EffNoBTagged.size();++i)
+	       result *= 1.- EffNoBTagged[i];
+	if(debug>1) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
+	return result;
+}
+auto Sfi_EffIsBTaggedProduct(const doubles& EffIsBTagged,const doubles& sfi){
+	double result = 1.;
+	size_t b = EffIsBTagged.size(), s = sfi.size();
+	if(b!=s)std::cout<<"Sfi_EffIsBTaggedProduct got diff sizes"<<std::endl;
+	size_t   size = b < s ? b : s;
+	for(size_t i=0; i < size ;++i)
+	       result    *= sfi[i] * EffIsBTagged[i];
+	if(debug>1)std::cout<<"Sfi_EffIsBTaggedProduct "<<result<<std::endl;
+	return result;
+}
+auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
+	double result = 1.;
+	size_t b = EffNoBTagged.size(), s = sfj.size();
+	if(b!=s)std::cout<<"Sfj_EffNoBTaggedProduct got diff sizes"<<std::endl;
+	size_t   size = b < s ? b : s;
+	for(size_t i=0; i < size ;++i)
+	       result*= 1.- EffNoBTagged[i] * sfj[i];
+	if(debug>1)std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
+	return result;
+}
+/*
 auto EffIsBTaggedProduct(const doubles& IsEffBTagged){
 	double result = std::reduce(//std::execution::par_unseq,
 		IsEffBTagged. cbegin(),// parallel multiply
@@ -621,6 +657,7 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 	if(debug>1)std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
+*/
 	////////////// SCALE FACTORS /////////////
 auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
@@ -719,7 +756,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(50);
+	auto dfr = df.Range(1000);
 	auto w_selection = dfr// remove one letter to do all
 	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
@@ -813,13 +850,13 @@ void calchisto(const channel ch,const dataSource ds){
 	;
 	auto expt_bjets
 	   = jet_selection
-	.Define("fin_jets__pt",[](float x){return static_cast<double>(x);},
+	.Define("fin_jets__pt",[](floats& x){return static_cast<doubles>(x);},
 	     {"tight_jets__pt"})
-	.Define("fin_jets_eta",[](float x){return static_cast<double>(x);},
+	.Define("fin_jets_eta",[](floats& x){return static_cast<doubles>(x);},
 	     {"tight_jets_eta"})
-	.Define("fin_jets_phi",[](float x){return static_cast<double>(x);},
+	.Define("fin_jets_phi",[](floats& x){return static_cast<doubles>(x);},
 	     {"tight_jets_phi"})
-	.Define("fin_jets_mas",[](float x){return static_cast<double>(x);},
+	.Define("fin_jets_mas",[](floats& x){return static_cast<doubles>(x);},
 	     {"tight_jets_mas"})
 	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","Jet_btagCSVV2"})
 	.Filter(jetCutter(BJETS_MIN,BJETS_MAX)   ,{"is_bjets"},"b jet cut")
@@ -870,10 +907,10 @@ void calchisto(const channel ch,const dataSource ds){
 	              "lep_eta"   ,
 	              "lep_phi"  })// TODO: wrong input below
 //	.Filter(      deltaR_z_l,  {  "z_lep_min_dR"},"delta R ZL")
-	.Define(   "zw_Dph" , abs_deltaphi,{"z_phi","tw_lep_phi"})
+	.Define(   "zw_Dph" , abs_deltaphi<double>,{"z_phi","tw_lep_phi"})
 //	.Filter(      deltaphi_cut(DELTA_PHI_ZW),
 //	       {   "zw_Dph"},"delta phi ZW cut")
-	.Define( "zmet_Dph" , abs_deltaphi,{"z_phi","MET_phi"})
+	.Define( "zmet_Dph" , abs_deltaphi<float>,{"z_phi","MET_phi"})
 //	.Filter(      deltaphi_cut(DELTA_PHI_ZMET),
 //	       { "zmet_Dph"},"Z met cut ");
 	;
