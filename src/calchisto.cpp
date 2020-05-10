@@ -569,7 +569,7 @@ auto top_reconst(const floats& bjets_pt,
 	return reco_top;
 }
 auto BTaggedEffGiver(TH2D* &ratio){
-return [=](const floats& pts,const floats& etas){
+	return [=](const floats& pts,const floats& etas){
 	if(debug>0) std::cout<<"bt eff giver"<<std::endl;
 	if(!all_equal(pts.size(),etas.size())) throw std::logic_error(
 		"Collections must be the same size (EffGiver)");
@@ -914,6 +914,7 @@ void calchisto(const channel ch,const dataSource ds){
 	          50,0,400,50,-3,3},
 	              "is_btag_numer__pt",
 	              "is_btag_numer_eta");
+	
 	auto h_no_btag_numer_PtVsEta
 	   = top_reco
 	.Histo2D({static_cast<const char*>(
@@ -923,6 +924,7 @@ void calchisto(const channel ch,const dataSource ds){
 	          50,0,400,50,-3,3},
 	              "no_btag_numer__pt",
 	              "no_btag_numer_eta");
+        
 	auto h_is_btag_denom_PtVsEta
 	   = top_reco
 	.Histo2D({static_cast<const char*>(
@@ -932,6 +934,7 @@ void calchisto(const channel ch,const dataSource ds){
 	          50,0,400,50,-3,3},
 	              "is_btag_denom__pt",
 	              "is_btag_denom_eta");
+        
 	auto h_no_btag_denom_PtVsEta
 	   = top_reco
 	.Histo2D({static_cast<const char*>(
@@ -945,12 +948,17 @@ void calchisto(const channel ch,const dataSource ds){
 	TH2D *
 	is_btag_ratio = new TH2D("ei", "is b tag ei",50,0,400,50,-3,3);
 	is_btag_ratio = static_cast<TH2D*>(h_is_btag_numer_PtVsEta->Clone());
+	// This is a test before the divide
+	std::cout<< "h_btag_numer before divide "<< h_is_btag_numer_PtVsEta.GetPtr()<<std::endl;
 	is_btag_ratio->Divide(             h_is_btag_denom_PtVsEta.GetPtr());
-	
+	std::cout<<"this is the btag numer after divide "<< h_is_btag_numer_PtVsEta.GetPtr()<<std::endl;
 	TH2D *
 	no_btag_ratio = new TH2D("ej", "no b tag ei",50,0,400,50,-3,3);
 	no_btag_ratio = static_cast<TH2D*>(h_no_btag_numer_PtVsEta->Clone());
+        std::cout<<"h_no_btag_numer before divide"<<h_no_btag_numer_PtVsEta.GetPtr()<<std::endl;
 	no_btag_ratio->Divide(             h_no_btag_denom_PtVsEta.GetPtr());
+        std::cout<<"h_no_btag_numer after divide"<<h_no_btag_numer_PtVsEta.GetPtr()<<std::endl;
+
 	
 	auto btag_eff
 	   = top_reco
