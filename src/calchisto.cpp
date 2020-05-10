@@ -571,6 +571,7 @@ auto top_reconst(const floats& bjets_pt,
 auto BTaggedEffGiver(TH2D* &ratio){
 	return [=](const floats& pts,const floats& etas){
 	if(debug>0) std::cout<<"bt eff giver"<<std::endl;
+	std::cout<<"pt and eta size "<<pts.size()<<" "<<etas.size()<<std::endl;
 	if(!all_equal(pts.size(),etas.size())) throw std::logic_error(
 		"Collections must be the same size (EffGiver)");
 	if(pts.empty()) throw std::logic_error(
@@ -589,6 +590,7 @@ auto BTaggedEffGiver(TH2D* &ratio){
 		// above only pushed back nonzero nice eff
 		// what do we do with eff==0? check with kathryn
 	}
+	std::cout<<"BTaggedEff Rvec"<<BTaggedEff<<std::endl;
 	return BTaggedEff;
 };// did not indent the lambda
 }
