@@ -12,6 +12,10 @@
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
 
+#if !defined(__FMA__) && defined(__AVX2__)
+    #define __FMA__ 1
+#endif
+
 using doubles = ROOT::VecOps::RVec<double>;
 using  floats = ROOT::VecOps::RVec<float>;
 using    ints = ROOT::VecOps::RVec<int>;
@@ -20,7 +24,7 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 2;
+  constexpr    int debug = 1;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -113,15 +117,16 @@ auto lep_tight_cut(const channel ch){
         return [=](const   ints& mask,
                    const   ints& elids,
                    const floats& isos){
+// TODO: In the case we want 1 loose lepton, comment the 2 NOTE lines below
 		bool result;
 		      if(ch==elnu){
 			ints   temp = elids[mask];
 			result = temp.size() == 1;// Choosing 1 Tight Lepton
-			result = result && temp[0] >= EL_TIGHT_ID;
+			result = result && temp[0] >= EL_TIGHT_ID;// NOTE
 		}else if(ch==munu){
 			floats temp = isos[mask];
 			result = temp.size() == 1;// TODO: WEIRD ISO
-			result = result && temp[0] <= MU_TIGHT_ISO;
+			result = result && temp[0] <= MU_TIGHT_ISO;// NOTE
 		}else{throw std::invalid_argument(
 			"Unimplemented ch (lep_tight_cut)");}
 		return result;
@@ -582,9 +587,10 @@ auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
 	double result = 1.;
 	size_t b = EffNoBTagged.size(), s = sfj.size();
 	if(b!=s)std::cout<<"Sfj_EffNoBTaggedProduct got diff sizes"<<std::endl;
+	if(__FMA__)std::cout<<"FMA not accelerated"<<std::endl;
 	size_t   size = b < s ? b : s;
 	for(size_t i=0; i < size ;++i)
-	       result*= 1.- EffNoBTagged[i] * sfj[i];
+	       result*= -std::fma(EffNoBTagged[i],sfj[i],-1.);
 	if(debug>1)std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
@@ -603,7 +609,7 @@ auto EffNoBTaggedProduct(const doubles& NoEffBTagged){
 	double  result = std::reduce(//std::execution::par_unseq,
 		     values.cbegin(),// parallel multiply
 		     values.  cend(),// un-sequentially
-		1.,std::multiplies<>()
+		     1.,std::multiplies<>()
 	);
 	if(debug>1) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
 	return  result;
@@ -614,16 +620,16 @@ auto Sfi_EffIsBTaggedProduct(const doubles& IsEffBTagged,const doubles& sfi){
 	double result;
 	if(IsEffBTagged.size() <= sfi.size()){
 		result = std::transform_reduce(//std::execution::par_unseq,
-			IsEffBTagged.cbegin(),// parallel multiply
-			IsEffBTagged.  cend(),// un-sequentially
-			         sfi.cbegin(),// stops correctly
+			IsEffBTagged. cbegin(),// parallel multiply
+			IsEffBTagged.   cend(),// un-sequentially
+			         sfi. cbegin(),// stops correctly
 			1.,std::multiplies<>(),std::multiplies<>()
 		);
 	} else{
 		result = std::transform_reduce(//std::execution::par_unseq,
-			         sfi.cbegin(),// parallel multiply
-			         sfi.  cend(),// un-sequentially
-			IsEffBTagged.cbegin(),// stops correctly
+			         sfi. cbegin(),// parallel multiply
+			         sfi.   cend(),// un-sequentially
+			IsEffBTagged. cbegin(),// stops correctly
 			1.,std::multiplies<>(),std::multiplies<>()
 		);
 	}
@@ -636,17 +642,19 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 	double result;
 	if(NoEffBTagged.size() <= sfj.size()){
 		result = std::transform_reduce(//std::execution::par_unseq,
-			NoEffBTagged.cbegin(),// parallel multiply
-			NoEffBTagged.  cend(),// un-sequentially
-			         sfj.cbegin(),// stops correctly
-			1.,std::multiplies<>(),[](double x,double y){return (1.-x*y);}
+			NoEffBTagged. cbegin(),// parallel multiply
+			NoEffBTagged.   cend(),// un-sequentially
+			         sfj. cbegin(),// stops correctly
+			1.,std::multiplies<>(),
+			[](double x,double y){return -std::fma(x,y,-1.);}
 		);// this multiplies together a lot of 1 - ej * sfj
 	} else{
 		result = std::transform_reduce(//std::execution::par_unseq,
-			         sfj.cbegin(),// parallel multiply
-			         sfj.  cend(),// un-sequentially
-			NoEffBTagged.cbegin(),// stops correctly
-			1.,std::multiplies<>(),[](double x,double y){return (1.-x*y);}
+			         sfj. cbegin(),// parallel multiply
+			         sfj.   cend(),// un-sequentially
+			NoEffBTagged. cbegin(),// stops correctly
+			1.,std::multiplies<>(),
+			[](double x,double y){return -std::fma(x,y,-1.);}
 		);
 	}
 	if(debug>1)std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
@@ -687,7 +695,7 @@ auto rep_const(const double sf,const doubles& iRVec){
 }// namespace
 void calchisto(const channel ch,const dataSource ds){
 	// Open data files even if unused
-	// then programmatically choose which one to read from
+	// then automatically choose which one to read from
 	// No penalty for opening and leaving unused
 	// Can even open multiple times at once in parallel
 	
@@ -751,7 +759,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(100000);
+	auto dfr = df.Range(10000);
 	auto w_selection = dfr// remove one letter to do all
 	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),

@@ -14,7 +14,7 @@ INCD    =$(shell find $(SRCD) -type d)
 INCFLAGS=$(addprefix -I,$(INCD)) -isystem${CPATH}
 
 CXXFLAGS=$(INCFLAGS) -MMD -MP -std=c++17 -march=native -pipe -O3\
-	-Wall -Wextra -Wpedantic\
+	-Wall -Wextra -Wpedantic -mfma\
 	-Weverything -Wno-c++98-compat -Wno-double-promotion# -Wno-covered-switch-default
 
 LDPATH =-L$(shell root-config --libdir) \
