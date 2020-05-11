@@ -180,10 +180,11 @@ template<typename T,typename U>
 template<typename T,typename U,typename... Types>
 [[gnu::const]] bool all_equal(const T& t, const U& u, Types const&... args)
 	{return t == u && all_equal(u, args...);}
-auto jet_lep_min_deltaR(const doubles& jet_etas,
-                        const doubles& jet_phis,
-                        const  float   lep_eta ,
-                        const  float   lep_phi){
+template <typename T>
+auto jet_lep_min_deltaR(const    T& jet_etas,
+                        const    T& jet_phis,
+                        const float lep_eta ,
+                        const float lep_phi){
 	if(!all_equal(jet_etas.size(),jet_phis.size()))
 		throw std::logic_error(
 		      "Collections must be the same size (jet-lep dR)");
@@ -533,7 +534,6 @@ auto top_reconst(const doubles& bjets_pt,
 	return reco_top;
 }
 auto BTaggedEffGiver(TH2D *ratio){
-std::cout << "bt effGiver before lambda "<< ratio <<std::endl;
 return [=](const doubles& pts,const doubles& etas){
 	if(debug>0) std::cout<<"bt eff giver "<< ratio <<std::endl;
 	if(!all_equal(pts.size(),etas.size())) throw std::logic_error(
@@ -541,20 +541,15 @@ return [=](const doubles& pts,const doubles& etas){
 	if(pts.empty()) throw std::logic_error(
 		"Collections must not be empty in  (effGiver)");
 	doubles BTaggedEff; BTaggedEff.reserve(pts.size());
-	std::cout<<"BTaggedEff     size "<<BTaggedEff.size()    <<std::endl;
-	std::cout<<"BTaggedEff capacity "<<BTaggedEff.capacity()<<std::endl;
 	for(size_t   i=0; i <  pts.size() ;++i){
 		int  PtBin = ratio->GetXaxis()->FindBin(pts [i]);
 		int EtaBin = ratio->GetYaxis()->FindBin(etas[i]);
-		std::cout<< "Pt Eta Bin "<<   PtBin<<" "<<EtaBin<<std::endl;
 		double eff = ratio->GetBinContent(PtBin,EtaBin);
-		std::cout<< "eff        "<<     eff<<std::endl;
 		if(FP_NORMAL == std::fpclassify(eff))// if eff non-zero/inf/NaN
 			BTaggedEff.emplace_back(eff);
 		// above only pushed back nonzero nice eff
 		// what do we do with eff==0? check with kathryn
 	}
-	std::cout<<"BTagged Eff "<<BTaggedEff<<std::endl;
 	delete[] ratio;// or else out of memory after 1000000000
 	return   BTaggedEff;
 };// did not indent the lambda
@@ -756,7 +751,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(1000);
+	auto dfr = df.Range(100000);
 	auto w_selection = dfr// remove one letter to do all
 	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
@@ -794,7 +789,7 @@ void calchisto(const channel ch,const dataSource ds){
 	
 	auto jet_selection
 	   = w_selection
-	.Define("jet_lep_min_dR" , jet_lep_min_deltaR,
+	.Define("jet_lep_min_dR" , jet_lep_min_deltaR<floats>,
 	       {"Jet_eta","Jet_phi",  "lep_eta","lep_phi"})
 	.Define("tight_jets"     , tight_jet_id   ,
 	       {"jet_lep_min_dR" ,    "Jet_pt","Jet_eta","Jet_jetId"})
@@ -901,7 +896,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define(   "z__pt"        , TLVex(pt ),{"z_TLV"})
 	.Define(   "z_eta"        , TLVex(eta),{"z_TLV"})
 	.Define(   "z_phi"        , TLVex(phi),{"z_TLV"})
-	.Define(   "z_lep_min_dR" , jet_lep_min_deltaR,// TODO: Check input?
+	.Define(   "z_lep_min_dR" , jet_lep_min_deltaR<doubles>,// TODO: Check input?
 	       {   "z_pair_eta"   ,
 	           "z_pair_phi"   ,
 	              "lep_eta"   ,
@@ -910,7 +905,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define(   "zw_Dph" , abs_deltaphi<double>,{"z_phi","tw_lep_phi"})
 //	.Filter(      deltaphi_cut(DELTA_PHI_ZW),
 //	       {   "zw_Dph"},"delta phi ZW cut")
-	.Define( "zmet_Dph" , abs_deltaphi<float>,{"z_phi","MET_phi"})
+	.Define( "zmet_Dph" , abs_deltaphi<float >,{"z_phi","MET_phi"})
 //	.Filter(      deltaphi_cut(DELTA_PHI_ZMET),
 //	       { "zmet_Dph"},"Z met cut ");
 	;
@@ -992,9 +987,7 @@ void calchisto(const channel ch,const dataSource ds){
 	TH2D *
 	is_btag_ratio = new TH2D("ei", "is b tag ei",50,0,400,50,-3,3);
 	is_btag_ratio = static_cast<TH2D*>(h_is_btag_numer_PtVsEta->Clone());
-	std::cout<< "is ratio before divide "<< is_btag_ratio <<std::endl;
 	is_btag_ratio->Divide(             h_is_btag_denom_PtVsEta.GetPtr());
-	std::cout<< "is ratio after  divide "<< is_btag_ratio <<std::endl;
 	TH2D *
 	no_btag_ratio = new TH2D("ej", "no b tag ei",50,0,400,50,-3,3);
 	no_btag_ratio = static_cast<TH2D*>(h_no_btag_numer_PtVsEta->Clone());
