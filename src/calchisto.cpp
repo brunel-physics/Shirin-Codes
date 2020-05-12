@@ -9,6 +9,7 @@
 #include <TChain.h>
 //#include <execution>// need to link -ltbb in Makefile
 
+#include "csv.h"
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
 
@@ -235,28 +236,22 @@ auto jets_gen_select(const floats& gen, const floats& jet){
 	}
 	    return      jet;
 }
-template<typename T>// allow us to return w/o knowing data type
+/*template<typename T>// allow us to return w/o knowing data type
 auto retVar(const T& v){return[&](){return v;};}
-
+*/
 auto jet_smear_pt_resol(
-	const floats& pt,const floats& eta,const float rho){
+//ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>& ptRcsv){
+/*return [&](*/const floats& pt,const floats& eta,const float rho){
 	if(debug>0) std::cout<<"jet smear pt resol"<<std::endl;
 	doubles resol(pt.size());
 	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
 		"Collections must be the same size (jet_smear_pt_resol)");
 	if(pt.empty()) throw std::logic_error(
 		"Collections must not be empty in  (jet_smear_pt_resol)");
-	const char csvname[] = "Fall17_V3_MC_PtResolution_AK4PFchs.txt";
-	if(gSystem->AccessPathName(csvname)) throw std::runtime_error(// FileNotFound
-		"RCsvDS would hang on access failure (jet_smear_pt_resol)");
-	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname)
-	.Define("rho",retVar(static_cast<double>(rho)))// retVar used b/c external rho
+/*	auto csvdf = ptRcsv// retVar used b/c external rho
+	.Define("rho",retVar(static_cast<double>(rho)))
 	.Filter("rhoMin < rho && rho < rhoMax")
 	;
-	if("std::string"==csvdf.GetColumnType("rhoMin"))throw std::logic_error(
-		"RCsvDS deduced rhoMin as  string; no spaces anywhere in csv file pls");
-	if(     "double"!=csvdf.GetColumnType("rhoMin"))throw std::logic_error(
-		"RCsvDS deduced rhoMin as integer; edit file, change 0 to 0. for 1st row");
 	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
 		resol[i] = csvdf
 		.Define("pt" ,retVar(static_cast<double>( pt[i])))
@@ -271,24 +266,49 @@ auto jet_smear_pt_resol(
 		.Define("partial",[](double x){return std::sqrt(x);},{"pSq"})
 		.Sum(   "partial").GetValue();// total of partials is answer
 	}
-	return resol;
+*/
+	double etaMin,etaMax,rhoMin,rhoMax;
+	double pt_Min,pt_Max;
+	double a,b,c,d;
+	io::CSVReader<10> thisCSVfile("Fall17_V3_MC_PtResolution_AK4PFchs.txt");
+	thisCSVfile.read_header(io::ignore_extra_column,
+	"etaMin","etaMax","rhoMin","rhoMax","ptMin","ptMax","a","b","c","d");
+	while(thisCSVfile.read_row(
+	 etaMin , etaMax , rhoMin , rhoMax ,pt_Min ,pt_Max , a , b , c , d)){
+		// The following if for if stacks correctly
+		if(rhoMin < rho && rho < rhoMax)
+		for(size_t i=0; i < pt.size() ;++i)
+		if(etaMin < eta[i] && eta[i] < etaMax
+		&& pt_Min < pt [i] && pt [i] < pt_Max){
+			resol[i] += std::sqrt(  a * std::abs(a)/(pt[i]*pt[i])
+			                    + b*b * std::pow(pt[i],d) + c*c);
+		}
+	}// No need to close file after this while loop
+	return resol;//};
 }
-auto jet_smear_Sjer (const floats& eta){
+auto jet_smear_Sjer(
+//ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>& sjerCsv){
+/*return [&](*/const floats& etas){
 	if(debug>0) std::cout<<"jet smear sjer"<<std::endl;
-       doubles Sjers(              eta.size());
-	const char csvname[] = "Fall17_V3_MC_SF_AK4PF.txt";
-	if(gSystem->AccessPathName(csvname)) throw std::runtime_error(
-		"RCsvDS would hang on access failure (jet_smear_Sjer)");
-	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname)
-	;// next loop is necessary
-	if("std::string"==csvdf.GetColumnType("etaMax"))throw std::logic_error(
-		"RCsvDS deduced etaMax as  string; no spaces anywhere in csv file pls");
+   doubles Sjers(            etas.size());
+	double  etaMin,etaMax;
+	double  centralSF,dnSF,upSF;
+	io::CSVReader<5> thisCSVfile("Fall17_V3_MC_SF_AK4PF.txt");
+	thisCSVfile.read_header(io::ignore_extra_column,
+	                          "etaMin","etaMax","centralSF","dnSF","upSF");
+	while(thisCSVfile.read_row(etaMin , etaMax , centralSF , dnSF , upSF)){
+		for(size_t i=0; i  <  etas.size() ;++i)
+		   if(      etaMin <  etas[i] && etas[i] < etaMax)
+		          Sjers[i] += centralSF;
+	}
+/*	// next loop is necessary
 	for(size_t i=0; i < eta.size() ;++i)
-		Sjers[i] = csvdf// TODO: add sf up and 
+		Sjers[i] = sjerCsv// TODO: add sf up and 
 		.Define("eta" ,retVar(static_cast<double>(eta[i])))// down
 		.Filter("etaMin < eta && eta < etaMax")// for uncertainty
 		.Sum(   "centralSF").GetValue();// sum all filtered
-	return Sjers;
+*/
+	return Sjers;//};
 }
 [[gnu::const]] auto ramp(const double Sjer){
 	if(Sjer > 0.) return Sjer;
@@ -347,10 +367,13 @@ auto      no_bjet_numer(const ints& id,const ints& is_bjet){
 }
 constexpr auto& is_bjet_denom = is_bjet_numer;// same functions, just 
 constexpr auto& no_bjet_denom = no_bjet_numer;// different input mask
-auto btagCSVv2(const bool    check_CSVv2){
+//template<typename T>
+auto btagCSVv2(const bool check_CSVv2){//,
+//ROOT::RDF::RInterface<ROOT::Detail::RDF::RJittedFilter, void>& btagDF){
     return [=](const  floats& btag,
                const doubles& pt  ,
                const doubles& eta){
+	if(debug>0)std::cout<<"btagCSVv2 entered"<<std::endl;
 	bool ignore = !check_CSVv2;// magic btag checker; heavily reused
 	strings formulae(pt.size() ,"0");// vector of "0"
 	doubles  results(pt.size());
@@ -360,24 +383,14 @@ auto btagCSVv2(const bool    check_CSVv2){
 		"Collections must not be empty in btagCSVv2");
 	if(btag.size() < pt.size()) throw std::logic_error(
 		"insufficient btagCSVv2");
-	const char csvname[] = "CSVv2_94XSF_V2_B_F.csv";
-	if(gSystem->AccessPathName(csvname)) throw std::runtime_error(
-		"RCsvDS would hang on access failure (btagCSVv2)");
-	auto csvdf = ROOT::RDF::MakeCsvDataFrame(csvname)
-	.Filter("measureType==\"comb\"&&sysType==\"central\"&&jetFlav==0")
-	// TODO: jet flav 5 or 0?
+/*	auto csvdf = btagDF
+//	Already filtered when reading in first time
+//	.Filter("measureType==\"comb\"&&sysType==\"central\"&&jetFlav==0")
+//	TODO: jet flav 5 or 0?
 	.Define("ignore",retVar(ignore))// if true ignore btag and CSVv2
 	.Define("bdm"   ,retVar(BTAG_DISC_MIN))
 	.Filter("ignore || bdm <= CSVv2")// checks against CSVv2 or not
 	;
-	if("std::string"==csvdf.GetColumnType("CSVmin"))throw std::logic_error(
-		"RCsvDS deduced CSVmin as  string; no spaces anywhere in csv file pls");
-	if(     "double"!=csvdf.GetColumnType("CSVmin"))throw std::logic_error(
-"RCsvDS deduced CSVmin as integer; edit file, change 0,1 to 0.,1. for 1st row");
-	// TODO: uncomment the next two lines if we need CSVv2 as doubles
-	// All of CSVv2 are integer and the code ignores this discrepancy
-//	if(     "double"!=csvdf.GetColumnType("CSVv2" ))throw std::logic_error(
-//		"RCsvDS deduced CSVv2  as integer; edit file, change 0 to 0. for 1st row");
 	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
 		std::string tmpFormula = csvdf
 		.Define("btag",retVar(static_cast<double>(btag[i])))
@@ -400,11 +413,56 @@ auto btagCSVv2(const bool    check_CSVv2){
 		}
 		formulae[i] = tmpFormula;
 	}
+*/
+	std::string  measureType,sysType,rawFormula;
+	int    jetFlav;//	TODO: jet flav 5 or 0?
+	double CSVv2   ,
+	       pt_Min , pt_Max,
+	       etaMin , etaMax,
+	       CSVmin , CSVmax;
+	io::CSVReader<11> thisCSVfile("CSVv2_94XSF_V2_B_F.csv");
+	thisCSVfile.next_line();// we happen to not need the header line
+	// The following nests too much, so we do not indent
+	// Each blank line means nesting deeper
+	while(thisCSVfile.read_row(CSVv2,measureType,sysType,jetFlav,
+	      etaMin,etaMax,pt_Min,pt_Max,CSVmin,CSVmax,rawFormula)){
+	// always true if dont check CSV
+	bool b = ignore || BTAG_DISC_MIN <= CSVv2;
+	if(  b          && "comb"    == measureType
+	&& 0 == jetFlav && "central" ==     sysType){
+	
+	for(size_t i=0; i < pt.size() ;++i){
+	
+	// always true if dont check CSV
+	     b = ignore
+	||(CSVmin < btag[i] && btag[i] < CSVmax);
+	std::string tempFormula = rawFormula;
+	if(  b
+	&& etaMin < eta [i] && eta [i] < etaMax
+	&& pt_Min < pt  [i] && pt  [i] < pt_Max){
+	
+	if("0" == formulae[i]){// only 1st found wins
+	
+	if(std::string::npos != tempFormula.find("x")){
+	
+	// now guaranteed one good formula with x in it
+	// Time to replace all x with pt ourselves~~ No need boost::replace_all
+	std::string  ptstr = std::to_string(pt[i]);
+	size_t pos  = tempFormula.find("x");
+	while( pos != std::string::npos){
+	              tempFormula.replace( pos,1,ptstr);// 1 = "x".size()
+	       pos  = tempFormula.find("x",pos + ptstr.size());
+	}
+	formulae[i] = tempFormula;
+	}}}}}
+	}// No need to close file after this while loop.
+	// resume indentation
 	for(size_t j=0; j < formulae.size() ;++j){
 		Eval ev;// numbers calculator
 		results[j] = ev.eval(const_cast<char*>(
 		             formulae[j].c_str())).real();
 	}
+	if(debug>0)std::cout<<"btagCSVv2 exiting"<<std::endl;
 	return results; };
 }
 template <typename T>
@@ -694,6 +752,37 @@ auto rep_const(const double sf,const doubles& iRVec){
 }
 }// namespace
 void calchisto(const channel ch,const dataSource ds){
+/*
+	// open helper CSV files first, once and for all
+	const char ptResol[] = "Fall17_V3_MC_PtResolution_AK4PFchs.txt";
+	if(gSystem->AccessPathName(ptResol))throw std::runtime_error(// FileNotFound
+		"RCsvDS would hang on access failure (jet_smear_pt_resol)");
+	auto ptRcsv = ROOT::RDF::MakeCsvDataFrame(ptResol);
+	if("std::string"==ptRcsv.GetColumnType("rhoMin"))throw std::logic_error(
+		"RCsvDS deduced rhoMin as  string; no spaces anywhere in csv file pls");
+	if(     "double"!=ptRcsv.GetColumnType("rhoMin"))throw std::logic_error(
+		"RCsvDS deduced rhoMin as integer; edit file, change 0 to 0. for 1st row");
+	const char sjerName[] = "Fall17_V3_MC_SF_AK4PF.txt";
+	if(gSystem->AccessPathName(sjerName)) throw std::runtime_error(
+		"RCsvDS would hang on access failure (jet_smear_Sjer)");
+	auto sjerCsv = ROOT::RDF::MakeCsvDataFrame(sjerName);
+	if("std::string"==sjerCsv.GetColumnType("etaMax"))throw std::logic_error(
+		"RCsvDS deduced etaMax as  string; no spaces anywhere in csv file pls");
+	const char csvname[] = "CSVv2_94XSF_V2_B_F.csv";
+	if(gSystem->AccessPathName(csvname)) throw std::runtime_error(
+		"RCsvDS would hang on access failure (btagCSVv2)");
+	auto btagDF = ROOT::RDF::MakeCsvDataFrame(csvname)
+	.Filter("measureType==\"comb\"&&sysType==\"central\"&&jetFlav==0");
+	if("std::string"==btagDF.GetColumnType("CSVmin"))throw std::logic_error(
+		"RCsvDS deduced CSVmin as  string; no spaces anywhere in csv file pls");
+	if(     "double"!=btagDF.GetColumnType("CSVmin"))throw std::logic_error(
+"RCsvDS deduced CSVmin as integer; edit file, change 0,1 to 0.,1. for 1st row");
+	// TODO: uncomment the next two lines if we need CSVv2 as doubles
+	// All of CSVv2 are integer and the code ignores this discrepancy
+//	if(     "double"!=btagDF.GetColumnType("CSVv2" ))throw std::logic_error(
+//		"RCsvDS deduced CSVv2  as integer; edit file, change 0 to 0. for 1st row");
+*/
+	
 	// Open data files even if unused
 	// then automatically choose which one to read from
 	// No penalty for opening and leaving unused
@@ -818,11 +907,11 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("good_jets_eta" ,jets_gen_select,{"GenJet_eta" ,"tight_jets_eta"})
 	.Define("good_jets_phi" ,jets_gen_select,{"GenJet_phi" ,"tight_jets_phi"})
 	.Define("good_jets_mas" ,jets_gen_select,{"GenJet_mass","tight_jets_mas"})
-	.Define("pt_resol"     , jet_smear_pt_resol,
+	.Define("pt_resol"     , jet_smear_pt_resol/*(ptRcsv)*/,
 	       {"good_jets__pt",
 	        "good_jets_eta","fixedGridRhoFastjetAll"})
-	.Define("Sjer",      jet_smear_Sjer  , {"good_jets_eta"})
-	.Define("cjer",    delta_R_jet_smear , {"good_jets__pt","GenJet_pt",
+	.Define("Sjer",jet_smear_Sjer/*(sjerCsv)*/, {"good_jets_eta"})
+	.Define("cjer",    delta_R_jet_smear      , {"good_jets__pt","GenJet_pt",
 	        "pt_resol","Sjer","jet_lep_min_dR"})
 	.Define("fin_jets__pt" , "good_jets__pt * cjer")// these are JEC
 	.Define("fin_jets_eta" , "good_jets_eta * cjer")// Monte Carlo
@@ -846,9 +935,9 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("no_btag_numer_eta","fin_jets_eta[no_btag_numer]")
 	.Define("is_btag_denom_eta","fin_jets_eta[is_btag_denom]")
 	.Define("no_btag_denom_eta","fin_jets_eta[no_btag_denom]")
-	.Define("sfi",btagCSVv2( true),// checks btag
+	.Define("sfi",btagCSVv2( true),//,btagDF),// checks btag
 	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta"})
-	.Define("sfj",btagCSVv2(false),// ignore btag
+	.Define("sfj",btagCSVv2(false),//,btagDF),// ignore btag
 	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta"})
 	;
 	auto expt_bjets
