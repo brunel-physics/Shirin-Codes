@@ -1,0 +1,4814 @@
+scale factor 
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 6
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 4
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+repeat const 5
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1
+bt eff giver in  0x87a9e80
+bt eff giver out 0x87a9e80
+bt eff giver { 1, 1, 1, 1 }
+btagCSVv2 entered
+btagCSVv2 exiting
+bt eff giver in  0x9046080
+bt eff giver out 0x9046080
+bt eff giver { 0, 0, 0, 0 }
+btagCSVv2 entered
+btagCSVv2 exiting
+Sfj_EffNoBTaggedProduct 1
+EffNoBTaggedProduct 1

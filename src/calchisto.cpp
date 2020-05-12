@@ -12,11 +12,11 @@
 #include "csv.h"
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
-
+/*
 #if !defined(__FMA__) && defined(__AVX2__)
     #define __FMA__ 1
 #endif
-
+*/
 using doubles = ROOT::VecOps::RVec<double>;
 using  floats = ROOT::VecOps::RVec<float>;
 using    ints = ROOT::VecOps::RVec<int>;
@@ -25,7 +25,7 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 1;
+  constexpr    int debug = 3;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -197,7 +197,7 @@ auto jet_lep_min_deltaR(const    T& jet_etas,
 	if(jet_phis.empty())
 		throw std::logic_error(
 		      "Collections must not be empty for (jet-lep dR)");
-	if(debug>0) std::cout<<"jet_lep_min_dR"<<std::endl;
+	//if(debug>0) std::cout<<"jet_lep_min_dR"<<std::endl;
 	doubles min_dRs; min_dRs.reserve(jet_etas.size());
 	std::transform(
 		jet_etas.cbegin(),
@@ -212,7 +212,7 @@ auto tight_jet_id(const doubles& jet_lep_min_dRs,
                   const  floats& pts,
                   const  floats& etas,
                   const    ints& ids){
-	if(debug>0) std::cout<<"tight_jet_id"<<std::endl;
+	//if(debug>0) std::cout<<"tight_jet_id"<<std::endl;
 	return pts>JET__PT_MIN&&abs(etas)<JET_ETA_MAX&&jet_lep_min_dRs>JET_ISO&&ids>=2;
 }
 auto jetCutter(const unsigned jmin, const unsigned jmax){
@@ -226,7 +226,7 @@ auto jetCutter(const unsigned jmin, const unsigned jmax){
 	};
 }
 auto jets_gen_select(const floats& gen, const floats& jet){
-	if(debug>0) std::cout<<"gen select"<<std::endl;
+	//if(debug>0) std::cout<<"gen select"<<std::endl;
 // select jets that have generated level info; used @ JEC
 // use this function ONLY for Monte Carlo, not CMS / MET
 	if(gen.size() < jet.size()){// GenJet often shorter than Jet
@@ -242,7 +242,7 @@ auto retVar(const T& v){return[&](){return v;};}
 auto jet_smear_pt_resol(
 //ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>& ptRcsv){
 /*return [&](*/const floats& pt,const floats& eta,const float rho){
-	if(debug>0) std::cout<<"jet smear pt resol"<<std::endl;
+	//if(debug>0) std::cout<<"jet smear pt resol"<<std::endl;
 	doubles resol(pt.size());
 	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
 		"Collections must be the same size (jet_smear_pt_resol)");
@@ -289,7 +289,7 @@ auto jet_smear_pt_resol(
 auto jet_smear_Sjer(
 //ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>& sjerCsv){
 /*return [&](*/const floats& etas){
-	if(debug>0) std::cout<<"jet smear sjer"<<std::endl;
+	//if(debug>0) std::cout<<"jet smear sjer"<<std::endl;
    doubles Sjers(            etas.size());
 	double  etaMin,etaMax;
 	double  centralSF,dnSF,upSF;
@@ -319,7 +319,7 @@ auto delta_R_jet_smear(const  floats& pt,
                        const doubles& resol,
                        const doubles& Sjer,
                        const doubles& deltaR){
-	if(debug>0) std::cout<<"delta r jet smear"<<std::endl;
+	//if(debug>0) std::cout<<"delta r jet smear"<<std::endl;
 	if(!all_equal(pt.size(),resol.size(),Sjer.size()))
 		throw std::logic_error("Collections must be the same size in deltaR_Jsmear");
 	if(gen_pt.size() < pt.size())
@@ -480,7 +480,7 @@ auto jet_deltaphi(const doubles& phis){
 	return deltaphis;
 }
 auto find_lead_mask(const doubles& vals,const ints& mask){
-	if(debug>0) std::cout<<"lead mask"<<std::endl;
+	//if(debug>0) std::cout<<"lead mask"<<std::endl;
 	if(!all_equal(mask.size(),vals.size())) throw std::logic_error(
 		"Collections must be the same size in lead_mask");
 	if(mask.empty()) throw std::logic_error(
@@ -499,7 +499,7 @@ auto find_z_pair(const doubles& pts,
                  const doubles& phis,
                  const doubles& ms,
                  const    ints& lead_bjet){
-	if(debug>0) std::cout<<"find z pair"<<std::endl;
+	//if(debug>0) std::cout<<"find z pair"<<std::endl;
 	// This function finds the pair nearest to z mass
 	double  z_reco_mass = std::numeric_limits<double>::infinity();
 	size_t  jet_index_1 = std::numeric_limits<size_t>::max();
@@ -527,14 +527,14 @@ auto find_z_pair(const doubles& pts,
 	}
 	z_pair[jet_index_1] = 1;
 	z_pair[jet_index_2] = 1;
-	if(debug>1) std::cout<<"z pair"<<z_pair<<std::endl;
+	//if(debug>1) std::cout<<"z pair"<<z_pair<<std::endl;
 	return z_pair;
 }
 auto TLVpairAdd(const doubles& pt__pair,// Create TLorentzV from 2 jets 4-mom
                 const doubles& eta_pair,
                 const doubles& phi_pair,
                 const doubles& mas_pair){
-	if(debug>0) std::cout<<"TLVpairAdd"<<std::endl;
+	//if(debug>0) std::cout<<"TLVpairAdd"<<std::endl;
 	if(pt__pair.size() != 2) throw std::logic_error(
 		"Not pair of Z (TLVpairAdd)");
 	TLorentzVector v,p;
@@ -544,7 +544,7 @@ auto TLVpairAdd(const doubles& pt__pair,// Create TLorentzV from 2 jets 4-mom
 }
 auto TLVex(   const PtEtaPhiM         what){
    return [=](const TLorentzVector& object){
-		if(debug>0) std::cout<<"TLVex"<<std::endl;
+		//if(debug>0) std::cout<<"TLVex"<<std::endl;
 		double result;
 		switch(what){
 			case  pt:{result = object.Pt ();break;}
@@ -596,32 +596,37 @@ auto top_reconst(const doubles& bjets_pt,
 	}
 	return reco_top;
 }
-auto BTaggedEffGiver(TH2D *ratio){
-return [=](const doubles& pts,const doubles& etas){
-	if(debug>0) std::cout<<"bt eff giver "<< ratio <<std::endl;
+auto BTaggedEffGiver(TH2D*& ratio,bool b){
+return [&,b](const doubles& pts,const doubles& etas){
+	if(debug>0) std::cout<<"bt eff giver in  "<< ratio <<std::endl;
 	if(!all_equal(pts.size(),etas.size())) throw std::logic_error(
 		"Collections must be the same size (effGiver)");
 	if(pts.empty()) throw std::logic_error(
 		"Collections must not be empty in  (effGiver)");
-	doubles BTaggedEff; BTaggedEff.reserve(pts.size());
+	doubles BTaggedEff(pts.size(), b ? 1. : 0.);
 	for(size_t   i=0; i <  pts.size() ;++i){
 		int  PtBin = ratio->GetXaxis()->FindBin(pts [i]);
 		int EtaBin = ratio->GetYaxis()->FindBin(etas[i]);
 		double eff = ratio->GetBinContent(PtBin,EtaBin);
 		if(FP_NORMAL == std::fpclassify(eff))// if eff non-zero/inf/NaN
-			BTaggedEff.emplace_back(eff);
+			BTaggedEff[i] = eff;
 		// above only pushed back nonzero nice eff
 		// what do we do with eff==0? check with kathryn
+		// below, if ej, and near 1., we put 0. instead
+		if(!b && std::abs(eff-1.) <= 2*std::numeric_limits<double>::epsilon())
+			BTaggedEff[i] = 0.;
 	}
-	delete[] ratio;// or else out of memory after 1000000000
-	return   BTaggedEff;
-};// did not indent the lambda
+	if(debug>2) std::cout<<"bt eff giver out "<< ratio <<std::endl;
+	//delete ratio;// or else out of memory after 1000000000
+	if(debug>2) std::cout<<"bt eff giver "<< BTaggedEff <<std::endl;
+	//ratio = nullptr;
+	return BTaggedEff;};
 }
 auto EffIsBTaggedProduct(const doubles& EffIsBTagged){
 	double     result  = 1.;
 	for(size_t i=0;  i < EffIsBTagged.size() ;++i)
 	           result *= EffIsBTagged[i];
-	if(debug>1) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
+	//if(debug>1) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
 	return     result;
 }
 auto EffNoBTaggedProduct(const doubles& EffNoBTagged){
@@ -638,17 +643,18 @@ auto Sfi_EffIsBTaggedProduct(const doubles& EffIsBTagged,const doubles& sfi){
 	size_t   size = b < s ? b : s;
 	for(size_t i=0; i < size ;++i)
 	       result    *= sfi[i] * EffIsBTagged[i];
-	if(debug>1)std::cout<<"Sfi_EffIsBTaggedProduct "<<result<<std::endl;
+	//if(debug>1)std::cout<<"Sfi_EffIsBTaggedProduct "<<result<<std::endl;
 	return result;
 }
 auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
 	double result = 1.;
 	size_t b = EffNoBTagged.size(), s = sfj.size();
 	if(b!=s)std::cout<<"Sfj_EffNoBTaggedProduct got diff sizes"<<std::endl;
-	if(__FMA__)std::cout<<"FMA not accelerated"<<std::endl;
+//	if(__FMA__)std::cout<<"FMA not accelerated"<<std::endl;
 	size_t   size = b < s ? b : s;
 	for(size_t i=0; i < size ;++i)
-	       result*= -std::fma(EffNoBTagged[i],sfj[i],-1.);
+//	       result*= -std::fma(EffNoBTagged[i],sfj[i],-1.);
+	       result*= 1. - EffNoBTagged[i]*sfj[i];
 	if(debug>1)std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
@@ -722,7 +728,7 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 	////////////// SCALE FACTORS /////////////
 auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
-	return std::isinf(weight) || std::isnan(weight) ? 0. : weight;
+	return std::isinf(weight) || std::isnan(weight) ? 1. : weight;
 }
 	// Normalization * btag weights
 auto sf(const  dataSource ds){
@@ -1085,18 +1091,20 @@ void calchisto(const channel ch,const dataSource ds){
 	is_btag_ratio = new TH2D("ei", "is b tag ei",50,0,400,50,-3,3);
 	is_btag_ratio = static_cast<TH2D*>(h_is_btag_numer_PtVsEta->Clone());
 	is_btag_ratio->Divide(             h_is_btag_denom_PtVsEta.GetPtr());
+	is_btag_ratio->Draw("COLZ");// trigger getting everything done
 	TH2D *
-	no_btag_ratio = new TH2D("ej", "no b tag ei",50,0,400,50,-3,3);
+	no_btag_ratio = new TH2D("ej", "no b tag ej",50,0,400,50,-3,3);
 	no_btag_ratio = static_cast<TH2D*>(h_no_btag_numer_PtVsEta->Clone());
 	no_btag_ratio->Divide(             h_no_btag_denom_PtVsEta.GetPtr());
-	// DELETED in effGiver
+	no_btag_ratio->Draw("COLZ");
+	// DELETED in effGiver// no new, no delete
 	
 	auto btag_eff
 	   = top_reco
-	.Define("IsEffBTagged",BTaggedEffGiver(is_btag_ratio),
-	       {"fin_jets__pt","fin_jets_eta"})
-	.Define("NoEffBTagged",BTaggedEffGiver(no_btag_ratio),
-	       {"fin_jets__pt","fin_jets_eta"})
+	.Define("IsEffBTagged",BTaggedEffGiver(is_btag_ratio, true),
+	       {"fin_jets__pt","fin_jets_eta"})// TODO: check sensibility
+	.Define("NoEffBTagged",BTaggedEffGiver(no_btag_ratio,false),
+	       {"fin_jets__pt","fin_jets_eta"})// of this eff formula
 	;
 	auto P_btag
 	   = btag_eff
