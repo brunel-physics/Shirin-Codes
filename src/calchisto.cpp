@@ -25,7 +25,7 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 6;
+  constexpr    int debug = 0;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -949,8 +949,8 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	auto h_is_btag_numer_PtVsEta
 	   = top_reco.Histo2D({
-	static_cast<const char*>((        "is_numer_" + temp_header).c_str()),
-	static_cast<const char*>(("MC is btag numer " + temp_footer).c_str()),
+	(        "is_numer_" + temp_header).c_str(),
+	("MC is btag numer " + temp_footer).c_str(),
 	50,0,400,50,-3,3},
 	"is_btag_numer__pt",
 	"is_btag_numer_eta");
@@ -958,8 +958,8 @@ void calchisto(const channel ch,const dataSource ds){
 	h_is_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
 	auto h_no_btag_numer_PtVsEta
 	   = top_reco.Histo2D({
-	static_cast<const char*>((        "no_numer_" + temp_header).c_str()),
-	static_cast<const char*>(("MC no btag numer " + temp_footer).c_str()),
+	(        "no_numer_" + temp_header).c_str(),
+	("MC no btag numer " + temp_footer).c_str(),
 	50,0,400,50,-3,3},
 	"no_btag_numer__pt",
 	"no_btag_numer_eta");
@@ -967,8 +967,8 @@ void calchisto(const channel ch,const dataSource ds){
 	h_no_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
 	auto h_is_btag_denom_PtVsEta
 	   = top_reco.Histo2D({
-	static_cast<const char*>((        "is_denom_" + temp_header).c_str()),
-	static_cast<const char*>(("MC is btag denom " + temp_footer).c_str()),
+	(        "is_denom_" + temp_header).c_str(),
+	("MC is btag denom " + temp_footer).c_str(),
 	50,0,400,50,-3,3},
 	"is_btag_denom__pt",
 	"is_btag_denom_eta");
@@ -976,8 +976,8 @@ void calchisto(const channel ch,const dataSource ds){
 	h_is_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
 	auto h_no_btag_denom_PtVsEta
 	   = top_reco.Histo2D({
-	static_cast<const char*>((        "no_denom_" + temp_header).c_str()),
-	static_cast<const char*>(("MC no btag denom " + temp_footer).c_str()),
+	(        "no_denom_" + temp_header).c_str(),
+	("MC no btag denom " + temp_footer).c_str(),
 	50,0,400,50,-3,3},
 	"no_btag_denom__pt",
 	"no_btag_denom_eta");
@@ -1020,9 +1020,9 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("nw_fin_jets_mas"  ,rep_const,{"sf","fin_jets_mas"  })
 	.Define("nw_jet_lep_min_dR",rep_const,{"sf","jet_lep_min_dR"})
 	.Define("nw_bjet__pt"	   ,rep_const,{"sf","bjet__pt"      })
-        .Define("nw_bjet_eta"      ,rep_const,{"sf","bjet_eta"      })
-        .Define("nw_bjet_phi"      ,rep_const,{"sf","bjet_phi"      })
-        .Define("nw_bjet_mas"      ,rep_const,{"sf","bjet_mas"      })
+	.Define("nw_bjet_eta"      ,rep_const,{"sf","bjet_eta"      })
+	.Define("nw_bjet_phi"      ,rep_const,{"sf","bjet_phi"      })
+	.Define("nw_bjet_mas"      ,rep_const,{"sf","bjet_mas"      })
 	.Define(  "nw_z_lep_min_dR",rep_const,{"sf",  "z_lep_min_dR"})
 	. Alias( "nw_tw_lep_mas"   ,"sf")
 	. Alias(  "nw_z_mas"       ,"sf")
@@ -1034,41 +1034,39 @@ void calchisto(const channel ch,const dataSource ds){
 	;
 	auto
 	h_trans_T = P_btag.Histo1D({
-	static_cast<const char*>((          "tTm_"     + temp_header).c_str()),
-	static_cast<const char*>(("Transverse T mass " + temp_header).c_str()),
+	(          "tTm_"     + temp_header).c_str(),
+	("Transverse T mass " + temp_header).c_str(),
 	50,0,180},
 	"ttop_mas","sf");
 	h_trans_T->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_T->GetYaxis()->SetTitle("Event");
 	auto
 	h_trans_w = P_btag.Histo1D({
-	static_cast<const char*>((          "tWm_"     + temp_header).c_str()),
-	static_cast<const char*>(("Transverse W mass " + temp_header).c_str()),
+	(          "tWm_"     + temp_header).c_str(),
+	("Transverse W mass " + temp_header).c_str(),
 	50,0,180},
 	"tw_lep_mas","sf");
 	h_trans_w->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_w->GetYaxis()->SetTitle("Event");
 	auto
 	h_Winvmas = P_btag.Histo1D({
-	static_cast<const char*>(("W_invariant_mass_" + temp_header).c_str()),
-	static_cast<const char*>(("W invariant mass " + temp_header).c_str()),
+	("W_invariant_mass_" + temp_header).c_str(),
+	("W invariant mass " + temp_header).c_str(),
 	50,0,180},
 	"lep_nu_invmass","sf");
 	h_Winvmas->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_Winvmas->GetYaxis()->SetTitle("Event");
 	auto
 	h_tWmVsZmass = P_btag.Histo2D({
-	static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
-	static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
+	("tWmVsZmass" + temp_header).c_str(),
+	("tWmVsZmass" + temp_header).c_str(),
 	50,0,200,50,0,200},
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("tWm   GeV/C^2");
 	h_tWmVsZmass->GetYaxis()->SetTitle("Zmass GeV/C^2");
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(
-	 static_cast<const char*>((temp_header+".histo").c_str())
-	,"RECREATE");
+	TFile hf((temp_header+".histo").c_str(),"RECREATE");
 	h_is_btag_numer_PtVsEta->Write();
 	h_no_btag_numer_PtVsEta->Write();
 	h_is_btag_denom_PtVsEta->Write();
@@ -1090,18 +1088,20 @@ void calchisto(const channel ch,const dataSource ds){
 			          xAxisStr = "PseudoRapidity eta"      ;break;}
 			case phi:{kstring += "phi";xmin = -7;xmax =  7 ;
 			          xAxisStr = "Azimuthal angle, phi/rad";break;}
-			case  m :{kstring += "mas";xmin =  0;xmax =  200;
+			case  m :{kstring += "mas";xmin =  0;xmax = 200;
 			          xAxisStr = "mass GeV/C^2"            ;break;}
 //			default :throw std::invalid_argument(
 //				"Unimplemented component (histo)");
 		}
+		temp_footer = particle + kstring;
+		temp_opener = temp_header + "_" + temp_footer;
 		auto
 		h = P_btag.Histo1D({
-		 static_cast<const char*>(   (temp_header+kstring).c_str())
-		,static_cast<const char*>(   (temp_header+kstring).c_str())
+		 temp_opener.c_str()
+		,temp_opener.c_str()
 		,50,xmin,xmax}
-		,static_cast<const char*>(      (particle+kstring).c_str())
-		,static_cast<const char*>(("nw_"+particle+kstring).c_str())
+		,       temp_footer .c_str()
+		,("nw_"+temp_footer).c_str()
 		);
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
