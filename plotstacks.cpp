@@ -25,12 +25,12 @@ int plotstacks(){
 		}
 	std::string hobjname = (opener+"_"+particle+kstring).c_str();
 	std::string   stname = (particle + kstring).c_str();
-	hf.GetObject(hobjname,hobj);
+	hf.GetObject(hobjname.c_str(),hobj);
 	// clone hobj by DrawClone or add to stack here
-	THStack *hstack = new THStack(stname,stname);
+	THStack *hstack = new THStack(stname.c_str(),stname.c_str());
 	hobj->SetLineColor(kBlack);// TBC when other ds are inlcuded.
-	hstack->Add((TH1*)&hobj.GetValue());
-	auto hcanvas = new TCanvas(stname, stname,10,10,900,900);
+	hstack->Add(static_cast<TH1D*> (hobj->Clone()));
+	auto hcanvas = new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);
 	hobj->DrawClone("SAME");
         hcanvas->cd(2);// From here downward
         hstack->Draw("HIST");// should be done
