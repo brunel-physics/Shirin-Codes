@@ -25,7 +25,7 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 3;
+  constexpr    int debug = 0;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -854,8 +854,8 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(10000);
-	auto w_selection = dfr// remove one letter to do all
+	//auto dfr = df.Range(100000);
+	auto w_selection = df// remove one letter to do all
 	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
 	       {temp_header+"isPFcand",
@@ -1220,4 +1220,6 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	
 	hf.Close();
+	delete is_btag_ratio;
+	delete no_btag_ratio;
 }
