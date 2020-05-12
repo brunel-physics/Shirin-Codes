@@ -1129,8 +1129,8 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias( "nw_tw_lep_mas"   ,"sf")
 	. Alias(  "nw_z_mas"       ,"sf")
 	.Define("nw_fin_jets_Dph"  ,rep_const,{"sf","fin_jets_Dph"})
-	. Alias(    "nw_zmet_Dph"  ,"sf")
-	. Alias(      "nw_zw_Dph"  ,"sf")
+	.Define(    "nw_zmet_Dph"  ,rep_const,{"sf","zmet_Dph"})
+	.Define(      "nw_zw_Dph"  ,rep_const,{"sf","zw_Dph"})
 //	. Alias("nw_ttop__pt","sf")
 //	. Alias("nw_ttop_mas","sf")
 	;
@@ -1160,8 +1160,21 @@ void calchisto(const channel ch,const dataSource ds){
 	h_Winvmass->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_Winvmass->GetYaxis()->SetTitle("Event");
 	
+	auto h_ZMet_Dphi = P_btag.Histo1D({
+        static_cast<const char*>((          "ZMet_Dph_"     + temp_header).c_str()),
+        static_cast<const char*>(("Z and Met Delta Phi " + temp_header).c_str()),
+        50,-7,7},
+        "zmet_Dph","nw_zmet_Dphi");
+        h_ZMet_Dphi->GetXaxis()->SetTitle("delta phi/ rad");
+        h_ZMet_Dphi->GetYaxis()->SetTitle("Event");
 	
-	
+        auto h_ZW_Dphi = P_btag.Histo1D({
+        static_cast<const char*>((          "ZW_Dph_"     + temp_header).c_str()),
+        static_cast<const char*>(("Z and W Delta Phi " + temp_header).c_str()),
+        50,-7,7},
+        "zw_Dph","nw_zw_Dphi");
+        h_ZW_Dphi->GetXaxis()->SetTitle("delta phi/ rad");
+        h_ZW_Dphi->GetYaxis()->SetTitle("Event");
 	
 	auto
 	h_tWmVsZmass_calc = P_btag.Histo2D({
@@ -1184,10 +1197,12 @@ void calchisto(const channel ch,const dataSource ds){
 	h_no_btag_numer_PtVsEta->Write();
 	h_is_btag_denom_PtVsEta->Write();
 	h_no_btag_denom_PtVsEta->Write();
+	h_ZMet_Dphi->Write();
+	h_ZW_Dphi->Write();
 //	h_transTopmass->Write();
 	h_tWmVsZmass_calc->Write();
 	// the following two for loops stack correctly
-	for(std::string particle:{"fin_jets","lep"})
+	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
 		std::string  kstring = "_";
 		double xmin,xmax;
@@ -1195,7 +1210,7 @@ void calchisto(const channel ch,const dataSource ds){
 			case pt :{kstring+= "_pt";xmin =  0 ;xmax = 200;break;}
 			case eta:{kstring+= "eta";xmin = -3 ;xmax =  3 ;break;}
 			case phi:{kstring+= "phi";xmin = -7 ;xmax =  7 ;break;}
-			case  m :{kstring+= "mas";xmin =  0 ;xmax =  30;break;}
+			case  m :{kstring+= "mas";xmin =  0 ;xmax =  200;break;}
 //			default :throw std::invalid_argument(
 //				"Unimplemented component (histo)");
 		}
@@ -1207,6 +1222,7 @@ void calchisto(const channel ch,const dataSource ds){
 		,static_cast<const char*>(      (particle+kstring).c_str())
 		,static_cast<const char*>(("nw_"+particle+kstring).c_str())
 		);
+
 		/* 
 		 * TODO: These are too long for above switch case
 		 * And they should be in plotstacks anyway
