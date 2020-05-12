@@ -755,8 +755,8 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(100000);
-	auto w_selection = df// remove one letter to do all
+	auto dfr = df.Range(1000);
+	auto w_selection = dfr// remove one letter to do all
 	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
 	       {temp_header+"isPFcand",
@@ -1103,6 +1103,7 @@ void calchisto(const channel ch,const dataSource ds){
 		,       temp_footer .c_str()
 		,("nw_"+temp_footer).c_str()
 		);
+		h->SetLineStyle(kSolid);
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
 		h->Write();

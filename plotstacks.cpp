@@ -17,11 +17,16 @@ int plotstacks(){
 	
 	for(PtEtaPhiM k:PtEtaPhiMall){
 		std::string kstring = "_" ;
+		std::string xAxisStr;
 		switch (k){
-			case pt :{kstring += "_pt";break;}
-			case eta:{kstring += "eta";break;}
-			case phi:{kstring += "phi";break;}
-			case m  :{kstring += "mas";break;}
+			case pt :{kstring += "_pt";
+				  xAxisStr = "pT/GeV"		       ;break;}
+			case eta:{kstring += "eta";
+				  xAxisStr = "PseudoRapidity eta"      ;break;}
+			case phi:{kstring += "phi";
+				  xAxisStr = "Azimuthal angle, phi/rad";break;}
+			case m  :{kstring += "mas";
+				  xAxisStr = "mass GeV/C^2"	       ;break;}
 		}
 	std::string hobjname = (opener+"_"+particle+kstring).c_str();
 	std::string   stname = (particle + kstring).c_str();
@@ -32,7 +37,10 @@ int plotstacks(){
 	//THStack *hstack = new THStack(stname.c_str(),stname.c_str());
 	hobj->SetLineColor(kBlack);// TBC when other ds are inlcuded.
 	hstack->Add(static_cast<TH1D*> (hobj->Clone()));
-	auto hcanvas = new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);
+	auto hcanvas =
+	new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);
+	hobj->GetXaxis()->SetTitle(xAxisStr.c_str());
+        hobj->GetYaxis()->SetTitle("Event");
 	hobj->DrawClone("SAME");
         hcanvas->cd(2);// From here downward
         hstack->Draw("HIST");// should be done
@@ -41,6 +49,7 @@ int plotstacks(){
         hcanvas->SaveAs((stname + ".pdf" ).c_str());
 	}}
 
+	return 0; // end of file
 /*        TH2D *h2numer,*h2denom;
 	hf.GetObject("is_numer_elnu_tzq",h2numer);
 	hf.GetObject("is_denom_elnu_tzq",h2denom);
