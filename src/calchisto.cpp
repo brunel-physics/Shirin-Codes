@@ -236,37 +236,17 @@ auto jets_gen_select(const floats& gen, const floats& jet){
 	}
 	    return      jet;
 }
-/*template<typename T>// allow us to return w/o knowing data type
+/*
+template<typename T>// allow us to return w/o knowing data type
 auto retVar(const T& v){return[&](){return v;};}
 */
-auto jet_smear_pt_resol(
-//ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>& ptRcsv){
-/*return [&](*/const floats& pt,const floats& eta,const float rho){
+auto jet_smear_pt_resol(const floats& pt,const floats& eta,const float rho){
 	//if(debug>0) std::cout<<"jet smear pt resol"<<std::endl;
 	doubles resol(pt.size());
 	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
 		"Collections must be the same size (jet_smear_pt_resol)");
 	if(pt.empty()) throw std::logic_error(
 		"Collections must not be empty in  (jet_smear_pt_resol)");
-/*	auto csvdf = ptRcsv// retVar used b/c external rho
-	.Define("rho",retVar(static_cast<double>(rho)))
-	.Filter("rhoMin < rho && rho < rhoMax")
-	;
-	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
-		resol[i] = csvdf
-		.Define("pt" ,retVar(static_cast<double>( pt[i])))
-		.Define("eta",retVar(static_cast<double>(eta[i])))
-		.Filter(" ptMin < pt  &&  pt <  ptMax")
-		.Filter("etaMin < eta && eta < etaMax")
-		.Define("signAsq",[](double a){return a*std::abs(a);},{"a"})
-		.Define("ptSq"   ,"  pt * pt")
-		.Define("ptPow"  ,[](double p, double d){return std::pow(p,d);},
-		                 {  "pt","d"})
-		.Define("pSq"    ,"signAsq/(pt*pt) + b*b * ptPow + c*c")
-		.Define("partial",[](double x){return std::sqrt(x);},{"pSq"})
-		.Sum(   "partial").GetValue();// total of partials is answer
-	}
-*/
 	double etaMin,etaMax,rhoMin,rhoMax;
 	double pt_Min,pt_Max;
 	double a,b,c,d;
@@ -286,9 +266,7 @@ auto jet_smear_pt_resol(
 	}// No need to close file after this while loop
 	return resol;//};
 }
-auto jet_smear_Sjer(
-//ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>& sjerCsv){
-/*return [&](*/const floats& etas){
+auto jet_smear_Sjer(const floats& etas){
 	//if(debug>0) std::cout<<"jet smear sjer"<<std::endl;
    doubles Sjers(            etas.size());
 	double  etaMin,etaMax;
@@ -301,13 +279,6 @@ auto jet_smear_Sjer(
 		   if(      etaMin <  etas[i] && etas[i] < etaMax)
 		          Sjers[i] += centralSF;
 	}
-/*	// next loop is necessary
-	for(size_t i=0; i < eta.size() ;++i)
-		Sjers[i] = sjerCsv// TODO: add sf up and 
-		.Define("eta" ,retVar(static_cast<double>(eta[i])))// down
-		.Filter("etaMin < eta && eta < etaMax")// for uncertainty
-		.Sum(   "centralSF").GetValue();// sum all filtered
-*/
 	return Sjers;//};
 }
 [[gnu::const]] auto ramp(const double Sjer){
@@ -383,37 +354,6 @@ auto btagCSVv2(const bool check_CSVv2){//,
 		"Collections must not be empty in btagCSVv2");
 	if(btag.size() < pt.size()) throw std::logic_error(
 		"insufficient btagCSVv2");
-/*	auto csvdf = btagDF
-//	Already filtered when reading in first time
-//	.Filter("measureType==\"comb\"&&sysType==\"central\"&&jetFlav==0")
-//	TODO: jet flav 5 or 0?
-	.Define("ignore",retVar(ignore))// if true ignore btag and CSVv2
-	.Define("bdm"   ,retVar(BTAG_DISC_MIN))
-	.Filter("ignore || bdm <= CSVv2")// checks against CSVv2 or not
-	;
-	for(size_t i=0; i < pt.size() ;++i){// this loop is necessary
-		std::string tmpFormula = csvdf
-		.Define("btag",retVar(static_cast<double>(btag[i])))
-		.Define("pt"  ,retVar(static_cast<double>(pt  [i])))
-		.Define("eta" ,retVar(static_cast<double>(eta [i])))
-		.Filter("ignore || (CSVmin < btag && btag < CSVmax)")
-		.Filter(" ptMin < pt  && pt  <  ptMax")
-		.Filter("etaMin < eta && eta < etaMax")
-		.Filter([](std::string y)// this filter is only a safety check
-			{return y.find("x")!=std::string::npos;},{"formula"})
-		.Range(1)// get FIRST formula
-		.Take<std::string>("formula").GetValue()[0];// Take gives RVec thus [0]
-		// now guaranteed one good formula with x in it
-		// Time to replace all x with pt ourselves~~ No need boost::replace_all
-		std::string  ptstr = std::to_string(pt[i]);
-		size_t pos = tmpFormula.find("x");
-		while( pos!= std::string::npos){
-		             tmpFormula.replace( pos,1,ptstr);// 1 = "x".size()
-		       pos = tmpFormula.find("x",pos + ptstr.size());
-		}
-		formulae[i] = tmpFormula;
-	}
-*/
 	std::string  measureType,sysType,rawFormula;
 	int    jetFlav;//	TODO: jet flav 5 or 0?
 	double CSVv2   ,
@@ -616,10 +556,7 @@ return [&,b](const doubles& pts,const doubles& etas){
 		if(!b && std::abs(eff-1.) <= 2*std::numeric_limits<double>::epsilon())
 			BTaggedEff[i] = 0.;
 	}
-	if(debug>2) std::cout<<"bt eff giver out "<< ratio <<std::endl;
-	//delete ratio;// or else out of memory after 1000000000
 	if(debug>2) std::cout<<"bt eff giver "<< BTaggedEff <<std::endl;
-	//ratio = nullptr;
 	return BTaggedEff;};
 }
 auto EffIsBTaggedProduct(const doubles& EffIsBTagged){
@@ -725,12 +662,10 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 	return result;
 }
 */
-	////////////// SCALE FACTORS /////////////
 auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
 	return std::isinf(weight) || std::isnan(weight) ? 1. : weight;
 }
-	// Normalization * btag weights
 auto sf(const  dataSource ds){
 	if(debug>0) std::cout<<"scale factor "<<std::endl;
 	return [=](const double b){
@@ -749,7 +684,6 @@ auto sf(const  dataSource ds){
 		return result * b;
 	};
 }
-	// Event Weight, incl. btag & Normalization
 auto rep_const(const double sf,const doubles& iRVec){
 	// this function just repeats sf, for the size of iRVec
 	if(debug>0) std::cout<<"repeat const "<<iRVec.size()<<std::endl;
@@ -758,42 +692,10 @@ auto rep_const(const double sf,const doubles& iRVec){
 }
 }// namespace
 void calchisto(const channel ch,const dataSource ds){
-/*
-	// open helper CSV files first, once and for all
-	const char ptResol[] = "Fall17_V3_MC_PtResolution_AK4PFchs.txt";
-	if(gSystem->AccessPathName(ptResol))throw std::runtime_error(// FileNotFound
-		"RCsvDS would hang on access failure (jet_smear_pt_resol)");
-	auto ptRcsv = ROOT::RDF::MakeCsvDataFrame(ptResol);
-	if("std::string"==ptRcsv.GetColumnType("rhoMin"))throw std::logic_error(
-		"RCsvDS deduced rhoMin as  string; no spaces anywhere in csv file pls");
-	if(     "double"!=ptRcsv.GetColumnType("rhoMin"))throw std::logic_error(
-		"RCsvDS deduced rhoMin as integer; edit file, change 0 to 0. for 1st row");
-	const char sjerName[] = "Fall17_V3_MC_SF_AK4PF.txt";
-	if(gSystem->AccessPathName(sjerName)) throw std::runtime_error(
-		"RCsvDS would hang on access failure (jet_smear_Sjer)");
-	auto sjerCsv = ROOT::RDF::MakeCsvDataFrame(sjerName);
-	if("std::string"==sjerCsv.GetColumnType("etaMax"))throw std::logic_error(
-		"RCsvDS deduced etaMax as  string; no spaces anywhere in csv file pls");
-	const char csvname[] = "CSVv2_94XSF_V2_B_F.csv";
-	if(gSystem->AccessPathName(csvname)) throw std::runtime_error(
-		"RCsvDS would hang on access failure (btagCSVv2)");
-	auto btagDF = ROOT::RDF::MakeCsvDataFrame(csvname)
-	.Filter("measureType==\"comb\"&&sysType==\"central\"&&jetFlav==0");
-	if("std::string"==btagDF.GetColumnType("CSVmin"))throw std::logic_error(
-		"RCsvDS deduced CSVmin as  string; no spaces anywhere in csv file pls");
-	if(     "double"!=btagDF.GetColumnType("CSVmin"))throw std::logic_error(
-"RCsvDS deduced CSVmin as integer; edit file, change 0,1 to 0.,1. for 1st row");
-	// TODO: uncomment the next two lines if we need CSVv2 as doubles
-	// All of CSVv2 are integer and the code ignores this discrepancy
-//	if(     "double"!=btagDF.GetColumnType("CSVv2" ))throw std::logic_error(
-//		"RCsvDS deduced CSVv2  as integer; edit file, change 0 to 0. for 1st row");
-*/
-	
 	// Open data files even if unused
 	// then automatically choose which one to read from
 	// No penalty for opening and leaving unused
 	// Can even open multiple times at once in parallel
-	
 	// Open MC data source EVEN IF UNUSED
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
@@ -808,7 +710,6 @@ void calchisto(const channel ch,const dataSource ds){
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}// CMS and MET MUST do some OPENABLE file ; reject later
 	ROOT::RDataFrame mcsdf{"Events",temp_opener};// Monte Carlo
-	
 	// Open chains of exptData EVEN IF UNUSED
 	TChain elnuCMS("Events");
 	TChain munuCMS("Events");
@@ -854,7 +755,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	//auto dfr = df.Range(100000);
+	auto dfr = df.Range(100000);
 	auto w_selection = df// remove one letter to do all
 	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
@@ -887,9 +788,6 @@ void calchisto(const channel ch,const dataSource ds){
 //	       "CaloMET_sumEt"})// TODO: add this back
 //	.Filter(w_mass_cut, {"w_el_mass"}, "W mass cut")
 	;
-	
-	// There is a Histogram1D done on w_selection
-	
 	auto jet_selection
 	   = w_selection
 	.Define("jet_lep_min_dR" , jet_lep_min_deltaR<floats>,
@@ -1049,44 +947,42 @@ void calchisto(const channel ch,const dataSource ds){
 //		default :throw std::invalid_argument(
 //			"Unimplemented ds (hist titles)");
 	}
-	
 	auto h_is_btag_numer_PtVsEta
-	   = top_reco
-	.Histo2D({static_cast<const char*>(
-	          (        "is_numer_" + temp_header).c_str()),
-	          static_cast<const char*>(
-	          ("MC is btag numer " + temp_footer).c_str()),
-	          50,0,400,50,-3,3},
-	              "is_btag_numer__pt",
-	              "is_btag_numer_eta");
+	   = top_reco.Histo2D({
+	static_cast<const char*>((        "is_numer_" + temp_header).c_str()),
+	static_cast<const char*>(("MC is btag numer " + temp_footer).c_str()),
+	50,0,400,50,-3,3},
+	"is_btag_numer__pt",
+	"is_btag_numer_eta");
+	h_is_btag_numer_PtVsEta->GetXaxis()->SetTitle("pT/GeV");
+	h_is_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
 	auto h_no_btag_numer_PtVsEta
-	   = top_reco
-	.Histo2D({static_cast<const char*>(
-	          (        "no_numer_" + temp_header).c_str()),
-	          static_cast<const char*>(
-	          ("MC no btag numer " + temp_footer).c_str()),
-	          50,0,400,50,-3,3},
-	              "no_btag_numer__pt",
-	              "no_btag_numer_eta");
+	   = top_reco.Histo2D({
+	static_cast<const char*>((        "no_numer_" + temp_header).c_str()),
+	static_cast<const char*>(("MC no btag numer " + temp_footer).c_str()),
+	50,0,400,50,-3,3},
+	"no_btag_numer__pt",
+	"no_btag_numer_eta");
+	h_no_btag_numer_PtVsEta->GetXaxis()->SetTitle("pT/GeV");
+	h_no_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
 	auto h_is_btag_denom_PtVsEta
-	   = top_reco
-	.Histo2D({static_cast<const char*>(
-	          (        "is_denom_" + temp_header).c_str()),
-	          static_cast<const char*>(
-	          ("MC is btag denom " + temp_footer).c_str()),
-	          50,0,400,50,-3,3},
-	              "is_btag_denom__pt",
-	              "is_btag_denom_eta");
+	   = top_reco.Histo2D({
+	static_cast<const char*>((        "is_denom_" + temp_header).c_str()),
+	static_cast<const char*>(("MC is btag denom " + temp_footer).c_str()),
+	50,0,400,50,-3,3},
+	"is_btag_denom__pt",
+	"is_btag_denom_eta");
+	h_is_btag_denom_PtVsEta->GetXaxis()->SetTitle("pT/GeV");
+	h_is_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
 	auto h_no_btag_denom_PtVsEta
-	   = top_reco
-	.Histo2D({static_cast<const char*>(
-	          (        "no_denom_" + temp_header).c_str()),
-	          static_cast<const char*>(
-	          ("MC no btag denom " + temp_footer).c_str()),
-	          50,0,400,50,-3,3},
-	              "no_btag_denom__pt",
-	              "no_btag_denom_eta");
-	
+	   = top_reco.Histo2D({
+	static_cast<const char*>((        "no_denom_" + temp_header).c_str()),
+	static_cast<const char*>(("MC no btag denom " + temp_footer).c_str()),
+	50,0,400,50,-3,3},
+	"no_btag_denom__pt",
+	"no_btag_denom_eta");
+	h_no_btag_denom_PtVsEta->GetXaxis()->SetTitle("pT/GeV");
+	h_no_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
 	TH2D *
 	is_btag_ratio = new TH2D("ei", "is b tag ei",50,0,400,50,-3,3);
 	is_btag_ratio = static_cast<TH2D*>(h_is_btag_numer_PtVsEta->Clone());
@@ -1096,9 +992,7 @@ void calchisto(const channel ch,const dataSource ds){
 	no_btag_ratio = new TH2D("ej", "no b tag ej",50,0,400,50,-3,3);
 	no_btag_ratio = static_cast<TH2D*>(h_no_btag_numer_PtVsEta->Clone());
 	no_btag_ratio->Divide(             h_no_btag_denom_PtVsEta.GetPtr());
-	no_btag_ratio->Draw("COLZ");
-	// DELETED in effGiver// no new, no delete
-	
+	no_btag_ratio->Draw("COLZ");// DELETED @ EoF
 	auto btag_eff
 	   = top_reco
 	.Define("IsEffBTagged",BTaggedEffGiver(is_btag_ratio, true),
@@ -1125,16 +1019,27 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("nw_fin_jets_phi"  ,rep_const,{"sf","fin_jets_phi"  })
 	.Define("nw_fin_jets_mas"  ,rep_const,{"sf","fin_jets_mas"  })
 	.Define("nw_jet_lep_min_dR",rep_const,{"sf","jet_lep_min_dR"})
+	.Define("nw_bjet__pt"	   ,rep_const,{"sf","bjet__pt"      })
+        .Define("nw_bjet_eta"      ,rep_const,{"sf","bjet_eta"      })
+        .Define("nw_bjet_phi"      ,rep_const,{"sf","bjet_phi"      })
+        .Define("nw_bjet_mas"      ,rep_const,{"sf","bjet_mas"      })
 	.Define(  "nw_z_lep_min_dR",rep_const,{"sf",  "z_lep_min_dR"})
 	. Alias( "nw_tw_lep_mas"   ,"sf")
 	. Alias(  "nw_z_mas"       ,"sf")
 	.Define("nw_fin_jets_Dph"  ,rep_const,{"sf","fin_jets_Dph"})
-	.Define(    "nw_zmet_Dph"  ,rep_const,{"sf","zmet_Dph"})
-	.Define(      "nw_zw_Dph"  ,rep_const,{"sf","zw_Dph"})
-//	. Alias("nw_ttop__pt","sf")
-//	. Alias("nw_ttop_mas","sf")
+	. Alias(    "nw_zmet_Dph"  ,"sf")
+	. Alias(      "nw_zw_Dph"  ,"sf")
+	. Alias("nw_ttop__pt","sf")
+	. Alias("nw_ttop_mas","sf")
 	;
-// BOSONs hists
+	auto
+	h_trans_T = P_btag.Histo1D({
+	static_cast<const char*>((          "tTm_"     + temp_header).c_str()),
+	static_cast<const char*>(("Transverse T mass " + temp_header).c_str()),
+	50,0,180},
+	"ttop_mas","sf");
+	h_trans_T->GetXaxis()->SetTitle("mass GeV/C^2");
+	h_trans_T->GetYaxis()->SetTitle("Event");
 	auto
 	h_trans_w = P_btag.Histo1D({
 	static_cast<const char*>((          "tWm_"     + temp_header).c_str()),
@@ -1143,74 +1048,50 @@ void calchisto(const channel ch,const dataSource ds){
 	"tw_lep_mas","sf");
 	h_trans_w->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_w->GetYaxis()->SetTitle("Event");
-	
-	auto h_invmass// lepton-neutrino invariant mass histogram
-	   = w_selection
-	.Histo1D({
-	static_cast<const char*>((         "invmass_" + temp_header).c_str()),
-	static_cast<const char*>((         "invmass_" + temp_header).c_str()),
-	50,0,200},
-	"lep_nu_invmass");// TODO: These two histograms??
 	auto
-	h_Winvmass = P_btag.Histo1D({
+	h_Winvmas = P_btag.Histo1D({
 	static_cast<const char*>(("W_invariant_mass_" + temp_header).c_str()),
 	static_cast<const char*>(("W invariant mass " + temp_header).c_str()),
 	50,0,180},
 	"lep_nu_invmass","sf");
-	h_Winvmass->GetXaxis()->SetTitle("mass GeV/C^2");
-	h_Winvmass->GetYaxis()->SetTitle("Event");
-	
-	auto h_ZMet_Dphi = P_btag.Histo1D({
-        static_cast<const char*>((          "ZMet_Dph_"     + temp_header).c_str()),
-        static_cast<const char*>(("Z and Met Delta Phi " + temp_header).c_str()),
-        50,-7,7},
-        "zmet_Dph","nw_zmet_Dphi");
-        h_ZMet_Dphi->GetXaxis()->SetTitle("delta phi/ rad");
-        h_ZMet_Dphi->GetYaxis()->SetTitle("Event");
-	
-        auto h_ZW_Dphi = P_btag.Histo1D({
-        static_cast<const char*>((          "ZW_Dph_"     + temp_header).c_str()),
-        static_cast<const char*>(("Z and W Delta Phi " + temp_header).c_str()),
-        50,-7,7},
-        "zw_Dph","nw_zw_Dphi");
-        h_ZW_Dphi->GetXaxis()->SetTitle("delta phi/ rad");
-        h_ZW_Dphi->GetYaxis()->SetTitle("Event");
-	
+	h_Winvmas->GetXaxis()->SetTitle("mass GeV/C^2");
+	h_Winvmas->GetYaxis()->SetTitle("Event");
 	auto
-	h_tWmVsZmass_calc = P_btag.Histo2D({
-		// TODO: DECLARE ALL HISTO WITH THIS TECHNIQUE
-		static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
-		static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
-		50,0,200,50,0,200},
-		"tw_lep_mas","z_mas");
-	h_tWmVsZmass_calc->GetXaxis()->SetTitle("tWm   GeV/C^2");
-	h_tWmVsZmass_calc->GetYaxis()->SetTitle("Zmass GeV/C^2");
-	
+	h_tWmVsZmass = P_btag.Histo2D({
+	static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
+	static_cast<const char*>(("tWmVsZmass" + temp_header).c_str()),
+	50,0,200,50,0,200},
+	"tw_lep_mas","z_mas");
+	h_tWmVsZmass->GetXaxis()->SetTitle("tWm   GeV/C^2");
+	h_tWmVsZmass->GetYaxis()->SetTitle("Zmass GeV/C^2");
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(
 	 static_cast<const char*>((temp_header+".histo").c_str())
 	,"RECREATE");
-	
-	h_invmass->Write();
 	h_is_btag_numer_PtVsEta->Write();
 	h_no_btag_numer_PtVsEta->Write();
 	h_is_btag_denom_PtVsEta->Write();
 	h_no_btag_denom_PtVsEta->Write();
-	h_ZMet_Dphi->Write();
-	h_ZW_Dphi->Write();
-//	h_transTopmass->Write();
-	h_tWmVsZmass_calc->Write();
+	h_trans_T->Write();
+	h_trans_w->Write();
+	h_Winvmas->Write();
+	h_tWmVsZmass->Write();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
-		std::string  kstring = "_";
+		std::string  kstring  = "_";
+		std::string  xAxisStr;
 		double xmin,xmax;
 		switch(k){
-			case pt :{kstring+= "_pt";xmin =  0 ;xmax = 200;break;}
-			case eta:{kstring+= "eta";xmin = -3 ;xmax =  3 ;break;}
-			case phi:{kstring+= "phi";xmin = -7 ;xmax =  7 ;break;}
-			case  m :{kstring+= "mas";xmin =  0 ;xmax =  200;break;}
+			case pt :{kstring += "_pt";xmin =  0;xmax = 200;
+			          xAxisStr = "pT/GeV"                  ;break;}
+			case eta:{kstring += "eta";xmin = -3;xmax =  3 ;
+			          xAxisStr = "PseudoRapidity eta"      ;break;}
+			case phi:{kstring += "phi";xmin = -7;xmax =  7 ;
+			          xAxisStr = "Azimuthal angle, phi/rad";break;}
+			case  m :{kstring += "mas";xmin =  0;xmax =  200;
+			          xAxisStr = "mass GeV/C^2"            ;break;}
 //			default :throw std::invalid_argument(
 //				"Unimplemented component (histo)");
 		}
@@ -1222,19 +1103,10 @@ void calchisto(const channel ch,const dataSource ds){
 		,static_cast<const char*>(      (particle+kstring).c_str())
 		,static_cast<const char*>(("nw_"+particle+kstring).c_str())
 		);
-
-		/* 
-		 * TODO: These are too long for above switch case
-		 * And they should be in plotstacks anyway
-		h->GetXaxis()->SetTitle("pT/GeV");
-		h->GetXaxis()->SetTitle("PseudoRapidity eta");
-		h->GetXaxis()->SetTitle("Azimuthal angle, phi/rad");
-		h->GetXaxis()->SetTitle("mass GeV/C^2");
+		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
-		 */
 		h->Write();
 	}
-	
 	hf.Close();
 	delete is_btag_ratio;
 	delete no_btag_ratio;
