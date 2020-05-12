@@ -5,14 +5,14 @@
 //#include <TStyle.h>
 
 #include "tdrstyle.C"
-#include "calchisto.hpp"
+#include "src/calchisto.hpp"
 
 int plotstacks(){
 	setTDRStyle();
 	
 	std::string opener="elnu_tzq";// become 2 for loops
 	TFile hf((opener+".histo").c_str());
-	TH1D *hobj;
+	//TH1D *hobj;
 	for(std::string particle:{"fin_jets","lep","bjet"}){
 	
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -25,9 +25,11 @@ int plotstacks(){
 		}
 	std::string hobjname = (opener+"_"+particle+kstring).c_str();
 	std::string   stname = (particle + kstring).c_str();
+        THStack *hstack = new THStack(stname.c_str(),stname.c_str());
+	TH1D *hobj;
 	hf.GetObject(hobjname.c_str(),hobj);
 	// clone hobj by DrawClone or add to stack here
-	THStack *hstack = new THStack(stname.c_str(),stname.c_str());
+	//THStack *hstack = new THStack(stname.c_str(),stname.c_str());
 	hobj->SetLineColor(kBlack);// TBC when other ds are inlcuded.
 	hstack->Add(static_cast<TH1D*> (hobj->Clone()));
 	auto hcanvas = new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);
