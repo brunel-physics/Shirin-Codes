@@ -11,9 +11,25 @@ int plotstacks(){
 	setTDRStyle();
 	
 	TFile hf("elnu_tzq.histo");
-	TH2D *h2numer,*h2denom;
+	TH2D *h2numer,*h2denom,*hclone;
 	hf.GetObject("is_numer_elnu_tzq",h2numer);
 	hf.GetObject("is_denom_elnu_tzq",h2denom);
+
+	for(std::string particle :{"fin_jets","lep","bjet"}){
+	   for(PtEtaPhiM kLPtEtaPhiMall){
+	      std::string kstring = "_" ;
+	         switch (k){
+		    case pt :{std::string histvar = (particle + kstring += "_pt").c_str();break;}
+		    case eta:{std::string histvar = (particle + kstring += "eta").c_str();break;}
+		    case phi:{std::string histvar = (particle + kstring += "eta").c_str();break;}
+		    case mas:{std::string histvar = (particle + kstring += "mas").c_Str();break;}
+              }
+	      hf.GetObject(histvar,hclone);
+	   }
+	}
+
+
+
 	
 	//auto myCanvas = new TCanvas();
 	//h2numer->DrawClone();

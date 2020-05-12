@@ -25,7 +25,7 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 0;
+  constexpr    int debug = 6;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -556,7 +556,7 @@ return [&,b](const doubles& pts,const doubles& etas){
 		if(!b && std::abs(eff-1.) <= 2*std::numeric_limits<double>::epsilon())
 			BTaggedEff[i] = 0.;
 	}
-	if(debug>2) std::cout<<"bt eff giver "<< BTaggedEff <<std::endl;
+	if(debug>5) std::cout<<"bt eff giver "<< BTaggedEff <<std::endl;
 	return BTaggedEff;};
 }
 auto EffIsBTaggedProduct(const doubles& EffIsBTagged){
