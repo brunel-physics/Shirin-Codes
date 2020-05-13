@@ -49,6 +49,9 @@ int plotstacks(){
         hcanvas->SaveAs((stname + ".pdf" ).c_str());
 	}}
 
+	// Adding other Plots
+	hf.GetObject("")
+
 	return 0; // end of file
 /*        TH2D *h2numer,*h2denom;
 	hf.GetObject("is_numer_elnu_tzq",h2numer);

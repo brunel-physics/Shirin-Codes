@@ -15,7 +15,7 @@ INCFLAGS=$(addprefix -I,$(INCD)) -isystem${CPATH}
 
 CXXFLAGS=$(INCFLAGS) -MMD -MP -std=c++17 -march=native -pipe -O3\
 	-Wall -Wextra -Wpedantic -mfma\
-	-Weverything -Wno-c++98-compat -Wno-double-promotion# -Wno-covered-switch-default
+	#-Weverything -Wno-c++98-compat -Wno-double-promotion# -Wno-covered-switch-default
 
 LDPATH =-L$(shell root-config --libdir) \
 	-L/cvmfs/sft.cern.ch/lcg/views/LCG_95/x86_64-slc6-gcc8-opt/lib

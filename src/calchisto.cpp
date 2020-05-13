@@ -1,7 +1,6 @@
-// TODO: BtagEffGiver has issue reading the 2d hist. 
-// TODO: Create and Write() Boson and special angles hist.
-// TODO: ADD AXIS to stack plotter
-// TODO: CMS and MET need weights, lest crash
+// TODO: jets are not plotted by plotstack.
+// TODO: add canvases for the angles hists on plot stack
+// TODO: lepton efficiency
 #include <ROOT/RCsvDS.hxx>//#include <ROOT/RDataFrame.hxx>
 #include <TLorentzVector.h>
 #include <TRandom3.h>// used Gaussian once
@@ -1032,6 +1031,7 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias("nw_ttop__pt","sf")
 	. Alias("nw_ttop_mas","sf")
 	;
+	
 	auto
 	h_trans_T = P_btag.Histo1D({
 	(          "tTm_"     + temp_header).c_str(),
@@ -1040,6 +1040,8 @@ void calchisto(const channel ch,const dataSource ds){
 	"ttop_mas","sf");
 	h_trans_T->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_T->GetYaxis()->SetTitle("Event");
+        h_trans_T->SetLineStyle(kSolid);
+	
 	auto
 	h_trans_w = P_btag.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
@@ -1048,6 +1050,8 @@ void calchisto(const channel ch,const dataSource ds){
 	"tw_lep_mas","sf");
 	h_trans_w->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_w->GetYaxis()->SetTitle("Event");
+        h_trans_w->SetLineStyle(kSolid);
+	
 	auto
 	h_Winvmas = P_btag.Histo1D({
 	("W_invariant_mass_" + temp_header).c_str(),
@@ -1056,6 +1060,8 @@ void calchisto(const channel ch,const dataSource ds){
 	"lep_nu_invmass","sf");
 	h_Winvmas->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_Winvmas->GetYaxis()->SetTitle("Event");
+        h_Winvmas->SetLineStyle(kSolid);
+	
 	auto
 	h_tWmVsZmass = P_btag.Histo2D({
 	("tWmVsZmass" + temp_header).c_str(),
@@ -1064,6 +1070,7 @@ void calchisto(const channel ch,const dataSource ds){
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("tWm   GeV/C^2");
 	h_tWmVsZmass->GetYaxis()->SetTitle("Zmass GeV/C^2");
+	
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf((temp_header+".histo").c_str(),"RECREATE");
