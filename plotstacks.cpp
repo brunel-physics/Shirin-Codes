@@ -40,11 +40,13 @@ int plotstacks(){
 	hstack->Add(static_cast<TH1D*> (hobj->Clone()));
 	auto hcanvas =
 	new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);
-	hobj->GetXaxis()->SetTitle(xAxisStr.c_str());
-        hobj->GetYaxis()->SetTitle("Event");
+	//hstack->GetXaxis()->SetTitle(xAxisStr.c_str());
+        //hstack->GetYaxis()->SetTitle("Event");
 	hobj->DrawClone("SAME");
         hcanvas->cd(2);// From here downward
         hstack->Draw("HIST");// should be done
+        hstack->GetXaxis()->SetTitle(xAxisStr.c_str());
+        hstack->GetYaxis()->SetTitle("Event");
         hcanvas->BuildLegend();// once all data sources
         hcanvas->SaveAs((stname + ".root").c_str());// are included
         hcanvas->SaveAs((stname + ".pdf" ).c_str());
@@ -63,9 +65,11 @@ int plotstacks(){
         htransT->Add(static_cast<TH1D*> (htransT->Clone()));
         auto h_transT_canvas =
         new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);
-        htransT->GetXaxis()->SetTitle("tranverse top mass GeV/C^2");
-        htransT->GetYaxis()->SetTitle("Event");
+        //h_transT_stack->GetXaxis()->SetTitle("tranverse top mass GeV/C^2");
+        //h_transT_stack->GetYaxis()->SetTitle("Event");
         htransT->DrawClone("SAME");
+        h_transT_stack->GetXaxis()->SetTitle("tranverse top mass GeV/C^2");
+        h_transT_stack->GetYaxis()->SetTitle("Event");
         h_transT_canvas->cd(2);// From here downward
         h_transT_stack->Draw("HIST");// should be done
         h_transT_canvas->BuildLegend();// once all data sources
