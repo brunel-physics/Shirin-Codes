@@ -907,7 +907,9 @@ void calchisto(const channel ch,const dataSource ds){
 //	       {   "zw_Dph"},"delta phi ZW cut")
 	.Define( "zmet_Dph" , abs_deltaphi<float >,{"z_phi","MET_phi"})
 //	.Filter(      deltaphi_cut(DELTA_PHI_ZMET),
-//	       { "zmet_Dph"},"Z met cut ");
+//	       { "zmet_Dph"},"Z met cut ")
+	// Adding a mask to pick the z_pair_phi from the fin_jets_phi
+	.Define( "z_jets_Dph"	 , jet_deltaphi,{"z_pair_phi"})
 	;
 	auto top_reco
 	   = z___reco
@@ -1026,8 +1028,10 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias( "nw_tw_lep_mas"   ,"sf")
 	. Alias(  "nw_z_mas"       ,"sf")
 	.Define("nw_fin_jets_Dph"  ,rep_const,{"sf","fin_jets_Dph"})
+	.Define("nw_z_jets_Dph"	   ,rep_const,{"sf",  "z_jets_Dph"})
 	. Alias(    "nw_zmet_Dph"  ,"sf")
 	. Alias(      "nw_zw_Dph"  ,"sf")
+	. Alias("nw_lep_nu_invmass","sf")
 	. Alias("nw_ttop__pt","sf")
 	. Alias("nw_ttop_mas","sf")
 	;
@@ -1037,7 +1041,7 @@ void calchisto(const channel ch,const dataSource ds){
 	(          "tTm_"     + temp_header).c_str(),
 	("Transverse T mass " + temp_header).c_str(),
 	50,0,180},
-	"ttop_mas","sf");
+	"ttop_mas","nw_ttop_mas");
 	h_trans_T->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_T->GetYaxis()->SetTitle("Event");
         h_trans_T->SetLineStyle(kSolid);
@@ -1047,7 +1051,7 @@ void calchisto(const channel ch,const dataSource ds){
 	(          "tWm_"     + temp_header).c_str(),
 	("Transverse W mass " + temp_header).c_str(),
 	50,0,180},
-	"tw_lep_mas","sf");
+	"tw_lep_mas","nw_tw_lep_mas");
 	h_trans_w->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_w->GetYaxis()->SetTitle("Event");
         h_trans_w->SetLineStyle(kSolid);
@@ -1057,10 +1061,40 @@ void calchisto(const channel ch,const dataSource ds){
 	("W_invariant_mass_" + temp_header).c_str(),
 	("W invariant mass " + temp_header).c_str(),
 	50,0,180},
-	"lep_nu_invmass","sf");
+	"lep_nu_invmass","nw_lep_nu_invmass");
 	h_Winvmas->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_Winvmas->GetYaxis()->SetTitle("Event");
         h_Winvmas->SetLineStyle(kSolid);
+	
+	auto
+	h_zmet_Dph = P_btag.Histo1D({
+	("Z MET Delta Phi" + temp_header).c_str(),
+	("Z MET Delta Phi" + temp_header).c_str(),
+        50,-7,7},
+        "zmet_Dph","nw_zmet_Dph");
+        h_zmet_Dph->GetXaxis()->SetTitle("Z & MET delta phi/rad");
+        h_zmet_Dph->GetYaxis()->SetTitle("Event");
+        h_zmet_Dph->SetLineStyle(kSolid);
+	
+       	auto
+	h_zw_Dph = P_btag.Histo1D({
+        ("Z W Delta Phi" + temp_header).c_str(),
+	("Z W Delta Phi" + temp_header).c_str(),
+        50,-7,7},
+        "zw_Dph","nw_zw_Dph");
+        h_zw_Dph->GetXaxis()->SetTitle("Z & W delta phi/rad");
+        h_zw_Dph->GetYaxis()->SetTitle("Event");
+        h_zw_Dph->SetLineStyle(kSolid);
+	
+       	auto
+	h_z_daughters_Dph = P_btag.Histo1D({
+        ("Z pair jets Delta Phi" + temp_header).c_str(),
+	("Z pair jets Delta Phi" + temp_header).c_str(),
+        50,-7,7},
+        "z_jets_Dph","nw_z_jets_Dph");
+        h_z_daughters_Dph->GetXaxis()->SetTitle("Z pair jets Delta phi/rad");
+        h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
+        h_z_daughters_Dph->SetLineStyle(kSolid);
 	
 	auto
 	h_tWmVsZmass = P_btag.Histo2D({
@@ -1081,6 +1115,9 @@ void calchisto(const channel ch,const dataSource ds){
 	h_trans_T->Write();
 	h_trans_w->Write();
 	h_Winvmas->Write();
+        h_zmet_Dph->Write();
+	h_zw_Dph->Write();
+	h_z_daughters_Dph->Write();
 	h_tWmVsZmass->Write();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
