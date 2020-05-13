@@ -6,13 +6,14 @@
 
 #include "tdrstyle.C"
 #include "src/calchisto.hpp"
+//#include "calchisto.cpp" // only for compiling reasons
 
 int plotstacks(){
 	setTDRStyle();
 	
 	std::string opener="elnu_tzq";// become 2 for loops
 	TFile hf((opener+".histo").c_str());
-	//TH1D *hobj;
+	//TH1D *htransT, *htransW, *hzmetdph, *hzwdph, *hzjetdphi, *hWinvmass;
 	for(std::string particle:{"fin_jets","lep","bjet"}){
 	
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -48,10 +49,30 @@ int plotstacks(){
         hcanvas->SaveAs((stname + ".root").c_str());// are included
         hcanvas->SaveAs((stname + ".pdf" ).c_str());
 	}}
+	
+        // Adding other Plots
+	
+        std::string hTransTm = (opener + " Transverse Top mass").c_str();
+        std::string   stname = (opener+  "_transTm").c_str();
+        THStack *h_transT_stack = new THStack(stname.c_str(),stname.c_str());
+        TH1D *htransT;
+        hf.GetObject("h_trans_T", htransT);
+        // clone hobj by DrawClone or add to stack here
+        //THStack *hstack = new THStack(stname.c_str(),stname.c_str());
+        htransT->SetLineColor(kBlack);// TBC when other ds are inlcuded.
+        htransT->Add(static_cast<TH1D*> (htransT->Clone()));
+        auto h_transT_canvas =
+        new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);
+        htransT->GetXaxis()->SetTitle("tranverse top mass GeV/C^2");
+        htransT->GetYaxis()->SetTitle("Event");
+        htransT->DrawClone("SAME");
+        h_transT_canvas->cd(2);// From here downward
+        h_transT_stack->Draw("HIST");// should be done
+        h_transT_canvas->BuildLegend();// once all data sources
+        h_transT_canvas->SaveAs((stname + ".root").c_str());// are included
+        h_transT_canvas->SaveAs((stname + ".pdf" ).c_str());
 
-	// Adding other Plots
-	hf.GetObject("")
-
+// *htransW, *hzmetdph, *hzwdph, *hzjetdphi, *hWinvmass;
 	return 0; // end of file
 /*        TH2D *h2numer,*h2denom;
 	hf.GetObject("is_numer_elnu_tzq",h2numer);
