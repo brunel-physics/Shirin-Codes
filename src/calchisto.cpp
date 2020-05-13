@@ -755,7 +755,7 @@ void calchisto(const channel ch,const dataSource ds){
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(100000);
-	auto w_selection = dfr// remove one letter to do all
+	auto w_selection = df// remove one letter to do all
 	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
 	       {temp_header+"isPFcand",
@@ -1035,7 +1035,6 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias("nw_ttop__pt","sf")
 	. Alias("nw_ttop_mas","sf")
 	;
-	
 	auto
 	h_trans_T = P_btag.Histo1D({
 	(          "tTm_"     + temp_header).c_str(),
@@ -1044,8 +1043,7 @@ void calchisto(const channel ch,const dataSource ds){
 	"ttop_mas","nw_ttop_mas");
 	h_trans_T->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_T->GetYaxis()->SetTitle("Event");
-        h_trans_T->SetLineStyle(kSolid);
-	
+	h_trans_T->SetLineStyle(kSolid);
 	auto
 	h_trans_w = P_btag.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
@@ -1054,8 +1052,7 @@ void calchisto(const channel ch,const dataSource ds){
 	"tw_lep_mas","nw_tw_lep_mas");
 	h_trans_w->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_w->GetYaxis()->SetTitle("Event");
-        h_trans_w->SetLineStyle(kSolid);
-	
+	h_trans_w->SetLineStyle(kSolid);
 	auto
 	h_Winvmas = P_btag.Histo1D({
 	("W_invariant_mass_" + temp_header).c_str(),
@@ -1064,47 +1061,42 @@ void calchisto(const channel ch,const dataSource ds){
 	"lep_nu_invmass","nw_lep_nu_invmass");
 	h_Winvmas->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_Winvmas->GetYaxis()->SetTitle("Event");
-        h_Winvmas->SetLineStyle(kSolid);
-	
+	h_Winvmas->SetLineStyle(kSolid);
 	auto
 	h_zmet_Dph = P_btag.Histo1D({
-	("Z_MET_Delta_Phi" + temp_header).c_str(),
+	("Z_MET_Delta_Phi_" + temp_header).c_str(),
 	("Z MET Delta Phi" + temp_header).c_str(),
-        50,-7,7},
-        "zmet_Dph","nw_zmet_Dph");
-        h_zmet_Dph->GetXaxis()->SetTitle("Z & MET delta phi/rad");
-        h_zmet_Dph->GetYaxis()->SetTitle("Event");
-        h_zmet_Dph->SetLineStyle(kSolid);
-	
-       	auto
+	50,-7,7},
+	"zmet_Dph","nw_zmet_Dph");
+	h_zmet_Dph->GetXaxis()->SetTitle("Z & MET delta phi/rad");
+	h_zmet_Dph->GetYaxis()->SetTitle("Event");
+	h_zmet_Dph->SetLineStyle(kSolid);
+	auto
 	h_zw_Dph = P_btag.Histo1D({
-        ("Z_W_Delta_Phi" + temp_header).c_str(),
+	("Z_W_Delta_Phi_" + temp_header).c_str(),
 	("Z W Delta Phi" + temp_header).c_str(),
-        50,-7,7},
-        "zw_Dph","nw_zw_Dph");
-        h_zw_Dph->GetXaxis()->SetTitle("Z & W delta phi/rad");
-        h_zw_Dph->GetYaxis()->SetTitle("Event");
-        h_zw_Dph->SetLineStyle(kSolid);
-	
-       	auto
+	50,-7,7},
+	"zw_Dph","nw_zw_Dph");
+	h_zw_Dph->GetXaxis()->SetTitle("Z & W delta phi/rad");
+	h_zw_Dph->GetYaxis()->SetTitle("Event");
+	h_zw_Dph->SetLineStyle(kSolid);
+	auto
 	h_z_daughters_Dph = P_btag.Histo1D({
-        ("Z_pair_jets_Delta_Phi" + temp_header).c_str(),
+	("Z_pair_jets_Delta_Phi_" + temp_header).c_str(),
 	("Z pair jets Delta Phi" + temp_header).c_str(),
-        50,-7,7},
-        "z_jets_Dph","nw_z_jets_Dph");
-        h_z_daughters_Dph->GetXaxis()->SetTitle("Z pair jets Delta phi/rad");
-        h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
-        h_z_daughters_Dph->SetLineStyle(kSolid);
-	
+	50,-7,7},
+	"z_jets_Dph","nw_z_jets_Dph");
+	h_z_daughters_Dph->GetXaxis()->SetTitle("Z pair jets Delta phi/rad");
+	h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
+	h_z_daughters_Dph->SetLineStyle(kSolid);
 	auto
 	h_tWmVsZmass = P_btag.Histo2D({
-	("tWmVsZmass" + temp_header).c_str(),
+	("tWmVsZmass_" + temp_header).c_str(),
 	("tWmVsZmass" + temp_header).c_str(),
 	50,0,200,50,0,200},
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("tWm   GeV/C^2");
 	h_tWmVsZmass->GetYaxis()->SetTitle("Zmass GeV/C^2");
-	
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf((temp_header+".histo").c_str(),"RECREATE");
@@ -1115,7 +1107,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_trans_T->Write();
 	h_trans_w->Write();
 	h_Winvmas->Write();
-        h_zmet_Dph->Write();
+	h_zmet_Dph->Write();
 	h_zw_Dph->Write();
 	h_z_daughters_Dph->Write();
 	h_tWmVsZmass->Write();
