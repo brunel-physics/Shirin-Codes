@@ -15,33 +15,36 @@ int plotstacks(){
 	TFile hf((opener+".histo").c_str());
 	//TH1D *htransT, *htransW, *hzmetdph, *hzwdph, *hzjetdphi, *hWinvmass;
 	for(std::string particle:{"fin_jets","lep","bjet"}){
-	
+                std::string title = particle;
+                if("fin_jets" == particle)title = "jets";
+
 	for(PtEtaPhiM k:PtEtaPhiMall){
 		std::string kstring = "_" ;
 		std::string xAxisStr;
 		switch (k){
 			case pt :{kstring += "_pt";
-				  xAxisStr = "pT/GeV"		       ;break;}
+				  xAxisStr = "pT/GeV";
+				  title   += " pT" 		       ;break;}
 			case eta:{kstring += "eta";
-				  xAxisStr = "PseudoRapidity eta"      ;break;}
+				  xAxisStr = "PseudoRapidity eta";
+				  title   += " eta"      	       ;break;}
 			case phi:{kstring += "phi";
-				  xAxisStr = "Azimuthal angle, phi/rad";break;}
+				  xAxisStr = "Azimuthal angle, phi/rad";
+				  title   += " phi"		       ;break;}
 			case m  :{kstring += "mas";
-				  xAxisStr = "mass GeV/C^2"	       ;break;}
+				  xAxisStr = "mass GeV/C^2";
+				  title	  += " mass"		       ;break;}
 		}
 	std::string hobjname = (opener+"_"+particle+kstring).c_str();
 	std::string   stname = (particle + kstring).c_str();
-        THStack *hstack = new THStack(stname.c_str(),stname.c_str());
+        THStack *hstack = new THStack(stname.c_str(),title.c_str());
 	TH1D *hobj;
 	hf.GetObject(hobjname.c_str(),hobj);
 	// clone hobj by DrawClone or add to stack here
-	//THStack *hstack = new THStack(stname.c_str(),stname.c_str());
 	hobj->SetLineColor(kBlack);// TBC when other ds are inlcuded.
 	hstack->Add(static_cast<TH1D*> (hobj->Clone()));
 	auto hcanvas =
 	new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);
-	//hstack->GetXaxis()->SetTitle(xAxisStr.c_str());
-        //hstack->GetYaxis()->SetTitle("Event");
 	hobj->DrawClone("SAME");
         hcanvas->cd(2);// From here downward
         hstack->Draw("HIST");// should be done
@@ -49,14 +52,14 @@ int plotstacks(){
         hstack->GetYaxis()->SetTitle("Event");
         hcanvas->BuildLegend();// once all data sources
         hcanvas->SaveAs((stname + ".root").c_str());// are included
-        hcanvas->SaveAs((stname + ".pdf" ).c_str());
+        //hcanvas->SaveAs((stname + ".pdf" ).c_str());
 	}}
 	
         // Adding other Plots
 	
         std::string hTransTm = (opener + " Transverse Top mass").c_str();
         std::string   stname = (opener+  "_transTm").c_str();
-        THStack *h_transT_stack = new THStack(stname.c_str(),stname.c_str());
+        THStack *h_transT_stack = new THStack(stname.c_str(),stname.c_str());// change title
         TH1D *htransT;
         hf.GetObject("h_trans_T", htransT);
         // clone hobj by DrawClone or add to stack here
@@ -74,7 +77,7 @@ int plotstacks(){
         h_transT_stack->Draw("HIST");// should be done
         h_transT_canvas->BuildLegend();// once all data sources
         h_transT_canvas->SaveAs((stname + ".root").c_str());// are included
-        h_transT_canvas->SaveAs((stname + ".pdf" ).c_str());
+        //h_transT_canvas->SaveAs((stname + ".pdf" ).c_str());
 
 // *htransW, *hzmetdph, *hzwdph, *hzjetdphi, *hWinvmass;
 	return 0; // end of file
