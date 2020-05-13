@@ -16,6 +16,7 @@ int plotstacks(){
 	//TH1D *htransT, *htransW, *hzmetdph, *hzwdph, *hzjetdphi, *hWinvmass;
 	for(std::string particle:{"fin_jets","lep","bjet"}){
                 std::string title = particle;
+		std::string tkstr;
                 if("fin_jets" == particle)title = "jets";
 
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -24,20 +25,20 @@ int plotstacks(){
 		switch (k){
 			case pt :{kstring += "_pt";
 				  xAxisStr = "pT/GeV";
-				  title   += " pT" 		       ;break;}
+				  tkstr    = " pT"; 		       ;break;}
 			case eta:{kstring += "eta";
 				  xAxisStr = "PseudoRapidity eta";
-				  title   += " eta"      	       ;break;}
+				  tkstr    = " eta"      	       ;break;}
 			case phi:{kstring += "phi";
 				  xAxisStr = "Azimuthal angle, phi/rad";
-				  title   += " phi"		       ;break;}
+				  tkstr    = " phi"		       ;break;}
 			case m  :{kstring += "mas";
 				  xAxisStr = "mass GeV/C^2";
-				  title	  += " mass"		       ;break;}
+				  tkstr	   = " mass"		       ;break;}
 		}
 	std::string hobjname = (opener+"_"+particle+kstring).c_str();
 	std::string   stname = (particle + kstring).c_str();
-        THStack *hstack = new THStack(stname.c_str(),title.c_str());
+        THStack *hstack = new THStack(stname.c_str(),(title + tkstr).c_str());
 	TH1D *hobj;
 	hf.GetObject(hobjname.c_str(),hobj);
 	// clone hobj by DrawClone or add to stack here
@@ -80,7 +81,7 @@ int plotstacks(){
         //h_transT_canvas->SaveAs((stname + ".pdf" ).c_str());
 
 // *htransW, *hzmetdph, *hzwdph, *hzjetdphi, *hWinvmass;
-	return 0; // end of file
+	// end of file
 /*        TH2D *h2numer,*h2denom;
 	hf.GetObject("is_numer_elnu_tzq",h2numer);
 	hf.GetObject("is_denom_elnu_tzq",h2denom);
@@ -111,6 +112,7 @@ int plotstacks(){
 	h_events_no_btag_PtVsEta_canvas->SaveAs("h_events_no_btag_PtVsEta_canvas.pdf");
 */	
 	hf.Close();
+	return 0;
 }
 
 /*

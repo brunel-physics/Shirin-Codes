@@ -1068,7 +1068,7 @@ void calchisto(const channel ch,const dataSource ds){
 	
 	auto
 	h_zmet_Dph = P_btag.Histo1D({
-	("Z MET Delta Phi" + temp_header).c_str(),
+	("Z_MET_Delta_Phi" + temp_header).c_str(),
 	("Z MET Delta Phi" + temp_header).c_str(),
         50,-7,7},
         "zmet_Dph","nw_zmet_Dph");
@@ -1078,7 +1078,7 @@ void calchisto(const channel ch,const dataSource ds){
 	
        	auto
 	h_zw_Dph = P_btag.Histo1D({
-        ("Z W Delta Phi" + temp_header).c_str(),
+        ("Z_W_Delta_Phi" + temp_header).c_str(),
 	("Z W Delta Phi" + temp_header).c_str(),
         50,-7,7},
         "zw_Dph","nw_zw_Dph");
@@ -1088,7 +1088,7 @@ void calchisto(const channel ch,const dataSource ds){
 	
        	auto
 	h_z_daughters_Dph = P_btag.Histo1D({
-        ("Z pair jets Delta Phi" + temp_header).c_str(),
+        ("Z_pair_jets_Delta_Phi" + temp_header).c_str(),
 	("Z pair jets Delta Phi" + temp_header).c_str(),
         50,-7,7},
         "z_jets_Dph","nw_z_jets_Dph");
