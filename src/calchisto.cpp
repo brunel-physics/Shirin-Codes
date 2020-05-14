@@ -74,6 +74,10 @@ constexpr double WZLNQQ_W =  .2335;
 constexpr double  TTZQQ_W =  .0237;
 constexpr double ZZLLQQ_W =  .0485;
 
+enum lepSf	{Id,Idsys,IdsysStat,IdsysSyst,Iso,Isosys,IsosysStat,IsosysSyst};
+
+
+
 // This Pi is more accurate than binary256; good for eternity
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
 template <typename T> constexpr T TPI = PI<T> * 2;
@@ -665,96 +669,71 @@ auto btag_weight(const double p_data,const double p_MC){
 	return std::isinf(weight) || std::isnan(weight) ? 1. : weight;
 }
 auto lepEffGiver(const channel ch  ,// computes muon id and iso sfs
-		 const int     type){
-	return [=](const floats&  pt,
-		   const floats& eta){
-	floats abs_eta = abs(eta);
-        floats sf; sf.reserve(pt.size());
-        TFile* if_RunsBCDEF;
-        TFile* if_RunsGH;
+		 const lepSf   type){
+	return [=](const float  pt,
+		   const float eta){
+	float abs_eta = abs(eta);
+        float sf;
+	std::string fname, hname;
         TH2* h_RunsBCDEF;
-        TH2* h_RunsGH;
 	switch(ch){
 	
-	case elnu :{floats sf_el(pt.size(),(float) 1.); return sf_el;}// return dangy place
+	case elnu :{return 1.f;}// return dangy place
 	case munu :{switch(type){
-			case 1:{
-
-			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ID.root", "READ");
-			if_RunsBCDEF
-			.GetObject("NUM_TightID_DEN_genTracks_pt_abseta",
-				    h_RunsBCDEF) 			;break;}
-			case 2:{
-
-			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ID_syst.root", "READ");
-			if_RunsBCDEF
-			.GetObject("NUM_TightID_DEN_genTracks_pt_abseta",
-				    h_RunsBCDEF) 			;break;}
- 			case 3:{
-
-			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ID_syst.root", "READ");
-			if_RunsBCDEF
-			.GetObject("NUM_TightID_DEN_genTracks_pt_abseta_stat",
-			           h_RunsBCDEF)				;break;}
-  			case 4:{
-
-			TFile if_RunsBCDF("Muon_RunBCDEF_SF_ID_syst.root", "READ");
-			if_RunsBCDEF
-			.GetObject("NUM_TightID_DEN_genTracks_pt_abseta_syst",
-			            h_RunsBCDEF)			;break;}
-  			case 5:{
-
-			TFile if_RunsbBCDEF("MuonSFs/2017/Muon_RunBCDEF_SF_ISO.root", "READ");
-			if_RunsBCDEF
-			.GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta",
-				   h_RunsBCDEF)				;break;}
-  			case 6:{
-
-			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ISO_syst.root", "READ");
-  			if_RunsBCDEF
-			.GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta",
-				   h_RunsBCDEF) 			;break;}
-  			case 7:{
-
-			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ISO_syst.root", "READ");
-			if_RunsBCDEF
-			.GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat",
-				   h_RunsBCDEF)				;break;}
-  			case 8:{
-
-			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ISO_syst.root", "READ");
-			if_RunsBCDEF
-			.GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_syst",
-				   h_RunsBCDEF)	 			;break;}
+			case Id:{
+			fname = "Muon_RunBCDEF_SF_ID.root";
+			hname = "NUM_TightID_DEN_genTracks_pt_abseta"	  	    ;break;}
+			case Idsys:{
+			fname = "Muon_RunBCDEF_SF_ID_syst.root";
+			hname = "NUM_TightID_DEN_genTracks_pt_abseta"	  	    ;break;}
+ 			case IdsysStat:{
+			fname = "Muon_RunBCDEF_SF_ID_syst.root";
+			hname = "NUM_TightID_DEN_genTracks_pt_abseta_stat"	    ;break;}
+  			case IdsysSyst:{
+			fname = "Muon_RunBCDEF_SF_ID_syst.root";
+			hname = "NUM_TightID_DEN_genTracks_pt_abseta_syst"	    ;break;}
+  			case Iso:{
+			fname = "Muon_RunBCDEF_SF_ISO.root";
+			hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta"     ;break;}
+  			case Isosys:{
+			fname = "Muon_RunBCDEF_SF_ISO_syst.root";
+			hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta"     ;break;}
+  			case IsosysStat:{
+			fname = "Muon_RunBCDEF_SF_ISO_syst.root";
+			hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat";break;}
+  			case IsosysSyst:{
+			fname = "Muon_RunBCDEF_SF_ISO_syst.root";
+			hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_syst";break;}
 			}; break;} // type switch closing
 	} // ch switch closing
-  	for(int i = 0; i < pt.size(); i++){
-	
-	if(pt[i] >= 20 && pt[i] <= 120 && abs_eta[i] <= 2.4){
+	TFile Fname(fname.c_str());
+     	Fname.GetObject(hname.c_str(), h_RunsBCDEF);
+  	
+	if(20.f<=pt && pt<=120.f && abs_eta <= 2.4){
 	// All the followings are declared for RUNBCDEF
   	int PtBin  =
-	h_RunsBCDEF->GetXaxis()->FindBin(pt[i]);
+	h_RunsBCDEF->GetXaxis()->FindBin(pt);
         int EtaBin  =
-	h_RunsBCDEF->GetYaxis()->FindBin(abs_eta[i]);
+	h_RunsBCDEF->GetYaxis()->FindBin(abs_eta);
         float Sf_R  = // Only used for muons sf bin content
 	h_RunsBCDEF->GetBinContent(PtBin, EtaBin);
 	float Err_R = // error bin content
 	h_RunsBCDEF->GetBinError  (PtBin, EtaBin);
 	
-	if(type == 3 || type == 4 ||
-	   type == 7 || type == 8  )
-	     sf[i] =    Err_R;
-	else{sf[i] =    Sf_R;}
+	if(type == IdsysStat  || type == IdsysSyst ||
+	   type == IsosysStat || type == IsosysSyst )
+	     sf =  Err_R;
+	else{sf =  Sf_R;}
 	}// outer if
 	
-	else{sf[i] =    ((float) 1.);}
-	}  // for lpp[
+	else{sf =  1.f;}
+	Fname.Close();
 	return sf;
 	}; //lambda
 } // lep_eff_func
 auto sf(const  dataSource ds){
 	if(debug>0) std::cout<<"scale factor "<<std::endl;
-	return [=](const double b){// TODO:implementing muons sf , id and iso here
+	return [=](const double b, const float mu_id, const float mu_iso){// TODO:implementing muons sf , id and iso here
 		double result;
 		switch(ds){
 			case tzq:{result =    TZQ_W;break;}
@@ -767,8 +746,8 @@ auto sf(const  dataSource ds){
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (infile)");
 		}
-		std::cout << "b is"<<b <<" sf is "<< result * b<< std::endl;
-		return result * b;
+		std::cout << "b is "<<b <<"mu id and mu iso r "<<mu_id<<" "<<mu_iso<<" sf is "<< result * b<< std::endl;
+		return result * b * mu_id * mu_iso;
 	};
 }
 auto rep_const(const double sf,const doubles& iRVec){
@@ -873,11 +852,8 @@ void calchisto(const channel ch,const dataSource ds){
 	       "CaloMET_pt" ,
 	       "CaloMET_phi"})
 //	       "CaloMET_sumEt"})// TODO: add this back
-	.Define("lep_eff_ID" ,lepEffGiver(ch,1),{"lep__pt","lep_eta"})// instruction
-	.Define("lep_eff_ISO",lepEffGiver(ch,5),{"lep__pt","lep_eta"})// Below:
-	// lepEffGiver Number system:
-	// 1 ID , 2 ID sys , 3 ID  sys (stat), 4 ID  sys (syst)
-	// 5 Iso, 6 Iso sys, 7 Iso sys (stat), 8 Iso sys (syst)
+	.Define("lep_eff_ID" ,lepEffGiver(ch,Id),{"lep__pt","lep_eta"})
+	.Define("lep_eff_ISO",lepEffGiver(ch,Iso),{"lep__pt","lep_eta"})
 	//.Filter(w_mass_cut, {"w_el_mass"}, "W mass cut")
 	;
 	auto jet_selection
@@ -1103,7 +1079,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("P_MC"   ,"Pi___ei * Pi___ej")
 	.Define("P_Data" ,"Pi_sfei * Pi_sfej")
 	.Define("btag_w" ,btag_weight,{"P_Data","P_MC"})
-	.Define("sf"     ,sf(ds)   ,{"btag_w"})
+	.Define("sf"     ,sf(ds)   ,{"btag_w","lep_eff_ID","lep_eff_ISO"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")// LOL WHY SO DUMB, weigh the
 	. Alias("nw_lep_phi"       ,"sf")// hist BY "sf" then!
@@ -1142,7 +1118,7 @@ void calchisto(const channel ch,const dataSource ds){
 	(          "tWm_"     + temp_header).c_str(),
 	("Transverse W mass " + temp_header).c_str(),
 	50,0,180},
-	"tw_lep_mas","nw_tw_lep_mas");
+	"tw_lep_mas");//,"nw_tw_lep_mas");
 	h_trans_w->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_w->GetYaxis()->SetTitle("Event");
 	h_trans_w->SetLineStyle(kSolid);
@@ -1151,7 +1127,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("W_invariant_mass_" + temp_header).c_str(),
 	("W invariant mass " + temp_header).c_str(),
 	50,0,180},
-	"lep_nu_invmass","nw_lep_nu_invmass");
+	"lep_nu_invmass");//,"nw_lep_nu_invmass");
 	h_Winvmas->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_Winvmas->GetYaxis()->SetTitle("Event");
 	h_Winvmas->SetLineStyle(kSolid);
@@ -1160,7 +1136,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("Z_MET_Delta_Phi_" + temp_header).c_str(),
 	("Z MET Delta Phi" + temp_header).c_str(),
 	50,-7,7},
-	"zmet_Dph","nw_zmet_Dph");
+	"zmet_Dph");//,"nw_zmet_Dph");
 	h_zmet_Dph->GetXaxis()->SetTitle("Z & MET delta phi/rad");
 	h_zmet_Dph->GetYaxis()->SetTitle("Event");
 	h_zmet_Dph->SetLineStyle(kSolid);
@@ -1169,7 +1145,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("Z_W_Delta_Phi_" + temp_header).c_str(),
 	("Z W Delta Phi" + temp_header).c_str(),
 	50,-7,7},
-	"zw_Dph","nw_zw_Dph");
+	"zw_Dph");//,"nw_zw_Dph");
 	h_zw_Dph->GetXaxis()->SetTitle("Z & W delta phi/rad");
 	h_zw_Dph->GetYaxis()->SetTitle("Event");
 	h_zw_Dph->SetLineStyle(kSolid);
@@ -1178,7 +1154,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("Z_pair_jets_Delta_Phi_" + temp_header).c_str(),
 	("Z pair jets Delta Phi" + temp_header).c_str(),
 	50,-7,7},
-	"z_jets_Dph","nw_z_jets_Dph");
+	"z_jets_Dph");//,"nw_z_jets_Dph");
 	h_z_daughters_Dph->GetXaxis()->SetTitle("Z pair jets Delta phi/rad");
 	h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
 	h_z_daughters_Dph->SetLineStyle(kSolid);
