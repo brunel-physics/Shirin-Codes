@@ -555,8 +555,8 @@ return [&,b](const doubles& pts,const doubles& etas){
 		// above only pushed back nonzero nice eff
 		// what do we do with eff==0? check with kathryn
 		// below, if ej, and near 1., we put 0. instead
-		if(!b && std::abs(eff-1.) <= 2*std::numeric_limits<double>::epsilon())
-			BTaggedEff[i] = 0.;
+		//if(!b && std::abs(eff-1.) <= 2*std::numeric_limits<double>::epsilon())
+		//	BTaggedEff[i] = 0.;
 	}
 	if(debug>5) std::cout<<"bt eff giver "<< BTaggedEff <<std::endl;
 	return BTaggedEff;};
@@ -746,7 +746,7 @@ auto sf(const  dataSource ds){
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (infile)");
 		}
-		std::cout << "b is "<<b <<"mu id and mu iso r "<<mu_id<<" "<<mu_iso<<" sf is "<< result * b<< std::endl;
+		/*if(debug > 5)*/std::cout << "b_w "<<b <<"mu_id, mu_iso"<<mu_id<<" "<<mu_iso<<" sf is "<< result * b<< std::endl;
 		return result * b * mu_id * mu_iso;
 	};
 }
@@ -1118,7 +1118,7 @@ void calchisto(const channel ch,const dataSource ds){
 	(          "tWm_"     + temp_header).c_str(),
 	("Transverse W mass " + temp_header).c_str(),
 	50,0,180},
-	"tw_lep_mas");//,"nw_tw_lep_mas");
+	"tw_lep_mas","nw_tw_lep_mas");
 	h_trans_w->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_w->GetYaxis()->SetTitle("Event");
 	h_trans_w->SetLineStyle(kSolid);
@@ -1127,7 +1127,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("W_invariant_mass_" + temp_header).c_str(),
 	("W invariant mass " + temp_header).c_str(),
 	50,0,180},
-	"lep_nu_invmass");//,"nw_lep_nu_invmass");
+	"lep_nu_invmass","nw_lep_nu_invmass");
 	h_Winvmas->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_Winvmas->GetYaxis()->SetTitle("Event");
 	h_Winvmas->SetLineStyle(kSolid);
@@ -1136,7 +1136,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("Z_MET_Delta_Phi_" + temp_header).c_str(),
 	("Z MET Delta Phi" + temp_header).c_str(),
 	50,-7,7},
-	"zmet_Dph");//,"nw_zmet_Dph");
+	"zmet_Dph","nw_zmet_Dph");
 	h_zmet_Dph->GetXaxis()->SetTitle("Z & MET delta phi/rad");
 	h_zmet_Dph->GetYaxis()->SetTitle("Event");
 	h_zmet_Dph->SetLineStyle(kSolid);
@@ -1145,7 +1145,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("Z_W_Delta_Phi_" + temp_header).c_str(),
 	("Z W Delta Phi" + temp_header).c_str(),
 	50,-7,7},
-	"zw_Dph");//,"nw_zw_Dph");
+	"zw_Dph","nw_zw_Dph");
 	h_zw_Dph->GetXaxis()->SetTitle("Z & W delta phi/rad");
 	h_zw_Dph->GetYaxis()->SetTitle("Event");
 	h_zw_Dph->SetLineStyle(kSolid);
@@ -1154,7 +1154,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("Z_pair_jets_Delta_Phi_" + temp_header).c_str(),
 	("Z pair jets Delta Phi" + temp_header).c_str(),
 	50,-7,7},
-	"z_jets_Dph");//,"nw_z_jets_Dph");
+	"z_jets_Dph","nw_z_jets_Dph");
 	h_z_daughters_Dph->GetXaxis()->SetTitle("Z pair jets Delta phi/rad");
 	h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
 	h_z_daughters_Dph->SetLineStyle(kSolid);
@@ -1206,7 +1206,7 @@ void calchisto(const channel ch,const dataSource ds){
 		,temp_opener.c_str()
 		,50,xmin,xmax}
 		,       temp_footer .c_str()
-		//,("nw_"+temp_footer).c_str()
+		,("nw_"+temp_footer).c_str()
 		);
 		h->SetLineStyle(kSolid);
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
