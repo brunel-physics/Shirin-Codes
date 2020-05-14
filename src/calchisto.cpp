@@ -664,9 +664,97 @@ auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
 	return std::isinf(weight) || std::isnan(weight) ? 1. : weight;
 }
+auto lepEffGiver(const channel ch  ,// computes muon id and iso sfs
+		 const int     type){
+	return [=](const floats&  pt,
+		   const floats& eta){
+	floats abs_eta = abs(eta);
+        floats sf; sf.reserve(pt.size());
+        TFile* if_RunsBCDEF;
+        TFile* if_RunsGH;
+        TH2* h_RunsBCDEF;
+        TH2* h_RunsGH;
+	switch(ch){
+	
+	case elnu :{floats sf_el(pt.size(),(float) 1.); return sf_el;}// return dangy place
+	case munu :{switch(type){
+			case 1:{
+
+			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ID.root", "READ");
+			if_RunsBCDEF
+			.GetObject("NUM_TightID_DEN_genTracks_pt_abseta",
+				    h_RunsBCDEF) 			;break;}
+			case 2:{
+
+			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ID_syst.root", "READ");
+			if_RunsBCDEF
+			.GetObject("NUM_TightID_DEN_genTracks_pt_abseta",
+				    h_RunsBCDEF) 			;break;}
+ 			case 3:{
+
+			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ID_syst.root", "READ");
+			if_RunsBCDEF
+			.GetObject("NUM_TightID_DEN_genTracks_pt_abseta_stat",
+			           h_RunsBCDEF)				;break;}
+  			case 4:{
+
+			TFile if_RunsBCDF("Muon_RunBCDEF_SF_ID_syst.root", "READ");
+			if_RunsBCDEF
+			.GetObject("NUM_TightID_DEN_genTracks_pt_abseta_syst",
+			            h_RunsBCDEF)			;break;}
+  			case 5:{
+
+			TFile if_RunsbBCDEF("MuonSFs/2017/Muon_RunBCDEF_SF_ISO.root", "READ");
+			if_RunsBCDEF
+			.GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta",
+				   h_RunsBCDEF)				;break;}
+  			case 6:{
+
+			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ISO_syst.root", "READ");
+  			if_RunsBCDEF
+			.GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta",
+				   h_RunsBCDEF) 			;break;}
+  			case 7:{
+
+			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ISO_syst.root", "READ");
+			if_RunsBCDEF
+			.GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat",
+				   h_RunsBCDEF)				;break;}
+  			case 8:{
+
+			TFile if_RunsBCDEF("Muon_RunBCDEF_SF_ISO_syst.root", "READ");
+			if_RunsBCDEF
+			.GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_syst",
+				   h_RunsBCDEF)	 			;break;}
+			}; break;} // type switch closing
+	} // ch switch closing
+  	for(int i = 0; i < pt.size(); i++){
+	
+	if(pt[i] >= 20 && pt[i] <= 120 && abs_eta[i] <= 2.4){
+	// All the followings are declared for RUNBCDEF
+  	int PtBin  =
+	h_RunsBCDEF->GetXaxis()->FindBin(pt[i]);
+        int EtaBin  =
+	h_RunsBCDEF->GetYaxis()->FindBin(abs_eta[i]);
+        float Sf_R  = // Only used for muons sf bin content
+	h_RunsBCDEF->GetBinContent(PtBin, EtaBin);
+	float Err_R = // error bin content
+	h_RunsBCDEF->GetBinError  (PtBin, EtaBin);
+	
+	if(type == 3 || type == 4 ||
+	   type == 7 || type == 8  )
+	     sf[i] =    Err_R;
+	else{sf[i] =    Sf_R;}
+	}// outer if
+	
+	else{sf[i] =    ((float) 1.);}
+	}  // for lpp[
+	return sf;
+	}; //lambda
+} // lep_eff_func
 auto sf(const  dataSource ds){
 	if(debug>0) std::cout<<"scale factor "<<std::endl;
-	return [=](const double b){
+	return [=](const double b){// TODO:implementing muons sf , id and iso here
 		double result;
 		switch(ds){
 			case tzq:{result =    TZQ_W;break;}
@@ -679,6 +767,7 @@ auto sf(const  dataSource ds){
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (infile)");
 		}
+		std::cout << "b is"<<b <<" sf is "<< result * b<< std::endl;
 		return result * b;
 	};
 }
@@ -753,9 +842,9 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(100000);
+	auto dfr = df.Range(10000);
 	auto w_selection = df// remove one letter to do all
-	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
+	//.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
 	       {temp_header+"isPFcand",
 	        temp_header+"pt" ,
@@ -784,7 +873,12 @@ void calchisto(const channel ch,const dataSource ds){
 	       "CaloMET_pt" ,
 	       "CaloMET_phi"})
 //	       "CaloMET_sumEt"})// TODO: add this back
-//	.Filter(w_mass_cut, {"w_el_mass"}, "W mass cut")
+	.Define("lep_eff_ID" ,lepEffGiver(ch,1),{"lep__pt","lep_eta"})// instruction
+	.Define("lep_eff_ISO",lepEffGiver(ch,5),{"lep__pt","lep_eta"})// Below:
+	// lepEffGiver Number system:
+	// 1 ID , 2 ID sys , 3 ID  sys (stat), 4 ID  sys (syst)
+	// 5 Iso, 6 Iso sys, 7 Iso sys (stat), 8 Iso sys (syst)
+	//.Filter(w_mass_cut, {"w_el_mass"}, "W mass cut")
 	;
 	auto jet_selection
 	   = w_selection
@@ -1136,7 +1230,7 @@ void calchisto(const channel ch,const dataSource ds){
 		,temp_opener.c_str()
 		,50,xmin,xmax}
 		,       temp_footer .c_str()
-		,("nw_"+temp_footer).c_str()
+		//,("nw_"+temp_footer).c_str()
 		);
 		h->SetLineStyle(kSolid);
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());

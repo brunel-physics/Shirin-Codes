@@ -49,11 +49,11 @@ int plotstacks(){
 	hobj->DrawClone("SAME");
         hcanvas->cd(2);// From here downward
         hstack->Draw("HIST");// should be done
-	gpad->Update();
+	gPad->Update();
         hstack->GetXaxis()->SetTitle(xAxisStr.c_str());
         hstack->GetYaxis()->SetTitle("Event");
         hcanvas->BuildLegend();// once all data sources
-	gpad->Update();
+	gPad->Update();
         hcanvas->SaveAs((stname + ".root").c_str());// are included
         //hcanvas->SaveAs((stname + ".pdf" ).c_str());
 	}}
