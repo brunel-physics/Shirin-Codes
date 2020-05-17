@@ -893,7 +893,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define(   "lep_mas",temp_header+"mass[loose_leps][0]")
 	.Define(   "lep___q",temp_header+"charge[loose_leps][0]")// charge of the particle
 	.Define(   "lep_gpt",      "GenPart_pt[loose_leps][0]")// muon pt masked to generated level pt
-	.Define(   "lep__nl",temp_header+"nTrackerLayer[Loose_leps][0]")// Only For Muons
+	.Define(   "lep__nl",temp_header+"nTrackerLayers[loose_leps][0]")// Only For Muons
 	.Define("tw_lep__pt",[](float x){return static_cast<double>(x);},{"lep__pt"})
 	.Define("tw_lep_eta",[](float x){return static_cast<double>(x);},{"lep_eta"})
 	.Define("tw_lep_phi",[](float x){return static_cast<double>(x);},{"lep_phi"})
@@ -910,8 +910,8 @@ void calchisto(const channel ch,const dataSource ds){
 //	       "CaloMET_sumEt"})// TODO: add this back
 	.Define("lep_eff_ID" ,lepEffGiver(ch,Id) ,{"lep__pt","lep_eta"})
 	.Define("lep_eff_ISO",lepEffGiver(ch,Iso),{"lep__pt","lep_eta"})
-	.Define("rocco_sf"    ,RoccoSf(ds,ch)   ,{"lep___q","lep__pt"
-						   "lep_eta","lep_phi"
+	.Define("rocco_sf"    ,RoccoSf(ds,ch)   ,{"lep___q" ,"lep__pt",
+						   "lep_eta","lep_phi",
 						   "lep_gpt","lep__nl" })// the GenPart_pt
 							// should also be masked to lepton
 
