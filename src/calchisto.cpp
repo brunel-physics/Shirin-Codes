@@ -1,5 +1,4 @@
-// TODO: WHY plot stack Events are so low?
-// TODO: lepton efficiency to be integrated inside calchisto
+// TODO: lepton trigger efficiency to be integrated inside calchisto
 #include <ROOT/RCsvDS.hxx>//#include <ROOT/RDataFrame.hxx>
 #include <TLorentzVector.h>
 #include <TRandom3.h>// used Gaussian once
@@ -11,6 +10,7 @@
 #include "csv.h"
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
+#include "roccor.Run2.v3/RoccoR.cc"
 /*
 #if !defined(__FMA__) && defined(__AVX2__)
     #define __FMA__ 1
@@ -370,7 +370,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	      etaMin,etaMax,pt_Min,pt_Max,CSVmin,CSVmax,rawFormula)){
 	// always true if dont check CSV
 	bool b = ignore || BTAG_DISC_MIN <= CSVv2;
-	if(  b          && "comb"    == measureType
+	if(  b          && "mujets"    == measureType
 	&& 0 == jetFlav && "central" ==     sysType){
 	
 	for(size_t i=0; i < pt.size() ;++i){
@@ -733,9 +733,59 @@ auto lepEffGiver(const channel ch  ,// computes muon id and iso sfs
 	return sf;
 	}; //lambda
 } // lep_eff_func
+auto RoccoSf(const dataSource ds, const channel ch){
+	if(debug > 0) std::cout<<" RoccorSF"<<std::endl;
+	return [=](const int Q     	, const float& pt ,
+		   const float& eta	, const float& phi,
+		   const float& gen_pt  , const int&   nl  ){
+/* Rocco scale factor desc.
+scale factors for momentum of each muon:
+// data
+double dtSF = rc.kScaleDT(Q, pt, eta, phi, s=0, m=0);
+// (recommended),MC scale and resolution correction when matched gen muon is availabl
+double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genPt, s=0, m=0);
+// MC scale and extra smearing when matched gen muon is not available
+double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, s=0, m=0);
+-------------------------------------------------------------------------------------
+Here:
+Q is charge
+nl is trackerLayersWithMeasurement \\
+u is a random number distributed uniformly between 0 and 1
+(gRandom->Rndm());
+s is error set (default is 0)
+m is error member (default is 0, ranges from 0 to nmembers-1)
+For MC, when switching to different error sets/members for
+a given muon, random number (u) should remain unchanged.
+*/
+	float sf;
+	RoccoR rc("roccor.Run2.v3/RoccoR2017.txt");
+	switch (ch){
+		   case elnu :{return 1.f;}
+		   case munu :{switch (ds){
+				case cms:{sf =
+					rc.kScaleDT(Q, pt, eta, phi, 0, 0);break;} //data
+				case tzq://fall through
+				case ww :
+				case wz :
+				case zz :
+				case ttz:{if(gen_pt != 0)
+					  sf =
+					  rc.kSpreadMC(Q, pt, eta, phi, gen_pt,0, 0);
+					  else{auto u =gRandom->Rndm();// not sure if gRandom works!
+					  std::cout<<
+					  "Warning, u must be between 0 and 1, u is "
+					  <<u<<std::endl;
+					  sf = rc.kSmearMC(Q, pt, eta, phi, nl, u, 0, 0);}
+									   break;}
+					}}}// switch ds ,case munu, ch  switch
+	if(debug > 0)std::cout<<"RoccoR Sf "<<sf<<" for channel "<<ch<<std::endl;
+	return sf;
+};}
+
 auto sf(const  dataSource ds){
 	if(debug>0) std::cout<<"scale factor "<<std::endl;
-	return [=](const double b, const float mu_id, const float mu_iso){// TODO:implementing muons sf , id and iso here
+	return [=](const double b, const float mu_id, const float mu_iso, const float& rocco_sf){
+		// TODO: lepton smearing and trigger efficiency
 		double result;
 		switch(ds){
 			case tzq:{result =    TZQ_W;break;}
@@ -748,8 +798,9 @@ auto sf(const  dataSource ds){
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (infile)");
 		}
-		if(debug > 5) std::cout << "b_w "<<b <<"mu_id, mu_iso"<<mu_id<<" "<<mu_iso<<" sf is "<< result * b<< std::endl;
-		return result * b *  mu_id * mu_iso;
+		if(debug > 5) std::cout << "b_w "<<b <<"mu_id, mu_iso "
+		<<mu_id<<" "<<mu_iso<<" rocco sf "<< rocco_sf<<" sf is "<< result * b<<std::endl;
+		return result * b *  mu_id * mu_iso * rocco_sf;
 	};
 }
 auto rep_const(const double sf,const doubles& iRVec){
@@ -824,7 +875,7 @@ void calchisto(const channel ch,const dataSource ds){
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(100000);
-	auto w_selection = dfr// remove one letter to do all
+	auto w_selection = df// remove one letter to do all
 	//.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
 	       {temp_header+"isPFcand",
@@ -840,6 +891,9 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define(   "lep_eta",temp_header+ "eta[loose_leps][0]")
 	.Define(   "lep_phi",temp_header+ "phi[loose_leps][0]")
 	.Define(   "lep_mas",temp_header+"mass[loose_leps][0]")
+	.Define(   "lep___q",temp_header+"charge[loose_leps][0]")// charge of the particle
+	.Define(   "lep_gpt",      "GenPart_pt[loose_leps][0]")// muon pt masked to generated level pt
+	.Define(   "lep__nl",temp_header+"nTrackerLayer[Loose_leps][0]")// Only For Muons
 	.Define("tw_lep__pt",[](float x){return static_cast<double>(x);},{"lep__pt"})
 	.Define("tw_lep_eta",[](float x){return static_cast<double>(x);},{"lep_eta"})
 	.Define("tw_lep_phi",[](float x){return static_cast<double>(x);},{"lep_phi"})
@@ -854,8 +908,13 @@ void calchisto(const channel ch,const dataSource ds){
 	       "CaloMET_pt" ,
 	       "CaloMET_phi"})
 //	       "CaloMET_sumEt"})// TODO: add this back
-	.Define("lep_eff_ID" ,lepEffGiver(ch,Id),{"lep__pt","lep_eta"})
+	.Define("lep_eff_ID" ,lepEffGiver(ch,Id) ,{"lep__pt","lep_eta"})
 	.Define("lep_eff_ISO",lepEffGiver(ch,Iso),{"lep__pt","lep_eta"})
+	.Define("rocco_sf"    ,RoccoSf(ds,ch)   ,{"lep___q","lep__pt"
+						   "lep_eta","lep_phi"
+						   "lep_gpt","lep__nl" })// the GenPart_pt
+							// should also be masked to lepton
+
 	//.Filter(w_mass_cut, {"w_el_mass"}, "W mass cut")
 	;
 	auto jet_selection
@@ -1098,7 +1157,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("P_MC"   ,"Pi___ei * Pi___ej")
 	.Define("P_Data" ,"Pi_sfei * Pi_sfej")
 	.Define("btag_w" ,btag_weight,{"P_Data","P_MC"})
-	.Define("sf"     ,sf(ds)   ,{"btag_w","lep_eff_ID","lep_eff_ISO"})
+	.Define("sf"     ,sf(ds)   ,{"btag_w","lep_eff_ID","lep_eff_ISO","rocco_sf"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")// LOL WHY SO DUMB, weigh the
 	. Alias("nw_lep_phi"       ,"sf")// hist BY "sf" then!
