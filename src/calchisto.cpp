@@ -5,6 +5,7 @@
 #include <TRandom3.h>// used Gaussian once
 #include <TSystem.h>// for safer RCsvDS via gSystem
 #include <TChain.h>
+#include <TCanvas.h>
 //#include <execution>// need to link -ltbb in Makefile
 
 #include "csv.h"
@@ -23,7 +24,7 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 0;
+  constexpr    int debug = 6;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -75,8 +76,6 @@ constexpr double  TTZQQ_W =  .0237;
 constexpr double ZZLLQQ_W =  .0485;
 
 enum lepSf	{Id,Idsys,IdsysStat,IdsysSyst,Iso,Isosys,IsosysStat,IsosysSyst};
-
-
 
 // This Pi is more accurate than binary256; good for eternity
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
@@ -326,19 +325,23 @@ auto      no_bjet_id(const doubles& etas){
    return abs(etas) < BJET_ETA_MAX;}
 
 auto      is_bjet_numer(const ints& id,const ints& is_bjet){
-   ints   is_bjet_numer = id == 5;
+   auto aid = abs(id);
+   ints   is_bjet_numer = aid == 5;
           is_bjet_numer.resize(is_bjet.size(),0);// discard tail or pad zeroes
    return is_bjet_numer;
 }
 auto      no_bjet_numer(const ints& id,const ints& is_bjet){
 // using bjets which has satisfied is btag conditions
-	auto aid = abs(id);
-	aid = (( aid >  0  && aid <= 4)
-	      || aid == 21 || aid != 5);
-	aid.resize(is_bjet.size(),0);// discard tail or pad zeroes
-	return aid;
+        auto aid = abs(id);
+	//aid = (( aid >  0  && aid <= 4)
+	//      || aid == 21 || aid != 5);
+	//aid.resize(is_bjet.size(),0);// discard tail or pad zeroes
+	ints no_bjet_numer = (( aid >  0  && aid <= 4)
+                             || aid == 21 || aid != 5);
+	no_bjet_numer.resize(is_bjet.size(),0);
+	return no_bjet_numer;
 }
-constexpr auto& is_bjet_denom = is_bjet_numer;// same functions, just 
+constexpr auto& is_bjet_denom = is_bjet_numer;// same functions, just
 constexpr auto& no_bjet_denom = no_bjet_numer;// different input mask
 //template<typename T>
 auto btagCSVv2(const bool check_CSVv2){//,
@@ -348,7 +351,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
                const doubles& eta){
 	if(debug>0)std::cout<<"btagCSVv2 entered"<<std::endl;
 	bool ignore = !check_CSVv2;// magic btag checker; heavily reused
-	strings formulae(pt.size() ,"0");// vector of "0"
+	strings formulae(pt.size() ,check_CSVv2 ? "1" : "0");// vector of "0" and "1"
 	doubles  results(pt.size());
 	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
 		"Collections must be the same size in btagCSVv2");
@@ -383,7 +386,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	&& etaMin < eta [i] && eta [i] < etaMax
 	&& pt_Min < pt  [i] && pt  [i] < pt_Max){
 	
-	if("0" == formulae[i]){// only 1st found wins
+	if("0" == formulae[i] || "1" == formulae[i]){// only 1st found wins
 	
 	if(std::string::npos != tempFormula.find("x")){
 	
@@ -441,7 +444,7 @@ auto find_z_pair(const doubles& pts,
                  const doubles& phis,
                  const doubles& ms,
                  const    ints& lead_bjet){
-	//if(debug>0) std::cout<<"find z pair"<<std::endl;
+	if(debug>0) std::cout<<"find z pair"<<std::endl;
 	// This function finds the pair nearest to z mass
 	double  z_reco_mass = std::numeric_limits<double>::infinity();
 	size_t  jet_index_1 = std::numeric_limits<size_t>::max();
@@ -545,10 +548,10 @@ return [&,b](const doubles& pts,const doubles& etas){
 		"Collections must be the same size (effGiver)");
 	if(pts.empty()) throw std::logic_error(
 		"Collections must not be empty in  (effGiver)");
-	doubles BTaggedEff(pts.size(), b ? 1. : 0.);
+	doubles BTaggedEff(pts.size()); //(pts.size()), b ? 1. : 0.);
 	for(size_t   i=0; i <  pts.size() ;++i){
 		int  PtBin = ratio->GetXaxis()->FindBin(pts [i]);
-		int EtaBin = ratio->GetYaxis()->FindBin(etas[i]);
+		int EtaBin = ratio->GetYaxis()->FindBin(std::abs(etas[i]));
 		double eff = ratio->GetBinContent(PtBin,EtaBin);
 		if(FP_NORMAL == std::fpclassify(eff))// if eff non-zero/inf/NaN
 			BTaggedEff[i] = eff;
@@ -558,21 +561,21 @@ return [&,b](const doubles& pts,const doubles& etas){
 		//if(!b && std::abs(eff-1.) <= 2*std::numeric_limits<double>::epsilon())
 		//	BTaggedEff[i] = 0.;
 	}
-	if(debug>5) std::cout<<"bt eff giver "<< BTaggedEff <<std::endl;
+	if(debug>5) std::cout<<"bt eff giver "<< BTaggedEff <<" for b "<<b<<std::endl;
 	return BTaggedEff;};
 }
 auto EffIsBTaggedProduct(const doubles& EffIsBTagged){
 	double     result  = 1.;
 	for(size_t i=0;  i < EffIsBTagged.size() ;++i)
 	           result *= EffIsBTagged[i];
-	//if(debug>1) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
+	if(debug>5) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
 	return     result;
 }
 auto EffNoBTaggedProduct(const doubles& EffNoBTagged){
 	double result  = 1.;
 	for(size_t i=0;  i < EffNoBTagged.size();++i)
 	       result *= 1.- EffNoBTagged[i];
-	if(debug>1) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
+	if(debug>5) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
 auto Sfi_EffIsBTaggedProduct(const doubles& EffIsBTagged,const doubles& sfi){
@@ -582,7 +585,7 @@ auto Sfi_EffIsBTaggedProduct(const doubles& EffIsBTagged,const doubles& sfi){
 	size_t   size = b < s ? b : s;
 	for(size_t i=0; i < size ;++i)
 	       result    *= sfi[i] * EffIsBTagged[i];
-	//if(debug>1)std::cout<<"Sfi_EffIsBTaggedProduct "<<result<<std::endl;
+	if(debug>5)std::cout<<"sfi is "<<sfi<<" Sfi_EffIsBTaggedProduct "<<result<<std::endl;
 	return result;
 }
 auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
@@ -594,7 +597,7 @@ auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
 	for(size_t i=0; i < size ;++i)
 //	       result*= -std::fma(EffNoBTagged[i],sfj[i],-1.);
 	       result*= 1. - EffNoBTagged[i]*sfj[i];
-	if(debug>1)std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
+	if(debug>5)std::cout<<"sfj is "<<sfj<<" Sfj_EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
 /*
@@ -666,8 +669,10 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 */
 auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
-	return std::isinf(weight) || std::isnan(weight) ? 1. : weight;
-}
+	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;
+	// if eff non-zero/inf/Nan
+	return  weight;
+	}
 auto lepEffGiver(const channel ch  ,// computes muon id and iso sfs
 		 const lepSf   type){
 	return [=](const float  pt,
@@ -746,8 +751,8 @@ auto sf(const  dataSource ds){
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (infile)");
 		}
-		/*if(debug > 5)*/std::cout << "b_w "<<b <<"mu_id, mu_iso"<<mu_id<<" "<<mu_iso<<" sf is "<< result * b<< std::endl;
-		return result * b * mu_id * mu_iso;
+		if(debug > 5) std::cout << "b_w "<<b <<"mu_id, mu_iso"<<mu_id<<" "<<mu_iso<<" sf is "<< result * b<< std::endl;
+		return result * mu_id * mu_iso;
 	};
 }
 auto rep_const(const double sf,const doubles& iRVec){
@@ -821,7 +826,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(10000);
+	auto dfr = df.Range(100000);
 	auto w_selection = df// remove one letter to do all
 	//.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
@@ -903,10 +908,10 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("no_btag_numer__pt","fin_jets__pt[no_btag_numer]")
 	.Define("is_btag_denom__pt","fin_jets__pt[is_btag_denom]")
 	.Define("no_btag_denom__pt","fin_jets__pt[no_btag_denom]")
-	.Define("is_btag_numer_eta","fin_jets_eta[is_btag_numer]")
-	.Define("no_btag_numer_eta","fin_jets_eta[no_btag_numer]")
-	.Define("is_btag_denom_eta","fin_jets_eta[is_btag_denom]")
-	.Define("no_btag_denom_eta","fin_jets_eta[no_btag_denom]")
+	.Define("is_btag_numer_eta",[](doubles x, ints y){return abs(x[y]);},{"fin_jets_eta","is_btag_numer"})
+	.Define("no_btag_numer_eta",[](doubles x, ints y){return abs(x[y]);},{"fin_jets_eta","no_btag_numer"})
+	.Define("is_btag_denom_eta",[](doubles x, ints y){return abs(x[y]);},{"fin_jets_eta","is_btag_denom"})
+	.Define("no_btag_denom_eta",[](doubles x, ints y){return abs(x[y]);},{"fin_jets_eta","no_btag_denom"})
 	.Define("sfi",btagCSVv2( true),//,btagDF),// checks btag
 	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta"})
 	.Define("sfj",btagCSVv2(false),//,btagDF),// ignore btag
@@ -1021,48 +1026,65 @@ void calchisto(const channel ch,const dataSource ds){
 	   = top_reco.Histo2D({
 	(        "is_numer_" + temp_header).c_str(),
 	("MC is btag numer " + temp_footer).c_str(),
-	50,0,400,50,-3,3},
+	12,0,200,12,0,3},
 	"is_btag_numer__pt",
 	"is_btag_numer_eta");
 	h_is_btag_numer_PtVsEta->GetXaxis()->SetTitle("pT/GeV");
 	h_is_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
+
+        auto btag_numer_canvas =
+        new TCanvas("btag_numer", "btag_numer",10,10,900,900);
+	h_is_btag_numer_PtVsEta->Draw("COLZ");
+	h_is_btag_numer_PtVsEta->SaveAs("is_btag_numer.root");
+
 	auto h_no_btag_numer_PtVsEta
 	   = top_reco.Histo2D({
 	(        "no_numer_" + temp_header).c_str(),
 	("MC no btag numer " + temp_footer).c_str(),
-	50,0,400,50,-3,3},
+	12,0,200,12,0,3},
 	"no_btag_numer__pt",
 	"no_btag_numer_eta");
 	h_no_btag_numer_PtVsEta->GetXaxis()->SetTitle("pT/GeV");
 	h_no_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
+
 	auto h_is_btag_denom_PtVsEta
 	   = top_reco.Histo2D({
 	(        "is_denom_" + temp_header).c_str(),
 	("MC is btag denom " + temp_footer).c_str(),
-	50,0,400,50,-3,3},
+	12,0,200,12,0,3},
 	"is_btag_denom__pt",
 	"is_btag_denom_eta");
 	h_is_btag_denom_PtVsEta->GetXaxis()->SetTitle("pT/GeV");
 	h_is_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
+        auto btag_denom_canvas =
+        new TCanvas("btag_denom", "btag_denom",10,10,900,900);
+        h_is_btag_denom_PtVsEta->Draw("COLZ");
+        h_is_btag_denom_PtVsEta->SaveAs("is_btag_denom.root");
+
+
 	auto h_no_btag_denom_PtVsEta
 	   = top_reco.Histo2D({
 	(        "no_denom_" + temp_header).c_str(),
 	("MC no btag denom " + temp_footer).c_str(),
-	50,0,400,50,-3,3},
+	12,0,200,12,-0,3},
 	"no_btag_denom__pt",
 	"no_btag_denom_eta");
 	h_no_btag_denom_PtVsEta->GetXaxis()->SetTitle("pT/GeV");
 	h_no_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
 	TH2D *
-	is_btag_ratio = new TH2D("ei", "is b tag ei",50,0,400,50,-3,3);
+	is_btag_ratio = new TH2D("ei", "is b tag ei",12,0,200,12,0,3);
 	is_btag_ratio = static_cast<TH2D*>(h_is_btag_numer_PtVsEta->Clone());
 	is_btag_ratio->Divide(             h_is_btag_denom_PtVsEta.GetPtr());
+	auto ratio_canvas =
+	new TCanvas("ei", "ei",10,10,900,900);
 	is_btag_ratio->Draw("COLZ");// trigger getting everything done
+	ratio_canvas->SaveAs("ei_ratio.root");
 	TH2D *
-	no_btag_ratio = new TH2D("ej", "no b tag ej",50,0,400,50,-3,3);
+	no_btag_ratio = new TH2D("ej", "no b tag ej",12,0,200,12,0,3);
 	no_btag_ratio = static_cast<TH2D*>(h_no_btag_numer_PtVsEta->Clone());
 	no_btag_ratio->Divide(             h_no_btag_denom_PtVsEta.GetPtr());
 	no_btag_ratio->Draw("COLZ");// DELETED @ EoF
+	
 	auto btag_eff
 	   = top_reco
 	.Define("IsEffBTagged",BTaggedEffGiver(is_btag_ratio, true),
@@ -1180,6 +1202,8 @@ void calchisto(const channel ch,const dataSource ds){
 	h_zw_Dph->Write();
 	h_z_daughters_Dph->Write();
 	h_tWmVsZmass->Write();
+	is_btag_ratio->Write();
+	no_btag_ratio->Write();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
