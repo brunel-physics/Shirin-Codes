@@ -332,14 +332,11 @@ auto      is_bjet_numer(const ints& id,const ints& is_bjet){
 }
 auto      no_bjet_numer(const ints& id,const ints& is_bjet){
 // using bjets which has satisfied is btag conditions
-        auto aid = abs(id);
-	//aid = (( aid >  0  && aid <= 4)
-	//      || aid == 21 || aid != 5);
-	//aid.resize(is_bjet.size(),0);// discard tail or pad zeroes
-	ints no_bjet_numer = (( aid >  0  && aid <= 4)
-                             || aid == 21 || aid != 5);
-	no_bjet_numer.resize(is_bjet.size(),0);
-	return no_bjet_numer;
+        ints aid = abs(id);
+	aid = (( aid >  0  && aid <= 4)
+	      || aid == 21 || aid != 5);
+	aid.resize(is_bjet.size(),0);// discard tail or pad zeroes
+	return aid;
 }
 constexpr auto& is_bjet_denom = is_bjet_numer;// same functions, just
 constexpr auto& no_bjet_denom = no_bjet_numer;// different input mask
@@ -351,7 +348,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
                const doubles& eta){
 	if(debug>0)std::cout<<"btagCSVv2 entered"<<std::endl;
 	bool ignore = !check_CSVv2;// magic btag checker; heavily reused
-	strings formulae(pt.size() ,check_CSVv2 ? "1" : "0");// vector of "0" and "1"
+	strings formulae(pt.size(), "1"); //,check_CSVv2 ? "1" : "0");// vector of "0" and "1"
 	doubles  results(pt.size());
 	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
 		"Collections must be the same size in btagCSVv2");
@@ -379,14 +376,14 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	for(size_t i=0; i < pt.size() ;++i){
 	
 	// always true if dont check CSV
-	     b = ignore
+ 	     b = ignore
 	||(CSVmin < btag[i] && btag[i] < CSVmax);
 	std::string tempFormula = rawFormula;
 	if(  b
 	&& etaMin < eta [i] && eta [i] < etaMax
 	&& pt_Min < pt  [i] && pt  [i] < pt_Max){
 	
-	if("0" == formulae[i] || "1" == formulae[i]){// only 1st found wins
+	if("1" == formulae[i]){// only 1st found wins
 	
 	if(std::string::npos != tempFormula.find("x")){
 	
@@ -548,7 +545,7 @@ return [&,b](const doubles& pts,const doubles& etas){
 		"Collections must be the same size (effGiver)");
 	if(pts.empty()) throw std::logic_error(
 		"Collections must not be empty in  (effGiver)");
-	doubles BTaggedEff(pts.size()); //(pts.size()), b ? 1. : 0.);
+	doubles BTaggedEff(pts.size(),1); //(pts.size()), b ? 1. : 0.);
 	for(size_t   i=0; i <  pts.size() ;++i){
 		int  PtBin = ratio->GetXaxis()->FindBin(pts [i]);
 		int EtaBin = ratio->GetYaxis()->FindBin(std::abs(etas[i]));
@@ -752,7 +749,7 @@ auto sf(const  dataSource ds){
 //				"Unimplemented ds (infile)");
 		}
 		if(debug > 5) std::cout << "b_w "<<b <<"mu_id, mu_iso"<<mu_id<<" "<<mu_iso<<" sf is "<< result * b<< std::endl;
-		return result * mu_id * mu_iso;
+		return result * b *  mu_id * mu_iso;
 	};
 }
 auto rep_const(const double sf,const doubles& iRVec){
@@ -827,7 +824,7 @@ void calchisto(const channel ch,const dataSource ds){
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(100000);
-	auto w_selection = df// remove one letter to do all
+	auto w_selection = dfr// remove one letter to do all
 	//.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	.Define("loose_leps",lep_sel(ch),
 	       {temp_header+"isPFcand",
@@ -1188,9 +1185,61 @@ void calchisto(const channel ch,const dataSource ds){
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("tWm   GeV/C^2");
 	h_tWmVsZmass->GetYaxis()->SetTitle("Zmass GeV/C^2");
+	
+	auto
+	h_sfi = P_btag.Histo1D({
+	("sfi_"+temp_header).c_str(),
+	("sfi "+temp_header).c_str(),
+	50,-10,10}, "sfi");
+	
+	auto
+	h_sfj = P_btag.Histo1D({
+	("sfj_"+temp_header).c_str(),
+	("sfj "+temp_header).c_str(),
+	50,-10,10}, "sfj");
+	
+	auto
+	h_pi_ei = P_btag.Histo1D({
+        ("pi_ei_"+temp_header).c_str(),
+        ("pi_ei "+temp_header).c_str(),
+        50,-10,10}, "Pi___ei");
+	
+        auto
+        h_pi_ej = P_btag.Histo1D({
+        ("pi_ej_"+temp_header).c_str(),
+        ("pi_ej "+temp_header).c_str(),
+        50,-10,10}, "Pi___ej");
+	
+	auto
+	h_pi_sfei= P_btag.Histo1D({
+	("pi_sfei"+temp_header).c_str(),
+	("pi_sfei"+temp_header).c_str(),
+	50,-10,10},"Pi_sfei");
+	
+        auto
+        h_pi_sfej= P_btag.Histo1D({
+        ("pi_sfej"+temp_header).c_str(),
+        ("pi_sfej"+temp_header).c_str(),
+        50,-10,10},"Pi_sfej");
+	
+       	auto
+	h_btag_w= P_btag.Histo1D({
+        ("btag_w_"+temp_header).c_str(),
+        ("btag_W_"+temp_header).c_str(),
+        50,-100,100},"btag_w");
+
+
+
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf((temp_header+".histo").c_str(),"RECREATE");
+	h_sfi->Write();
+	h_sfj->Write();
+	h_pi_ei->Write();
+	h_pi_ej->Write();
+	h_pi_sfei->Write();
+	h_pi_sfej->Write();
+	h_btag_w->Write();
 	h_is_btag_numer_PtVsEta->Write();
 	h_no_btag_numer_PtVsEta->Write();
 	h_is_btag_denom_PtVsEta->Write();
