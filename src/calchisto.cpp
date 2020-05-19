@@ -77,7 +77,7 @@ constexpr double ZZLLQQ_W =  .0485;
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
 template <typename T> constexpr T TPI = PI<T> * 2;
 
-enum      elSf      {};
+enum      elSf      {eff,smr};
 enum      muSf      {Id, Idsys, IdsysStat, IdsysSyst,
                     Iso,Isosys,IsosysStat,IsosysSyst};
 /*
@@ -346,7 +346,8 @@ auto btagCSVv2(const bool check_CSVv2){//,
 //ROOT::RDF::RInterface<ROOT::Detail::RDF::RJittedFilter, void>& btagDF){
     return [=](const  floats& btag,
                const doubles& pt  ,
-               const doubles& eta){
+               const doubles& eta ,
+	       const    ints& flav){
 	if(debug>0)std::cout<<"btagCSVv2 entered"<<std::endl;
 	bool ignore = !check_CSVv2;// magic btag checker; heavily reused
 	strings formulae(pt.size(), "1");//,check_CSVv2 ? "1" : "0");
@@ -358,7 +359,8 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	if(btag.size() < pt.size()) throw std::logic_error(
 		"insufficient btagCSVv2");
 	std::string  measureType,sysType,rawFormula;
-	int    jetFlav;//	TODO: jet flav 5 or 0?
+	ints   aflv = abs(flav);//
+	int    jetFlav;//	TODO: jet flav 5 or 0? BTag Website , B = 0;
 	double CSVv2   ,
 	       pt_Min , pt_Max,
 	       etaMin , etaMax,
@@ -371,8 +373,10 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	      etaMin,etaMax,pt_Min,pt_Max,CSVmin,CSVmax,rawFormula)){
 	// always true if dont check CSV
 	bool b = ignore || BTAG_DISC_MIN <= CSVv2;
-	if(  b          && "mujets"  == measureType
+	if(  b          //&& "mujets"  == measureType
 	&& 0 == jetFlav && "central" ==     sysType){
+
+	std::cout<< "jet flavour is "<<aflv<<std::endl;
 
 	for(size_t i=0; i < pt.size() ;++i){
 
@@ -384,7 +388,14 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	&& etaMin < eta [i] && eta [i] < etaMax
 	&& pt_Min < pt  [i] && pt  [i] < pt_Max){
 
+        //if(aflv [i]  == 5 && "mujets" == measureType && b) continue;
+        //else if((aflv [i] <= 4 || 0  < aflv [i] || aflv ==21 && "incl" == measureType)continue;
+        // This logic still needs to be worked on
+	// Not sure about the strategy of flav not 5 do we still return sfi from formula
+	// or we then say let formula == "1";? same for the sfj.
+
 	if("1" == formulae[i]){// only 1st found wins
+
 
 	if(std::string::npos != tempFormula.find("x")){
 
@@ -670,48 +681,52 @@ auto btag_weight(const double p_data,const double p_MC){
 	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// rids non-zero/inf/NaN
 	return  weight;
 	}
+
 auto elEffGiver(const float pt,
 		 const float eta){
+	std::map<elSf,double> dict
+	={{eff,1.},{smr,1.}};
+	// eff = electron regression corrections
+	// smr = energy scale and smearing corrections
 	std::string fname,hname;
 	float ata = abs(eta);
 	TFile *Fname;
         TH2 *h_EgammaSf;
         int PtBin,EtaBin;
 	hname = "EGamma_SF2D";
-	float sf;
-	if(20. <= pt ){
-	fname  = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
-	Fname  = new TFile(fname.c_str());
+	if(20.  <= pt ){
+	fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
+	Fname    = new TFile(fname.c_str());
 	Fname->GetObject(fname.c_str(), h_EgammaSf);
-        PtBin  = h_EgammaSf->GetXaxis()->FindBin(pt );
-        EtaBin = h_EgammaSf->GetYaxis()->FindBin(ata);
-        sf     = h_EgammaSf->GetBinContent(PtBin,EtaBin);
+        PtBin    = h_EgammaSf->GetXaxis()->FindBin(pt );
+        EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
+        dict[eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
         Fname->Close();
         delete Fname; Fname = nullptr; delete h_EgammaSf;
 	}
 	else if(pt < 20.f){
-        fname = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root";
-        Fname = new TFile(fname.c_str());
+        fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root";
+        Fname    = new TFile(fname.c_str());
         Fname->GetObject(fname.c_str(), h_EgammaSf);
-        PtBin = h_EgammaSf->GetXaxis()->FindBin(pt );
-        EtaBin= h_EgammaSf->GetYaxis()->FindBin(ata);
-        sf    = h_EgammaSf->GetBinContent(PtBin,EtaBin);
+        PtBin    = h_EgammaSf->GetXaxis()->FindBin(pt );
+        EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
+        dict[eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
         Fname->Close();
         delete Fname; Fname = nullptr; delete h_EgammaSf;
 	}
 	else // TODO: this need clarification
 	{
-        fname = "egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root";
-        Fname = new TFile(fname.c_str());
+        fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root";
+        Fname    = new TFile(fname.c_str());
         Fname->GetObject(fname.c_str(), h_EgammaSf);
-        PtBin = h_EgammaSf->GetXaxis()->FindBin(pt );
-        EtaBin= h_EgammaSf->GetYaxis()->FindBin(ata);
-        sf    = h_EgammaSf->GetBinContent(PtBin,EtaBin);
+        PtBin    = h_EgammaSf->GetXaxis()->FindBin(pt );
+        EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
+        dict[smr]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
         Fname->Close();
         delete Fname; Fname = nullptr; delete h_EgammaSf;
 
 	}
-	return sf;
+	return dict;
 
 }
 
@@ -814,7 +829,7 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 	return [=](const float     pt,const float eta,
 	           const float    phi,const   int Q,
 	           const float gen_pt,const   int nl){
-	double sf = 1., id = 1., iso = 1.;
+	double sf = 1., id = 1., iso = 1., eff = 1., smr = 1.;
 	RoccoR rc("roccor.Run2.v3/RoccoR2017.txt");
 	switch (ch){
 	case elnu :{
@@ -823,11 +838,12 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 		case  ww:// fall through
 		case  wz:
 		case  zz:
-		case ttz:{// TODO: elEffGiver
-/*			auto dict = elEffGiver(pt,eta);
-			id  = dict[Id ];
-			iso = dict[Iso];
-*/
+		case ttz:{
+			//sf = elEffGiver(pt,eta);// TODO: elEffGiver
+			auto dict = elEffGiver(pt,eta);
+			eff  = dict[eff];
+			smr =  dict[smr];
+
 			break;}
 		case met:// exptData do not call elEffGiver
 		case cms:;// default sf, id, iso works
@@ -877,7 +893,9 @@ a given muon, random number (u) should remain unchanged.
 	if(debug > 0) std::cout
 		<< "mostSf "       << sf
 		<< " id "          << id
-		<< " iso "         << iso
+		<< " iso"          << iso
+		<< " eff"	   << eff
+		<< " smr"	   << smr
 		<< " for channel " << ch << std::endl;
 	return sf * id * iso;};
 }
@@ -1065,9 +1083,10 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("no_btag_denom_eta",[](ints x,doubles y){return abs(y[x]);},
 	       {"no_btag_denom"    ,"fin_jets_eta"})
 	.Define("sfi",btagCSVv2( true),//,btagDF),// checks btag
-	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta"})
+	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "Jet_partonFlavour"})
 	.Define("sfj",btagCSVv2(false),//,btagDF),// ignore btag
-	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta"})
+	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "Jet_partonFlavour"})
+	// check if Jet_partonFlavour is the correct branch.
 	;
 	auto     expt_bjets
 	   = init_selection
