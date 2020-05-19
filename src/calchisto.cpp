@@ -670,6 +670,50 @@ auto btag_weight(const double p_data,const double p_MC){
 	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// rids non-zero/inf/NaN
 	return  weight;
 	}
+auto elEffGiver(const float pt,
+		 const float eta){
+	std::string fname,hname;
+	TFile *Fname;
+        TH *h_EgammaSf;
+        int PtBin,EtaBin;
+	hname = "EGamma_SF2D";
+	float sf;
+	if(20. < pt ){
+	fname = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
+	Fname = new TFile(fname.c_str());
+	Fname->GetObject(fname.c_str(), hname.c_Str());
+        PtBin = h_EgammaSf->GetXaxis()->FindBin(pt );
+        EtaBin= h_EgammaSf->GetYaxis()->FindBin(ata);
+        sf    = h_Eganna->GetBinContent(PtBin,EtaBin);
+        Fname->Close();
+        delete Fname; Fname = nullptr; delete h_Egamma;
+	}
+	else if(pt < 20.f){
+        fname = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root";
+        Fname = new TFile(fname.c_str());
+        Fname->GetObject(fname.c_str(), hname.c_Str());
+        PtBin = h_EgammaSf->GetXaxis()->FindBin(pt );
+        EtaBin= h_EgammaSf->GetYaxis()->FindBin(ata);
+        sf    = h_Eganna->GetBinContent(PtBin,EtaBin);
+        Fname->Close();
+        delete Fname; Fname = nullptr; delete h_Egamma;
+	}
+	else // TODO: this need clarification
+	{
+        fname = "egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root";
+        Fname = new TFile(fname.c_str());
+        Fname->GetObject(fname.c_str(), hname.c_Str());
+        PtBin = h_EgammaSf->GetXaxis()->FindBin(pt );
+        EtaBin= h_EgammaSf->GetYaxis()->FindBin(ata);
+        sf    = h_Eganna->GetBinContent(PtBin,EtaBin);
+        Fname->Close();
+        delete Fname; Fname = nullptr; delete h_Egamma;
+
+	}
+	return sf;
+
+}
+
 auto muEffGiver(const float pt,
                 const float eta){
 	const float ata = abs(eta);
