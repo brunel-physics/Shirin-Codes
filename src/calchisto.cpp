@@ -673,41 +673,42 @@ auto btag_weight(const double p_data,const double p_MC){
 auto elEffGiver(const float pt,
 		 const float eta){
 	std::string fname,hname;
+	float ata = abs(eta);
 	TFile *Fname;
-        TH *h_EgammaSf;
+        TH2 *h_EgammaSf;
         int PtBin,EtaBin;
 	hname = "EGamma_SF2D";
 	float sf;
-	if(20. < pt ){
-	fname = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
-	Fname = new TFile(fname.c_str());
-	Fname->GetObject(fname.c_str(), hname.c_Str());
-        PtBin = h_EgammaSf->GetXaxis()->FindBin(pt );
-        EtaBin= h_EgammaSf->GetYaxis()->FindBin(ata);
-        sf    = h_Eganna->GetBinContent(PtBin,EtaBin);
+	if(20. <= pt ){
+	fname  = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
+	Fname  = new TFile(fname.c_str());
+	Fname->GetObject(fname.c_str(), h_EgammaSf);
+        PtBin  = h_EgammaSf->GetXaxis()->FindBin(pt );
+        EtaBin = h_EgammaSf->GetYaxis()->FindBin(ata);
+        sf     = h_EgammaSf->GetBinContent(PtBin,EtaBin);
         Fname->Close();
-        delete Fname; Fname = nullptr; delete h_Egamma;
+        delete Fname; Fname = nullptr; delete h_EgammaSf;
 	}
 	else if(pt < 20.f){
         fname = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root";
         Fname = new TFile(fname.c_str());
-        Fname->GetObject(fname.c_str(), hname.c_Str());
+        Fname->GetObject(fname.c_str(), h_EgammaSf);
         PtBin = h_EgammaSf->GetXaxis()->FindBin(pt );
         EtaBin= h_EgammaSf->GetYaxis()->FindBin(ata);
-        sf    = h_Eganna->GetBinContent(PtBin,EtaBin);
+        sf    = h_EgammaSf->GetBinContent(PtBin,EtaBin);
         Fname->Close();
-        delete Fname; Fname = nullptr; delete h_Egamma;
+        delete Fname; Fname = nullptr; delete h_EgammaSf;
 	}
 	else // TODO: this need clarification
 	{
         fname = "egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root";
         Fname = new TFile(fname.c_str());
-        Fname->GetObject(fname.c_str(), hname.c_Str());
+        Fname->GetObject(fname.c_str(), h_EgammaSf);
         PtBin = h_EgammaSf->GetXaxis()->FindBin(pt );
         EtaBin= h_EgammaSf->GetYaxis()->FindBin(ata);
-        sf    = h_Eganna->GetBinContent(PtBin,EtaBin);
+        sf    = h_EgammaSf->GetBinContent(PtBin,EtaBin);
         Fname->Close();
-        delete Fname; Fname = nullptr; delete h_Egamma;
+        delete Fname; Fname = nullptr; delete h_EgammaSf;
 
 	}
 	return sf;
