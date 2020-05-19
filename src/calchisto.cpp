@@ -77,7 +77,7 @@ constexpr double ZZLLQQ_W =  .0485;
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
 template <typename T> constexpr T TPI = PI<T> * 2;
 
-enum      elSf      {eff,smr};
+enum      elSf      {Eff,Smr};
 enum      muSf      {Id, Idsys, IdsysStat, IdsysSyst,
                     Iso,Isosys,IsosysStat,IsosysSyst};
 /*
@@ -228,7 +228,8 @@ auto jetCutter(const unsigned jmin, const unsigned jmax){
 		return jmin <= nj && nj <= jmax;
 	};
 }
-auto jets_gen_select(const floats& gen, const floats& jet){
+template<typename T>
+auto jets_gen_select(const floats& gen, const T& jet){
 	//if(debug>0) std::cout<<"gen select"<<std::endl;
 // select jets that have generated level info; used @ JEC
 // use this function ONLY for Monte Carlo, not CMS / MET
@@ -349,19 +350,19 @@ auto btagCSVv2(const bool check_CSVv2){//,
                const doubles& eta ,
 	       const    ints& flav){
 	if(debug>0)std::cout<<"btagCSVv2 entered"<<std::endl;
-	bool ignore = !check_CSVv2;// magic btag checker; heavily reused
 	strings formulae(pt.size(), "1");//,check_CSVv2 ? "1" : "0");
 	doubles  results(pt.size());
-	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
+	if(!all_equal(pt.size(),eta.size(),flav.size())) throw std::logic_error(
 		"Collections must be the same size in btagCSVv2");
 	if(pt.empty())	throw std::logic_error(
 		"Collections must not be empty in btagCSVv2");
 	if(btag.size() < pt.size()) throw std::logic_error(
 		"insufficient btagCSVv2");
 	std::string  measureType,sysType,rawFormula;
-	ints   aflv = abs(flav);//
+	ints   aflv   = abs(flav);
+	bool   b;
 	int    jetFlav;//	TODO: jet flav 5 or 0? BTag Website , B = 0;
-	double CSVv2   ,
+	double CSVv2  ,
 	       pt_Min , pt_Max,
 	       etaMin , etaMax,
 	       CSVmin , CSVmax;
@@ -371,28 +372,26 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	// Each blank line means nesting deeper
 	while(thisCSVfile.read_row(CSVv2,measureType,sysType,jetFlav,
 	      etaMin,etaMax,pt_Min,pt_Max,CSVmin,CSVmax,rawFormula)){
-	// always true if dont check CSV
-	bool b = ignore || BTAG_DISC_MIN <= CSVv2;
-	if(  b          //&& "mujets"  == measureType
-	&& 0 == jetFlav && "central" ==     sysType){
-
-	std::cout<< "jet flavour is "<<aflv<<std::endl;
+	if(check_CSVv2){
+	    b = BTAG_DISC_MIN <= CSVv2 && "mujets" == measureType
+	    && 0 == jetFlav;
+	}
+	else {
+	    b= "incl" == measureType && 0 != jetFlav;
+	}
+	if( b && "central" == sysType){
 
 	for(size_t i=0; i < pt.size() ;++i){
-
-	// always true if dont check CSV
-	     b = ignore
-	||(CSVmin < btag[i] && btag[i] < CSVmax);
+	if(check_CSVv2){
+	     b = CSVmin < btag[i] && btag[i] < CSVmax
+		 && aflv[i] ==5;
+	}else{
+	     b = aflv[i] < 5 || 21 == aflv[i];
+	}
 	std::string tempFormula = rawFormula;
 	if(  b
 	&& etaMin < eta [i] && eta [i] < etaMax
 	&& pt_Min < pt  [i] && pt  [i] < pt_Max){
-
-        //if(aflv [i]  == 5 && "mujets" == measureType && b) continue;
-        //else if((aflv [i] <= 4 || 0  < aflv [i] || aflv ==21 && "incl" == measureType)continue;
-        // This logic still needs to be worked on
-	// Not sure about the strategy of flav not 5 do we still return sfi from formula
-	// or we then say let formula == "1";? same for the sfj.
 
 	if("1" == formulae[i]){// only 1st found wins
 
@@ -685,7 +684,7 @@ auto btag_weight(const double p_data,const double p_MC){
 auto elEffGiver(const float pt,
 		 const float eta){
 	std::map<elSf,double> dict
-	={{eff,1.},{smr,1.}};
+	={{Eff,1.},{Smr,1.}};
 	// eff = electron regression corrections
 	// smr = energy scale and smearing corrections
 	std::string fname,hname;
@@ -700,7 +699,7 @@ auto elEffGiver(const float pt,
 	Fname->GetObject(fname.c_str(), h_EgammaSf);
         PtBin    = h_EgammaSf->GetXaxis()->FindBin(pt );
         EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
-        dict[eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
+        dict[Eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
         Fname->Close();
         delete Fname; Fname = nullptr; delete h_EgammaSf;
 	}
@@ -710,7 +709,7 @@ auto elEffGiver(const float pt,
         Fname->GetObject(fname.c_str(), h_EgammaSf);
         PtBin    = h_EgammaSf->GetXaxis()->FindBin(pt );
         EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
-        dict[eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
+        dict[Eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
         Fname->Close();
         delete Fname; Fname = nullptr; delete h_EgammaSf;
 	}
@@ -721,7 +720,7 @@ auto elEffGiver(const float pt,
         Fname->GetObject(fname.c_str(), h_EgammaSf);
         PtBin    = h_EgammaSf->GetXaxis()->FindBin(pt );
         EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
-        dict[smr]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
+        dict[Smr]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
         Fname->Close();
         delete Fname; Fname = nullptr; delete h_EgammaSf;
 
@@ -841,8 +840,8 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 		case ttz:{
 			//sf = elEffGiver(pt,eta);// TODO: elEffGiver
 			auto dict = elEffGiver(pt,eta);
-			eff  = dict[eff];
-			smr =  dict[smr];
+			eff  = dict[Eff];
+			smr =  dict[Smr];
 
 			break;}
 		case met:// exptData do not call elEffGiver
@@ -1040,6 +1039,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("tight_jets_eta" ,    "Jet_eta [tight_jets]")
 	.Define("tight_jets_phi" ,    "Jet_phi [tight_jets]")
 	.Define("tight_jets_mas" ,    "Jet_mass[tight_jets]")
+	.Define("tight_jets_flv" ,    "Jet_partonFlavour[tight_jets]")
 	;
 	// JEC == tight_jets inc. Jet Energy Correction
 	// good_jets (defined above) are tight jets which have generated level info
@@ -1052,6 +1052,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("good_jets_eta",jets_gen_select,{"GenJet_eta" ,"tight_jets_eta"})
 	.Define("good_jets_phi",jets_gen_select,{"GenJet_phi" ,"tight_jets_phi"})
 	.Define("good_jets_mas",jets_gen_select,{"GenJet_mass","tight_jets_mas"})
+	.Define("good_jets_flv",jets_gen_select,{"GenJet_partonFlavour","tight_jets_flv"})
 	.Define("pt_resol"     ,jet_smear_pt_resol/*(ptRcsv)*/,
 	       {"good_jets__pt",
 	        "good_jets_eta","fixedGridRhoFastjetAll"})
@@ -1083,9 +1084,9 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("no_btag_denom_eta",[](ints x,doubles y){return abs(y[x]);},
 	       {"no_btag_denom"    ,"fin_jets_eta"})
 	.Define("sfi",btagCSVv2( true),//,btagDF),// checks btag
-	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "Jet_partonFlavour"})
+	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "good_jets_flv"})
 	.Define("sfj",btagCSVv2(false),//,btagDF),// ignore btag
-	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "Jet_partonFlavour"})
+	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "good_jets_flv"})
 	// check if Jet_partonFlavour is the correct branch.
 	;
 	auto     expt_bjets
