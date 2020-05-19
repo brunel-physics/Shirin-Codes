@@ -1,10 +1,8 @@
 // TODO: lepton trigger efficiency to be integrated inside calchisto
-#include <ROOT/RCsvDS.hxx>//#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <TLorentzVector.h>
-#include <TRandom3.h>// used Gaussian once
-#include <TSystem.h>// for safer RCsvDS via gSystem
+#include <TRandom3.h>// used Gaussian, uniform each once
 #include <TChain.h>
-#include <TCanvas.h>
 //#include <execution>// need to link -ltbb in Makefile
 
 #include "csv.h"
@@ -75,11 +73,20 @@ constexpr double WZLNQQ_W =  .2335;
 constexpr double  TTZQQ_W =  .0237;
 constexpr double ZZLLQQ_W =  .0485;
 
-enum lepSf	{Id,Idsys,IdsysStat,IdsysSyst,Iso,Isosys,IsosysStat,IsosysSyst};
-
 // This Pi is more accurate than binary256; good for eternity
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
 template <typename T> constexpr T TPI = PI<T> * 2;
+
+enum      elSf      {};
+enum      muSf      {Id, Idsys, IdsysStat, IdsysSyst,
+                    Iso,Isosys,IsosysStat,IsosysSyst};
+/*
+constexpr muSf
+          muSfAll[]={Id, Idsys, IdsysStat, IdsysSyst,
+                    Iso,Isosys,IsosysStat,IsosysSyst};
+constexpr elSf
+          elSfAll[]={};
+*/
 
 auto met_pt_cut(const channel ch){
 	float lower_bound;
@@ -174,14 +181,9 @@ auto lep_nu_invmass(const float lep_pt    ,
 	neu.SetPtEtaPhiM(cal_metpt,lep_eta,cal_metphi,0.);
 	return (lep+neu).M();
 }
-/*
-auto w_mass_cut(const double w_mass)
-	{return std::abs(w_mass-W_MASS)<W_MASS_CUT;};
-*/
-auto z_mass_cut(const double z_mass)
-	{return std::abs(z_mass-Z_MASS)<Z_MASS_CUT;}
-
-// TODO: top_mass_cut belongs here
+auto easy_mass_cut(const double theo,const double cut){
+	return [=](const double ours){return std::abs(ours-theo)<cut;};
+}
 template<typename T,typename U>
 [[gnu::const]] bool all_equal(const T& t, const U& u){return t == u;}
 template<typename T,typename U,typename... Types>
@@ -325,14 +327,13 @@ auto      no_bjet_id(const doubles& etas){
    return abs(etas) < BJET_ETA_MAX;}
 
 auto      is_bjet_numer(const ints& id,const ints& is_bjet){
-   auto aid = abs(id);
-   ints   is_bjet_numer = aid == 5;
+   ints   is_bjet_numer = abs(id) == 5;
           is_bjet_numer.resize(is_bjet.size(),0);// discard tail or pad zeroes
    return is_bjet_numer;
 }
 auto      no_bjet_numer(const ints& id,const ints& is_bjet){
 // using bjets which has satisfied is btag conditions
-        ints aid = abs(id);
+	ints     aid =  abs(id);
 	aid = (( aid >  0  && aid <= 4)
 	      || aid == 21 || aid != 5);
 	aid.resize(is_bjet.size(),0);// discard tail or pad zeroes
@@ -348,7 +349,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
                const doubles& eta){
 	if(debug>0)std::cout<<"btagCSVv2 entered"<<std::endl;
 	bool ignore = !check_CSVv2;// magic btag checker; heavily reused
-	strings formulae(pt.size(), "1"); //,check_CSVv2 ? "1" : "0");// vector of "0" and "1"
+	strings formulae(pt.size(), "1");//,check_CSVv2 ? "1" : "0");
 	doubles  results(pt.size());
 	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
 		"Collections must be the same size in btagCSVv2");
@@ -370,23 +371,23 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	      etaMin,etaMax,pt_Min,pt_Max,CSVmin,CSVmax,rawFormula)){
 	// always true if dont check CSV
 	bool b = ignore || BTAG_DISC_MIN <= CSVv2;
-	if(  b          && "mujets"    == measureType
+	if(  b          && "mujets"  == measureType
 	&& 0 == jetFlav && "central" ==     sysType){
-	
+
 	for(size_t i=0; i < pt.size() ;++i){
-	
+
 	// always true if dont check CSV
- 	     b = ignore
+	     b = ignore
 	||(CSVmin < btag[i] && btag[i] < CSVmax);
 	std::string tempFormula = rawFormula;
 	if(  b
 	&& etaMin < eta [i] && eta [i] < etaMax
 	&& pt_Min < pt  [i] && pt  [i] < pt_Max){
-	
+
 	if("1" == formulae[i]){// only 1st found wins
-	
+
 	if(std::string::npos != tempFormula.find("x")){
-	
+
 	// now guaranteed one good formula with x in it
 	// Time to replace all x with pt ourselves~~ No need boost::replace_all
 	std::string  ptstr = std::to_string(pt[i]);
@@ -545,9 +546,9 @@ return [&,b](const doubles& pts,const doubles& etas){
 		"Collections must be the same size (effGiver)");
 	if(pts.empty()) throw std::logic_error(
 		"Collections must not be empty in  (effGiver)");
-	doubles BTaggedEff(pts.size(),1); //(pts.size()), b ? 1. : 0.);
+	doubles BTaggedEff(pts.size(),1);//pts.size(), b ? 1. : 0.);
 	for(size_t   i=0; i <  pts.size() ;++i){
-		int  PtBin = ratio->GetXaxis()->FindBin(pts [i]);
+		int  PtBin = ratio->GetXaxis()->FindBin(         pts [i] );
 		int EtaBin = ratio->GetYaxis()->FindBin(std::abs(etas[i]));
 		double eff = ratio->GetBinContent(PtBin,EtaBin);
 		if(FP_NORMAL == std::fpclassify(eff))// if eff non-zero/inf/NaN
@@ -582,7 +583,7 @@ auto Sfi_EffIsBTaggedProduct(const doubles& EffIsBTagged,const doubles& sfi){
 	size_t   size = b < s ? b : s;
 	for(size_t i=0; i < size ;++i)
 	       result    *= sfi[i] * EffIsBTagged[i];
-	if(debug>5)std::cout<<"sfi is "<<sfi<<" Sfi_EffIsBTaggedProduct "<<result<<std::endl;
+	if(debug>5)std::cout<<"sfi = "<<sfi<<" product = "<<result<<std::endl;
 	return result;
 }
 auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
@@ -594,7 +595,7 @@ auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
 	for(size_t i=0; i < size ;++i)
 //	       result*= -std::fma(EffNoBTagged[i],sfj[i],-1.);
 	       result*= 1. - EffNoBTagged[i]*sfj[i];
-	if(debug>5)std::cout<<"sfj is "<<sfj<<" Sfj_EffNoBTaggedProduct "<<result<<std::endl;
+	if(debug>5)std::cout<<"sfj = "<<sfj<<" product = "<<result<<std::endl;
 	return result;
 }
 /*
@@ -666,125 +667,181 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 */
 auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
-	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;
-	// if eff non-zero/inf/Nan
+	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// rids non-zero/inf/NaN
 	return  weight;
 	}
-auto lepEffGiver(const channel ch  ,// computes muon id and iso sfs
-		 const lepSf   type){
-	return [=](const float  pt,
-		   const float eta){
-	float abs_eta = abs(eta);
-        float sf;
-	std::string fname, hname;
-        TH2* h_RunsBCDEF;
-	switch(ch){
-	
-	case elnu :{return 1.f;}// return dangy place
-	case munu :{switch(type){
-			case Id:{
-			fname = "Muon_RunBCDEF_SF_ID.root";
-			hname = "NUM_TightID_DEN_genTracks_pt_abseta"	  	    ;break;}
-			case Idsys:{
-			fname = "Muon_RunBCDEF_SF_ID_syst.root";
-			hname = "NUM_TightID_DEN_genTracks_pt_abseta"	  	    ;break;}
- 			case IdsysStat:{
-			fname = "Muon_RunBCDEF_SF_ID_syst.root";
-			hname = "NUM_TightID_DEN_genTracks_pt_abseta_stat"	    ;break;}
-  			case IdsysSyst:{
-			fname = "Muon_RunBCDEF_SF_ID_syst.root";
-			hname = "NUM_TightID_DEN_genTracks_pt_abseta_syst"	    ;break;}
-  			case Iso:{
-			fname = "Muon_RunBCDEF_SF_ISO.root";
-			hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta"     ;break;}
-  			case Isosys:{
-			fname = "Muon_RunBCDEF_SF_ISO_syst.root";
-			hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta"     ;break;}
-  			case IsosysStat:{
-			fname = "Muon_RunBCDEF_SF_ISO_syst.root";
-			hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat";break;}
-  			case IsosysSyst:{
-			fname = "Muon_RunBCDEF_SF_ISO_syst.root";
-			hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_syst";break;}
-			}; break;} // type switch closing
-	} // ch switch closing
-	TFile Fname(fname.c_str());
-     	Fname.GetObject(hname.c_str(), h_RunsBCDEF);
-  	
-	if(20.f<=pt && pt<=120.f && abs_eta <= 2.4){
-	// All the followings are declared for RUNBCDEF
-  	int PtBin  =
-	h_RunsBCDEF->GetXaxis()->FindBin(pt);
-        int EtaBin  =
-	h_RunsBCDEF->GetYaxis()->FindBin(abs_eta);
-        float Sf_R  = // Only used for muons sf bin content
-	h_RunsBCDEF->GetBinContent(PtBin, EtaBin);
-	float Err_R = // error bin content
-	h_RunsBCDEF->GetBinError  (PtBin, EtaBin);
-	
-	if(type == IdsysStat  || type == IdsysSyst ||
-	   type == IsosysStat || type == IsosysSyst )
-	     sf =  Err_R;
-	else{sf =  Sf_R;}
-	}// outer if
-	
-	else{sf =  1.f;}
-	Fname.Close();
-	return sf;
-	}; //lambda
-} // lep_eff_func
-auto RoccoSf(const dataSource ds, const channel ch){
-	if(debug > 0) std::cout<<" RoccorSF"<<std::endl;
-	return [=](const int Q     	, const float& pt ,
-		   const float& eta	, const float& phi,
-		   const float& gen_pt  , const int&   nl  ){
+auto muEffGiver(const float pt,
+                const float eta){
+	const float ata = abs(eta);
+	std::map<muSf,double> dict
+	={{Id,1.},{ Idsys,1.},{ IdsysStat,1.},{ IdsysSyst,1. },
+	 {Iso,1.},{Isosys,1.},{IsosysStat,1.},{IsosysSyst,1.}};
+	if(20.f <= pt && pt <= 120.f && ata <= 2.4f) return dict;
+	std::string fname,hname;
+	TFile *Fname;
+	TH2 *h_RunsBCDEF;
+	int PtBin,EtaBin;
+
+	fname = "Muon_RunBCDEF_SF_ID.root";
+	hname = "NUM_TightID_DEN_genTracks_pt_abseta";
+	Fname = new TFile(fname.c_str());
+	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
+	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
+	dict[Id]
+	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
+	Fname->Close();
+	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+
+	fname = "Muon_RunBCDEF_SF_ID_syst.root";
+	hname = "NUM_TightID_DEN_genTracks_pt_abseta";
+	Fname = new TFile(fname.c_str());
+	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
+	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
+	dict[Idsys]
+	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
+	Fname->Close();
+	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+
+	fname = "Muon_RunBCDEF_SF_ID_syst.root";
+	hname = "NUM_TightID_DEN_genTracks_pt_abseta_stat";
+	Fname = new TFile(fname.c_str());
+	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
+	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
+	dict[IdsysStat]
+	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
+	delete h_RunsBCDEF;
+	hname = "NUM_TightID_DEN_genTracks_pt_abseta_syst";
+	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
+	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
+	dict[IdsysSyst]
+	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
+	Fname->Close();
+	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+
+	fname = "Muon_RunBCDEF_SF_ISO.root";
+	hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
+	Fname = new TFile(fname.c_str());
+	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
+	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
+	dict[Iso]
+	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
+	Fname->Close();
+	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+
+	fname = "Muon_RunBCDEF_SF_ISO_syst.root";
+	hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
+	Fname = new TFile(fname.c_str());
+	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
+	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
+	dict[Isosys]
+	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
+	Fname->Close();
+	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+
+	fname = "Muon_RunBCDEF_SF_ISO_syst.root";
+	hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat";
+	Fname = new TFile(fname.c_str());
+	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
+	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
+	dict[IsosysStat]
+	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
+	delete h_RunsBCDEF;
+	hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_syst";
+	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
+	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
+	dict[IsosysSyst]
+	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
+	Fname->Close();
+	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+
+	return dict;
+}
+auto lepEffGiver(const channel ch,const dataSource ds){
+	if(debug > 0) std::cout<<"lepEffGiver"<<std::endl;
+	return [=](const float     pt,const float eta,
+	           const float    phi,const   int Q,
+	           const float gen_pt,const   int nl){
+	double sf = 1., id = 1., iso = 1.;
+	RoccoR rc("roccor.Run2.v3/RoccoR2017.txt");
+	switch (ch){
+	case elnu :{
+		switch(ds){
+		case tzq:
+		case  ww:// fall through
+		case  wz:
+		case  zz:
+		case ttz:{// TODO: elEffGiver
+/*			auto dict = elEffGiver(pt,eta);
+			id  = dict[Id ];
+			iso = dict[Iso];
+*/
+			break;}
+		case met:// exptData do not call elEffGiver
+		case cms:;// default sf, id, iso works
+		}
+	}// no rocco for elnu
+	case munu :{
+		switch(ds){
+		case tzq:
+		case  ww:// fall through
+		case  wz:
+		case  zz:
+		case ttz:{
+			auto dict = muEffGiver(pt,eta);
+			id  = dict[Id ];
+			iso = dict[Iso];// muEffGiver done; rocco follows
 /* Rocco scale factor desc.
 scale factors for momentum of each muon:
 // data
 double dtSF = rc.kScaleDT(Q, pt, eta, phi, s=0, m=0);
-// (recommended),MC scale and resolution correction when matched gen muon is availabl
+// (recommended),MC scale and resolution correction when gen muon exists
 double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genPt, s=0, m=0);
-// MC scale and extra smearing when matched gen muon is not available
+// MC scale and extra smearing when matched gen muon does not exist
 double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, s=0, m=0);
--------------------------------------------------------------------------------------
+----------------------------------------------------------
 Here:
 Q is charge
-nl is trackerLayersWithMeasurement \\
+nl is trackerLayersWithMeasurement
 u is a random number distributed uniformly between 0 and 1
 (gRandom->Rndm());
-s is error set (default is 0)
+s is error set    (default is 0)
 m is error member (default is 0, ranges from 0 to nmembers-1)
 For MC, when switching to different error sets/members for
 a given muon, random number (u) should remain unchanged.
 */
-	float sf;
-	RoccoR rc("roccor.Run2.v3/RoccoR2017.txt");
-	switch (ch){
-		   case elnu :{return 1.f;}
-		   case munu :{switch (ds){
-				case cms:{sf =
-					rc.kScaleDT(Q, pt, eta, phi, 0, 0);break;} //data
-				case tzq://fall through
-				case ww :
-				case wz :
-				case zz :
-				case ttz:{if(gen_pt != 0)
-					  sf =
-					  rc.kSpreadMC(Q, pt, eta, phi, gen_pt,0, 0);
-					  else{auto u =gRandom->Rndm();// not sure if gRandom works!
-					  std::cout<<
-					  "Warning, u must be between 0 and 1, u is "
-					  <<u<<std::endl;
-					  sf = rc.kSmearMC(Q, pt, eta, phi, nl, u, 0, 0);}
-									   break;}
-					}}}// switch ds ,case munu, ch  switch
-	if(debug > 0)std::cout<<"RoccoR Sf "<<sf<<" for channel "<<ch<<std::endl;
-	return sf;
-};}
-
+			if(gen_pt != 0)
+				sf = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
+			else{auto u = gRandom->Rndm();
+				std::cout<<// not sure if gRandom works!
+				"Warning, u must be between 0 and 1, u is "
+				<<u<<std::endl;
+				sf = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
+			}break;}
+		case met:// exptData do not call muEffGiver
+		case cms:{sf = rc.kScaleDT(Q,pt,eta,phi,0,0);break;}
+		}
+	}}// case munu and switch ch
+	if(debug > 0) std::cout
+		<< "mostSf "       << sf
+		<< " id "          << id
+		<< " iso "         << iso
+		<< " for channel " << ch << std::endl;
+	return sf * id * iso;};
+}
 auto sf(const  dataSource ds){
 	if(debug>0) std::cout<<"scale factor "<<std::endl;
-	return [=](const double b, const float mu_id, const float mu_iso, const float& rocco_sf){
+	return [=](const double b,
+//	           const float  mu_id ,
+//	           const float  mu_iso,
+	           const double mostSF){
 		// TODO: lepton smearing and trigger efficiency
 		double result;
 		switch(ds){
@@ -798,9 +855,10 @@ auto sf(const  dataSource ds){
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (infile)");
 		}
-		if(debug > 5) std::cout << "b_w "<<b <<"mu_id, mu_iso "
-		<<mu_id<<" "<<mu_iso<<" rocco sf "<< rocco_sf<<" sf is "<< result * b<<std::endl;
-		return result * b *  mu_id * mu_iso * rocco_sf;
+		if(debug > 5)std::cout<<"b_w "<<b
+		<<" sf "<<result*b//<<std::endl;
+		<<" mostSF " << mostSF<<std::endl;
+		return result*b*mostSF;
 	};
 }
 auto rep_const(const double sf,const doubles& iRVec){
@@ -858,9 +916,9 @@ void calchisto(const channel ch,const dataSource ds){
 		case ttz:{pointerMagicRDF = &mcsdf;break;}
 		case met:{pointerMagicRDF = &metdf;break;}
 		case cms:{switch(ch){
-		           case elnu:{pointerMagicRDF = &elnudf;break;}
-		           case munu:{pointerMagicRDF = &munudf;break;}
-//		           default  :throw std::invalid_argument(
+		          case elnu:{pointerMagicRDF = &elnudf;break;}
+		          case munu:{pointerMagicRDF = &munudf;break;}
+//		          default  :throw std::invalid_argument(
 //			"Unimplemented ch (rdf set)");
 			}break;}
 //		default :throw std::invalid_argument(
@@ -875,8 +933,9 @@ void calchisto(const channel ch,const dataSource ds){
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(100000);
-	auto w_selection = df// remove one letter to do all
-	//.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
+	auto init_selection = dfr// remove one letter to do all
+	// lepton selection first
+//	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
 	.Define("loose_leps",lep_sel(ch),
 	       {temp_header+"isPFcand",
 	        temp_header+"pt" ,
@@ -887,13 +946,12 @@ void calchisto(const channel ch,const dataSource ds){
 	.Filter(lep_tight_cut(ch),{"loose_leps",
 	        "Electron_cutBased",// left with 1 tight lepton, no loose
 	        "Muon_pfRelIso04_all"},"lepton cut")
-	.Define(   "lep__pt",temp_header+  "pt[loose_leps][0]")
-	.Define(   "lep_eta",temp_header+ "eta[loose_leps][0]")
-	.Define(   "lep_phi",temp_header+ "phi[loose_leps][0]")
-	.Define(   "lep_mas",temp_header+"mass[loose_leps][0]")
-	.Define(   "lep___q",temp_header+"charge[loose_leps][0]")// charge of the particle
-	.Define(   "lep_gpt",      "GenPart_pt[loose_leps][0]")// muon pt masked to generated level pt
-	.Define(   "lep__nl",temp_header+"nTrackerLayers[loose_leps][0]")// Only For Muons
+	.Define(   "lep__pt",temp_header+   "pt [loose_leps][0]")
+	.Define(   "lep_eta",temp_header+   "eta[loose_leps][0]")
+	.Define(   "lep_phi",temp_header+   "phi[loose_leps][0]")
+	.Define(   "lep_mas",temp_header+  "mass[loose_leps][0]")
+	.Define(   "lep___q",temp_header+"charge[loose_leps][0]")// only for rocco
+	// now for transverse W; lepton selected
 	.Define("tw_lep__pt",[](float x){return static_cast<double>(x);},{"lep__pt"})
 	.Define("tw_lep_eta",[](float x){return static_cast<double>(x);},{"lep_eta"})
 	.Define("tw_lep_phi",[](float x){return static_cast<double>(x);},{"lep_phi"})
@@ -908,17 +966,8 @@ void calchisto(const channel ch,const dataSource ds){
 	       "CaloMET_pt" ,
 	       "CaloMET_phi"})
 //	       "CaloMET_sumEt"})// TODO: add this back
-	.Define("lep_eff_ID" ,lepEffGiver(ch,Id) ,{"lep__pt","lep_eta"})
-	.Define("lep_eff_ISO",lepEffGiver(ch,Iso),{"lep__pt","lep_eta"})
-	.Define("rocco_sf"    ,RoccoSf(ds,ch)   ,{"lep___q" ,"lep__pt",
-						   "lep_eta","lep_phi",
-						   "lep_gpt","lep__nl" })// the GenPart_pt
-							// should also be masked to lepton
-
-	//.Filter(w_mass_cut, {"w_el_mass"}, "W mass cut")
-	;
-	auto jet_selection
-	   = w_selection
+//	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
+	// jets selection follows; tW done and lepton selected
 	.Define("jet_lep_min_dR" , jet_lep_min_deltaR<floats>,
 	       {"Jet_eta","Jet_phi",  "lep_eta","lep_phi"})
 	.Define("tight_jets"     , tight_jet_id   ,
@@ -934,25 +983,23 @@ void calchisto(const channel ch,const dataSource ds){
 	// by neglecting the ones which exclude generated level info,
 	// we make sure the jec is computing correctly
 	// & jets w/o JEC will be excluded too.
-	auto jec // DONE: CMS and MET no GenJet
-	   = jet_selection
-	.Define("good_jets__pt" ,jets_gen_select,{"GenJet_pt"  ,"tight_jets__pt"})
-	.Define("good_jets_eta" ,jets_gen_select,{"GenJet_eta" ,"tight_jets_eta"})
-	.Define("good_jets_phi" ,jets_gen_select,{"GenJet_phi" ,"tight_jets_phi"})
-	.Define("good_jets_mas" ,jets_gen_select,{"GenJet_mass","tight_jets_mas"})
-	.Define("pt_resol"     , jet_smear_pt_resol/*(ptRcsv)*/,
+	auto     jecs_bjets// DONE: CMS and MET no GenJet
+	   = init_selection
+	.Define("good_jets__pt",jets_gen_select,{"GenJet_pt"  ,"tight_jets__pt"})
+	.Define("good_jets_eta",jets_gen_select,{"GenJet_eta" ,"tight_jets_eta"})
+	.Define("good_jets_phi",jets_gen_select,{"GenJet_phi" ,"tight_jets_phi"})
+	.Define("good_jets_mas",jets_gen_select,{"GenJet_mass","tight_jets_mas"})
+	.Define("pt_resol"     ,jet_smear_pt_resol/*(ptRcsv)*/,
 	       {"good_jets__pt",
 	        "good_jets_eta","fixedGridRhoFastjetAll"})
 	.Define("Sjer",jet_smear_Sjer/*(sjerCsv)*/, {"good_jets_eta"})
 	.Define("cjer",    delta_R_jet_smear      , {"good_jets__pt","GenJet_pt",
 	        "pt_resol","Sjer","jet_lep_min_dR"})
-	.Define("fin_jets__pt" , "good_jets__pt * cjer")// these are JEC
-	.Define("fin_jets_eta" , "good_jets_eta * cjer")// Monte Carlo
-	.Define("fin_jets_phi" , "good_jets_phi * cjer")// needs JEC
-	.Define("fin_jets_mas" , "good_jets_mas * cjer")// fin = final
-	;
-	auto jecs_bjets
-	   = jec
+	.Define("fin_jets__pt" ,"good_jets__pt * cjer")// these are JEC
+	.Define("fin_jets_eta" ,"good_jets_eta * cjer")// Monte Carlo
+	.Define("fin_jets_phi" ,"good_jets_phi * cjer")// needs JEC
+	.Define("fin_jets_mas" ,"good_jets_mas * cjer")// fin = final
+	// jets selected, now bjets and btagging preliminaries
 	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","Jet_btagCSVV2"})
 	.Filter(jetCutter(BJETS_MIN,BJETS_MAX)   ,{"is_bjets"},"b jet cut")
 	.Define("no_bjets"         ,no_bjet_id   ,{"fin_jets_eta"})
@@ -964,17 +1011,21 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("no_btag_numer__pt","fin_jets__pt[no_btag_numer]")
 	.Define("is_btag_denom__pt","fin_jets__pt[is_btag_denom]")
 	.Define("no_btag_denom__pt","fin_jets__pt[no_btag_denom]")
-	.Define("is_btag_numer_eta",[](doubles x, ints y){return abs(x[y]);},{"fin_jets_eta","is_btag_numer"})
-	.Define("no_btag_numer_eta",[](doubles x, ints y){return abs(x[y]);},{"fin_jets_eta","no_btag_numer"})
-	.Define("is_btag_denom_eta",[](doubles x, ints y){return abs(x[y]);},{"fin_jets_eta","is_btag_denom"})
-	.Define("no_btag_denom_eta",[](doubles x, ints y){return abs(x[y]);},{"fin_jets_eta","no_btag_denom"})
+	.Define("is_btag_numer_eta",[](ints x,doubles y){return abs(y[x]);},
+	       {"is_btag_numer"    ,"fin_jets_eta"})
+	.Define("no_btag_numer_eta",[](ints x,doubles y){return abs(y[x]);},
+	       {"no_btag_numer"    ,"fin_jets_eta"})
+	.Define("is_btag_denom_eta",[](ints x,doubles y){return abs(y[x]);},
+	       {"is_btag_denom"    ,"fin_jets_eta"})
+	.Define("no_btag_denom_eta",[](ints x,doubles y){return abs(y[x]);},
+	       {"no_btag_denom"    ,"fin_jets_eta"})
 	.Define("sfi",btagCSVv2( true),//,btagDF),// checks btag
 	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta"})
 	.Define("sfj",btagCSVv2(false),//,btagDF),// ignore btag
 	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta"})
 	;
-	auto expt_bjets
-	   = jet_selection
+	auto     expt_bjets
+	   = init_selection
 	.Define("fin_jets__pt",[](floats& x){return static_cast<doubles>(x);},
 	     {"tight_jets__pt"})
 	.Define("fin_jets_eta",[](floats& x){return static_cast<doubles>(x);},
@@ -999,8 +1050,9 @@ void calchisto(const channel ch,const dataSource ds){
 //		default :throw std::invalid_argument(
 //			"Unimplemented ds (bjets)");
 	}
-	auto z___reco
+	auto reco
 	   = (*bjets_correctly)
+	// reconstruct z avoiding bjets first
 	.Define(   "fin_jets_Dph" , jet_deltaphi  ,{"fin_jets_phi"})
 	.Define( "lead_bjet"      , find_lead_mask,{"fin_jets__pt","is_bjets"})
 	.Define(      "bjet__pt"  ,"fin_jets__pt[lead_bjet]")// Leading bjet
@@ -1021,11 +1073,11 @@ void calchisto(const channel ch,const dataSource ds){
 	           "z_pair_eta"   ,
 	           "z_pair_phi"   ,
 	           "z_pair_mas"  })
-	.Define(   "z_mas"        , TLVex( m ),{"z_TLV"})
-	.Filter(    z_mass_cut    , { "z_mas"},"z mass cut")
-	.Define(   "z__pt"        , TLVex(pt ),{"z_TLV"})
-	.Define(   "z_eta"        , TLVex(eta),{"z_TLV"})
-	.Define(   "z_phi"        , TLVex(phi),{"z_TLV"})
+	.Define(   "z_mas"        ,    TLVex( m ),{"z_TLV"})
+	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut")
+	.Define(   "z__pt"        ,    TLVex(pt ),{"z_TLV"})
+	.Define(   "z_eta"        ,    TLVex(eta),{"z_TLV"})
+	.Define(   "z_phi"        ,    TLVex(phi),{"z_TLV"})
 	.Define(   "z_lep_min_dR" , jet_lep_min_deltaR<doubles>,// TODO: Check input?
 	       {   "z_pair_eta"   ,
 	           "z_pair_phi"   ,
@@ -1039,10 +1091,8 @@ void calchisto(const channel ch,const dataSource ds){
 //	.Filter(      deltaphi_cut(DELTA_PHI_ZMET),
 //	       { "zmet_Dph"},"Z met cut ")
 	// Adding a mask to pick the z_pair_phi from the fin_jets_phi
-	.Define( "z_jets_Dph"	 , jet_deltaphi,{"z_pair_phi"})
-	;
-	auto top_reco
-	   = z___reco
+	.Define("z_jets_Dph", jet_deltaphi   ,{"z_pair_phi"})
+	// reconstruct transverse top follows; z reconstructed
 	.Define("recoTtop",top_reconst,
 	       {"bjet__pt",
 	        "bjet_eta",
@@ -1056,7 +1106,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("ttop_eta",TLVex(eta),{"recoTtop"})
 	.Define("ttop_phi",TLVex(phi),{"recoTtop"})
 	.Define("ttop_mas",TLVex( m ),{"recoTtop"})
-	;// TODO: CMS and MET stop here
+	;
 	// now we make the histogram names and titles
 	switch(ch){// laugh at muon-neutrino below
 		case elnu:{temp_header = "elnu_";
@@ -1079,7 +1129,7 @@ void calchisto(const channel ch,const dataSource ds){
 //			"Unimplemented ds (hist titles)");
 	}
 	auto h_is_btag_numer_PtVsEta
-	   = top_reco.Histo2D({
+	   = reco.Histo2D({
 	(        "is_numer_" + temp_header).c_str(),
 	("MC is btag numer " + temp_footer).c_str(),
 	12,0,200,12,0,3},
@@ -1088,13 +1138,8 @@ void calchisto(const channel ch,const dataSource ds){
 	h_is_btag_numer_PtVsEta->GetXaxis()->SetTitle("pT/GeV");
 	h_is_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
 
-        auto btag_numer_canvas =
-        new TCanvas("btag_numer", "btag_numer",10,10,900,900);
-	h_is_btag_numer_PtVsEta->Draw("COLZ");
-	h_is_btag_numer_PtVsEta->SaveAs("is_btag_numer.root");
-
 	auto h_no_btag_numer_PtVsEta
-	   = top_reco.Histo2D({
+	   = reco.Histo2D({
 	(        "no_numer_" + temp_header).c_str(),
 	("MC no btag numer " + temp_footer).c_str(),
 	12,0,200,12,0,3},
@@ -1104,7 +1149,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_no_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
 
 	auto h_is_btag_denom_PtVsEta
-	   = top_reco.Histo2D({
+	   = reco.Histo2D({
 	(        "is_denom_" + temp_header).c_str(),
 	("MC is btag denom " + temp_footer).c_str(),
 	12,0,200,12,0,3},
@@ -1112,52 +1157,75 @@ void calchisto(const channel ch,const dataSource ds){
 	"is_btag_denom_eta");
 	h_is_btag_denom_PtVsEta->GetXaxis()->SetTitle("pT/GeV");
 	h_is_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
-        auto btag_denom_canvas =
-        new TCanvas("btag_denom", "btag_denom",10,10,900,900);
-        h_is_btag_denom_PtVsEta->Draw("COLZ");
-        h_is_btag_denom_PtVsEta->SaveAs("is_btag_denom.root");
-
 
 	auto h_no_btag_denom_PtVsEta
-	   = top_reco.Histo2D({
+	   = reco.Histo2D({
 	(        "no_denom_" + temp_header).c_str(),
 	("MC no btag denom " + temp_footer).c_str(),
-	12,0,200,12,-0,3},
+	12,0,200,12,0,3},
 	"no_btag_denom__pt",
 	"no_btag_denom_eta");
 	h_no_btag_denom_PtVsEta->GetXaxis()->SetTitle("pT/GeV");
 	h_no_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity eta");
+
 	TH2D *
-	is_btag_ratio = new TH2D("ei", "is b tag ei",12,0,200,12,0,3);
 	is_btag_ratio = static_cast<TH2D*>(h_is_btag_numer_PtVsEta->Clone());
 	is_btag_ratio->Divide(             h_is_btag_denom_PtVsEta.GetPtr());
-	auto ratio_canvas =
-	new TCanvas("ei", "ei",10,10,900,900);
+	is_btag_ratio->SetNameTitle("ei", "is b tag ei");
 	is_btag_ratio->Draw("COLZ");// trigger getting everything done
-	ratio_canvas->SaveAs("ei_ratio.root");
 	TH2D *
-	no_btag_ratio = new TH2D("ej", "no b tag ej",12,0,200,12,0,3);
 	no_btag_ratio = static_cast<TH2D*>(h_no_btag_numer_PtVsEta->Clone());
 	no_btag_ratio->Divide(             h_no_btag_denom_PtVsEta.GetPtr());
+	no_btag_ratio->SetNameTitle("ej", "no b tag ej");
 	no_btag_ratio->Draw("COLZ");// DELETED @ EoF
-	
-	auto btag_eff
-	   = top_reco
+
+	auto     has_btag_eff// MC
+	   = reco
 	.Define("IsEffBTagged",BTaggedEffGiver(is_btag_ratio, true),
 	       {"fin_jets__pt","fin_jets_eta"})// TODO: check sensibility
 	.Define("NoEffBTagged",BTaggedEffGiver(no_btag_ratio,false),
 	       {"fin_jets__pt","fin_jets_eta"})// of this eff formula
+	.Define("P___ei",    EffIsBTaggedProduct,{"IsEffBTagged"})
+	.Define("P___ej",    EffNoBTaggedProduct,{"NoEffBTagged"})
+	.Define("P_sfei",Sfi_EffIsBTaggedProduct,{"IsEffBTagged","sfi"})
+	.Define("P_sfej",Sfj_EffNoBTaggedProduct,{"NoEffBTagged","sfj"})
+	.Define("P_MC"  ,"P___ei * P___ej")
+	.Define("P_Data","P_sfei * P_sfej")
+	.Define("btag_w",btag_weight,{"P_Data","P_MC"})
+	// next few lines are just for muons
+	.Define("lep_gpt"    ,"GenPart_pt[loose_leps][0]")
+	.Define("lep__nl"    ,[=](ints L,ints m){if(munu==ch)return L[m][0];
+	                                         else        return      0 ;},
+	       {"Muon_nTrackerLayers","loose_leps"})
+//	.Define("lep_eff_ID" , muEffGiver(ch,Id ),{"lep__pt","lep_eta"})
+//	.Define("lep_eff_ISO", muEffGiver(ch,Iso),{"lep__pt","lep_eta"})
+	.Define("mostSF"     ,lepEffGiver(ch,ds) ,{"lep__pt","lep_eta",
+	                                           "lep_phi","lep___q",
+	                                           "lep_gpt","lep__nl"})
 	;
-	auto P_btag
-	   = btag_eff
-	.Define("Pi___ei",    EffIsBTaggedProduct,{"IsEffBTagged"})
-	.Define("Pi___ej",    EffNoBTaggedProduct,{"NoEffBTagged"})
-	.Define("Pi_sfei",Sfi_EffIsBTaggedProduct,{"IsEffBTagged","sfi"})
-	.Define("Pi_sfej",Sfj_EffNoBTaggedProduct,{"NoEffBTagged","sfj"})
-	.Define("P_MC"   ,"Pi___ei * Pi___ej")
-	.Define("P_Data" ,"Pi_sfei * Pi_sfej")
-	.Define("btag_w" ,btag_weight,{"P_Data","P_MC"})
-	.Define("sf"     ,sf(ds)   ,{"btag_w","lep_eff_ID","lep_eff_ISO","rocco_sf"})
+	auto     not_btag_eff// exptData
+	   = reco
+	.Define("btag_w" ,[](){return 1.;})
+//	. Alias("lep_eff_ID" ,"btag_w")
+//	. Alias("lep_eff_ISO","btag_w")
+	. Alias("mostSF"     ,"btag_w")
+	;
+	decltype(not_btag_eff) *bw_correctly;
+	switch(ds){
+		case tzq:
+		case  ww:// fall through!
+		case  wz:
+		case  zz:
+		case ttz:{bw_correctly = &has_btag_eff;break;}
+		case met:
+		case cms:{bw_correctly = &not_btag_eff;break;}
+//		default :throw std::invalid_argument(
+//			"Unimplemented ds (bw)");
+	}
+	auto finalDF
+	   = (*bw_correctly)
+	.Define("sf"     ,sf(ds)   ,{"btag_w","mostSF"})
+//	.Define("sf"     ,sf(ds)   ,{"btag_w","lep_eff_ID","lep_eff_ISO","rocco"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")// LOL WHY SO DUMB, weigh the
 	. Alias("nw_lep_phi"       ,"sf")// hist BY "sf" then!
@@ -1166,11 +1234,11 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("nw_fin_jets_eta"  ,rep_const,{"sf","fin_jets_eta"  })
 	.Define("nw_fin_jets_phi"  ,rep_const,{"sf","fin_jets_phi"  })
 	.Define("nw_fin_jets_mas"  ,rep_const,{"sf","fin_jets_mas"  })
-	.Define("nw_jet_lep_min_dR",rep_const,{"sf","jet_lep_min_dR"})
 	.Define("nw_bjet__pt"	   ,rep_const,{"sf","bjet__pt"      })
 	.Define("nw_bjet_eta"      ,rep_const,{"sf","bjet_eta"      })
 	.Define("nw_bjet_phi"      ,rep_const,{"sf","bjet_phi"      })
 	.Define("nw_bjet_mas"      ,rep_const,{"sf","bjet_mas"      })
+	.Define("nw_jet_lep_min_dR",rep_const,{"sf","jet_lep_min_dR"})
 	.Define(  "nw_z_lep_min_dR",rep_const,{"sf",  "z_lep_min_dR"})
 	. Alias( "nw_tw_lep_mas"   ,"sf")
 	. Alias(  "nw_z_mas"       ,"sf")
@@ -1179,11 +1247,10 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias(    "nw_zmet_Dph"  ,"sf")
 	. Alias(      "nw_zw_Dph"  ,"sf")
 	. Alias("nw_lep_nu_invmass","sf")
-	. Alias("nw_ttop__pt","sf")
-	. Alias("nw_ttop_mas","sf")
+	. Alias("nw_ttop__pt"      ,"sf")
+	. Alias("nw_ttop_mas"      ,"sf")
 	;
-	auto
-	h_trans_T = P_btag.Histo1D({
+	auto h_trans_T = finalDF.Histo1D({
 	(          "tTm_"     + temp_header).c_str(),
 	("Transverse T mass " + temp_header).c_str(),
 	50,0,180},
@@ -1191,8 +1258,8 @@ void calchisto(const channel ch,const dataSource ds){
 	h_trans_T->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_T->GetYaxis()->SetTitle("Event");
 	h_trans_T->SetLineStyle(kSolid);
-	auto
-	h_trans_w = P_btag.Histo1D({
+
+	auto h_trans_w = finalDF.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
 	("Transverse W mass " + temp_header).c_str(),
 	50,0,180},
@@ -1200,8 +1267,8 @@ void calchisto(const channel ch,const dataSource ds){
 	h_trans_w->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_w->GetYaxis()->SetTitle("Event");
 	h_trans_w->SetLineStyle(kSolid);
-	auto
-	h_Winvmas = P_btag.Histo1D({
+
+	auto h_Winvmas = finalDF.Histo1D({
 	("W_invariant_mass_" + temp_header).c_str(),
 	("W invariant mass " + temp_header).c_str(),
 	50,0,180},
@@ -1209,107 +1276,98 @@ void calchisto(const channel ch,const dataSource ds){
 	h_Winvmas->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_Winvmas->GetYaxis()->SetTitle("Event");
 	h_Winvmas->SetLineStyle(kSolid);
-	auto
-	h_zmet_Dph = P_btag.Histo1D({
+
+	auto h_zmet_Dph = finalDF.Histo1D({
 	("Z_MET_Delta_Phi_" + temp_header).c_str(),
-	("Z MET Delta Phi" + temp_header).c_str(),
+	("Z MET Delta Phi " + temp_header).c_str(),
 	50,-7,7},
 	"zmet_Dph","nw_zmet_Dph");
 	h_zmet_Dph->GetXaxis()->SetTitle("Z & MET delta phi/rad");
 	h_zmet_Dph->GetYaxis()->SetTitle("Event");
 	h_zmet_Dph->SetLineStyle(kSolid);
-	auto
-	h_zw_Dph = P_btag.Histo1D({
+
+	auto h_zw_Dph = finalDF.Histo1D({
 	("Z_W_Delta_Phi_" + temp_header).c_str(),
-	("Z W Delta Phi" + temp_header).c_str(),
+	("Z W Delta Phi " + temp_header).c_str(),
 	50,-7,7},
 	"zw_Dph","nw_zw_Dph");
 	h_zw_Dph->GetXaxis()->SetTitle("Z & W delta phi/rad");
 	h_zw_Dph->GetYaxis()->SetTitle("Event");
 	h_zw_Dph->SetLineStyle(kSolid);
-	auto
-	h_z_daughters_Dph = P_btag.Histo1D({
+
+	auto h_z_daughters_Dph = finalDF.Histo1D({
 	("Z_pair_jets_Delta_Phi_" + temp_header).c_str(),
-	("Z pair jets Delta Phi" + temp_header).c_str(),
+	("Z pair jets Delta Phi " + temp_header).c_str(),
 	50,-7,7},
 	"z_jets_Dph","nw_z_jets_Dph");
 	h_z_daughters_Dph->GetXaxis()->SetTitle("Z pair jets Delta phi/rad");
 	h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
 	h_z_daughters_Dph->SetLineStyle(kSolid);
-	auto
-	h_tWmVsZmass = P_btag.Histo2D({
+
+	auto h_tWmVsZmass = finalDF.Histo2D({
 	("tWmVsZmass_" + temp_header).c_str(),
-	("tWmVsZmass" + temp_header).c_str(),
+	("tWmVsZmass " + temp_header).c_str(),
 	50,0,200,50,0,200},
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("tWm   GeV/C^2");
 	h_tWmVsZmass->GetYaxis()->SetTitle("Zmass GeV/C^2");
-	
-	auto
-	h_sfi = P_btag.Histo1D({
+
+	auto h_sfi = finalDF.Histo1D({
 	("sfi_"+temp_header).c_str(),
 	("sfi "+temp_header).c_str(),
-	50,-10,10}, "sfi");
-	
-	auto
-	h_sfj = P_btag.Histo1D({
+	50,-10,10},"sfi");
+
+	auto h_sfj = finalDF.Histo1D({
 	("sfj_"+temp_header).c_str(),
 	("sfj "+temp_header).c_str(),
-	50,-10,10}, "sfj");
-	
-	auto
-	h_pi_ei = P_btag.Histo1D({
-        ("pi_ei_"+temp_header).c_str(),
-        ("pi_ei "+temp_header).c_str(),
-        50,-10,10}, "Pi___ei");
-	
-        auto
-        h_pi_ej = P_btag.Histo1D({
-        ("pi_ej_"+temp_header).c_str(),
-        ("pi_ej "+temp_header).c_str(),
-        50,-10,10}, "Pi___ej");
-	
-	auto
-	h_pi_sfei= P_btag.Histo1D({
-	("pi_sfei"+temp_header).c_str(),
-	("pi_sfei"+temp_header).c_str(),
-	50,-10,10},"Pi_sfei");
-	
-        auto
-        h_pi_sfej= P_btag.Histo1D({
-        ("pi_sfej"+temp_header).c_str(),
-        ("pi_sfej"+temp_header).c_str(),
-        50,-10,10},"Pi_sfej");
-	
-       	auto
-	h_btag_w= P_btag.Histo1D({
-        ("btag_w_"+temp_header).c_str(),
-        ("btag_W_"+temp_header).c_str(),
-        50,-100,100},"btag_w");
+	50,-10,10},"sfj");
 
+	auto h_p_ei = finalDF.Histo1D({
+	("p_ei_"+temp_header).c_str(),
+	("p_ei "+temp_header).c_str(),
+	50,-10,10},"P___ei");
 
+	auto h_p_ej = finalDF.Histo1D({
+	("p_ej_"+temp_header).c_str(),
+	("p_ej "+temp_header).c_str(),
+	50,-10,10},"P___ej");
+
+	auto h_p_sfei= finalDF.Histo1D({
+	("p_sfei_"+temp_header).c_str(),
+	("p_sfei "+temp_header).c_str(),
+	50,-10,10},"P_sfei");
+
+	auto h_p_sfej= finalDF.Histo1D({
+	("p_sfej_"+temp_header).c_str(),
+	("p_sfej "+temp_header).c_str(),
+	50,-10,10},"P_sfej");
+
+	auto h_btag_w= finalDF.Histo1D({
+	("btag_w_"+temp_header).c_str(),
+	("btag_W "+temp_header).c_str(),
+	50,-100,100},"btag_w");
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf((temp_header+".histo").c_str(),"RECREATE");
-	h_sfi->Write();
-	h_sfj->Write();
-	h_pi_ei->Write();
-	h_pi_ej->Write();
-	h_pi_sfei->Write();
-	h_pi_sfej->Write();
+	h_sfi   ->Write();
+	h_sfj   ->Write();
+	h_p_ei  ->Write();
+	h_p_ej  ->Write();
+	h_p_sfei->Write();
+	h_p_sfej->Write();
 	h_btag_w->Write();
 	h_is_btag_numer_PtVsEta->Write();
 	h_no_btag_numer_PtVsEta->Write();
 	h_is_btag_denom_PtVsEta->Write();
 	h_no_btag_denom_PtVsEta->Write();
-	h_trans_T->Write();
-	h_trans_w->Write();
-	h_Winvmas->Write();
+	h_trans_T ->Write();
+	h_trans_w ->Write();
+	h_Winvmas ->Write();
 	h_zmet_Dph->Write();
-	h_zw_Dph->Write();
+	  h_zw_Dph->Write();
 	h_z_daughters_Dph->Write();
-	h_tWmVsZmass->Write();
+	h_tWmVsZmass ->Write();
 	is_btag_ratio->Write();
 	no_btag_ratio->Write();
 	// the following two for loops stack correctly
@@ -1333,8 +1391,8 @@ void calchisto(const channel ch,const dataSource ds){
 		temp_footer = particle + kstring;
 		temp_opener = temp_header + "_" + temp_footer;
 		auto
-		h = P_btag.Histo1D({
-		 temp_opener.c_str()
+		h = finalDF.Histo1D(
+		{temp_opener.c_str()
 		,temp_opener.c_str()
 		,50,xmin,xmax}
 		,       temp_footer .c_str()
