@@ -15,11 +15,11 @@ int main(int argc,char* argv[]){
 	        command ==     "analyse"){  }//analyse(    argc,argv);}
 	else if(command == "badbranches"){badbranches();}//argc,argv);}
 	else if(command ==      "dedupe"){dedupe();}//     argc,argv);}
-	else if(command ==   "calchisto"){calchisto(munu,tzq);}
+	else if(command ==   "calchisto"){calchisto(elnu,tzq);}
 	else{
-		std::cout << "Error: command " 
-		          <<         command 
-			  << " not recognised" 
+		std::cout << "Error: command "
+		          <<         command
+			  << " not recognised"
 			  << std::endl;
 		return 2;
 	}

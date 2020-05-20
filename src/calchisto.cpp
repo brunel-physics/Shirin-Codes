@@ -22,32 +22,32 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-constexpr    int debug = 7;
-constexpr  float ENDCAP_ETA_MIN = 1.566f;
-constexpr  float BARREL_ETA_MAX = 1.4442f;
+  constexpr    int debug = 6;
+  constexpr  float ENDCAP_ETA_MIN = 1.566f;
+  constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
-constexpr  float EL__PT_MIN   = 45.f;//{15}//min 12, AP 45,
+  constexpr  float EL__PT_MIN   = 45.f;//{15}//min 12, AP 45,
 //constexpr  float EL_LPT_MIN   = 35.f;// Leading
-constexpr  float EL_ETA_MAX   = 2.5f;
-constexpr    int EL_LOOSE_ID  = 1;
-constexpr    int EL_TIGHT_ID  = 4;
+  constexpr  float EL_ETA_MAX   = 2.5f;
+  constexpr    int EL_LOOSE_ID  = 1;
+  constexpr    int EL_TIGHT_ID  = 4;
 
 //constexpr    int MU_MAX_NUM   = 1;
-constexpr  float MU__PT_MIN   = 40.f;//min 33, AP 40,
+  constexpr  float MU__PT_MIN   = 40.f;//min 33, AP 40,
 //constexpr  float MU_LPT_MIN   = 26.f;// Leading
-constexpr  float MU_ETA_MAX   = 2.4f;
-constexpr  float MU_LOOSE_ISO = .15f;
-constexpr  float MU_TIGHT_ISO = .25f;
+  constexpr  float MU_ETA_MAX   = 2.4f;
+  constexpr  float MU_LOOSE_ISO = .15f;
+  constexpr  float MU_TIGHT_ISO = .25f;
 
 //constexpr  float MET__PT_MIN  = 40.f;
-constexpr  float MET_EL_PT    = 80.f;
-constexpr  float MET_MU_PT    = 40.f;
+  constexpr  float MET_EL_PT    = 80.f;
+  constexpr  float MET_MU_PT    = 40.f;
 
-constexpr double   Z_MASS     =  91.1876;
-constexpr double   Z_MASS_CUT =  20.;
-constexpr double   W_MASS     =  80.385;
-constexpr double   W_MASS_CUT =  20.;
-constexpr double TOP_MASS     = 172.5;
+  constexpr double   Z_MASS     =  91.1876;
+  constexpr double   Z_MASS_CUT =  20.;
+  constexpr double   W_MASS     =  80.385;
+  constexpr double   W_MASS_CUT =  20.;
+  constexpr double TOP_MASS     = 172.5;
 //constexpr double TOP_MASS_CUT =  20.;
 
 constexpr float    JET_ETA_MAX =  4.7f;
@@ -85,7 +85,7 @@ constexpr muSf
           muSfAll[]={Id, Idsys, IdsysStat, IdsysSyst,
                     Iso,Isosys,IsosysStat,IsosysSyst};
 constexpr elSf
-          elSfAll[]={};
+          elSfAll[]={Eff,Smr};
 */
 
 auto met_pt_cut(const channel ch){
@@ -275,42 +275,44 @@ auto jet_smear_Sjer(const floats& etas){
 }
 [[gnu::const]] auto ramp(const double Sjer){
 	if(Sjer > 0.) return Sjer;
-	else           return  0.;
+	else          return   0.;
 }
-auto delta_R_jet_smear(const  floats&  pt,
-		       const  floats& eta,
-		       const  floats& phi,
-                       const  floats& gen_pt,
-		       const  floats& gen_eta,
-		       const  floats& gen_phi,
-                       const doubles& resol,
-                       const doubles& Sjer){
+auto delta_R_jet_smear(const floats& jpt,const floats& jeta,const floats& jphi,
+                       const float   rho,
+                       const floats& gpt,const floats& geta,const floats& gphi,
+                       const   ints& mask){// mask is tight jets
 	if(debug>0) std::cout<<"delta r jet smear"<<std::endl;
-	if(!all_equal(pt.size(),resol.size(),Sjer.size()))
-		throw std::logic_error("Collections must be the same size in deltaR_Jsmear");
-	if(pt.empty())
-		throw std::logic_error("Collections must not be empty in deltaR_Jsmear");
+	if(!all_equal(jpt.size(),jeta.size(),jphi.size(),mask.size())
+	|| !all_equal(gpt.size(),geta.size(),gphi.size()))
+		throw std::logic_error(
+			"Collections must be the same size (deltaR_Jsmear)");
+	if(jpt.empty()) throw std::logic_error(
+			"Collections must not be empty for (deltaR_Jsmear)");
 	// the method used in here is the Jets Smearing Hybrid Method
-	const   size_t      size = pt.size();
-	doubles cjers(	    size , 0.);// correction factor
-	ints    gen(gen_pt.size(),1);
-	gen.resize(size);
-
+	const size_t size = jpt.size();
+	double temp;
+	const size_t                 tJ_final_size
+	= count_if(mask.cbegin(),mask.cend(),[](int i){return 0 != i;});
+	doubles cjers; cjers.reserve(tJ_final_size);
+	ints gen(gpt.size(),1); gen.resize(size);
+	auto resol = jet_smear_pt_resol/*(ptRcsv)*/(jpt,jeta,rho);
+	auto  Sjer = jet_smear_Sjer   /*(sjerCsv)*/(    jeta    );
 	for(size_t i=0; i < size ;++i){
-		if(1== gen[i] && std::abs( pt[i]-gen_pt[i]) < 3*resol[i]*pt[i]
-		&& deltaR(gen_eta[i],gen_phi[i],eta[i],phi[i]) < RconeBy2){
-			// Scaling method is being used
-			cjers[i] += (1+(1+Sjer[i])
-			     * (( pt[i]-gen_pt[i])/pt[i]));
-		}
-		else{
-			// Stochastic smearing should be applied
+	if(   0!=mask[i]){// only do stuff if tight jet
+		if(0!=gen [i] && std::abs(jpt [i]-gpt [i]) < 3*resol[i]*jpt[i]
+		&& deltaR(geta[i],gphi[i],jeta[i],jphi[i]) < RconeBy2){
+			temp = (1+(1+Sjer[i])// Scaling method
+			    *((jpt[i]-gpt[i])/jpt[i]));
+		}else{// Stochastic smearing
 			double Normdist = gRandom->Gaus(0,Sjer[i]);
 			double  max_val = Sjer[i] * Sjer[i] - 1;
-			cjers[i] += (1+Normdist*std::sqrt(ramp(max_val)));
+			temp = (1+Normdist*std::sqrt(ramp(max_val)));
 		}
-		if(cjers[i] < 0) cjers[i] =0;
-	}
+		if(temp < 0) temp = 0;
+		cjers.emplace_back(temp);
+	}}
+	if(cjers.size() != tJ_final_size) throw std::logic_error(
+		"Defective cjers has wrong size");
 	return cjers;
 }
 auto      is_bjet_id(const doubles& etas,const floats& btags){// added jec_eta
@@ -342,20 +344,23 @@ auto btagCSVv2(const bool check_CSVv2){//,
     return [=](const  floats& btag,
                const doubles& pt  ,
                const doubles& eta ,
-	       const    ints& flav){
+               const    ints& flav){
 	if(debug>0)std::cout<<"btagCSVv2 entered"<<std::endl;
-	strings formulae(pt.size(), "1");//,check_CSVv2 ? "1" : "0");
-	doubles  results(pt.size());
-	if(!all_equal(pt.size(),eta.size()))/*,flav.size()))*/ throw std::logic_error(
+	const size_t     size = pt  .size();
+	strings formulae(size  ,"1");//,check_CSVv2 ? "1" : "0");
+	doubles  results(size );
+	if(!all_equal(   size  ,flav.size(),
+	             eta.size(),btag.size())) throw std::logic_error(
 		"Collections must be the same size in btagCSVv2");
-	if(pt.empty())	throw std::logic_error(
+	if(0 == size) throw std::logic_error(
 		"Collections must not be empty in btagCSVv2");
-	if(btag.size() < pt.size()) throw std::logic_error(
+/*	if(btag.size() < pt.size()) throw std::logic_error(
 		"insufficient btagCSVv2");
+*/
 	std::string  measureType,sysType,rawFormula;
 	ints   aflv   = abs(flav);
 	bool   b;
-	int    jetFlav;//	TODO: jet flav 5 or 0? BTag Website , B = 0;
+	int    jetFlav;// TODO: jet flav 5 or 0? BTag Website, B = 0;
 	double CSVv2  ,
 	       pt_Min , pt_Max,
 	       etaMin , etaMax,
@@ -366,29 +371,30 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	// Each blank line means nesting deeper
 	while(thisCSVfile.read_row(CSVv2,measureType,sysType,jetFlav,
 	      etaMin,etaMax,pt_Min,pt_Max,CSVmin,CSVmax,rawFormula)){
+
 	if(check_CSVv2){
-	    b = BTAG_DISC_MIN <= CSVv2 && "mujets" == measureType
-	    && 0 == jetFlav;
+		b= BTAG_DISC_MIN <= CSVv2
+		&& "mujets" == measureType && 0 == jetFlav;
+	}else{
+		b=   "incl" == measureType && 0 != jetFlav;
 	}
-	else {
-	    b= "incl" == measureType && 0 != jetFlav;
-	}
-	if( b && "central" == sysType){
+	if(b && "central" ==  sysType ){
 
 	for(size_t i=0; i < pt.size() ;++i){
 	if(check_CSVv2){
-	     b = CSVmin < btag[i] && btag[i] < CSVmax
-		 && aflv[i] ==5;
+		b= CSVmin < btag[i] && btag[i] < CSVmax
+		&& aflv[i] == 5;
+//		&& aflv.at(i) == 5;
 	}else{
-	     b = aflv[i] < 5 || 21 == aflv[i];
+		b= aflv[i] <  5 || 21 == aflv[i] ;
+//		b= aflv.at(i) <  5 || 21 == aflv.at(i) ;
 	}
 	std::string tempFormula = rawFormula;
-	if(  b
+	if(b
 	&& etaMin < eta [i] && eta [i] < etaMax
 	&& pt_Min < pt  [i] && pt  [i] < pt_Max){
 
 	if("1" == formulae[i]){// only 1st found wins
-
 
 	if(std::string::npos != tempFormula.find("x")){
 
@@ -433,7 +439,7 @@ auto find_lead_mask(const doubles& vals,const ints& mask){
 	if(mask.empty()) throw std::logic_error(
 		"Collections must not be empty in lead_mask");
 	const auto      masked_vals = mask * vals;
-	ints  lead_mask(masked_vals.size(),0);// vector of zeroes
+	ints  lead_mask(masked_vals.size());// vector of zeroes
 	const auto max_idx = static_cast<size_t>(std::distance(
 		masked_vals.cbegin(),
 		max_element( masked_vals.cbegin(),
@@ -461,7 +467,7 @@ auto find_z_pair(const doubles& pts,
 	// The next two for loops stack correctly with the if
 	for(size_t   i=0; i < njets-1 ;++i)// only try to z pair if
 	for(size_t j=i+1; j < njets   ;++j)// both are NOT lead bjet
-	if(lead_bjet[i] == 0 &&  lead_bjet[j] == 0){
+	if(lead_bjet[i] == 0 && lead_bjet[j] == 0){
 		TLorentzVector jet1,jet2;
 		jet1.SetPtEtaPhiM(pts[i],etas[i],phis[i],ms[i]);
 		jet2.SetPtEtaPhiM(pts[j],etas[j],phis[j],ms[j]);
@@ -482,7 +488,7 @@ auto TLVpairAdd(const doubles& pt__pair,// Create TLorentzV from 2 jets 4-mom
                 const doubles& phi_pair,
                 const doubles& mas_pair){
 	//if(debug>0) std::cout<<"TLVpairAdd"<<std::endl;
-	if(pt__pair.size() != 2) throw std::logic_error(
+	if(2 != pt__pair.size()) throw std::logic_error(
 		"Not pair of Z (TLVpairAdd)");
 	TLorentzVector v,p;
 	v.SetPtEtaPhiM(pt__pair[0],eta_pair[0],phi_pair[0],mas_pair[0]);
@@ -568,7 +574,7 @@ return [&,b](const doubles& pts,const doubles& etas){
 }
 auto EffIsBTaggedProduct(const doubles& EffIsBTagged){
 	double     result  = 1.;
-	for(size_t i=0;  i < EffIsBTagged.size() ;++i)
+	for(size_t i=0; i  < EffIsBTagged.size() ;++i)
 	           result *= EffIsBTagged[i];
 	if(debug>5) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
 	return     result;
@@ -671,56 +677,49 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 */
 auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
-	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// rids non-zero/inf/NaN
+	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// Rids non-zero/inf/NaN
 	return  weight;
 	}
 
-auto elEffGiver(const float pt,
-		 const float eta){
-	std::map<elSf,double> dict
-	={{Eff,1.},{Smr,1.}};
-	// eff = electron regression corrections
-	// smr = energy scale and smearing corrections
+auto elEffGiver(const float pt,const float eta){
+	std::map<elSf,double> dict = {{Eff,1.},{Smr,1.}};
+	// eff == electron    regression    corrections
+	// smr == energy scale and smearing corrections
 	std::string fname,hname;
 	float ata = abs(eta);
-	TFile *Fname;
-        TH2 *h_EgammaSf;
-        int PtBin,EtaBin;
-	hname = "EGamma_SF2D";
-	if(20.  <= pt ){
-	fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
-	Fname    = new TFile(fname.c_str());
-	Fname->GetObject(fname.c_str(), h_EgammaSf);
-        PtBin    = h_EgammaSf->GetXaxis()->FindBin(pt );
-        EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
-        dict[Eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
-        Fname->Close();
-        delete Fname; Fname = nullptr; delete h_EgammaSf;
-	}
-	else if(pt < 20.f){
-        fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root";
-        Fname    = new TFile(fname.c_str());
-        Fname->GetObject(fname.c_str(), h_EgammaSf);
-        PtBin    = h_EgammaSf->GetXaxis()->FindBin(pt );
-        EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
-        dict[Eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
-        Fname->Close();
-        delete Fname; Fname = nullptr; delete h_EgammaSf;
-	}
-	else // TODO: this need clarification
-	{
-        fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root";
-        Fname    = new TFile(fname.c_str());
-        Fname->GetObject(fname.c_str(), h_EgammaSf);
-        PtBin    = h_EgammaSf->GetXaxis()->FindBin(pt );
-        EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
-        dict[Smr]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
-        Fname->Close();
-        delete Fname; Fname = nullptr; delete h_EgammaSf;
-
-	}
+	TFile  *Fname;
+	TH2  *h_EgammaSf;
+	int PtBin,EtaBin;
+	hname       = "EGamma_SF2D";
+	if(   20.f <= pt){
+		fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
+		Fname    = new TFile(fname.c_str());
+		Fname    ->GetObject(fname.c_str() ,h_EgammaSf);
+		 PtBin   = h_EgammaSf->GetXaxis()->FindBin(pt );
+		EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
+		dict[Eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
+		Fname->Close();
+		delete Fname;Fname=nullptr;delete h_EgammaSf;h_EgammaSf=nullptr;
+	}else{//if(pt < 20.f){
+		fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root";
+		Fname    = new TFile(fname.c_str());
+		Fname    ->GetObject(fname.c_str() ,h_EgammaSf);
+		 PtBin   = h_EgammaSf->GetXaxis()->FindBin(pt );
+		EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
+		dict[Eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
+		Fname->Close();
+		delete Fname;Fname=nullptr;delete h_EgammaSf;h_EgammaSf=nullptr;
+	}//else{// TODO: this need clarification
+		fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root";
+		Fname    = new TFile(fname.c_str());
+		Fname    ->GetObject(fname.c_str() ,h_EgammaSf);
+		 PtBin   = h_EgammaSf->GetXaxis()->FindBin(pt );
+		EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
+		dict[Smr]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
+		Fname->Close();
+		delete Fname;Fname=nullptr;delete h_EgammaSf;h_EgammaSf=nullptr;
+//	}
 	return dict;
-
 }
 
 auto muEffGiver(const float pt,
@@ -735,85 +734,85 @@ auto muEffGiver(const float pt,
 	TH2 *h_RunsBCDEF;
 	int PtBin,EtaBin;
 
-	fname = "Muon_RunBCDEF_SF_ID.root";
-	hname = "NUM_TightID_DEN_genTracks_pt_abseta";
-	Fname = new TFile(fname.c_str());
-	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 fname = "Muon_RunBCDEF_SF_ID.root";
+	 hname = "NUM_TightID_DEN_genTracks_pt_abseta";
+	 Fname = new TFile(fname.c_str());
+	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
 	dict[Id]
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
-	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
-	fname = "Muon_RunBCDEF_SF_ID_syst.root";
-	hname = "NUM_TightID_DEN_genTracks_pt_abseta";
-	Fname = new TFile(fname.c_str());
-	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 fname = "Muon_RunBCDEF_SF_ID_syst.root";
+	 hname = "NUM_TightID_DEN_genTracks_pt_abseta";
+	 Fname = new TFile(fname.c_str());
+	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
 	dict[Idsys]
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
-	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
-	fname = "Muon_RunBCDEF_SF_ID_syst.root";
-	hname = "NUM_TightID_DEN_genTracks_pt_abseta_stat";
-	Fname = new TFile(fname.c_str());
-	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 fname = "Muon_RunBCDEF_SF_ID_syst.root";
+	 hname = "NUM_TightID_DEN_genTracks_pt_abseta_stat";
+	 Fname = new TFile(fname.c_str());
+	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
 	dict[IdsysStat]
 	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
-	delete h_RunsBCDEF;
-	hname = "NUM_TightID_DEN_genTracks_pt_abseta_syst";
-	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	delete h_RunsBCDEF; h_RunsBCDEF = nullptr;
+	 hname = "NUM_TightID_DEN_genTracks_pt_abseta_syst";
+	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
 	dict[IdsysSyst]
 	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
 	Fname->Close();
-	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
-	fname = "Muon_RunBCDEF_SF_ISO.root";
-	hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
-	Fname = new TFile(fname.c_str());
-	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 fname = "Muon_RunBCDEF_SF_ISO.root";
+	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
+	 Fname = new TFile(fname.c_str());
+	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
 	dict[Iso]
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
-	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
-	fname = "Muon_RunBCDEF_SF_ISO_syst.root";
-	hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
-	Fname = new TFile(fname.c_str());
-	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 fname = "Muon_RunBCDEF_SF_ISO_syst.root";
+	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
+	 Fname = new TFile(fname.c_str());
+	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
 	dict[Isosys]
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
-	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
-	fname = "Muon_RunBCDEF_SF_ISO_syst.root";
-	hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat";
-	Fname = new TFile(fname.c_str());
-	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	 fname = "Muon_RunBCDEF_SF_ISO_syst.root";
+	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat";
+	 Fname = new TFile(fname.c_str());
+	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
 	dict[IsosysStat]
 	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
-	delete h_RunsBCDEF;
-	hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_syst";
-	Fname->GetObject( hname.c_str(),h_RunsBCDEF);
+	delete h_RunsBCDEF; h_RunsBCDEF = nullptr;
+	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_syst";
+	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
 	dict[IsosysSyst]
 	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
 	Fname->Close();
-	delete Fname; Fname = nullptr; delete h_RunsBCDEF;
+	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
 	return dict;
 }
@@ -832,13 +831,11 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 		case  wz:
 		case  zz:
 		case ttz:{
-			//sf = elEffGiver(pt,eta);// TODO: elEffGiver
-			auto dict = elEffGiver(pt,eta);
-			eff  = dict[Eff];
-			smr =  dict[Smr];
-
+			auto  dict = elEffGiver(pt,eta);
+			eff = dict[Eff];
+			smr = dict[Smr];
 			break;}
-		case met:// exptData do not call elEffGiver
+		case met: // exptData do not call elEffGiver
 		case cms:;// default sf, id, iso works
 		}
 	}// no rocco for elnu
@@ -874,7 +871,7 @@ a given muon, random number (u) should remain unchanged.
 			if(gen_pt != 0)
 				sf = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
 			else{auto u = gRandom->Rndm();
-				std::cout<<// not sure if gRandom works!
+				std::cout<<// TODO: not sure if gRandom works!
 				"Warning, u must be between 0 and 1, u is "
 				<<u<<std::endl;
 				sf = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
@@ -884,19 +881,17 @@ a given muon, random number (u) should remain unchanged.
 		}
 	}}// case munu and switch ch
 	if(debug > 0) std::cout
-		<< "mostSf "       << sf
-		<< " id "          << id
-		<< " iso"          << iso
-		<< " eff"	   << eff
-		<< " smr"	   << smr
-		<< " for channel " << ch << std::endl;
-	return sf * id * iso;};
+		<< "most " << sf
+		<< " id  " << id
+		<< " iso " << iso
+		<< " eff " << eff
+		<< " smr " << smr
+		<< " for " << ch << std::endl;
+	return sf * id * iso * eff * smr;};
 }
 auto sf(const  dataSource ds){
 	if(debug>0) std::cout<<"scale factor "<<std::endl;
 	return [=](const double b,
-//	           const float  mu_id ,
-//	           const float  mu_iso,
 	           const double mostSF){
 		// TODO: lepton smearing and trigger efficiency
 		double result;
@@ -1027,35 +1022,33 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("jet_lep_min_dR" , jet_lep_min_deltaR<floats>,
 	       {"Jet_eta","Jet_phi",  "lep_eta","lep_phi"})
 	.Define("tight_jets"     , tight_jet_id   ,
-	       {"jet_lep_min_dR" ,    "Jet_pt","Jet_eta","Jet_jetId"})
+	       {"jet_lep_min_dR" ,     "Jet_pt","Jet_eta","Jet_jetId"})
 	.Filter( jetCutter(JETS_MIN,JETS_MAX),{"tight_jets"},"Jet cut")
-	.Define("tight_jets__pt" ,    "Jet_pt  [tight_jets]")
-	.Define("tight_jets_eta" ,    "Jet_eta [tight_jets]")
-	.Define("tight_jets_phi" ,    "Jet_phi [tight_jets]")
-	.Define("tight_jets_mas" ,    "Jet_mass[tight_jets]")
+	.Define("tight_jets__pt" ,     "Jet_pt  [tight_jets]")
+	.Define("tight_jets_eta" ,     "Jet_eta [tight_jets]")
+	.Define("tight_jets_phi" ,     "Jet_phi [tight_jets]")
+	.Define("tight_jets_mas" ,     "Jet_mass[tight_jets]")
+	.Define("tJ_btagCSVv2"   ,"Jet_btagCSVV2[tight_jets]")
 	;
 	// JEC == tight_jets inc. Jet Energy Correction
 	auto     jecs_bjets// DONE: CMS and MET no GenJet
 	   = init_selection
-	.Define("pt_resol"     ,jet_smear_pt_resol/*(ptRcsv)*/,
-	       {"Jet_pt",
-	        "Jet_eta","fixedGridRhoFastjetAll"})
-	.Define("Sjer",jet_smear_Sjer/*(sjerCsv)*/, {"Jet_eta"})
-	.Define("cjer",    delta_R_jet_smear      , {"Jet_pt", "Jet_eta","Jet_phi",
-		"GenJet_pt","GenJet_eta","GenJet_phi","pt_resol","Sjer"})
-	.Define("tight_cjer"   ,"cjer[tight_jets]")
-	.Define("fin_jets__pt" ,"tight_jets__pt * tight_cjer")// these are JEC
-	.Define("fin_jets_eta" ,"tight_jets_eta * tight_cjer")// Monte Carlo
-	.Define("fin_jets_phi" ,"tight_jets_phi * tight_cjer")// needs JEC
-	.Define("fin_jets_mas" ,"tight_jets_mas * tight_cjer")// fin = final
+	.Define("cjer",    delta_R_jet_smear    ,
+	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","fixedGridRhoFastjetAll",
+	        "GenJet_pt","GenJet_eta","GenJet_phi","tight_jets"})
+	.Define("fin_jets__pt" ,"tight_jets__pt * cjer")// these are JEC
+	.Define("fin_jets_eta" ,"tight_jets_eta * cjer")// Monte Carlo
+	.Define("fin_jets_phi" ,"tight_jets_phi * cjer")// needs JEC
+	.Define("fin_jets_mas" ,"tight_jets_mas * cjer")// fin = final
 	// jets selected, now bjets and btagging preliminaries
-	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","Jet_btagCSVV2"})
+	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","tJ_btagCSVv2"})
 	.Filter(jetCutter(BJETS_MIN,BJETS_MAX)   ,{"is_bjets"},"b jet cut")
-	.Define("no_bjets"         ,no_bjet_id   ,{"fin_jets_eta"})
-	.Define("is_btag_numer"    ,is_bjet_numer,{"Jet_partonFlavour","is_bjets"})
-	.Define("no_btag_numer"    ,no_bjet_numer,{"Jet_partonFlavour","is_bjets"})
-	.Define("is_btag_denom"    ,is_bjet_denom,{"Jet_partonFlavour","no_bjets"})
-	.Define("no_btag_denom"    ,no_bjet_denom,{"Jet_partonFlavour","no_bjets"})
+	.Define("no_bjets"         ,no_bjet_id   ,{"fin_jets_eta"   })
+	.Define("tJpF"             ,"Jet_partonFlavour  [tight_jets]")
+	.Define("is_btag_numer"    ,is_bjet_numer,{"tJpF","is_bjets"})
+	.Define("no_btag_numer"    ,no_bjet_numer,{"tJpF","is_bjets"})
+	.Define("is_btag_denom"    ,is_bjet_denom,{"tJpF","no_bjets"})
+	.Define("no_btag_denom"    ,no_bjet_denom,{"tJpF","no_bjets"})
 	.Define("is_btag_numer__pt","fin_jets__pt[is_btag_numer]")
 	.Define("no_btag_numer__pt","fin_jets__pt[no_btag_numer]")
 	.Define("is_btag_denom__pt","fin_jets__pt[is_btag_denom]")
@@ -1069,11 +1062,9 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("no_btag_denom_eta",[](ints x,doubles y){return abs(y[x]);},
 	       {"no_btag_denom"    ,"fin_jets_eta"})
 	.Define("sfi",btagCSVv2( true),//,btagDF),// checks btag
-	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "Jet_partonFlavour"})
+	       { "tJ_btagCSVv2","fin_jets__pt","fin_jets_eta", "tJpF"})
 	.Define("sfj",btagCSVv2(false),//,btagDF),// ignore btag
-	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "Jet_partonFlavour"})
-	// TODO: if there is a filter on tight_jets , do i need to use a new branch
-	// for Jet_partonFlavour then?
+	       { "tJ_btagCSVv2","fin_jets__pt","fin_jets_eta", "tJpF"})
 	;
 	auto     expt_bjets
 	   = init_selection
@@ -1085,7 +1076,7 @@ void calchisto(const channel ch,const dataSource ds){
 	     {"tight_jets_phi"})
 	.Define("fin_jets_mas",[](floats& x){return static_cast<doubles>(x);},
 	     {"tight_jets_mas"})
-	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","Jet_btagCSVV2"})
+	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","tJ_btagCSVv2"})
 	.Filter(jetCutter(BJETS_MIN,BJETS_MAX)   ,{"is_bjets"},"b jet cut")
 	// TODO: Always check that the previous 2 lines are copies of earlier
 	;
@@ -1275,8 +1266,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	auto finalDF
 	   = (*bw_correctly)
-	.Define("sf"     ,sf(ds)   ,{"btag_w","mostSF"})
-//	.Define("sf"     ,sf(ds)   ,{"btag_w","lep_eff_ID","lep_eff_ISO","rocco"})
+	.Define("sf"     ,sf(ds)   ,{"btag_w","mostSF"})// TODO: histo this
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")// LOL WHY SO DUMB, weigh the
 	. Alias("nw_lep_phi"       ,"sf")// hist BY "sf" then!
@@ -1301,8 +1291,7 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias("nw_ttop__pt"      ,"sf")
 	. Alias("nw_ttop_mas"      ,"sf")
 	;
-
-
+	// Assuming temp_header and footer and all are set per (hist titles)!
 	auto h_trans_T = finalDF.Histo1D({
 	(          "tTm_"     + temp_header).c_str(),
 	("Transverse T mass " + temp_header).c_str(),
@@ -1311,6 +1300,12 @@ void calchisto(const channel ch,const dataSource ds){
 	h_trans_T->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_trans_T->GetYaxis()->SetTitle("Event");
 	h_trans_T->SetLineStyle(kSolid);
+
+        auto h_z_mas = finalDF.Histo1D({
+        (	"zmas_" + temp_header).c_str(),
+        ("Recon. Z mass"+ temp_header).c_str(),
+        50,0,200},
+        "z_mas","nw_z_mas");
 
 	auto h_trans_w = finalDF.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
@@ -1400,6 +1395,11 @@ void calchisto(const channel ch,const dataSource ds){
 	("btag_W "+temp_header).c_str(),
 	50,-100,100},"btag_w");
 
+        auto h_ev_w = finalDF.Histo1D({
+        ("   ev_w"     +temp_header).c_str(),
+        ("Event weight"+temp_header).c_str(),
+        50,-50,50},"sf");
+
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf((temp_header+".histo").c_str(),"RECREATE");
@@ -1410,6 +1410,8 @@ void calchisto(const channel ch,const dataSource ds){
 	h_p_sfei->Write();
 	h_p_sfej->Write();
 	h_btag_w->Write();
+        h_ev_w  ->Write();
+        h_z_mas ->Write();
 	h_is_btag_numer_PtVsEta->Write();
 	h_no_btag_numer_PtVsEta->Write();
 	h_is_btag_denom_PtVsEta->Write();
