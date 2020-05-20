@@ -22,32 +22,32 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 6;
-  constexpr  float ENDCAP_ETA_MIN = 1.566f;
-  constexpr  float BARREL_ETA_MAX = 1.4442f;
+constexpr    int debug = 7;
+constexpr  float ENDCAP_ETA_MIN = 1.566f;
+constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
-  constexpr  float EL__PT_MIN   = 45.f;//{15}//min 12, AP 45,
+constexpr  float EL__PT_MIN   = 45.f;//{15}//min 12, AP 45,
 //constexpr  float EL_LPT_MIN   = 35.f;// Leading
-  constexpr  float EL_ETA_MAX   = 2.5f;
-  constexpr    int EL_LOOSE_ID  = 1;
-  constexpr    int EL_TIGHT_ID  = 4;
+constexpr  float EL_ETA_MAX   = 2.5f;
+constexpr    int EL_LOOSE_ID  = 1;
+constexpr    int EL_TIGHT_ID  = 4;
 
 //constexpr    int MU_MAX_NUM   = 1;
-  constexpr  float MU__PT_MIN   = 40.f;//min 33, AP 40,
+constexpr  float MU__PT_MIN   = 40.f;//min 33, AP 40,
 //constexpr  float MU_LPT_MIN   = 26.f;// Leading
-  constexpr  float MU_ETA_MAX   = 2.4f;
-  constexpr  float MU_LOOSE_ISO = .15f;
-  constexpr  float MU_TIGHT_ISO = .25f;
+constexpr  float MU_ETA_MAX   = 2.4f;
+constexpr  float MU_LOOSE_ISO = .15f;
+constexpr  float MU_TIGHT_ISO = .25f;
 
 //constexpr  float MET__PT_MIN  = 40.f;
-  constexpr  float MET_EL_PT    = 80.f;
-  constexpr  float MET_MU_PT    = 40.f;
+constexpr  float MET_EL_PT    = 80.f;
+constexpr  float MET_MU_PT    = 40.f;
 
-  constexpr double   Z_MASS     =  91.1876;
-  constexpr double   Z_MASS_CUT =  20.;
-  constexpr double   W_MASS     =  80.385;
-  constexpr double   W_MASS_CUT =  20.;
-  constexpr double TOP_MASS     = 172.5;
+constexpr double   Z_MASS     =  91.1876;
+constexpr double   Z_MASS_CUT =  20.;
+constexpr double   W_MASS     =  80.385;
+constexpr double   W_MASS_CUT =  20.;
+constexpr double TOP_MASS     = 172.5;
 //constexpr double TOP_MASS_CUT =  20.;
 
 constexpr float    JET_ETA_MAX =  4.7f;
@@ -228,18 +228,6 @@ auto jetCutter(const unsigned jmin, const unsigned jmax){
 		return jmin <= nj && nj <= jmax;
 	};
 }
-template<typename T>
-auto jets_gen_select(const floats& gen, const T& jet){
-	//if(debug>0) std::cout<<"gen select"<<std::endl;
-// select jets that have generated level info; used @ JEC
-// use this function ONLY for Monte Carlo, not CMS / MET
-	if(gen.size() < jet.size()){// GenJet often shorter than Jet
-	    floats good_jets =  jet;//             deep copy
-	           good_jets.resize(gen.size());// discard tail only
-	    return good_jets;
-	}
-	    return      jet;
-}
 /*
 template<typename T>// allow us to return w/o knowing data type
 auto retVar(const T& v){return[&](){return v;};}
@@ -289,11 +277,14 @@ auto jet_smear_Sjer(const floats& etas){
 	if(Sjer > 0.) return Sjer;
 	else           return  0.;
 }
-auto delta_R_jet_smear(const  floats& pt,
+auto delta_R_jet_smear(const  floats&  pt,
+		       const  floats& eta,
+		       const  floats& phi,
                        const  floats& gen_pt,
+		       const  floats& gen_eta,
+		       const  floats& gen_phi,
                        const doubles& resol,
-                       const doubles& Sjer,
-                       const doubles& deltaR){
+                       const doubles& Sjer){
 	//if(debug>0) std::cout<<"delta r jet smear"<<std::endl;
 	if(!all_equal(pt.size(),resol.size(),Sjer.size()))
 		throw std::logic_error("Collections must be the same size in deltaR_Jsmear");
@@ -301,21 +292,33 @@ auto delta_R_jet_smear(const  floats& pt,
 		throw std::logic_error("gen_pt shorter than pt");
 	if(pt.empty())
 		throw std::logic_error("Collections must not be empty in deltaR_Jsmear");
-	if(pt.size() > deltaR.size())
-		throw std::logic_error("deltaR in Delta_R_jet_smear lacks sufficient data");
+	std::cout<<"Jets Smearing Hybrid Method"<<std::endl;
 	const   size_t      size = pt.size();
-	doubles cjers(      size , 0.);// correction factor
+	doubles cjers(	    size , 0.);// correction factor
+	floats  deltaR;
+	std::cout<<"before bool"<<std::endl;
+	bools   gen; gen.resize(pt.size(),false); // true when there is gen partilce
+	std::cout<<"after bool"<<std::endl;
+	for(size_t i=0; i< size; i++)if(gen_pt[i] != 0) gen[i] = true;// I THINK THIS LINE IS FUCKED UP!
+	// DeltaR is defined from dif of jet info from gen level
+	for(size_t i=0; i < size; i++)
+		if(gen[i] == true)
+		deltaR[i] = sqrt( pow(phi[i] -gen_phi[i], 2) + pow(eta[i] - gen_eta[i], 2));
+
 	for(size_t i=0; i < size ;++i){
-		if(deltaR[i] < RconeBy2
+		if(gen[i] == true && deltaR[i] < RconeBy2
 		&& std::abs( pt[i]-gen_pt[i]) < 3*resol[i]*pt[i]){
+			std::cout<< "Scaling method is being used"<<std::endl;
 			cjers[i] += (1+(1+Sjer[i])
 			     * (( pt[i]-gen_pt[i])/pt[i]));
 		}
 		else{// needs TRandom3 library// TODO: why -ve?
+			std::cout<< "Stochastic smearing should be applied."<<std::endl;
 			double Normdist = gRandom->Gaus(0,Sjer[i]);
 			double  max_val = Sjer[i] * Sjer[i] - 1;
 			cjers[i] += (1+Normdist*std::sqrt(ramp(max_val)));
 		}
+		if(cjers[i] < 0) cjers[i] =0;
 	}
 	return cjers;
 }
@@ -352,7 +355,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	if(debug>0)std::cout<<"btagCSVv2 entered"<<std::endl;
 	strings formulae(pt.size(), "1");//,check_CSVv2 ? "1" : "0");
 	doubles  results(pt.size());
-	if(!all_equal(pt.size(),eta.size(),flav.size())) throw std::logic_error(
+	if(!all_equal(pt.size(),eta.size()))/*,flav.size()))*/ throw std::logic_error(
 		"Collections must be the same size in btagCSVv2");
 	if(pt.empty())	throw std::logic_error(
 		"Collections must not be empty in btagCSVv2");
@@ -1039,30 +1042,20 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("tight_jets_eta" ,    "Jet_eta [tight_jets]")
 	.Define("tight_jets_phi" ,    "Jet_phi [tight_jets]")
 	.Define("tight_jets_mas" ,    "Jet_mass[tight_jets]")
-	.Define("tight_jets_flv" ,    "Jet_partonFlavour[tight_jets]")
 	;
 	// JEC == tight_jets inc. Jet Energy Correction
-	// good_jets (defined above) are tight jets which have generated level info
-	// by neglecting the ones which exclude generated level info,
-	// we make sure the jec is computing correctly
-	// & jets w/o JEC will be excluded too.
 	auto     jecs_bjets// DONE: CMS and MET no GenJet
 	   = init_selection
-	.Define("good_jets__pt",jets_gen_select,{"GenJet_pt"  ,"tight_jets__pt"})
-	.Define("good_jets_eta",jets_gen_select,{"GenJet_eta" ,"tight_jets_eta"})
-	.Define("good_jets_phi",jets_gen_select,{"GenJet_phi" ,"tight_jets_phi"})
-	.Define("good_jets_mas",jets_gen_select,{"GenJet_mass","tight_jets_mas"})
-	.Define("good_jets_flv",jets_gen_select,{"GenJet_partonFlavour","tight_jets_flv"})
 	.Define("pt_resol"     ,jet_smear_pt_resol/*(ptRcsv)*/,
-	       {"good_jets__pt",
-	        "good_jets_eta","fixedGridRhoFastjetAll"})
-	.Define("Sjer",jet_smear_Sjer/*(sjerCsv)*/, {"good_jets_eta"})
-	.Define("cjer",    delta_R_jet_smear      , {"good_jets__pt","GenJet_pt",
-	        "pt_resol","Sjer","jet_lep_min_dR"})
-	.Define("fin_jets__pt" ,"good_jets__pt * cjer")// these are JEC
-	.Define("fin_jets_eta" ,"good_jets_eta * cjer")// Monte Carlo
-	.Define("fin_jets_phi" ,"good_jets_phi * cjer")// needs JEC
-	.Define("fin_jets_mas" ,"good_jets_mas * cjer")// fin = final
+	       {"tight_jets__pt",
+	        "tight_jets_eta","fixedGridRhoFastjetAll"})
+	.Define("Sjer",jet_smear_Sjer/*(sjerCsv)*/, {"tight_jets_eta"})
+	.Define("cjer",    delta_R_jet_smear      , {"tight_jets__pt", "tight_jets_eta","tight_jets_phi",
+		"GenJet_pt","GenJet_eta","GenJet_phi","pt_resol","Sjer"})
+	.Define("fin_jets__pt" ,"tight_jets__pt * cjer")// these are JEC
+	.Define("fin_jets_eta" ,"tight_jets_eta * cjer")// Monte Carlo
+	.Define("fin_jets_phi" ,"tight_jets_phi * cjer")// needs JEC
+	.Define("fin_jets_mas" ,"tight_jets_mas * cjer")// fin = final
 	// jets selected, now bjets and btagging preliminaries
 	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","Jet_btagCSVV2"})
 	.Filter(jetCutter(BJETS_MIN,BJETS_MAX)   ,{"is_bjets"},"b jet cut")
@@ -1084,10 +1077,11 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("no_btag_denom_eta",[](ints x,doubles y){return abs(y[x]);},
 	       {"no_btag_denom"    ,"fin_jets_eta"})
 	.Define("sfi",btagCSVv2( true),//,btagDF),// checks btag
-	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "good_jets_flv"})
+	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "Jet_partonFlavour"})
 	.Define("sfj",btagCSVv2(false),//,btagDF),// ignore btag
-	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "good_jets_flv"})
-	// check if Jet_partonFlavour is the correct branch.
+	       { "Jet_btagCSVV2","fin_jets__pt","fin_jets_eta", "Jet_partonFlavour"})
+	// TODO: if there is a filter on tight_jets , do i need to use a new branch
+	// for Jet_partonFlavour then?
 	;
 	auto     expt_bjets
 	   = init_selection
@@ -1315,6 +1309,8 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias("nw_ttop__pt"      ,"sf")
 	. Alias("nw_ttop_mas"      ,"sf")
 	;
+
+
 	auto h_trans_T = finalDF.Histo1D({
 	(          "tTm_"     + temp_header).c_str(),
 	("Transverse T mass " + temp_header).c_str(),
