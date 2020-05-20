@@ -285,35 +285,26 @@ auto delta_R_jet_smear(const  floats&  pt,
 		       const  floats& gen_phi,
                        const doubles& resol,
                        const doubles& Sjer){
-	//if(debug>0) std::cout<<"delta r jet smear"<<std::endl;
+	if(debug>0) std::cout<<"delta r jet smear"<<std::endl;
 	if(!all_equal(pt.size(),resol.size(),Sjer.size()))
 		throw std::logic_error("Collections must be the same size in deltaR_Jsmear");
-	if(gen_pt.size() < pt.size())
-		throw std::logic_error("gen_pt shorter than pt");
 	if(pt.empty())
 		throw std::logic_error("Collections must not be empty in deltaR_Jsmear");
-	std::cout<<"Jets Smearing Hybrid Method"<<std::endl;
+	// the method used in here is the Jets Smearing Hybrid Method
 	const   size_t      size = pt.size();
 	doubles cjers(	    size , 0.);// correction factor
-	floats  deltaR;
-	std::cout<<"before bool"<<std::endl;
-	bools   gen; gen.resize(pt.size(),false); // true when there is gen partilce
-	std::cout<<"after bool"<<std::endl;
-	for(size_t i=0; i< size; i++)if(gen_pt[i] != 0) gen[i] = true;// I THINK THIS LINE IS FUCKED UP!
-	// DeltaR is defined from dif of jet info from gen level
-	for(size_t i=0; i < size; i++)
-		if(gen[i] == true)
-		deltaR[i] = sqrt( pow(phi[i] -gen_phi[i], 2) + pow(eta[i] - gen_eta[i], 2));
+	ints    gen(gen_pt.size(),1);
+	gen.resize(size);
 
 	for(size_t i=0; i < size ;++i){
-		if(gen[i] == true && deltaR[i] < RconeBy2
-		&& std::abs( pt[i]-gen_pt[i]) < 3*resol[i]*pt[i]){
-			std::cout<< "Scaling method is being used"<<std::endl;
+		if(1== gen[i] && std::abs( pt[i]-gen_pt[i]) < 3*resol[i]*pt[i]
+		&& deltaR(gen_eta[i],gen_phi[i],eta[i],phi[i]) < RconeBy2){
+			// Scaling method is being used
 			cjers[i] += (1+(1+Sjer[i])
 			     * (( pt[i]-gen_pt[i])/pt[i]));
 		}
-		else{// needs TRandom3 library// TODO: why -ve?
-			std::cout<< "Stochastic smearing should be applied."<<std::endl;
+		else{
+			// Stochastic smearing should be applied
 			double Normdist = gRandom->Gaus(0,Sjer[i]);
 			double  max_val = Sjer[i] * Sjer[i] - 1;
 			cjers[i] += (1+Normdist*std::sqrt(ramp(max_val)));
@@ -1047,15 +1038,16 @@ void calchisto(const channel ch,const dataSource ds){
 	auto     jecs_bjets// DONE: CMS and MET no GenJet
 	   = init_selection
 	.Define("pt_resol"     ,jet_smear_pt_resol/*(ptRcsv)*/,
-	       {"tight_jets__pt",
-	        "tight_jets_eta","fixedGridRhoFastjetAll"})
-	.Define("Sjer",jet_smear_Sjer/*(sjerCsv)*/, {"tight_jets_eta"})
-	.Define("cjer",    delta_R_jet_smear      , {"tight_jets__pt", "tight_jets_eta","tight_jets_phi",
+	       {"Jet_pt",
+	        "Jet_eta","fixedGridRhoFastjetAll"})
+	.Define("Sjer",jet_smear_Sjer/*(sjerCsv)*/, {"Jet_eta"})
+	.Define("cjer",    delta_R_jet_smear      , {"Jet_pt", "Jet_eta","Jet_phi",
 		"GenJet_pt","GenJet_eta","GenJet_phi","pt_resol","Sjer"})
-	.Define("fin_jets__pt" ,"tight_jets__pt * cjer")// these are JEC
-	.Define("fin_jets_eta" ,"tight_jets_eta * cjer")// Monte Carlo
-	.Define("fin_jets_phi" ,"tight_jets_phi * cjer")// needs JEC
-	.Define("fin_jets_mas" ,"tight_jets_mas * cjer")// fin = final
+	.Define("tight_cjer"   ,"cjer[tight_jets]")
+	.Define("fin_jets__pt" ,"tight_jets__pt * tight_cjer")// these are JEC
+	.Define("fin_jets_eta" ,"tight_jets_eta * tight_cjer")// Monte Carlo
+	.Define("fin_jets_phi" ,"tight_jets_phi * tight_cjer")// needs JEC
+	.Define("fin_jets_mas" ,"tight_jets_mas * tight_cjer")// fin = final
 	// jets selected, now bjets and btagging preliminaries
 	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","Jet_btagCSVV2"})
 	.Filter(jetCutter(BJETS_MIN,BJETS_MAX)   ,{"is_bjets"},"b jet cut")
