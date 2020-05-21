@@ -8,6 +8,7 @@
 #include "csv.h"
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
+#include "json.hpp"
 #include "roccor.Run2.v3/RoccoR.cc"
 /*
 #if !defined(__FMA__) && defined(__AVX2__)
@@ -22,7 +23,7 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 6;
+  constexpr    int debug = 0;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -77,9 +78,19 @@ constexpr double ZZLLQQ_W =  .0485;
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
 template <typename T> constexpr T TPI = PI<T> * 2;
 
-enum      elSf      {Eff,Smr};
-enum      muSf      {Id, Idsys, IdsysStat, IdsysSyst,
-                    Iso,Isosys,IsosysStat,IsosysSyst};
+enum      elSf      	{Eff,Smr};
+enum      muSf      	{Id, Idsys, IdsysStat, IdsysSyst,
+                    	Iso,Isosys,IsosysStat,IsosysSyst};
+strings  event_filter   {"Flag_goodVertices_Selection",// This strings is used
+                         "Flag_globalSuperTightHalo2016Filter_Selection",// for event cleaning function
+                         "Flag_HBHENoiseFilter_Selection",// only APPLIED on MC
+                         "Flag_HBHENoiseIsoFilter_Selection",// as a FILTER
+                         "Flag_EcalDeadCellTriggerPrimitiveFilter_Selection",
+                         "Flag_BadPFMuonFilter_Selection",
+                         "Flag_BadChargedCandidateFilter_Selection",
+                         "Flag_ecalBadCalibFilter_Selection",
+                         "Flag_eeBadScFilter_Selection"};
+
 /*
 constexpr muSf
           muSfAll[]={Id, Idsys, IdsysStat, IdsysSyst,
@@ -94,7 +105,7 @@ auto met_pt_cut(const channel ch){
 		case elnu:{lower_bound = MET_EL_PT;break;}
 		case munu:{lower_bound = MET_MU_PT;break;}
 //		default  :throw std::invalid_argument(
-//			"Unimplemented ch (met_pt_cut)");
+//			"_Unimplemented ch (met_pt_cut)");
 	}
 	return [=](const float   met_lep_pt_sel)->bool
 	   {return lower_bound < met_lep_pt_sel;};
@@ -232,6 +243,8 @@ auto jetCutter(const unsigned jmin, const unsigned jmax){
 template<typename T>// allow us to return w/o knowing data type
 auto retVar(const T& v){return[&](){return v;};}
 */
+
+// Jet Energy Resolution and Jet Energy Smearing are computed below here,
 auto jet_smear_pt_resol(const floats& pt,const floats& eta,const float rho){
 	//if(debug>0) std::cout<<"jet smear pt resol"<<std::endl;
 	doubles resol(pt.size());
@@ -549,6 +562,8 @@ auto top_reconst(const doubles& bjets_pt,
 	}
 	return reco_top;
 }
+// Btagging for eff i and eff j is computed below here.
+
 auto BTaggedEffGiver(TH2D*& ratio,bool b){
 return [&,b](const doubles& pts,const doubles& etas){
 	if(debug>0) std::cout<<"bt eff giver in  "<< ratio <<std::endl;
@@ -679,8 +694,8 @@ auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
 	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// Rids non-zero/inf/NaN
 	return  weight;
-	}
-
+}
+// Lepton efficiencies are computed below here,
 auto elEffGiver(const float pt,const float eta){
 	std::map<elSf,double> dict = {{Eff,1.},{Smr,1.}};
 	// eff == electron    regression    corrections
@@ -849,25 +864,25 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 			auto dict = muEffGiver(pt,eta);
 			id  = dict[Id ];
 			iso = dict[Iso];// muEffGiver done; rocco follows
-/* Rocco scale factor desc.
-scale factors for momentum of each muon:
-// data
-double dtSF = rc.kScaleDT(Q, pt, eta, phi, s=0, m=0);
-// (recommended),MC scale and resolution correction when gen muon exists
-double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genPt, s=0, m=0);
-// MC scale and extra smearing when matched gen muon does not exist
-double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, s=0, m=0);
-----------------------------------------------------------
-Here:
-Q is charge
-nl is trackerLayersWithMeasurement
-u is a random number distributed uniformly between 0 and 1
-(gRandom->Rndm());
-s is error set    (default is 0)
-m is error member (default is 0, ranges from 0 to nmembers-1)
-For MC, when switching to different error sets/members for
-a given muon, random number (u) should remain unchanged.
-*/
+	/* Rocco scale factor desc.
+	scale factors for momentum of each muon:
+	// data
+	double dtSF = rc.kScaleDT(Q, pt, eta, phi, s=0, m=0);
+	// (recommended),MC scale and resolution correction when gen muon exists
+	double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genPt, s=0, m=0);
+	// MC scale and extra smearing when matched gen muon does not exist
+	double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, s=0, m=0);
+	----------------------------------------------------------
+	Here:
+	Q is charge
+	nl is trackerLayersWithMeasurement
+	u is a random number distributed uniformly between 0 and 1
+	(gRandom->Rndm());
+	s is error set    (default is 0)
+	m is error member (default is 0, ranges from 0 to nmembers-1)
+	For MC, when switching to different error sets/members for
+	a given muon, random number (u) should remain unchanged.
+	*/
 			if(gen_pt != 0)
 				sf = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
 			else{auto u = gRandom->Rndm();
@@ -889,6 +904,8 @@ a given muon, random number (u) should remain unchanged.
 		<< " for " << ch << std::endl;
 	return sf * id * iso * eff * smr;};
 }
+
+// Simulation corrections (Scale Factors) are applied below here,
 auto sf(const  dataSource ds){
 	if(debug>0) std::cout<<"scale factor "<<std::endl;
 	return [=](const double b,
@@ -918,6 +935,29 @@ auto rep_const(const double sf,const doubles& iRVec){
 	doubles weight(iRVec.size(),sf);
 	return  weight;
 }
+// Filters are applied below here
+auto event_cleaning = [](const bool Flag_goodVertices_Selection,
+			 const bool Flag_globalSuperTightHalo2016Filter_Selection,
+			 const bool Flag_HBHENoiseFilter_Selection,
+			 const bool Flag_HBHENoiseIsoFilter_Selection,
+			 const bool Flag_EcalDeadCellTriggerPrimitiveFilter_Selection,
+			 const bool Flag_BadPFMuonFilter_Selection,
+			 const bool Flag_BadChargedCandidateFilter_Selection,
+			 const bool Flag_ecalBadCalibFilter_Selection,
+			 const bool Flag_eeBadScFilter_Selection){
+
+
+	return	Flag_goodVertices_Selection > 0 ||
+		Flag_globalSuperTightHalo2016Filter_Selection > 0 ||
+		Flag_HBHENoiseFilter_Selection > 0 ||
+		Flag_HBHENoiseIsoFilter_Selection > 0 ||
+		Flag_EcalDeadCellTriggerPrimitiveFilter_Selection > 0 ||
+		Flag_BadPFMuonFilter_Selection > 0 ||
+		Flag_BadChargedCandidateFilter_Selection > 0 ||
+		Flag_ecalBadCalibFilter_Selection > 0 ||
+		Flag_eeBadScFilter_Selection > 0;
+
+};
 }// namespace
 void calchisto(const channel ch,const dataSource ds){
 	// Open data files even if unused
@@ -984,7 +1024,7 @@ void calchisto(const channel ch,const dataSource ds){
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(100000);
-	auto init_selection = dfr// remove one letter to do all
+	auto init_selection = df// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
 	.Define("loose_leps",lep_sel(ch),
@@ -1014,8 +1054,8 @@ void calchisto(const channel ch,const dataSource ds){
 	           "lep_eta",
 	           "lep_phi",
 	           "lep_mas",
-	       "CaloMET_pt" ,
-	       "CaloMET_phi"})
+	       "MET_pt" , // Not sure CaloMET or normal MET
+	       "MET_phi"})
 //	       "CaloMET_sumEt"})// TODO: add this back
 //	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
 	// jets selection follows; tW done and lepton selected
@@ -1290,6 +1330,7 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias("nw_lep_nu_invmass","sf")
 	. Alias("nw_ttop__pt"      ,"sf")
 	. Alias("nw_ttop_mas"      ,"sf")
+	.Filter(event_cleaning,event_filter, "Event Cleaning filter")// To Be Moved as one of the first thing "only" to MC
 	;
 	// Assuming temp_header and footer and all are set per (hist titles)!
 	auto h_trans_T = finalDF.Histo1D({
