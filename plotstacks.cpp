@@ -8,9 +8,20 @@
 #include "src/calchisto.hpp"
 //#include "calchisto.cpp" // only for compiling reasons
 
+dataSource ds{"tzq","ww","wz","zz","ttz"};
+channel	   ch{"elnu","munu"};
+
+std::string ch_ds = ch + "_" + dataSource;
+
+switch (ch){
+	case elnu:{switch(ds){case ttz:{}}
+	 }
+	case munu:{}
+
+
 int plotstacks(){
 	setTDRStyle();
-	
+
 	std::string opener="elnu_tzq";// become 2 for loops
 	TFile hf((opener+".histo").c_str());
 	//TH1D *htransT, *htransW, *hzmetdph, *hzwdph, *hzjetdphi, *hWinvmass;

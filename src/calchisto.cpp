@@ -2,13 +2,13 @@
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <TLorentzVector.h>
 #include <TRandom3.h>// used Gaussian, uniform each once
-#include <TChain.h>
 //#include <execution>// need to link -ltbb in Makefile
+#include <TChain.h>
 
 #include "csv.h"
+#include "json.hpp"
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
-#include "json.hpp"
 #include "roccor.Run2.v3/RoccoR.cc"
 /*
 #if !defined(__FMA__) && defined(__AVX2__)
@@ -78,19 +78,9 @@ constexpr double ZZLLQQ_W =  .0485;
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
 template <typename T> constexpr T TPI = PI<T> * 2;
 
-enum      elSf      	{Eff,Smr};
-enum      muSf      	{Id, Idsys, IdsysStat, IdsysSyst,
-                    	Iso,Isosys,IsosysStat,IsosysSyst};
-strings  event_filter   {"Flag_goodVertices_Selection",// This strings is used
-                         "Flag_globalSuperTightHalo2016Filter_Selection",// for event cleaning function
-                         "Flag_HBHENoiseFilter_Selection",// only APPLIED on MC
-                         "Flag_HBHENoiseIsoFilter_Selection",// as a FILTER
-                         "Flag_EcalDeadCellTriggerPrimitiveFilter_Selection",
-                         "Flag_BadPFMuonFilter_Selection",
-                         "Flag_BadChargedCandidateFilter_Selection",
-                         "Flag_ecalBadCalibFilter_Selection",
-                         "Flag_eeBadScFilter_Selection"};
-
+enum      elSf      {Eff,Smr};
+enum      muSf      {Id, Idsys, IdsysStat, IdsysSyst,
+                    Iso,Isosys,IsosysStat,IsosysSyst};
 /*
 constexpr muSf
           muSfAll[]={Id, Idsys, IdsysStat, IdsysSyst,
@@ -105,7 +95,7 @@ auto met_pt_cut(const channel ch){
 		case elnu:{lower_bound = MET_EL_PT;break;}
 		case munu:{lower_bound = MET_MU_PT;break;}
 //		default  :throw std::invalid_argument(
-//			"_Unimplemented ch (met_pt_cut)");
+//			"Unimplemented ch (met_pt_cut)");
 	}
 	return [=](const float   met_lep_pt_sel)->bool
 	   {return lower_bound < met_lep_pt_sel;};
@@ -239,12 +229,34 @@ auto jetCutter(const unsigned jmin, const unsigned jmax){
 		return jmin <= nj && nj <= jmax;
 	};
 }
+auto event_cleaning(
+const bool Flag_goodVertices_Selection,
+const bool Flag_globalSuperTightHalo2016Filter_Selection,
+const bool Flag_HBHENoiseFilter_Selection,
+const bool Flag_HBHENoiseIsoFilter_Selection,
+const bool Flag_EcalDeadCellTriggerPrimitiveFilter_Selection,
+const bool Flag_BadPFMuonFilter_Selection,
+const bool Flag_BadChargedCandidateFilter_Selection,
+const bool Flag_ecalBadCalibFilter_Selection,
+const bool Flag_eeBadScFilter_Selection
+	){
+	return
+		   Flag_goodVertices_Selection
+		|| Flag_globalSuperTightHalo2016Filter_Selection
+		|| Flag_HBHENoiseFilter_Selection
+		|| Flag_HBHENoiseIsoFilter_Selection
+		|| Flag_EcalDeadCellTriggerPrimitiveFilter_Selection
+		|| Flag_BadPFMuonFilter_Selection
+		|| Flag_BadChargedCandidateFilter_Selection
+		|| Flag_ecalBadCalibFilter_Selection
+		|| Flag_eeBadScFilter_Selection
+	;
+}
 /*
 template<typename T>// allow us to return w/o knowing data type
 auto retVar(const T& v){return[&](){return v;};}
 */
-
-// Jet Energy Resolution and Jet Energy Smearing are computed below here,
+// Jet Energy Resolution and Jet Energy Smearing
 auto jet_smear_pt_resol(const floats& pt,const floats& eta,const float rho){
 	//if(debug>0) std::cout<<"jet smear pt resol"<<std::endl;
 	doubles resol(pt.size());
@@ -562,8 +574,7 @@ auto top_reconst(const doubles& bjets_pt,
 	}
 	return reco_top;
 }
-// Btagging for eff i and eff j is computed below here.
-
+// Btagging for eff i and eff j
 auto BTaggedEffGiver(TH2D*& ratio,bool b){
 return [&,b](const doubles& pts,const doubles& etas){
 	if(debug>0) std::cout<<"bt eff giver in  "<< ratio <<std::endl;
@@ -695,7 +706,7 @@ auto btag_weight(const double p_data,const double p_MC){
 	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// Rids non-zero/inf/NaN
 	return  weight;
 }
-// Lepton efficiencies are computed below here,
+// Lepton efficiencies
 auto elEffGiver(const float pt,const float eta){
 	std::map<elSf,double> dict = {{Eff,1.},{Smr,1.}};
 	// eff == electron    regression    corrections
@@ -736,7 +747,6 @@ auto elEffGiver(const float pt,const float eta){
 //	}
 	return dict;
 }
-
 auto muEffGiver(const float pt,
                 const float eta){
 	const float ata = abs(eta);
@@ -864,25 +874,25 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 			auto dict = muEffGiver(pt,eta);
 			id  = dict[Id ];
 			iso = dict[Iso];// muEffGiver done; rocco follows
-	/* Rocco scale factor desc.
-	scale factors for momentum of each muon:
-	// data
-	double dtSF = rc.kScaleDT(Q, pt, eta, phi, s=0, m=0);
-	// (recommended),MC scale and resolution correction when gen muon exists
-	double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genPt, s=0, m=0);
-	// MC scale and extra smearing when matched gen muon does not exist
-	double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, s=0, m=0);
-	----------------------------------------------------------
-	Here:
-	Q is charge
-	nl is trackerLayersWithMeasurement
-	u is a random number distributed uniformly between 0 and 1
-	(gRandom->Rndm());
-	s is error set    (default is 0)
-	m is error member (default is 0, ranges from 0 to nmembers-1)
-	For MC, when switching to different error sets/members for
-	a given muon, random number (u) should remain unchanged.
-	*/
+/* Rocco scale factor desc.
+scale factors for momentum of each muon:
+// data
+double dtSF = rc.kScaleDT(Q, pt, eta, phi, s=0, m=0);
+// (recommended),MC scale and resolution correction when gen muon exists
+double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genPt, s=0, m=0);
+// MC scale and extra smearing when matched gen muon does not exist
+double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, s=0, m=0);
+----------------------------------------------------------
+Here:
+Q is charge
+nl is trackerLayersWithMeasurement
+u is a random number distributed uniformly between 0 and 1
+(gRandom->Rndm());
+s is error set    (default is 0)
+m is error member (default is 0, ranges from 0 to nmembers-1)
+For MC, when switching to different error sets/members for
+a given muon, random number (u) should remain unchanged.
+*/
 			if(gen_pt != 0)
 				sf = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
 			else{auto u = gRandom->Rndm();
@@ -904,8 +914,7 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 		<< " for " << ch << std::endl;
 	return sf * id * iso * eff * smr;};
 }
-
-// Simulation corrections (Scale Factors) are applied below here,
+// Simulation correction Scale Factors
 auto sf(const  dataSource ds){
 	if(debug>0) std::cout<<"scale factor "<<std::endl;
 	return [=](const double b,
@@ -935,29 +944,6 @@ auto rep_const(const double sf,const doubles& iRVec){
 	doubles weight(iRVec.size(),sf);
 	return  weight;
 }
-// Filters are applied below here
-auto event_cleaning = [](const bool Flag_goodVertices_Selection,
-			 const bool Flag_globalSuperTightHalo2016Filter_Selection,
-			 const bool Flag_HBHENoiseFilter_Selection,
-			 const bool Flag_HBHENoiseIsoFilter_Selection,
-			 const bool Flag_EcalDeadCellTriggerPrimitiveFilter_Selection,
-			 const bool Flag_BadPFMuonFilter_Selection,
-			 const bool Flag_BadChargedCandidateFilter_Selection,
-			 const bool Flag_ecalBadCalibFilter_Selection,
-			 const bool Flag_eeBadScFilter_Selection){
-
-
-	return	Flag_goodVertices_Selection > 0 ||
-		Flag_globalSuperTightHalo2016Filter_Selection > 0 ||
-		Flag_HBHENoiseFilter_Selection > 0 ||
-		Flag_HBHENoiseIsoFilter_Selection > 0 ||
-		Flag_EcalDeadCellTriggerPrimitiveFilter_Selection > 0 ||
-		Flag_BadPFMuonFilter_Selection > 0 ||
-		Flag_BadChargedCandidateFilter_Selection > 0 ||
-		Flag_ecalBadCalibFilter_Selection > 0 ||
-		Flag_eeBadScFilter_Selection > 0;
-
-};
 }// namespace
 void calchisto(const channel ch,const dataSource ds){
 	// Open data files even if unused
@@ -1024,7 +1010,7 @@ void calchisto(const channel ch,const dataSource ds){
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(100000);
-	auto init_selection = df// remove one letter to do all
+	auto init_selection = dfr// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
 	.Define("loose_leps",lep_sel(ch),
@@ -1054,8 +1040,8 @@ void calchisto(const channel ch,const dataSource ds){
 	           "lep_eta",
 	           "lep_phi",
 	           "lep_mas",
-	       "MET_pt" , // Not sure CaloMET or normal MET
-	       "MET_phi"})
+	       "CaloMET_pt" ,// TODO: Not sure CaloMET or normal
+	       "CaloMET_phi"})
 //	       "CaloMET_sumEt"})// TODO: add this back
 //	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
 	// jets selection follows; tW done and lepton selected
@@ -1070,12 +1056,23 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("tight_jets_mas" ,     "Jet_mass[tight_jets]")
 	.Define("tJ_btagCSVv2"   ,"Jet_btagCSVV2[tight_jets]")
 	;
-	// JEC == tight_jets inc. Jet Energy Correction
-	auto     jecs_bjets// DONE: CMS and MET no GenJet
+	auto     jecs_bjets// Monte Carlo only; JEC == Jet Energy Correction
 	   = init_selection
 	.Define("cjer",    delta_R_jet_smear    ,
 	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","fixedGridRhoFastjetAll",
 	        "GenJet_pt","GenJet_eta","GenJet_phi","tight_jets"})
+	.Filter(event_cleaning,{
+	        "Flag_goodVertices_Selection",
+	        "Flag_globalSuperTightHalo2016Filter_Selection",
+	        "Flag_HBHENoiseFilter_Selection",
+	        "Flag_HBHENoiseIsoFilter_Selection",
+	        "Flag_EcalDeadCellTriggerPrimitiveFilter_Selection",
+	        "Flag_BadPFMuonFilter_Selection",
+	        "Flag_BadChargedCandidateFilter_Selection",
+	        "Flag_ecalBadCalibFilter_Selection",
+	        "Flag_eeBadScFilter_Selection"
+	       },
+	        "Event Cleaning filter")
 	.Define("fin_jets__pt" ,"tight_jets__pt * cjer")// these are JEC
 	.Define("fin_jets_eta" ,"tight_jets_eta * cjer")// Monte Carlo
 	.Define("fin_jets_phi" ,"tight_jets_phi * cjer")// needs JEC
@@ -1108,6 +1105,7 @@ void calchisto(const channel ch,const dataSource ds){
 	;
 	auto     expt_bjets
 	   = init_selection
+	.Filter([](){return true;},{},"JSON filter stand-in")// TODO
 	.Define("fin_jets__pt",[](floats& x){return static_cast<doubles>(x);},
 	     {"tight_jets__pt"})
 	.Define("fin_jets_eta",[](floats& x){return static_cast<doubles>(x);},
@@ -1121,14 +1119,17 @@ void calchisto(const channel ch,const dataSource ds){
 	// TODO: Always check that the previous 2 lines are copies of earlier
 	;
 	decltype(expt_bjets) *bjets_correctly;
+//	ROOT::RDF::RInterface<void *,void> *bjets_correctly;
 	switch(ds){
 		case tzq:
 		case  ww:// fall through!
 		case  wz:
 		case  zz:
-		case ttz:{bjets_correctly = &jecs_bjets;break;}
+		case ttz:{bjets_correctly = reinterpret_cast
+		                   <decltype(expt_bjets)*>(
+		                            &jecs_bjets);break;}
 		case met:
-		case cms:{bjets_correctly = &expt_bjets;break;}
+		case cms:{bjets_correctly = &expt_bjets ;break;}
 //		default :throw std::invalid_argument(
 //			"Unimplemented ds (bjets)");
 	}
@@ -1306,7 +1307,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	auto finalDF
 	   = (*bw_correctly)
-	.Define("sf"     ,sf(ds)   ,{"btag_w","mostSF"})// TODO: histo this
+	.Define("sf"     ,  sf(ds) ,{"btag_w","mostSF"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")// LOL WHY SO DUMB, weigh the
 	. Alias("nw_lep_phi"       ,"sf")// hist BY "sf" then!
@@ -1330,24 +1331,8 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias("nw_lep_nu_invmass","sf")
 	. Alias("nw_ttop__pt"      ,"sf")
 	. Alias("nw_ttop_mas"      ,"sf")
-	.Filter(event_cleaning,event_filter, "Event Cleaning filter")// To Be Moved as one of the first thing "only" to MC
 	;
 	// Assuming temp_header and footer and all are set per (hist titles)!
-	auto h_trans_T = finalDF.Histo1D({
-	(          "tTm_"     + temp_header).c_str(),
-	("Transverse T mass " + temp_header).c_str(),
-	50,0,180},
-	"ttop_mas","nw_ttop_mas");
-	h_trans_T->GetXaxis()->SetTitle("mass GeV/C^2");
-	h_trans_T->GetYaxis()->SetTitle("Event");
-	h_trans_T->SetLineStyle(kSolid);
-
-        auto h_z_mas = finalDF.Histo1D({
-        (	"zmas_" + temp_header).c_str(),
-        ("Recon. Z mass"+ temp_header).c_str(),
-        50,0,200},
-        "z_mas","nw_z_mas");
-
 	auto h_trans_w = finalDF.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
 	("Transverse W mass " + temp_header).c_str(),
@@ -1365,6 +1350,21 @@ void calchisto(const channel ch,const dataSource ds){
 	h_Winvmas->GetXaxis()->SetTitle("mass GeV/C^2");
 	h_Winvmas->GetYaxis()->SetTitle("Event");
 	h_Winvmas->SetLineStyle(kSolid);
+
+	auto h_z_mas = finalDF.Histo1D({
+	(        "zmas_" + temp_header).c_str(),
+	("Recon. Z mass" + temp_header).c_str(),
+	50,0,200},
+	"z_mas","nw_z_mas");
+
+	auto h_trans_T = finalDF.Histo1D({
+	(          "tTm_"     + temp_header).c_str(),
+	("Transverse T mass " + temp_header).c_str(),
+	50,0,180},
+	"ttop_mas","nw_ttop_mas");
+	h_trans_T->GetXaxis()->SetTitle("mass GeV/C^2");
+	h_trans_T->GetYaxis()->SetTitle("Event");
+	h_trans_T->SetLineStyle(kSolid);
 
 	auto h_zmet_Dph = finalDF.Histo1D({
 	("Z_MET_Delta_Phi_" + temp_header).c_str(),
@@ -1436,14 +1436,14 @@ void calchisto(const channel ch,const dataSource ds){
 	("btag_W "+temp_header).c_str(),
 	50,-100,100},"btag_w");
 
-        auto h_ev_w = finalDF.Histo1D({
-        ("   ev_w"     +temp_header).c_str(),
-        ("Event weight"+temp_header).c_str(),
-        50,-50,50},"sf");
+	auto h_ev_w = finalDF.Histo1D({
+	(   "ev_w_"    +temp_header).c_str(),
+	("Event weight"+temp_header).c_str(),
+	50,-50,50},"sf");
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf((temp_header+".histo").c_str(),"RECREATE");
+	TFile hf(("histo/"+temp_header+".histo").c_str(),"RECREATE");
 	h_sfi   ->Write();
 	h_sfj   ->Write();
 	h_p_ei  ->Write();
@@ -1451,8 +1451,8 @@ void calchisto(const channel ch,const dataSource ds){
 	h_p_sfei->Write();
 	h_p_sfej->Write();
 	h_btag_w->Write();
-        h_ev_w  ->Write();
-        h_z_mas ->Write();
+	h_ev_w  ->Write();
+	h_z_mas ->Write();
 	h_is_btag_numer_PtVsEta->Write();
 	h_no_btag_numer_PtVsEta->Write();
 	h_is_btag_denom_PtVsEta->Write();
