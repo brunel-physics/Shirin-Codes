@@ -1126,7 +1126,7 @@ void calchisto(const channel ch,const dataSource ds){
 	;
 	auto     expt_bjets
 	   = init_selection
-	.Filter(runLBfilter(runLBdic),{"run","LuminosityBlock"},
+	.Filter(runLBfilter(runLBdic),{"run","luminosityBlock"},
 			  "LuminosityBlock filter")
 	.Define("fin_jets__pt",[](floats& x){return static_cast<doubles>(x);},
 	     {"tight_jets__pt"})
