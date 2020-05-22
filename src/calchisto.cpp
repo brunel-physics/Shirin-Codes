@@ -23,7 +23,7 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 10;
+  constexpr    int debug = 6;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -446,7 +446,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
 auto runLBfilter(
 	const std::map<size_t,std::vector<std::pair<size_t,size_t>>>
 	&runLBdict){
-	return [&](const size_t run,const size_t LB){
+	return [&](const unsigned int run,const unsigned int LB){
 		if(std::any_of(runLBdict.at(run).cbegin(),
 		               runLBdict.at(run).  cend(),
 		               [LB](std::pair<size_t,size_t> p)
@@ -775,7 +775,7 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
 	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// Rids non-zero/inf/NaN
-	if(debug > 0)std::cout<<"btag_w is "<<weight<<std::endl;
+//	if(debug > 0)   std::cout<<"btag_w is "<<weight<<std::endl;
 	return  weight;
 }
 // Lepton efficiencies
@@ -918,7 +918,7 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 	return [=](const float     pt,const float eta,
 	           const float    phi,const   int Q,
 	           const float gen_pt,const   int nl){
-	if(debug > 0)std::cout<< "in lep eff giver"<<std::endl;
+	if(debug > 0)std::cout<< "lep eff giver"<<std::endl;
 	double sf = 1., id = 1., iso = 1., eff = 1., smr = 1.;
 	RoccoR rc("roccor.Run2.v3/RoccoR2017.txt");
 	switch (ch){
@@ -947,6 +947,7 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 			auto dict = muEffGiver(pt,eta);
 			id  = dict[Id ];
 			iso = dict[Iso];// muEffGiver done; rocco follows
+			std::cout<<"mu id, iso sf done"<<std::endl;
 /* Rocco scale factor desc.
 scale factors for momentum of each muon:
 // data
@@ -966,16 +967,21 @@ m is error member (default is 0, ranges from 0 to nmembers-1)
 For MC, when switching to different error sets/members for
 a given muon, random number (u) should remain unchanged.
 */
-			if(gen_pt != 0)
+			
+			if(gen_pt != 0){
+				std::cout<<"rocco 1"<<std::endl;
 				sf = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
-			else{auto u = gRandom->Rndm();
+			}
+			else{std::cout<<"rocco 2"<<std::endl; auto u = gRandom->Rndm();
 				std::cout<<// TODO: not sure if gRandom works!
 				"Warning, u must be between 0 and 1, u is "
 				<<u<<std::endl;
 				sf = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
+				std::cout<<"rocco sf "<<sf<<std::endl;
 			}break;}
 		case met:// exptData do not call muEffGiver
-		case cms:{sf = rc.kScaleDT(Q,pt,eta,phi,0,0);break;}
+		case cms:{sf = rc.kScaleDT(Q,pt,eta,phi,0,0);
+			 std::cout<<"rocco sf is "<<sf<<std::endl;break;}
 		}
 	}}// case munu and switch ch
 	if(debug > 0) std::cout
@@ -1121,7 +1127,7 @@ void calchisto(const channel ch,const dataSource ds){
 //			"Unimplemented ch (init)");
 	}
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(10000);
+	auto dfr = df.Range(100000);
 	auto init_selection = dfr// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
@@ -1152,8 +1158,8 @@ void calchisto(const channel ch,const dataSource ds){
 	           "lep_eta",
 	           "lep_phi",
 	           "lep_mas",
-	       "MET_pt" ,
-	       "MET_phi"})
+	           "MET_pt" ,
+	           "MET_phi"})
 //	       "CaloMET_sumEt"})// TODO: add this back
 //	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
 	// jets selection follows; tW done and lepton selected
@@ -1520,7 +1526,7 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias("mostSF"     ,"btag_w")
 	;
 	auto finalDF = finalScaling(ds,not_btag_eff);
-	// Everything below is
+	// Everything below is a copy of the above, commenting out unwanted
 	// Assuming temp_header and footer and all are set per (hist titles)!
 	auto h_trans_w = finalDF.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
@@ -1589,7 +1595,7 @@ void calchisto(const channel ch,const dataSource ds){
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("tWm   GeV/C^2");
 	h_tWmVsZmass->GetYaxis()->SetTitle("Zmass GeV/C^2");
-
+/*
 	auto h_sfi = finalDF.Histo1D({
 	("sfi_"+temp_header).c_str(),
 	("sfi "+temp_header).c_str(),
@@ -1624,7 +1630,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("btag_w_"+temp_header).c_str(),
 	("btag_W "+temp_header).c_str(),
 	50,-100,100},"btag_w");
-
+*/
 	auto h_ev_w = finalDF.Histo1D({
 	(   "ev_w_"    +temp_header).c_str(),
 	("Event weight"+temp_header).c_str(),
