@@ -23,7 +23,7 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 0;
+  constexpr    int debug = 10;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -775,6 +775,7 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
 	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// Rids non-zero/inf/NaN
+	if(debug > 0)std::cout<<"btag_w is "<<weight<<std::endl;
 	return  weight;
 }
 // Lepton efficiencies
@@ -917,6 +918,7 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 	return [=](const float     pt,const float eta,
 	           const float    phi,const   int Q,
 	           const float gen_pt,const   int nl){
+	if(debug > 0)std::cout<< "in lep eff giver"<<std::endl;
 	double sf = 1., id = 1., iso = 1., eff = 1., smr = 1.;
 	RoccoR rc("roccor.Run2.v3/RoccoR2017.txt");
 	switch (ch){
@@ -1150,8 +1152,8 @@ void calchisto(const channel ch,const dataSource ds){
 	           "lep_eta",
 	           "lep_phi",
 	           "lep_mas",
-	       "CaloMET_pt" ,// TODO: Not sure CaloMET or normal
-	       "CaloMET_phi"})
+	       "MET_pt" ,
+	       "MET_phi"})
 //	       "CaloMET_sumEt"})// TODO: add this back
 //	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
 	// jets selection follows; tW done and lepton selected
