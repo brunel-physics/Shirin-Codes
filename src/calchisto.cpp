@@ -774,12 +774,14 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 */
 auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
+	if(debug > 0)std::cout<<"btag_w"<<std::endl;
 	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// Rids non-zero/inf/NaN
-//	if(debug > 0)   std::cout<<"btag_w is "<<weight<<std::endl;
+	if(debug > 0)   std::cout<<"btag_w is "<<weight<<std::endl;
 	return  weight;
 }
 // Lepton efficiencies
 auto elEffGiver(const float pt,const float eta){
+	if(debug > 0)std::cout<<"elEffGiver"<<std::endl;
 	std::map<elSf,double> dict = {{Eff,1.},{Smr,1.}};
 	// eff == electron    regression    corrections
 	// smr == energy scale and smearing corrections
@@ -817,10 +819,12 @@ auto elEffGiver(const float pt,const float eta){
 		Fname->Close();
 		delete Fname;Fname=nullptr;delete h_EgammaSf;h_EgammaSf=nullptr;
 //	}
+
 	return dict;
 }
 auto muEffGiver(const float pt,
                 const float eta){
+	if(debug >0)std::cout<<"meEffGiver"<<std::endl;
 	const float ata = abs(eta);
 	std::map<muSf,double> dict
 	={{Id,1.},{ Idsys,1.},{ IdsysStat,1.},{ IdsysSyst,1. },
@@ -911,6 +915,7 @@ auto muEffGiver(const float pt,
 	Fname->Close();
 	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
+
 	return dict;
 }
 auto lepEffGiver(const channel ch,const dataSource ds){
@@ -920,7 +925,7 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 	           const float gen_pt,const   int nl){
 	if(debug > 0)std::cout<< "lep eff giver"<<std::endl;
 	double sf = 1., id = 1., iso = 1., eff = 1., smr = 1.;
-	RoccoR rc("roccor.Run2.v3/RoccoR2017.txt");
+	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
 	switch (ch){
 	case elnu :{
 		switch(ds){
@@ -944,7 +949,7 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 		case  wz:
 		case  zz:
 		case ttz:{
-			auto dict = muEffGiver(pt,eta);
+			auto  dict = muEffGiver(pt,eta);
 			id  = dict[Id ];
 			iso = dict[Iso];// muEffGiver done; rocco follows
 			std::cout<<"mu id, iso sf done"<<std::endl;
@@ -1317,8 +1322,6 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("lep__nl"    ,[=](ints L,ints m){if(munu==ch)return L[m][0];
 	                                         else        return      0 ;},
 	       {"Muon_nTrackerLayers","loose_leps"})
-//	.Define("lep_eff_ID" , muEffGiver(ch,Id ),{"lep__pt","lep_eta"})
-//	.Define("lep_eff_ISO", muEffGiver(ch,Iso),{"lep__pt","lep_eta"})
 	.Define("mostSF"     ,lepEffGiver(ch,ds) ,{"lep__pt","lep_eta",
 	                                           "lep_phi","lep___q",
 	                                           "lep_gpt","lep__nl"})
@@ -1520,10 +1523,10 @@ void calchisto(const channel ch,const dataSource ds){
 	;
 	auto not_btag_eff
 	   = reco
-	.Define("btag_w" ,[](){return 1.;})
-//	. Alias("lep_eff_ID" ,"btag_w")
-//	. Alias("lep_eff_ISO","btag_w")
-	. Alias("mostSF"     ,"btag_w")
+	.Define("btag_w"     ,[](){return 1.;})
+	.Define("mostSF"     ,lepEffGiver(ch,ds) ,{"lep__pt","lep_eta",
+	                                           "lep_phi","lep___q",
+	              /* last 2 unused */          "lep_phi","lep___q"})
 	;
 	auto finalDF = finalScaling(ds,not_btag_eff);
 	// Everything below is a copy of the above, commenting out unwanted
