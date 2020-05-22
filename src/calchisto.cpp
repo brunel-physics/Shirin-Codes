@@ -230,26 +230,26 @@ auto jetCutter(const unsigned jmin, const unsigned jmax){
 	};
 }
 auto event_cleaning(
-const bool Flag_goodVertices_Selection,
-const bool Flag_globalSuperTightHalo2016Filter_Selection,
-const bool Flag_HBHENoiseFilter_Selection,
-const bool Flag_HBHENoiseIsoFilter_Selection,
-const bool Flag_EcalDeadCellTriggerPrimitiveFilter_Selection,
-const bool Flag_BadPFMuonFilter_Selection,
-const bool Flag_BadChargedCandidateFilter_Selection,
-const bool Flag_ecalBadCalibFilter_Selection,
-const bool Flag_eeBadScFilter_Selection
+const bool Flag_goodVertices,
+const bool Flag_globalSuperTightHalo2016Filter,
+const bool Flag_HBHENoiseFilter,
+const bool Flag_HBHENoiseIsoFilter,
+const bool Flag_EcalDeadCellTriggerPrimitiveFilter,
+const bool Flag_BadPFMuonFilter,
+const bool Flag_BadChargedCandidateFilter,
+const bool Flag_ecalBadCalibFilter,
+const bool Flag_eeBadScFilter
 	){
 	return
-		   Flag_goodVertices_Selection
-		|| Flag_globalSuperTightHalo2016Filter_Selection
-		|| Flag_HBHENoiseFilter_Selection
-		|| Flag_HBHENoiseIsoFilter_Selection
-		|| Flag_EcalDeadCellTriggerPrimitiveFilter_Selection
-		|| Flag_BadPFMuonFilter_Selection
-		|| Flag_BadChargedCandidateFilter_Selection
-		|| Flag_ecalBadCalibFilter_Selection
-		|| Flag_eeBadScFilter_Selection
+		   Flag_goodVertices
+		|| Flag_globalSuperTightHalo2016Filter
+		|| Flag_HBHENoiseFilter
+		|| Flag_HBHENoiseIsoFilter
+		|| Flag_EcalDeadCellTriggerPrimitiveFilter
+		|| Flag_BadPFMuonFilter
+		|| Flag_BadChargedCandidateFilter
+		|| Flag_ecalBadCalibFilter
+		|| Flag_eeBadScFilter
 	;
 }
 /*
@@ -442,6 +442,18 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	}
 	if(debug>0)std::cout<<"btagCSVv2 exiting"<<std::endl;
 	return results; };
+}
+auto runLBfilter(
+	const std::map<size_t,std::vector<std::pair<size_t,size_t>>>
+	&runLBdict){
+	return [&](const size_t run,const size_t LB){
+		if(std::any_of(runLBdict.at(run).cbegin(),
+		               runLBdict.at(run).  cend(),
+		               [LB](std::pair<size_t,size_t> p)
+		               {return p.first <= LB && LB <= p.second;}))
+		     return  true;
+		else return false;
+	};
 }
 template <typename T>
 auto abs_deltaphi(const double Zphi,const T Wphi)
@@ -946,6 +958,15 @@ auto rep_const(const double sf,const doubles& iRVec){
 }
 }// namespace
 void calchisto(const channel ch,const dataSource ds){
+	nlohmann::json JSONdict;
+	std::ifstream(// open this JSON file once as a stream
+	"Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt")
+	>> JSONdict;// and read into this json object, then fix type of key
+	std::map<size_t,std::vector<std::pair<size_t,size_t>>> runLBdic;
+	for(const auto& [key,value] : JSONdict.items())
+		runLBdic.emplace(std::stoi(key),value);// key:string->size_t
+	// we now have one single copy of a wonderfully clean dictionary
+
 	// Open data files even if unused
 	// then automatically choose which one to read from
 	// No penalty for opening and leaving unused
@@ -1062,15 +1083,15 @@ void calchisto(const channel ch,const dataSource ds){
 	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","fixedGridRhoFastjetAll",
 	        "GenJet_pt","GenJet_eta","GenJet_phi","tight_jets"})
 	.Filter(event_cleaning,{
-	        "Flag_goodVertices_Selection",
-	        "Flag_globalSuperTightHalo2016Filter_Selection",
-	        "Flag_HBHENoiseFilter_Selection",
-	        "Flag_HBHENoiseIsoFilter_Selection",
-	        "Flag_EcalDeadCellTriggerPrimitiveFilter_Selection",
-	        "Flag_BadPFMuonFilter_Selection",
-	        "Flag_BadChargedCandidateFilter_Selection",
-	        "Flag_ecalBadCalibFilter_Selection",
-	        "Flag_eeBadScFilter_Selection"
+	        "Flag_goodVertices",
+	        "Flag_globalSuperTightHalo2016Filter",
+	        "Flag_HBHENoiseFilter",
+	        "Flag_HBHENoiseIsoFilter",
+	        "Flag_EcalDeadCellTriggerPrimitiveFilter",
+	        "Flag_BadPFMuonFilter",
+	        "Flag_BadChargedCandidateFilter",
+	        "Flag_ecalBadCalibFilter",
+	        "Flag_eeBadScFilter"
 	       },
 	        "Event Cleaning filter")
 	.Define("fin_jets__pt" ,"tight_jets__pt * cjer")// these are JEC
@@ -1105,7 +1126,8 @@ void calchisto(const channel ch,const dataSource ds){
 	;
 	auto     expt_bjets
 	   = init_selection
-	.Filter([](){return true;},{},"JSON filter stand-in")// TODO
+	.Filter(runLBfilter(runLBdic),{"run","LuminosityBlock"},
+			  "LuminosityBlock filter")
 	.Define("fin_jets__pt",[](floats& x){return static_cast<doubles>(x);},
 	     {"tight_jets__pt"})
 	.Define("fin_jets_eta",[](floats& x){return static_cast<doubles>(x);},
