@@ -446,7 +446,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
 auto runLBfilter(
 	const std::map<size_t,std::vector<std::pair<size_t,size_t>>>
 	&runLBdict){
-	return [&](const size_t run,const size_t LB){
+	return [&](const unsigned int run,const size_t LB){
 		if(std::any_of(runLBdict.at(run).cbegin(),
 		               runLBdict.at(run).  cend(),
 		               [LB](std::pair<size_t,size_t> p)
@@ -1030,7 +1030,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(100000);
+	auto dfr = df.Range(1000000);
 	auto init_selection = dfr// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
@@ -1061,8 +1061,8 @@ void calchisto(const channel ch,const dataSource ds){
 	           "lep_eta",
 	           "lep_phi",
 	           "lep_mas",
-	       "CaloMET_pt" ,// TODO: Not sure CaloMET or normal
-	       "CaloMET_phi"})
+	       "MET_pt" ,
+	       "MET_phi"})
 //	       "CaloMET_sumEt"})// TODO: add this back
 //	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
 	// jets selection follows; tW done and lepton selected
@@ -1126,8 +1126,8 @@ void calchisto(const channel ch,const dataSource ds){
 	;
 	auto     expt_bjets
 	   = init_selection
-	.Filter(runLBfilter(runLBdic),{"run","luminosityBlock"},
-			  "LuminosityBlock filter")
+	//.Filter(runLBfilter(runLBdic),{"run","luminosityBlock"},
+	//		  "LuminosityBlock filter")
 	.Define("fin_jets__pt",[](floats& x){return static_cast<doubles>(x);},
 	     {"tight_jets__pt"})
 	.Define("fin_jets_eta",[](floats& x){return static_cast<doubles>(x);},
