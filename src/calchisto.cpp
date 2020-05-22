@@ -446,7 +446,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
 auto runLBfilter(
 	const std::map<size_t,std::vector<std::pair<size_t,size_t>>>
 	&runLBdict){
-	return [&](const unsigned int run,const size_t LB){
+	return [&](const size_t run,const size_t LB){
 		if(std::any_of(runLBdict.at(run).cbegin(),
 		               runLBdict.at(run).  cend(),
 		               [LB](std::pair<size_t,size_t> p)
@@ -585,6 +585,65 @@ auto top_reconst(const doubles& bjets_pt,
 		}
 	}
 	return reco_top;
+}
+template <typename T>
+auto allReconstruction(T &rdf){
+	return rdf
+	// reconstruct z avoiding bjets first
+	.Define(   "fin_jets_Dph" , jet_deltaphi  ,{"fin_jets_phi"})
+	.Define( "lead_bjet"      , find_lead_mask,{"fin_jets__pt","is_bjets"})
+	.Define(      "bjet__pt"  ,"fin_jets__pt[lead_bjet]")// Leading bjet
+	.Define(      "bjet_eta"  ,"fin_jets_eta[lead_bjet]")// 4-momentum
+	.Define(      "bjet_phi"  ,"fin_jets_phi[lead_bjet]")// used for top
+	.Define(      "bjet_mas"  ,"fin_jets_mas[lead_bjet]")// reconstruction
+	.Define("z_reco_jets"     , find_z_pair   ,
+	       { "fin_jets__pt"   ,
+	         "fin_jets_eta"   ,
+	         "fin_jets_phi"   ,//easier to push back
+	         "fin_jets_mas"   , "lead_bjet" })
+	.Define(   "z_pair__pt"   ,   "fin_jets__pt[z_reco_jets]")
+	.Define(   "z_pair_eta"   ,   "fin_jets_eta[z_reco_jets]")
+	.Define(   "z_pair_phi"   ,   "fin_jets_phi[z_reco_jets]")
+	.Define(   "z_pair_mas"   ,   "fin_jets_mas[z_reco_jets]")
+	.Define(   "z_TLV"	     , TLVpairAdd,
+	       {   "z_pair__pt"   ,
+	           "z_pair_eta"   ,
+	           "z_pair_phi"   ,
+	           "z_pair_mas"  })
+	.Define(   "z_mas"        ,    TLVex( m ),{"z_TLV"})
+	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut")
+	.Define(   "z__pt"        ,    TLVex(pt ),{"z_TLV"})
+	.Define(   "z_eta"        ,    TLVex(eta),{"z_TLV"})
+	.Define(   "z_phi"        ,    TLVex(phi),{"z_TLV"})
+	.Define(   "z_lep_min_dR" , jet_lep_min_deltaR<doubles>,// TODO: Check input?
+	       {   "z_pair_eta"   ,
+	           "z_pair_phi"   ,
+	              "lep_eta"   ,
+	              "lep_phi"  })// TODO: wrong input below
+//	.Filter(      deltaR_z_l,  {  "z_lep_min_dR"},"delta R ZL")
+	.Define(   "zw_Dph" , abs_deltaphi<double>,{"z_phi","tw_lep_phi"})
+//	.Filter(      deltaphi_cut(DELTA_PHI_ZW),
+//	       {   "zw_Dph"},"delta phi ZW cut")
+	.Define( "zmet_Dph" , abs_deltaphi<float >,{"z_phi","MET_phi"})
+//	.Filter(      deltaphi_cut(DELTA_PHI_ZMET),
+//	       { "zmet_Dph"},"Z met cut ")
+	// Adding a mask to pick the z_pair_phi from the fin_jets_phi
+	.Define("z_jets_Dph", jet_deltaphi   ,{"z_pair_phi"})
+	// reconstruct transverse top follows; z reconstructed
+	.Define("recoTtop",top_reconst,
+	       {"bjet__pt",
+	        "bjet_eta",
+	        "bjet_phi",
+	        "bjet_mas",
+	      "tw_lep__pt",
+	      "tw_lep_eta",
+	      "tw_lep_phi",
+	      "tw_lep_mas"})
+	.Define("ttop__pt",TLVex(pt ),{"recoTtop"})
+	.Define("ttop_eta",TLVex(eta),{"recoTtop"})
+	.Define("ttop_phi",TLVex(phi),{"recoTtop"})
+	.Define("ttop_mas",TLVex( m ),{"recoTtop"})
+	;
 }
 // Btagging for eff i and eff j
 auto BTaggedEffGiver(TH2D*& ratio,bool b){
@@ -956,8 +1015,38 @@ auto rep_const(const double sf,const doubles& iRVec){
 	doubles weight(iRVec.size(),sf);
 	return  weight;
 }
+template <typename T>
+auto finalScaling(const dataSource ds,T &rdf){
+	return rdf
+	.Define("sf"     ,  sf(ds) ,{"btag_w","mostSF"})
+	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
+	. Alias("nw_lep_eta"       ,"sf")// LOL WHY SO DUMB, weigh the
+	. Alias("nw_lep_phi"       ,"sf")// hist BY "sf" then!
+	. Alias("nw_lep_mas"       ,"sf")
+	.Define("nw_fin_jets__pt"  ,rep_const,{"sf","fin_jets__pt"  })
+	.Define("nw_fin_jets_eta"  ,rep_const,{"sf","fin_jets_eta"  })
+	.Define("nw_fin_jets_phi"  ,rep_const,{"sf","fin_jets_phi"  })
+	.Define("nw_fin_jets_mas"  ,rep_const,{"sf","fin_jets_mas"  })
+	.Define("nw_bjet__pt"	   ,rep_const,{"sf","bjet__pt"      })
+	.Define("nw_bjet_eta"      ,rep_const,{"sf","bjet_eta"      })
+	.Define("nw_bjet_phi"      ,rep_const,{"sf","bjet_phi"      })
+	.Define("nw_bjet_mas"      ,rep_const,{"sf","bjet_mas"      })
+	.Define("nw_jet_lep_min_dR",rep_const,{"sf","jet_lep_min_dR"})
+	.Define(  "nw_z_lep_min_dR",rep_const,{"sf",  "z_lep_min_dR"})
+	. Alias( "nw_tw_lep_mas"   ,"sf")
+	. Alias(  "nw_z_mas"       ,"sf")
+	.Define("nw_fin_jets_Dph"  ,rep_const,{"sf","fin_jets_Dph"})
+	.Define("nw_z_jets_Dph"	   ,rep_const,{"sf",  "z_jets_Dph"})
+	. Alias(    "nw_zmet_Dph"  ,"sf")
+	. Alias(      "nw_zw_Dph"  ,"sf")
+	. Alias("nw_lep_nu_invmass","sf")
+	. Alias("nw_ttop__pt"      ,"sf")
+	. Alias("nw_ttop_mas"      ,"sf")
+	;
+}
 }// namespace
 void calchisto(const channel ch,const dataSource ds){
+	// Open LB file even if Monte Carlo will NOT use it
 	nlohmann::json JSONdict;
 	std::ifstream(// open this JSON file once as a stream
 	"Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt")
@@ -984,7 +1073,7 @@ void calchisto(const channel ch,const dataSource ds){
 	case cms:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}// CMS and MET MUST do some OPENABLE file ; reject later
-	ROOT::RDataFrame mcsdf{"Events",temp_opener};// Monte Carlo
+	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
 	// Open chains of exptData EVEN IF UNUSED
 	TChain elnuCMS("Events");
 	TChain munuCMS("Events");
@@ -1000,37 +1089,37 @@ void calchisto(const channel ch,const dataSource ds){
 		temp_opener=temp_header+ c +temp_footer;
 		munuCMS.Add(temp_opener.c_str());
 	}
-	ROOT::RDataFrame  metdf{"Events" ,// TODO: channel unified?
-		"/data/disk0/nanoAOD_2017/MET*/*.root"};/**/
+	ROOT::RDataFrame  met_df("Events",// TODO: channel unified?
+		"/data/disk0/nanoAOD_2017/MET*/*.root");/**/
 	ROOT::RDataFrame  elnudf(elnuCMS);
 	ROOT::RDataFrame  munudf(munuCMS);
-	ROOT::RDataFrame *pointerMagicRDF;
-	// Need pointer magic to automatically get correct data
-	switch(ds){
-		case tzq:
-		case  ww:// fall through!
-		case  wz:
-		case  zz:
-		case ttz:{pointerMagicRDF = &mcsdf;break;}
-		case met:{pointerMagicRDF = &metdf;break;}
-		case cms:{switch(ch){
-		          case elnu:{pointerMagicRDF = &elnudf;break;}
-		          case munu:{pointerMagicRDF = &munudf;break;}
-//		          default  :throw std::invalid_argument(
-//			"Unimplemented ch (rdf set)");
-			}break;}
-//		default :throw std::invalid_argument(
-//			"Unimplemented ds (rdf set)");
-	}// using pointer magic in a few lines below
+	bool MC = false;// are we doing Monte Carlo? Big branch later
+	auto df = [&,ch,ds](){// Get correct data frame
+		switch(ds){
+			case tzq:
+			case  ww:// fall through!
+			case  wz:
+			case  zz:
+			case ttz:{MC =  true;return mc__df;break;}
+			case met:{MC = false;return met_df;break;}
+			case cms:{switch(ch){// MC is already false
+			          case elnu:{return elnudf;break;}
+			          case munu:{return munudf;break;}
+//			          default  :throw std::invalid_argument(
+//				"Unimplemented ch (rdf set)");
+				}break;}
+//			default :throw std::invalid_argument(
+//				"Unimplemented ds (rdf set)");
+		}
+	}();
 	switch(ch){// TODO: Email Ivan , how to submit jobs.
 		case elnu:{temp_header = "Electron_";break;}
 		case munu:{temp_header =     "Muon_";break;}
 //		default  :throw std::invalid_argument(
 //			"Unimplemented ch (init)");
 	}
-	ROOT::RDataFrame df = *pointerMagicRDF;// Finally!
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(1000000);
+	auto dfr = df.Range(10000);
 	auto init_selection = dfr// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
@@ -1061,8 +1150,8 @@ void calchisto(const channel ch,const dataSource ds){
 	           "lep_eta",
 	           "lep_phi",
 	           "lep_mas",
-	       "MET_pt" ,
-	       "MET_phi"})
+	       "CaloMET_pt" ,// TODO: Not sure CaloMET or normal
+	       "CaloMET_phi"})
 //	       "CaloMET_sumEt"})// TODO: add this back
 //	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
 	// jets selection follows; tW done and lepton selected
@@ -1077,11 +1166,31 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("tight_jets_mas" ,     "Jet_mass[tight_jets]")
 	.Define("tJ_btagCSVv2"   ,"Jet_btagCSVV2[tight_jets]")
 	;
-	auto     jecs_bjets// Monte Carlo only; JEC == Jet Energy Correction
+	// now we make the histogram names and titles
+	switch(ch){// laugh at muon-neutrino below
+		case elnu:{temp_header = "elnu_";
+		           temp_footer = "electron-neutrino";break;}
+		case munu:{temp_header = "munu_";
+		           temp_footer = "muon"  "-neutrino";break;}
+//		default  :throw std::invalid_argument(
+//			"Unimplemented ch (hist titles)");
+	}
+	temp_footer = "pt vs eta in" + temp_footer + " channel for ";
+	switch(ds){
+		case tzq:{temp_header+="tzq";temp_footer+="tZq";break;}
+		case  ww:{temp_header+="_ww";temp_footer+=" WW";break;}
+		case  wz:{temp_header+="_wz";temp_footer+=" WZ";break;}
+		case  zz:{temp_header+="_zz";temp_footer+=" ZZ";break;}
+		case ttz:{temp_header+="ttz";temp_footer+="ttZ";break;}
+		case met:{temp_header+="met";temp_footer+="MET";break;}
+		case cms:{temp_header+="cms";temp_footer+="CMS";break;}
+//		default :throw std::invalid_argument(
+//			"Unimplemented ds (hist titles)");
+	}
+	// Histogram names sorted, now do MC v.s. exptData
+	if(MC){
+	auto jecs_bjets// JEC == Jet Energy Correction
 	   = init_selection
-	.Define("cjer",    delta_R_jet_smear    ,
-	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","fixedGridRhoFastjetAll",
-	        "GenJet_pt","GenJet_eta","GenJet_phi","tight_jets"})
 	.Filter(event_cleaning,{
 	        "Flag_goodVertices",
 	        "Flag_globalSuperTightHalo2016Filter",
@@ -1094,6 +1203,9 @@ void calchisto(const channel ch,const dataSource ds){
 	        "Flag_eeBadScFilter"
 	       },
 	        "Event Cleaning filter")
+	.Define("cjer",    delta_R_jet_smear    ,
+	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","fixedGridRhoFastjetAll",
+	        "GenJet_pt","GenJet_eta","GenJet_phi","tight_jets"})
 	.Define("fin_jets__pt" ,"tight_jets__pt * cjer")// these are JEC
 	.Define("fin_jets_eta" ,"tight_jets_eta * cjer")// Monte Carlo
 	.Define("fin_jets_phi" ,"tight_jets_phi * cjer")// needs JEC
@@ -1124,115 +1236,10 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("sfj",btagCSVv2(false),//,btagDF),// ignore btag
 	       { "tJ_btagCSVv2","fin_jets__pt","fin_jets_eta", "tJpF"})
 	;
-	auto     expt_bjets
-	   = init_selection
-	//.Filter(runLBfilter(runLBdic),{"run","luminosityBlock"},
-	//		  "LuminosityBlock filter")
-	.Define("fin_jets__pt",[](floats& x){return static_cast<doubles>(x);},
-	     {"tight_jets__pt"})
-	.Define("fin_jets_eta",[](floats& x){return static_cast<doubles>(x);},
-	     {"tight_jets_eta"})
-	.Define("fin_jets_phi",[](floats& x){return static_cast<doubles>(x);},
-	     {"tight_jets_phi"})
-	.Define("fin_jets_mas",[](floats& x){return static_cast<doubles>(x);},
-	     {"tight_jets_mas"})
-	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","tJ_btagCSVv2"})
-	.Filter(jetCutter(BJETS_MIN,BJETS_MAX)   ,{"is_bjets"},"b jet cut")
-	// TODO: Always check that the previous 2 lines are copies of earlier
+	auto reco = allReconstruction(
+	     jecs_bjets )
 	;
-	decltype(expt_bjets) *bjets_correctly;
-//	ROOT::RDF::RInterface<void *,void> *bjets_correctly;
-	switch(ds){
-		case tzq:
-		case  ww:// fall through!
-		case  wz:
-		case  zz:
-		case ttz:{bjets_correctly = reinterpret_cast
-		                   <decltype(expt_bjets)*>(
-		                            &jecs_bjets);break;}
-		case met:
-		case cms:{bjets_correctly = &expt_bjets ;break;}
-//		default :throw std::invalid_argument(
-//			"Unimplemented ds (bjets)");
-	}
-	auto reco
-	   = (*bjets_correctly)
-	// reconstruct z avoiding bjets first
-	.Define(   "fin_jets_Dph" , jet_deltaphi  ,{"fin_jets_phi"})
-	.Define( "lead_bjet"      , find_lead_mask,{"fin_jets__pt","is_bjets"})
-	.Define(      "bjet__pt"  ,"fin_jets__pt[lead_bjet]")// Leading bjet
-	.Define(      "bjet_eta"  ,"fin_jets_eta[lead_bjet]")// 4-momentum
-	.Define(      "bjet_phi"  ,"fin_jets_phi[lead_bjet]")// used for top
-	.Define(      "bjet_mas"  ,"fin_jets_mas[lead_bjet]")// reconstruction
-	.Define("z_reco_jets"     , find_z_pair   ,
-	       { "fin_jets__pt"   ,
-	         "fin_jets_eta"   ,
-	         "fin_jets_phi"   ,//easier to push back
-	         "fin_jets_mas"   , "lead_bjet" })
-	.Define(   "z_pair__pt"   ,   "fin_jets__pt[z_reco_jets]")
-	.Define(   "z_pair_eta"   ,   "fin_jets_eta[z_reco_jets]")
-	.Define(   "z_pair_phi"   ,   "fin_jets_phi[z_reco_jets]")
-	.Define(   "z_pair_mas"   ,   "fin_jets_mas[z_reco_jets]")
-	.Define(   "z_TLV"	     , TLVpairAdd,
-	       {   "z_pair__pt"   ,
-	           "z_pair_eta"   ,
-	           "z_pair_phi"   ,
-	           "z_pair_mas"  })
-	.Define(   "z_mas"        ,    TLVex( m ),{"z_TLV"})
-	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut")
-	.Define(   "z__pt"        ,    TLVex(pt ),{"z_TLV"})
-	.Define(   "z_eta"        ,    TLVex(eta),{"z_TLV"})
-	.Define(   "z_phi"        ,    TLVex(phi),{"z_TLV"})
-	.Define(   "z_lep_min_dR" , jet_lep_min_deltaR<doubles>,// TODO: Check input?
-	       {   "z_pair_eta"   ,
-	           "z_pair_phi"   ,
-	              "lep_eta"   ,
-	              "lep_phi"  })// TODO: wrong input below
-//	.Filter(      deltaR_z_l,  {  "z_lep_min_dR"},"delta R ZL")
-	.Define(   "zw_Dph" , abs_deltaphi<double>,{"z_phi","tw_lep_phi"})
-//	.Filter(      deltaphi_cut(DELTA_PHI_ZW),
-//	       {   "zw_Dph"},"delta phi ZW cut")
-	.Define( "zmet_Dph" , abs_deltaphi<float >,{"z_phi","MET_phi"})
-//	.Filter(      deltaphi_cut(DELTA_PHI_ZMET),
-//	       { "zmet_Dph"},"Z met cut ")
-	// Adding a mask to pick the z_pair_phi from the fin_jets_phi
-	.Define("z_jets_Dph", jet_deltaphi   ,{"z_pair_phi"})
-	// reconstruct transverse top follows; z reconstructed
-	.Define("recoTtop",top_reconst,
-	       {"bjet__pt",
-	        "bjet_eta",
-	        "bjet_phi",
-	        "bjet_mas",
-	      "tw_lep__pt",
-	      "tw_lep_eta",
-	      "tw_lep_phi",
-	      "tw_lep_mas"})
-	.Define("ttop__pt",TLVex(pt ),{"recoTtop"})
-	.Define("ttop_eta",TLVex(eta),{"recoTtop"})
-	.Define("ttop_phi",TLVex(phi),{"recoTtop"})
-	.Define("ttop_mas",TLVex( m ),{"recoTtop"})
-	;
-	// now we make the histogram names and titles
-	switch(ch){// laugh at muon-neutrino below
-		case elnu:{temp_header = "elnu_";
-		           temp_footer = "electron-neutrino";break;}
-		case munu:{temp_header = "munu_";
-		           temp_footer = "muon"  "-neutrino";break;}
-//		default  :throw std::invalid_argument(
-//			"Unimplemented ch (hist titles)");
-	}
-	temp_footer = "pt vs eta in" + temp_footer + " channel for ";
-	switch(ds){
-		case tzq:{temp_header+="tzq";temp_footer+="tZq";break;}
-		case  ww:{temp_header+="_ww";temp_footer+=" WW";break;}
-		case  wz:{temp_header+="_wz";temp_footer+=" WZ";break;}
-		case  zz:{temp_header+="_zz";temp_footer+=" ZZ";break;}
-		case ttz:{temp_header+="ttz";temp_footer+="ttZ";break;}
-		case met:{temp_header+="met";temp_footer+="MET";break;}
-		case cms:{temp_header+="cms";temp_footer+="CMS";break;}
-//		default :throw std::invalid_argument(
-//			"Unimplemented ds (hist titles)");
-	}
+
 	auto h_is_btag_numer_PtVsEta
 	   = reco.Histo2D({
 	(        "is_numer_" + temp_header).c_str(),
@@ -1284,7 +1291,7 @@ void calchisto(const channel ch,const dataSource ds){
 	no_btag_ratio->SetNameTitle("ej", "no b tag ej");
 	no_btag_ratio->Draw("COLZ");// DELETED @ EoF
 
-	auto     has_btag_eff// MC
+	auto has_btag_eff
 	   = reco
 	.Define("IsEffBTagged",BTaggedEffGiver(is_btag_ratio, true),
 	       {"fin_jets__pt","fin_jets_eta"})// TODO: check sensibility
@@ -1308,52 +1315,9 @@ void calchisto(const channel ch,const dataSource ds){
 	                                           "lep_phi","lep___q",
 	                                           "lep_gpt","lep__nl"})
 	;
-	auto     not_btag_eff// exptData
-	   = reco
-	.Define("btag_w" ,[](){return 1.;})
-//	. Alias("lep_eff_ID" ,"btag_w")
-//	. Alias("lep_eff_ISO","btag_w")
-	. Alias("mostSF"     ,"btag_w")
-	;
-	decltype(not_btag_eff) *bw_correctly;
-	switch(ds){
-		case tzq:
-		case  ww:// fall through!
-		case  wz:
-		case  zz:
-		case ttz:{bw_correctly = &has_btag_eff;break;}
-		case met:
-		case cms:{bw_correctly = &not_btag_eff;break;}
-//		default :throw std::invalid_argument(
-//			"Unimplemented ds (bw)");
-	}
-	auto finalDF
-	   = (*bw_correctly)
-	.Define("sf"     ,  sf(ds) ,{"btag_w","mostSF"})
-	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
-	. Alias("nw_lep_eta"       ,"sf")// LOL WHY SO DUMB, weigh the
-	. Alias("nw_lep_phi"       ,"sf")// hist BY "sf" then!
-	. Alias("nw_lep_mas"       ,"sf")
-	.Define("nw_fin_jets__pt"  ,rep_const,{"sf","fin_jets__pt"  })
-	.Define("nw_fin_jets_eta"  ,rep_const,{"sf","fin_jets_eta"  })
-	.Define("nw_fin_jets_phi"  ,rep_const,{"sf","fin_jets_phi"  })
-	.Define("nw_fin_jets_mas"  ,rep_const,{"sf","fin_jets_mas"  })
-	.Define("nw_bjet__pt"	   ,rep_const,{"sf","bjet__pt"      })
-	.Define("nw_bjet_eta"      ,rep_const,{"sf","bjet_eta"      })
-	.Define("nw_bjet_phi"      ,rep_const,{"sf","bjet_phi"      })
-	.Define("nw_bjet_mas"      ,rep_const,{"sf","bjet_mas"      })
-	.Define("nw_jet_lep_min_dR",rep_const,{"sf","jet_lep_min_dR"})
-	.Define(  "nw_z_lep_min_dR",rep_const,{"sf",  "z_lep_min_dR"})
-	. Alias( "nw_tw_lep_mas"   ,"sf")
-	. Alias(  "nw_z_mas"       ,"sf")
-	.Define("nw_fin_jets_Dph"  ,rep_const,{"sf","fin_jets_Dph"})
-	.Define("nw_z_jets_Dph"	   ,rep_const,{"sf",  "z_jets_Dph"})
-	. Alias(    "nw_zmet_Dph"  ,"sf")
-	. Alias(      "nw_zw_Dph"  ,"sf")
-	. Alias("nw_lep_nu_invmass","sf")
-	. Alias("nw_ttop__pt"      ,"sf")
-	. Alias("nw_ttop_mas"      ,"sf")
-	;
+	auto finalDF = finalScaling(ds,has_btag_eff);
+	// Everything from here until ELSE is to directly copy downwards
+	// Except beware of the WRITING part, which depends upon MC
 	// Assuming temp_header and footer and all are set per (hist titles)!
 	auto h_trans_w = finalDF.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
@@ -1466,28 +1430,30 @@ void calchisto(const channel ch,const dataSource ds){
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".histo").c_str(),"RECREATE");
-	h_sfi   ->Write();
-	h_sfj   ->Write();
-	h_p_ei  ->Write();
-	h_p_ej  ->Write();
-	h_p_sfei->Write();
-	h_p_sfej->Write();
-	h_btag_w->Write();
-	h_ev_w  ->Write();
-	h_z_mas ->Write();
-	h_is_btag_numer_PtVsEta->Write();
-	h_no_btag_numer_PtVsEta->Write();
-	h_is_btag_denom_PtVsEta->Write();
-	h_no_btag_denom_PtVsEta->Write();
+// Only MC branch has these histograms to write
+		h_sfi   ->Write();
+		h_sfj   ->Write();
+		h_p_ei  ->Write();
+		h_p_ej  ->Write();
+		h_p_sfei->Write();
+		h_p_sfej->Write();
+		h_btag_w->Write();
+		h_is_btag_numer_PtVsEta->Write();
+		h_no_btag_numer_PtVsEta->Write();
+		h_is_btag_denom_PtVsEta->Write();
+		h_no_btag_denom_PtVsEta->Write();
+		is_btag_ratio->Write();
+		no_btag_ratio->Write();
+//
 	h_trans_T ->Write();
 	h_trans_w ->Write();
 	h_Winvmas ->Write();
-	h_zmet_Dph->Write();
+	h_ev_w    ->Write();
+	h_z_mas   ->Write();
 	  h_zw_Dph->Write();
+	h_zmet_Dph->Write();
 	h_z_daughters_Dph->Write();
 	h_tWmVsZmass ->Write();
-	is_btag_ratio->Write();
-	no_btag_ratio->Write();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -1522,6 +1488,207 @@ void calchisto(const channel ch,const dataSource ds){
 		h->Write();
 	}
 	hf.Close();
-	delete is_btag_ratio;
-	delete no_btag_ratio;
+	}
+	else
+	{
+	auto expt_bjets
+	   = init_selection
+	.Filter(runLBfilter(runLBdic),{"run","luminosityBlock"},
+			  "LuminosityBlock filter")
+	.Define("fin_jets__pt",[](floats& x){return static_cast<doubles>(x);},
+	     {"tight_jets__pt"})
+	.Define("fin_jets_eta",[](floats& x){return static_cast<doubles>(x);},
+	     {"tight_jets_eta"})
+	.Define("fin_jets_phi",[](floats& x){return static_cast<doubles>(x);},
+	     {"tight_jets_phi"})
+	.Define("fin_jets_mas",[](floats& x){return static_cast<doubles>(x);},
+	     {"tight_jets_mas"})
+	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","tJ_btagCSVv2"})
+	.Filter(jetCutter(BJETS_MIN,BJETS_MAX)   ,{"is_bjets"},"b jet cut")
+	// TODO: Always check that the previous 2 lines are copies of earlier
+	;
+	auto reco = allReconstruction(
+	     expt_bjets )
+	;
+	auto not_btag_eff
+	   = reco
+	.Define("btag_w" ,[](){return 1.;})
+//	. Alias("lep_eff_ID" ,"btag_w")
+//	. Alias("lep_eff_ISO","btag_w")
+	. Alias("mostSF"     ,"btag_w")
+	;
+	auto finalDF = finalScaling(ds,not_btag_eff);
+	// Everything below is
+	// Assuming temp_header and footer and all are set per (hist titles)!
+	auto h_trans_w = finalDF.Histo1D({
+	(          "tWm_"     + temp_header).c_str(),
+	("Transverse W mass " + temp_header).c_str(),
+	50,0,180},
+	"tw_lep_mas","nw_tw_lep_mas");
+	h_trans_w->GetXaxis()->SetTitle("mass GeV/C^2");
+	h_trans_w->GetYaxis()->SetTitle("Event");
+	h_trans_w->SetLineStyle(kSolid);
+
+	auto h_Winvmas = finalDF.Histo1D({
+	("W_invariant_mass_" + temp_header).c_str(),
+	("W invariant mass " + temp_header).c_str(),
+	50,0,180},
+	"lep_nu_invmass","nw_lep_nu_invmass");
+	h_Winvmas->GetXaxis()->SetTitle("mass GeV/C^2");
+	h_Winvmas->GetYaxis()->SetTitle("Event");
+	h_Winvmas->SetLineStyle(kSolid);
+
+	auto h_z_mas = finalDF.Histo1D({
+	(        "zmas_" + temp_header).c_str(),
+	("Recon. Z mass" + temp_header).c_str(),
+	50,0,200},
+	"z_mas","nw_z_mas");
+
+	auto h_trans_T = finalDF.Histo1D({
+	(          "tTm_"     + temp_header).c_str(),
+	("Transverse T mass " + temp_header).c_str(),
+	50,0,180},
+	"ttop_mas","nw_ttop_mas");
+	h_trans_T->GetXaxis()->SetTitle("mass GeV/C^2");
+	h_trans_T->GetYaxis()->SetTitle("Event");
+	h_trans_T->SetLineStyle(kSolid);
+
+	auto h_zmet_Dph = finalDF.Histo1D({
+	("Z_MET_Delta_Phi_" + temp_header).c_str(),
+	("Z MET Delta Phi " + temp_header).c_str(),
+	50,-7,7},
+	"zmet_Dph","nw_zmet_Dph");
+	h_zmet_Dph->GetXaxis()->SetTitle("Z & MET delta phi/rad");
+	h_zmet_Dph->GetYaxis()->SetTitle("Event");
+	h_zmet_Dph->SetLineStyle(kSolid);
+
+	auto h_zw_Dph = finalDF.Histo1D({
+	("Z_W_Delta_Phi_" + temp_header).c_str(),
+	("Z W Delta Phi " + temp_header).c_str(),
+	50,-7,7},
+	"zw_Dph","nw_zw_Dph");
+	h_zw_Dph->GetXaxis()->SetTitle("Z & W delta phi/rad");
+	h_zw_Dph->GetYaxis()->SetTitle("Event");
+	h_zw_Dph->SetLineStyle(kSolid);
+
+	auto h_z_daughters_Dph = finalDF.Histo1D({
+	("Z_pair_jets_Delta_Phi_" + temp_header).c_str(),
+	("Z pair jets Delta Phi " + temp_header).c_str(),
+	50,-7,7},
+	"z_jets_Dph","nw_z_jets_Dph");
+	h_z_daughters_Dph->GetXaxis()->SetTitle("Z pair jets Delta phi/rad");
+	h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
+	h_z_daughters_Dph->SetLineStyle(kSolid);
+
+	auto h_tWmVsZmass = finalDF.Histo2D({
+	("tWmVsZmass_" + temp_header).c_str(),
+	("tWmVsZmass " + temp_header).c_str(),
+	50,0,200,50,0,200},
+	"tw_lep_mas","z_mas");
+	h_tWmVsZmass->GetXaxis()->SetTitle("tWm   GeV/C^2");
+	h_tWmVsZmass->GetYaxis()->SetTitle("Zmass GeV/C^2");
+
+	auto h_sfi = finalDF.Histo1D({
+	("sfi_"+temp_header).c_str(),
+	("sfi "+temp_header).c_str(),
+	50,-10,10},"sfi");
+
+	auto h_sfj = finalDF.Histo1D({
+	("sfj_"+temp_header).c_str(),
+	("sfj "+temp_header).c_str(),
+	50,-10,10},"sfj");
+
+	auto h_p_ei = finalDF.Histo1D({
+	("p_ei_"+temp_header).c_str(),
+	("p_ei "+temp_header).c_str(),
+	50,-10,10},"P___ei");
+
+	auto h_p_ej = finalDF.Histo1D({
+	("p_ej_"+temp_header).c_str(),
+	("p_ej "+temp_header).c_str(),
+	50,-10,10},"P___ej");
+
+	auto h_p_sfei= finalDF.Histo1D({
+	("p_sfei_"+temp_header).c_str(),
+	("p_sfei "+temp_header).c_str(),
+	50,-10,10},"P_sfei");
+
+	auto h_p_sfej= finalDF.Histo1D({
+	("p_sfej_"+temp_header).c_str(),
+	("p_sfej "+temp_header).c_str(),
+	50,-10,10},"P_sfej");
+
+	auto h_btag_w= finalDF.Histo1D({
+	("btag_w_"+temp_header).c_str(),
+	("btag_W "+temp_header).c_str(),
+	50,-100,100},"btag_w");
+
+	auto h_ev_w = finalDF.Histo1D({
+	(   "ev_w_"    +temp_header).c_str(),
+	("Event weight"+temp_header).c_str(),
+	50,-50,50},"sf");
+
+	// write histograms to a root file
+	// ASSUMES temp_header is correct!
+	TFile hf(("histo/"+temp_header+".histo").c_str(),"RECREATE");
+/*	exptData do not have these to write
+		h_sfi   ->Write();
+		h_sfj   ->Write();
+		h_p_ei  ->Write();
+		h_p_ej  ->Write();
+		h_p_sfei->Write();
+		h_p_sfej->Write();
+		h_btag_w->Write();
+		h_is_btag_numer_PtVsEta->Write();
+		h_no_btag_numer_PtVsEta->Write();
+		h_is_btag_denom_PtVsEta->Write();
+		h_no_btag_denom_PtVsEta->Write();
+		is_btag_ratio->Write();
+		no_btag_ratio->Write();
+	}
+*/
+	h_trans_T ->Write();
+	h_trans_w ->Write();
+	h_Winvmas ->Write();
+	h_ev_w    ->Write();
+	h_z_mas   ->Write();
+	  h_zw_Dph->Write();
+	h_zmet_Dph->Write();
+	h_z_daughters_Dph->Write();
+	h_tWmVsZmass ->Write();
+	// the following two for loops stack correctly
+	for(std::string particle:{"fin_jets","lep","bjet"})
+	for(PtEtaPhiM k:PtEtaPhiMall){
+		std::string  kstring  = "_";
+		std::string  xAxisStr;
+		double xmin,xmax;
+		switch(k){
+			case pt :{kstring += "_pt";xmin =  0;xmax = 200;
+			          xAxisStr = "pT/GeV"                  ;break;}
+			case eta:{kstring += "eta";xmin = -3;xmax =  3 ;
+			          xAxisStr = "PseudoRapidity eta"      ;break;}
+			case phi:{kstring += "phi";xmin = -7;xmax =  7 ;
+			          xAxisStr = "Azimuthal angle, phi/rad";break;}
+			case  m :{kstring += "mas";xmin =  0;xmax = 200;
+			          xAxisStr = "mass GeV/C^2"            ;break;}
+//			default :throw std::invalid_argument(
+//				"Unimplemented component (histo)");
+		}
+		temp_footer = particle + kstring;
+		temp_opener = temp_header + "_" + temp_footer;
+		auto
+		h = finalDF.Histo1D(
+		{temp_opener.c_str()
+		,temp_opener.c_str()
+		,50,xmin,xmax}
+		,       temp_footer .c_str()
+		,("nw_"+temp_footer).c_str()
+		);
+		h->SetLineStyle(kSolid);
+		h->GetXaxis()->SetTitle(xAxisStr.c_str());
+		h->GetYaxis()->SetTitle("Event");
+		h->Write();
+	}
+	hf.Close();
+	}
 }
