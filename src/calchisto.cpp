@@ -1,4 +1,11 @@
+// TODO: Adding Triggers
 // TODO: lepton trigger efficiency to be integrated inside calchisto
+// TODO: PILE UP, Shape uncertainties, top pt reweighting, non promp lepton corrections
+// TODO: MET unclustering correction
+// TODO: Matching genjet to jets via using:Muon_genPartIdx,Electron_genPartIdx,Jet_genJetIdx
+// TODO: MET missing branches: Electron_isPFcand,Electron_pt,Electron_eta,Electron_cutBased,Muon_tightId,Muon_pfRelIso04_all
+// TODO: plotsstack for all dataSources and channels
+
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <TLorentzVector.h>
 #include <TRandom3.h>// used Gaussian, uniform each once
@@ -774,14 +781,24 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 */
 auto btag_weight(const double p_data,const double p_MC){
 	double  weight = p_data / p_MC;
-	if(debug > 0)std::cout<<"btag_w"<<std::endl;
 	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// Rids non-zero/inf/NaN
-	if(debug > 0)   std::cout<<"btag_w is "<<weight<<std::endl;
+//	if(debug > 0)   std::cout<<"btag_w is "<<weight<<std::endl;
 	return  weight;
+}
+auto  lep_gpt(const channel ch){
+   return [=](const ints &id, const floats &pt){
+		int idV;
+		switch(ch){
+			case elnu:{idV = 11;break;}
+			case munu:{idV = 13;break;}
+		}
+		auto gAll = pt[ abs(id) == idV ];
+		if(5<debug)std::cout<<"gen pt picking from "<<gAll<<std::endl;
+		return *max_element(gAll.cbegin(),gAll.cend());
+   };
 }
 // Lepton efficiencies
 auto elEffGiver(const float pt,const float eta){
-	if(debug > 0)std::cout<<"elEffGiver"<<std::endl;
 	std::map<elSf,double> dict = {{Eff,1.},{Smr,1.}};
 	// eff == electron    regression    corrections
 	// smr == energy scale and smearing corrections
@@ -791,44 +808,42 @@ auto elEffGiver(const float pt,const float eta){
 	TH2  *h_EgammaSf;
 	int PtBin,EtaBin;
 	hname       = "EGamma_SF2D";
+	if(2<debug)std::cout<<"el eff giver"<<std::endl;
 	if(   20.f <= pt){
 		fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
 		Fname    = new TFile(fname.c_str());
-		Fname    ->GetObject(fname.c_str() ,h_EgammaSf);
+		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
 		 PtBin   = h_EgammaSf->GetXaxis()->FindBin(pt );
 		EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
 		dict[Eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
 		Fname->Close();
-		delete Fname;Fname=nullptr;delete h_EgammaSf;h_EgammaSf=nullptr;
 	}else{//if(pt < 20.f){
 		fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root";
 		Fname    = new TFile(fname.c_str());
-		Fname    ->GetObject(fname.c_str() ,h_EgammaSf);
+		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
 		 PtBin   = h_EgammaSf->GetXaxis()->FindBin(pt );
 		EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
 		dict[Eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
 		Fname->Close();
-		delete Fname;Fname=nullptr;delete h_EgammaSf;h_EgammaSf=nullptr;
 	}//else{// TODO: this need clarification
 		fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root";
 		Fname    = new TFile(fname.c_str());
-		Fname    ->GetObject(fname.c_str() ,h_EgammaSf);
+		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
 		 PtBin   = h_EgammaSf->GetXaxis()->FindBin(pt );
 		EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
 		dict[Smr]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
 		Fname->Close();
-		delete Fname;Fname=nullptr;delete h_EgammaSf;h_EgammaSf=nullptr;
 //	}
-
+	if(5<debug)std::cout<<dict[Eff]<<" eff , smr "<<dict[Smr]<<std::endl;
 	return dict;
 }
 auto muEffGiver(const float pt,
                 const float eta){
-	if(debug >0)std::cout<<"meEffGiver"<<std::endl;
 	const float ata = abs(eta);
 	std::map<muSf,double> dict
 	={{Id,1.},{ Idsys,1.},{ IdsysStat,1.},{ IdsysSyst,1. },
 	 {Iso,1.},{Isosys,1.},{IsosysStat,1.},{IsosysSyst,1.}};
+	if(2<debug)std::cout<<"mu eff giver"<<std::endl;
 	if(20.f <= pt && pt <= 120.f && ata <= 2.4f) return dict;
 	std::string fname,hname;
 	TFile *Fname;
@@ -844,7 +859,6 @@ auto muEffGiver(const float pt,
 	dict[Id]
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
-	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
 	 fname = "Muon_RunBCDEF_SF_ID_syst.root";
 	 hname = "NUM_TightID_DEN_genTracks_pt_abseta";
@@ -855,7 +869,6 @@ auto muEffGiver(const float pt,
 	dict[Idsys]
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
-	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
 	 fname = "Muon_RunBCDEF_SF_ID_syst.root";
 	 hname = "NUM_TightID_DEN_genTracks_pt_abseta_stat";
@@ -865,7 +878,6 @@ auto muEffGiver(const float pt,
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
 	dict[IdsysStat]
 	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
-	delete h_RunsBCDEF; h_RunsBCDEF = nullptr;
 	 hname = "NUM_TightID_DEN_genTracks_pt_abseta_syst";
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
@@ -873,7 +885,6 @@ auto muEffGiver(const float pt,
 	dict[IdsysSyst]
 	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
 	Fname->Close();
-	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
 	 fname = "Muon_RunBCDEF_SF_ISO.root";
 	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
@@ -884,7 +895,6 @@ auto muEffGiver(const float pt,
 	dict[Iso]
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
-	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
 	 fname = "Muon_RunBCDEF_SF_ISO_syst.root";
 	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
@@ -895,7 +905,6 @@ auto muEffGiver(const float pt,
 	dict[Isosys]
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
-	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
 	 fname = "Muon_RunBCDEF_SF_ISO_syst.root";
 	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat";
@@ -905,7 +914,6 @@ auto muEffGiver(const float pt,
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
 	dict[IsosysStat]
 	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
-	delete h_RunsBCDEF; h_RunsBCDEF = nullptr;
 	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_syst";
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
@@ -913,13 +921,12 @@ auto muEffGiver(const float pt,
 	dict[IsosysSyst]
 	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
 	Fname->Close();
-	delete Fname;Fname=nullptr;delete h_RunsBCDEF;h_RunsBCDEF=nullptr;
 
-
+	if(5<debug)std::cout<<dict[IsosysStat]
+	           <<"\t:\t"<<dict[IsosysSyst]<<std::endl;
 	return dict;
 }
 auto lepEffGiver(const channel ch,const dataSource ds){
-	if(debug > 0) std::cout<<"lepEffGiver"<<std::endl;
 	return [=](const float     pt,const float eta,
 	           const float    phi,const   int Q,
 	           const float gen_pt,const   int nl){
@@ -941,7 +948,7 @@ auto lepEffGiver(const channel ch,const dataSource ds){
 		case met: // exptData do not call elEffGiver
 		case cms:;// default sf, id, iso works
 		}
-	}// no rocco for elnu
+	break;}// no rocco for elnu
 	case munu :{
 		switch(ds){
 		case tzq:
@@ -972,23 +979,24 @@ m is error member (default is 0, ranges from 0 to nmembers-1)
 For MC, when switching to different error sets/members for
 a given muon, random number (u) should remain unchanged.
 */
-			
 			if(gen_pt != 0){
 				std::cout<<"rocco 1"<<std::endl;
 				sf = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
 			}
-			else{std::cout<<"rocco 2"<<std::endl; auto u = gRandom->Rndm();
+			else{
+				std::cout<<"rocco 2"<<std::endl;
+				auto u = gRandom->Rndm();
 				std::cout<<// TODO: not sure if gRandom works!
 				"Warning, u must be between 0 and 1, u is "
 				<<u<<std::endl;
 				sf = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
-				std::cout<<"rocco sf "<<sf<<std::endl;
 			}break;}
 		case met:// exptData do not call muEffGiver
-		case cms:{sf = rc.kScaleDT(Q,pt,eta,phi,0,0);
-			 std::cout<<"rocco sf is "<<sf<<std::endl;break;}
+		case cms:{
+				std::cout<<"rocco 3"<<std::endl;
+				sf = rc. kScaleDT(Q,pt,eta,phi,0,0);break;}
 		}
-	}}// case munu and switch ch
+	break;}}// case munu and switch ch
 	if(debug > 0) std::cout
 		<< "most " << sf
 		<< " id  " << id
@@ -1133,7 +1141,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(100000);
-	auto init_selection = dfr// remove one letter to do all
+	auto init_selection = df// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
 	.Define("loose_leps",lep_sel(ch),
@@ -1318,7 +1326,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("P_Data","P_sfei * P_sfej")
 	.Define("btag_w",btag_weight,{"P_Data","P_MC"})
 	// next few lines are just for muons
-	.Define("lep_gpt"    ,"GenPart_pt[loose_leps][0]")
+	.Define("lep_gpt"    ,lep_gpt(ch),{"GenPart_pdgId","GenPart_pt"})
 	.Define("lep__nl"    ,[=](ints L,ints m){if(munu==ch)return L[m][0];
 	                                         else        return      0 ;},
 	       {"Muon_nTrackerLayers","loose_leps"})
