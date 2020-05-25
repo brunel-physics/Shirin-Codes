@@ -1140,8 +1140,8 @@ void calchisto(const channel ch,const dataSource ds){
 //			"Unimplemented ch (init)");
 	}
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(100000);
-	auto init_selection = df// remove one letter to do all
+	auto dfr = df.Range(1000);
+	auto init_selection = dfr// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
 	.Define("loose_leps",lep_sel(ch),
@@ -1709,5 +1709,6 @@ void calchisto(const channel ch,const dataSource ds){
 		h->Write();
 	}
 	hf.Close();
+	std::cout<<"End Of Calchisto.cpp"<<std::endl;
 	}
 }
