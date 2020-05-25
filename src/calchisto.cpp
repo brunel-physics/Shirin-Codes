@@ -274,7 +274,7 @@ auto jet_smear_pt_resol(const floats& pt,const floats& eta,const float rho){
 	double etaMin,etaMax,rhoMin,rhoMax;
 	double pt_Min,pt_Max;
 	double a,b,c,d;
-	io::CSVReader<10> thisCSVfile("Fall17_V3_MC_PtResolution_AK4PFchs.txt");
+	io::CSVReader<10> thisCSVfile("aux/Fall17_V3_MC_PtResolution_AK4PFchs.txt");
 	thisCSVfile.read_header(io::ignore_extra_column,
 	"etaMin","etaMax","rhoMin","rhoMax","ptMin","ptMax","a","b","c","d");
 	while(thisCSVfile.read_row(
@@ -295,7 +295,7 @@ auto jet_smear_Sjer(const floats& etas){
    doubles Sjers(            etas.size());
 	double  etaMin,etaMax;
 	double  centralSF,dnSF,upSF;
-	io::CSVReader<5> thisCSVfile("Fall17_V3_MC_SF_AK4PF.txt");
+	io::CSVReader<5> thisCSVfile("aux/Fall17_V3_MC_SF_AK4PF.txt");
 	thisCSVfile.read_header(io::ignore_extra_column,
 	                          "etaMin","etaMax","centralSF","dnSF","upSF");
 	while(thisCSVfile.read_row(etaMin , etaMax , centralSF , dnSF , upSF)){
@@ -397,7 +397,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	       pt_Min , pt_Max,
 	       etaMin , etaMax,
 	       CSVmin , CSVmax;
-	io::CSVReader<11> thisCSVfile("CSVv2_94XSF_V2_B_F.csv");
+	io::CSVReader<11> thisCSVfile("aux/CSVv2_94XSF_V2_B_F.csv");
 	thisCSVfile.next_line();// we happen to not need the header line
 	// The following nests too much, so we do not indent
 	// Each blank line means nesting deeper
@@ -803,35 +803,34 @@ auto elEffGiver(const float pt,const float eta){
 	// eff == electron    regression    corrections
 	// smr == energy scale and smearing corrections
 	std::string fname,hname;
-	float ata = abs(eta);
 	TFile  *Fname;
 	TH2  *h_EgammaSf;
 	int PtBin,EtaBin;
 	hname       = "EGamma_SF2D";
 	if(2<debug)std::cout<<"el eff giver"<<std::endl;
 	if(   20.f <= pt){
-		fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
+		fname    = "aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
 		Fname    = new TFile(fname.c_str());
 		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
-		 PtBin   = h_EgammaSf->GetXaxis()->FindBin(pt );
-		EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
-		dict[Eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
+		EtaBin   = h_EgammaSf->GetXaxis()->FindBin(eta);
+		 PtBin   = h_EgammaSf->GetYaxis()->FindBin(pt );
+		dict[Eff]= h_EgammaSf->GetBinContent(EtaBin,PtBin);
 		Fname->Close();
 	}else{//if(pt < 20.f){
-		fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root";
+		fname    = "aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root";
 		Fname    = new TFile(fname.c_str());
 		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
-		 PtBin   = h_EgammaSf->GetXaxis()->FindBin(pt );
-		EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
-		dict[Eff]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
+		EtaBin   = h_EgammaSf->GetXaxis()->FindBin(eta);
+		 PtBin   = h_EgammaSf->GetYaxis()->FindBin(pt );
+		dict[Eff]= h_EgammaSf->GetBinContent(EtaBin,PtBin);
 		Fname->Close();
 	}//else{// TODO: this need clarification
-		fname    = "egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root";
+		fname    = "aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root";
 		Fname    = new TFile(fname.c_str());
 		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
-		 PtBin   = h_EgammaSf->GetXaxis()->FindBin(pt );
-		EtaBin   = h_EgammaSf->GetYaxis()->FindBin(ata);
-		dict[Smr]= h_EgammaSf->GetBinContent(PtBin,EtaBin);
+		EtaBin   = h_EgammaSf->GetXaxis()->FindBin(eta);
+		 PtBin   = h_EgammaSf->GetYaxis()->FindBin(pt );
+		dict[Smr]= h_EgammaSf->GetBinContent(EtaBin,PtBin);
 		Fname->Close();
 //	}
 	if(5<debug)std::cout<<dict[Eff]<<" eff , smr "<<dict[Smr]<<std::endl;
@@ -850,7 +849,7 @@ auto muEffGiver(const float pt,
 	TH2 *h_RunsBCDEF;
 	int PtBin,EtaBin;
 
-	 fname = "Muon_RunBCDEF_SF_ID.root";
+	 fname = "aux/muEff/Muon_RunBCDEF_SF_ID.root";
 	 hname = "NUM_TightID_DEN_genTracks_pt_abseta";
 	 Fname = new TFile(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
@@ -860,7 +859,7 @@ auto muEffGiver(const float pt,
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
 
-	 fname = "Muon_RunBCDEF_SF_ID_syst.root";
+	 fname = "aux/muEff/Muon_RunBCDEF_SF_ID_syst.root";
 	 hname = "NUM_TightID_DEN_genTracks_pt_abseta";
 	 Fname = new TFile(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
@@ -870,7 +869,7 @@ auto muEffGiver(const float pt,
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
 
-	 fname = "Muon_RunBCDEF_SF_ID_syst.root";
+	 fname = "aux/muEff/Muon_RunBCDEF_SF_ID_syst.root";
 	 hname = "NUM_TightID_DEN_genTracks_pt_abseta_stat";
 	 Fname = new TFile(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
@@ -886,7 +885,7 @@ auto muEffGiver(const float pt,
 	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
 	Fname->Close();
 
-	 fname = "Muon_RunBCDEF_SF_ISO.root";
+	 fname = "aux/muEff/Muon_RunBCDEF_SF_ISO.root";
 	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
 	 Fname = new TFile(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
@@ -896,7 +895,7 @@ auto muEffGiver(const float pt,
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
 
-	 fname = "Muon_RunBCDEF_SF_ISO_syst.root";
+	 fname = "aux/muEff/Muon_RunBCDEF_SF_ISO_syst.root";
 	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
 	 Fname = new TFile(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
@@ -906,7 +905,7 @@ auto muEffGiver(const float pt,
 	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
 	Fname->Close();
 
-	 fname = "Muon_RunBCDEF_SF_ISO_syst.root";
+	 fname = "aux/muEff/Muon_RunBCDEF_SF_ISO_syst.root";
 	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat";
 	 Fname = new TFile(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
@@ -1022,7 +1021,7 @@ auto sf(const  dataSource ds){
 			case met:// fall through to cms
 			case cms:{result = 1.;break;}// ignore btag wt
 //			default :throw std::invalid_argument(
-//				"Unimplemented ds (infile)");
+//				"Unimplemented ds (sf)");
 		}
 		if(debug > 5)std::cout<<"b_w "<<b
 		<<" sf "<<result*b//<<std::endl;
@@ -1070,7 +1069,7 @@ void calchisto(const channel ch,const dataSource ds){
 	// Open LB file even if Monte Carlo will NOT use it
 	nlohmann::json JSONdict;
 	std::ifstream(// open this JSON file once as a stream
-	"Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt")
+	"aux/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt")
 	>> JSONdict;// and read into this json object, then fix type of key
 	std::map<size_t,std::vector<std::pair<size_t,size_t>>> runLBdic;
 	for(const auto& [key,value] : JSONdict.items())
@@ -1114,15 +1113,15 @@ void calchisto(const channel ch,const dataSource ds){
 		"/data/disk0/nanoAOD_2017/MET*/*.root");/**/
 	ROOT::RDataFrame  elnudf(elnuCMS);
 	ROOT::RDataFrame  munudf(munuCMS);
-	bool MC = false;// are we doing Monte Carlo? Big branch later
+	const bool MC = !(met == ds || cms == ds);
 	auto df = [&,ch,ds](){// Get correct data frame
 		switch(ds){
 			case tzq:
 			case  ww:// fall through!
 			case  wz:
 			case  zz:
-			case ttz:{MC =  true;return mc__df;break;}
-			case met:{MC = false;return met_df;break;}
+			case ttz:{           return mc__df;break;}
+			case met:{           return met_df;break;}
 			case cms:{switch(ch){// MC is already false
 			          case elnu:{return elnudf;break;}
 			          case munu:{return munudf;break;}
@@ -1133,7 +1132,7 @@ void calchisto(const channel ch,const dataSource ds){
 //				"Unimplemented ds (rdf set)");
 		}
 	}();
-	switch(ch){// TODO: Email Ivan , how to submit jobs.
+	switch(ch){
 		case elnu:{temp_header = "Electron_";break;}
 		case munu:{temp_header =     "Muon_";break;}
 //		default  :throw std::invalid_argument(
@@ -1208,9 +1207,9 @@ void calchisto(const channel ch,const dataSource ds){
 //		default :throw std::invalid_argument(
 //			"Unimplemented ds (hist titles)");
 	}
-	// Histogram names sorted, now do MC v.s. exptData
+	// Histogram names sorted, now branch into MC vs exptData
 	if(MC){
-	auto jecs_bjets// JEC == Jet Energy Correction
+	auto jecs_bjets// JEC == Jet Energy Correction, only for MC
 	   = init_selection
 	.Filter(event_cleaning,{
 	        "Flag_goodVertices",
@@ -1220,7 +1219,7 @@ void calchisto(const channel ch,const dataSource ds){
 	        "Flag_EcalDeadCellTriggerPrimitiveFilter",
 	        "Flag_BadPFMuonFilter",
 	        "Flag_BadChargedCandidateFilter",
-	        "Flag_ecalBadCalibFilter",
+	        "Flag_ecalBadCalibFilter",// TODO: v2?
 	        "Flag_eeBadScFilter"
 	       },
 	        "Event Cleaning filter")
@@ -1334,9 +1333,10 @@ void calchisto(const channel ch,const dataSource ds){
 	                                           "lep_phi","lep___q",
 	                                           "lep_gpt","lep__nl"})
 	;
-	auto finalDF = finalScaling(ds,has_btag_eff);
-	// Everything from here until ELSE is to directly copy downwards
-	// Except beware of the WRITING part, which depends upon MC
+	auto finalDF = finalScaling(ds,
+	     has_btag_eff )
+	;
+	// Copied to below, delete MC-only
 	// Assuming temp_header and footer and all are set per (hist titles)!
 	auto h_trans_w = finalDF.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
@@ -1449,7 +1449,8 @@ void calchisto(const channel ch,const dataSource ds){
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".histo").c_str(),"RECREATE");
-// Only MC branch has these histograms to write
+	if(MC){
+		std::cout<<"In IF MC Before Write()"<<std::endl;
 		h_sfi   ->Write();
 		h_sfj   ->Write();
 		h_p_ei  ->Write();
@@ -1463,7 +1464,8 @@ void calchisto(const channel ch,const dataSource ds){
 		h_no_btag_denom_PtVsEta->Write();
 		is_btag_ratio->Write();
 		no_btag_ratio->Write();
-//
+	}
+	std::cout<<"Out If inner MC still MC"<<std::endl;
 	h_trans_T ->Write();
 	h_trans_w ->Write();
 	h_Winvmas ->Write();
@@ -1473,6 +1475,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_zmet_Dph->Write();
 	h_z_daughters_Dph->Write();
 	h_tWmVsZmass ->Write();
+	std::cout<<"Finished Write() ing general MC Hists"<<std::endl;
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -1505,11 +1508,11 @@ void calchisto(const channel ch,const dataSource ds){
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
 		h->Write();
+	std::cout<<"MC 4Mom Hist Write"<<std::endl;
 	}
+	hf.Flush();
 	hf.Close();
-	}
-	else
-	{
+	} else {
 	auto expt_bjets
 	   = init_selection
 	.Filter(runLBfilter(runLBdic),{"run","luminosityBlock"},
@@ -1536,8 +1539,10 @@ void calchisto(const channel ch,const dataSource ds){
 	                                           "lep_phi","lep___q",
 	              /* last 2 unused */          "lep_phi","lep___q"})
 	;
-	auto finalDF = finalScaling(ds,not_btag_eff);
-	// Everything below is a copy of the above, commenting out unwanted
+	auto finalDF = finalScaling(ds,
+	     not_btag_eff )
+	;
+	// Copied from earlier, delete MC-only
 	// Assuming temp_header and footer and all are set per (hist titles)!
 	auto h_trans_w = finalDF.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
@@ -1606,42 +1611,7 @@ void calchisto(const channel ch,const dataSource ds){
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("tWm   GeV/C^2");
 	h_tWmVsZmass->GetYaxis()->SetTitle("Zmass GeV/C^2");
-/*
-	auto h_sfi = finalDF.Histo1D({
-	("sfi_"+temp_header).c_str(),
-	("sfi "+temp_header).c_str(),
-	50,-10,10},"sfi");
 
-	auto h_sfj = finalDF.Histo1D({
-	("sfj_"+temp_header).c_str(),
-	("sfj "+temp_header).c_str(),
-	50,-10,10},"sfj");
-
-	auto h_p_ei = finalDF.Histo1D({
-	("p_ei_"+temp_header).c_str(),
-	("p_ei "+temp_header).c_str(),
-	50,-10,10},"P___ei");
-
-	auto h_p_ej = finalDF.Histo1D({
-	("p_ej_"+temp_header).c_str(),
-	("p_ej "+temp_header).c_str(),
-	50,-10,10},"P___ej");
-
-	auto h_p_sfei= finalDF.Histo1D({
-	("p_sfei_"+temp_header).c_str(),
-	("p_sfei "+temp_header).c_str(),
-	50,-10,10},"P_sfei");
-
-	auto h_p_sfej= finalDF.Histo1D({
-	("p_sfej_"+temp_header).c_str(),
-	("p_sfej "+temp_header).c_str(),
-	50,-10,10},"P_sfej");
-
-	auto h_btag_w= finalDF.Histo1D({
-	("btag_w_"+temp_header).c_str(),
-	("btag_W "+temp_header).c_str(),
-	50,-100,100},"btag_w");
-*/
 	auto h_ev_w = finalDF.Histo1D({
 	(   "ev_w_"    +temp_header).c_str(),
 	("Event weight"+temp_header).c_str(),
@@ -1650,7 +1620,7 @@ void calchisto(const channel ch,const dataSource ds){
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".histo").c_str(),"RECREATE");
-/*	exptData do not have these to write
+/*	if(MC){
 		h_sfi   ->Write();
 		h_sfj   ->Write();
 		h_p_ei  ->Write();
@@ -1666,6 +1636,8 @@ void calchisto(const channel ch,const dataSource ds){
 		no_btag_ratio->Write();
 	}
 */
+
+	std::cout<<"Before Data Write"<<std::endl;
 	h_trans_T ->Write();
 	h_trans_w ->Write();
 	h_Winvmas ->Write();
@@ -1708,7 +1680,9 @@ void calchisto(const channel ch,const dataSource ds){
 		h->GetYaxis()->SetTitle("Event");
 		h->Write();
 	}
+	std::cout<<"After all Writes for data"<<std::endl;
+	hf.Flush();
 	hf.Close();
-	std::cout<<"End Of Calchisto.cpp"<<std::endl;
 	}
+	std::cout<<"calchisto successfully completed"<<std::endl;
 }
