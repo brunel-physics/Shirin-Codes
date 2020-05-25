@@ -3,7 +3,6 @@
 // TODO: PILE UP, Shape uncertainties, top pt reweighting, non promp lepton corrections
 // TODO: MET unclustering correction
 // TODO: Matching genjet to jets via using:Muon_genPartIdx,Electron_genPartIdx,Jet_genJetIdx
-// TODO: MET missing branches: Electron_isPFcand,Electron_pt,Electron_eta,Electron_cutBased,Muon_tightId,Muon_pfRelIso04_all
 // TODO: plotsstack for all dataSources and channels
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
@@ -1097,6 +1096,7 @@ void calchisto(const channel ch,const dataSource ds){
 	// Open chains of exptData EVEN IF UNUSED
 	TChain elnuCMS("Events");
 	TChain munuCMS("Events");
+	TChain bothMET("Events");
 	temp_footer = "/*.root" ;/* just to be sure */
 	temp_header =
 		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_Run";
@@ -1109,10 +1109,14 @@ void calchisto(const channel ch,const dataSource ds){
 		temp_opener=temp_header+ c +temp_footer;
 		munuCMS.Add(temp_opener.c_str());
 	}
-	ROOT::RDataFrame  met_df("Events",// TODO: channel unified?
-		"/data/disk0/nanoAOD_2017/MET*/*.root");/**/
+	temp_header="/data/disk0/nanoAOD_2017/METRun2017";
+	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
+		temp_opener=temp_header+ c +temp_footer;
+		bothMET.Add(temp_opener.c_str());
+	}
 	ROOT::RDataFrame  elnudf(elnuCMS);
 	ROOT::RDataFrame  munudf(munuCMS);
+	ROOT::RDataFrame  bothdf(bothMET);
 	const bool MC = !(met == ds || cms == ds);
 	auto df = [&,ch,ds](){// Get correct data frame
 		switch(ds){
@@ -1121,7 +1125,7 @@ void calchisto(const channel ch,const dataSource ds){
 			case  wz:
 			case  zz:
 			case ttz:{           return mc__df;break;}
-			case met:{           return met_df;break;}
+			case met:{           return bothdf;break;}
 			case cms:{switch(ch){// MC is already false
 			          case elnu:{return elnudf;break;}
 			          case munu:{return munudf;break;}
@@ -1139,7 +1143,7 @@ void calchisto(const channel ch,const dataSource ds){
 //			"Unimplemented ch (init)");
 	}
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(1000);
+	auto dfr = df.Range(10000);
 	auto init_selection = dfr// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
@@ -1449,8 +1453,7 @@ void calchisto(const channel ch,const dataSource ds){
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".histo").c_str(),"RECREATE");
-	if(MC){
-		std::cout<<"In IF MC Before Write()"<<std::endl;
+
 		h_sfi   ->Write();
 		h_sfj   ->Write();
 		h_p_ei  ->Write();
@@ -1464,8 +1467,7 @@ void calchisto(const channel ch,const dataSource ds){
 		h_no_btag_denom_PtVsEta->Write();
 		is_btag_ratio->Write();
 		no_btag_ratio->Write();
-	}
-	std::cout<<"Out If inner MC still MC"<<std::endl;
+
 	h_trans_T ->Write();
 	h_trans_w ->Write();
 	h_Winvmas ->Write();
@@ -1475,7 +1477,6 @@ void calchisto(const channel ch,const dataSource ds){
 	h_zmet_Dph->Write();
 	h_z_daughters_Dph->Write();
 	h_tWmVsZmass ->Write();
-	std::cout<<"Finished Write() ing general MC Hists"<<std::endl;
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -1508,10 +1509,8 @@ void calchisto(const channel ch,const dataSource ds){
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
 		h->Write();
-	std::cout<<"MC 4Mom Hist Write"<<std::endl;
 	}
 	hf.Flush();
-	hf.Close();
 	} else {
 	auto expt_bjets
 	   = init_selection
@@ -1636,8 +1635,6 @@ void calchisto(const channel ch,const dataSource ds){
 		no_btag_ratio->Write();
 	}
 */
-
-	std::cout<<"Before Data Write"<<std::endl;
 	h_trans_T ->Write();
 	h_trans_w ->Write();
 	h_Winvmas ->Write();
@@ -1680,9 +1677,7 @@ void calchisto(const channel ch,const dataSource ds){
 		h->GetYaxis()->SetTitle("Event");
 		h->Write();
 	}
-	std::cout<<"After all Writes for data"<<std::endl;
 	hf.Flush();
-	hf.Close();
 	}
 	std::cout<<"calchisto successfully completed"<<std::endl;
 }
