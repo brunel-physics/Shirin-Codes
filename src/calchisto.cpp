@@ -809,7 +809,7 @@ auto elEffGiver(const float pt,const float eta){
 	if(2<debug)std::cout<<"el eff giver"<<std::endl;
 	if(   20.f <= pt){
 		fname    = "aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
-		Fname    = new TFile(fname.c_str());
+		Fname    = TFile::Open(fname.c_str());
 		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
 		EtaBin   = h_EgammaSf->GetXaxis()->FindBin(eta);
 		 PtBin   = h_EgammaSf->GetYaxis()->FindBin(pt );
@@ -817,7 +817,7 @@ auto elEffGiver(const float pt,const float eta){
 		Fname->Close();
 	}else{//if(pt < 20.f){
 		fname    = "aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root";
-		Fname    = new TFile(fname.c_str());
+		Fname    = TFile::Open(fname.c_str());
 		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
 		EtaBin   = h_EgammaSf->GetXaxis()->FindBin(eta);
 		 PtBin   = h_EgammaSf->GetYaxis()->FindBin(pt );
@@ -825,7 +825,7 @@ auto elEffGiver(const float pt,const float eta){
 		Fname->Close();
 	}//else{// TODO: this need clarification
 		fname    = "aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root";
-		Fname    = new TFile(fname.c_str());
+		Fname    = TFile::Open(fname.c_str());
 		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
 		EtaBin   = h_EgammaSf->GetXaxis()->FindBin(eta);
 		 PtBin   = h_EgammaSf->GetYaxis()->FindBin(pt );
@@ -850,7 +850,7 @@ auto muEffGiver(const float pt,
 
 	 fname = "aux/muEff/Muon_RunBCDEF_SF_ID.root";
 	 hname = "NUM_TightID_DEN_genTracks_pt_abseta";
-	 Fname = new TFile(fname.c_str());
+	 Fname = TFile::Open(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
@@ -860,7 +860,7 @@ auto muEffGiver(const float pt,
 
 	 fname = "aux/muEff/Muon_RunBCDEF_SF_ID_syst.root";
 	 hname = "NUM_TightID_DEN_genTracks_pt_abseta";
-	 Fname = new TFile(fname.c_str());
+	 Fname = TFile::Open(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
@@ -870,7 +870,7 @@ auto muEffGiver(const float pt,
 
 	 fname = "aux/muEff/Muon_RunBCDEF_SF_ID_syst.root";
 	 hname = "NUM_TightID_DEN_genTracks_pt_abseta_stat";
-	 Fname = new TFile(fname.c_str());
+	 Fname = TFile::Open(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
@@ -886,7 +886,7 @@ auto muEffGiver(const float pt,
 
 	 fname = "aux/muEff/Muon_RunBCDEF_SF_ISO.root";
 	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
-	 Fname = new TFile(fname.c_str());
+	 Fname = TFile::Open(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
@@ -896,7 +896,7 @@ auto muEffGiver(const float pt,
 
 	 fname = "aux/muEff/Muon_RunBCDEF_SF_ISO_syst.root";
 	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
-	 Fname = new TFile(fname.c_str());
+	 Fname = TFile::Open(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
@@ -906,7 +906,7 @@ auto muEffGiver(const float pt,
 
 	 fname = "aux/muEff/Muon_RunBCDEF_SF_ISO_syst.root";
 	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat";
-	 Fname = new TFile(fname.c_str());
+	 Fname = TFile::Open(fname.c_str());
 	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
 	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
 	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
@@ -1144,7 +1144,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(10000);
-	auto init_selection = dfr// remove one letter to do all
+	auto init_selection = df// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
 	.Define("loose_leps",lep_sel(ch),
@@ -1453,30 +1453,28 @@ void calchisto(const channel ch,const dataSource ds){
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".histo").c_str(),"RECREATE");
-
-		h_sfi   ->Write();
-		h_sfj   ->Write();
-		h_p_ei  ->Write();
-		h_p_ej  ->Write();
-		h_p_sfei->Write();
-		h_p_sfej->Write();
-		h_btag_w->Write();
-		h_is_btag_numer_PtVsEta->Write();
-		h_no_btag_numer_PtVsEta->Write();
-		h_is_btag_denom_PtVsEta->Write();
-		h_no_btag_denom_PtVsEta->Write();
-		is_btag_ratio->Write();
-		no_btag_ratio->Write();
-
-	h_trans_T ->Write();
-	h_trans_w ->Write();
-	h_Winvmas ->Write();
-	h_ev_w    ->Write();
-	h_z_mas   ->Write();
-	  h_zw_Dph->Write();
-	h_zmet_Dph->Write();
-	h_z_daughters_Dph->Write();
-	h_tWmVsZmass ->Write();
+		hf.WriteTObject(h_sfi   .GetPtr());
+		hf.WriteTObject(h_sfj   .GetPtr());
+		hf.WriteTObject(h_p_ei  .GetPtr());
+		hf.WriteTObject(h_p_ej  .GetPtr());
+		hf.WriteTObject(h_p_sfei.GetPtr());
+		hf.WriteTObject(h_p_sfej.GetPtr());
+		hf.WriteTObject(h_btag_w.GetPtr());
+		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());
+		hf.WriteTObject(h_no_btag_numer_PtVsEta.GetPtr());
+		hf.WriteTObject(h_is_btag_denom_PtVsEta.GetPtr());
+		hf.WriteTObject(h_no_btag_denom_PtVsEta.GetPtr());
+		hf.WriteTObject(is_btag_ratio);
+		hf.WriteTObject(no_btag_ratio);
+	hf.WriteTObject(h_trans_T .GetPtr());
+	hf.WriteTObject(h_trans_w .GetPtr());
+	hf.WriteTObject(h_Winvmas .GetPtr());
+	hf.WriteTObject(h_ev_w    .GetPtr());
+	hf.WriteTObject(h_z_mas   .GetPtr());
+	hf.WriteTObject(  h_zw_Dph.GetPtr());
+	hf.WriteTObject(h_zmet_Dph.GetPtr());
+	hf.WriteTObject(h_z_daughters_Dph.GetPtr());
+	hf.WriteTObject(h_tWmVsZmass.GetPtr());
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -1508,7 +1506,7 @@ void calchisto(const channel ch,const dataSource ds){
 		h->SetLineStyle(kSolid);
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
-		h->Write();
+		hf.WriteTObject(h.GetPtr());
 	}
 	hf.Flush();
 	} else {
@@ -1620,30 +1618,30 @@ void calchisto(const channel ch,const dataSource ds){
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".histo").c_str(),"RECREATE");
 /*	if(MC){
-		h_sfi   ->Write();
-		h_sfj   ->Write();
-		h_p_ei  ->Write();
-		h_p_ej  ->Write();
-		h_p_sfei->Write();
-		h_p_sfej->Write();
-		h_btag_w->Write();
-		h_is_btag_numer_PtVsEta->Write();
-		h_no_btag_numer_PtVsEta->Write();
-		h_is_btag_denom_PtVsEta->Write();
-		h_no_btag_denom_PtVsEta->Write();
-		is_btag_ratio->Write();
-		no_btag_ratio->Write();
+		hf.WriteTObject(h_sfi   .GetPtr());
+		hf.WriteTObject(h_sfj   .GetPtr());
+		hf.WriteTObject(h_p_ei  .GetPtr());
+		hf.WriteTObject(h_p_ej  .GetPtr());
+		hf.WriteTObject(h_p_sfei.GetPtr());
+		hf.WriteTObject(h_p_sfej.GetPtr());
+		hf.WriteTObject(h_btag_w.GetPtr());
+		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());
+		hf.WriteTObject(h_no_btag_numer_PtVsEta.GetPtr());
+		hf.WriteTObject(h_is_btag_denom_PtVsEta.GetPtr());
+		hf.WriteTObject(h_no_btag_denom_PtVsEta.GetPtr());
+		hf.WriteTObject(is_btag_ratio);
+		hf.WriteTObject(no_btag_ratio);
 	}
 */
-	h_trans_T ->Write();
-	h_trans_w ->Write();
-	h_Winvmas ->Write();
-	h_ev_w    ->Write();
-	h_z_mas   ->Write();
-	  h_zw_Dph->Write();
-	h_zmet_Dph->Write();
-	h_z_daughters_Dph->Write();
-	h_tWmVsZmass ->Write();
+	hf.WriteTObject(h_trans_T .GetPtr());
+	hf.WriteTObject(h_trans_w .GetPtr());
+	hf.WriteTObject(h_Winvmas .GetPtr());
+	hf.WriteTObject(h_ev_w    .GetPtr());
+	hf.WriteTObject(h_z_mas   .GetPtr());
+	hf.WriteTObject(  h_zw_Dph.GetPtr());
+	hf.WriteTObject(h_zmet_Dph.GetPtr());
+	hf.WriteTObject(h_z_daughters_Dph.GetPtr());
+	hf.WriteTObject(h_tWmVsZmass.GetPtr());
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -1675,7 +1673,7 @@ void calchisto(const channel ch,const dataSource ds){
 		h->SetLineStyle(kSolid);
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
-		h->Write();
+		hf.WriteTObject(h.GetPtr());
 	}
 	hf.Flush();
 	}
