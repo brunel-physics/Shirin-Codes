@@ -85,12 +85,12 @@ template <typename T> constexpr T  PI = T(3.141592653589793238462643383279502884
 template <typename T> constexpr T TPI = PI<T> * 2;
 
 enum      elSf      {Eff,Smr};
-enum      muSf      {Id, Idsys, IdsysStat, IdsysSyst,
-                    Iso,Isosys,IsosysStat,IsosysSyst};
+enum      muSf      {Id_N,Id_Y,Id_A,Id_T,//  Id, Idsys, IdsysStat, IdsysSyst,
+                     IsoN,IsoY,IsoA,IsoT};//Iso,Isosys,IsosysStat,IsosysSyst};
 /*
 constexpr muSf
-          muSfAll[]={Id, Idsys, IdsysStat, IdsysSyst,
-                    Iso,Isosys,IsosysStat,IsosysSyst};
+          muSfAll[]={Id_N,Id_Y,Id_A,Id_T,//  Id, Idsys, IdsysStat, IdsysSyst,
+                     IsoN,IsoY,IsoA,IsoT};//Iso,Isosys,IsosysStat,IsosysSyst};
 constexpr elSf
           elSfAll[]={Eff,Smr};
 */
@@ -449,18 +449,6 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	if(debug>0)std::cout<<"btagCSVv2 exiting"<<std::endl;
 	return results; };
 }
-auto runLBfilter(
-	const std::map<size_t,std::vector<std::pair<size_t,size_t>>>
-	&runLBdict){
-	return [&](const unsigned int run,const unsigned int LB){
-		if(std::any_of(runLBdict.at(run).cbegin(),
-		               runLBdict.at(run).  cend(),
-		               [LB](std::pair<size_t,size_t> p)
-		               {return p.first <= LB && LB <= p.second;}))
-		     return  true;
-		else return false;
-	};
-}
 template <typename T>
 auto abs_deltaphi(const double Zphi,const T Wphi)
 	{return std::abs(delta_phi(Zphi-Wphi));}
@@ -797,167 +785,121 @@ auto  lep_gpt(const channel ch){
    };
 }
 // Lepton efficiencies
-auto elEffGiver(const float pt,const float eta){
+auto elEffGiver(const float              pt ,
+                const float              eta,
+                const TH2F* const &recoLowEt,
+                const TH2F* const &reco_pass,
+                const TH2F* const &tight_94x){
 	std::map<elSf,double> dict = {{Eff,1.},{Smr,1.}};
 	// eff == electron    regression    corrections
 	// smr == energy scale and smearing corrections
-	std::string fname,hname;
-	TFile  *Fname;
-	TH2  *h_EgammaSf;
 	int PtBin,EtaBin;
-	hname       = "EGamma_SF2D";
 	if(2<debug)std::cout<<"el eff giver"<<std::endl;
 	if(   20.f <= pt){
-		fname    = "aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root";
-		Fname    = TFile::Open(fname.c_str());
-		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
-		EtaBin   = h_EgammaSf->GetXaxis()->FindBin(eta);
-		 PtBin   = h_EgammaSf->GetYaxis()->FindBin(pt );
-		dict[Eff]= h_EgammaSf->GetBinContent(EtaBin,PtBin);
-		Fname->Close();
+		EtaBin   = recoLowEt->GetXaxis()-> FindBin(eta);
+		 PtBin   = recoLowEt->GetYaxis()-> FindBin(pt );
+		dict[Eff]= recoLowEt->GetBinContent(EtaBin,PtBin);
 	}else{//if(pt < 20.f){
-		fname    = "aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root";
-		Fname    = TFile::Open(fname.c_str());
-		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
-		EtaBin   = h_EgammaSf->GetXaxis()->FindBin(eta);
-		 PtBin   = h_EgammaSf->GetYaxis()->FindBin(pt );
-		dict[Eff]= h_EgammaSf->GetBinContent(EtaBin,PtBin);
-		Fname->Close();
+		EtaBin   = reco_pass->GetXaxis()-> FindBin(eta);
+		 PtBin   = reco_pass->GetYaxis()-> FindBin(pt );
+		dict[Eff]= reco_pass->GetBinContent(EtaBin,PtBin);
 	}//else{// TODO: this need clarification
-		fname    = "aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root";
-		Fname    = TFile::Open(fname.c_str());
-		Fname    ->GetObject(hname.c_str() ,h_EgammaSf);
-		EtaBin   = h_EgammaSf->GetXaxis()->FindBin(eta);
-		 PtBin   = h_EgammaSf->GetYaxis()->FindBin(pt );
-		dict[Smr]= h_EgammaSf->GetBinContent(EtaBin,PtBin);
-		Fname->Close();
+		EtaBin   = tight_94x->GetXaxis()-> FindBin(eta);
+		 PtBin   = tight_94x->GetYaxis()-> FindBin(pt );
+		dict[Smr]= tight_94x->GetBinContent(EtaBin,PtBin);
 //	}
 	if(5<debug)std::cout<<dict[Eff]<<" eff , smr "<<dict[Smr]<<std::endl;
 	return dict;
 }
-auto muEffGiver(const float pt,
-                const float eta){
+auto muEffGiver(const float         pt ,
+                const float         eta,
+                const TH2D* const &id_N,
+                const TH2D* const &id_Y,
+                const TH2D* const &id_A,
+                const TH2D* const &id_T,
+                const TH2D* const &isoN,
+                const TH2D* const &isoY,
+                const TH2D* const &isoA,
+                const TH2D* const &isoT){
 	const float ata = abs(eta);
 	std::map<muSf,double> dict
-	={{Id,1.},{ Idsys,1.},{ IdsysStat,1.},{ IdsysSyst,1. },
-	 {Iso,1.},{Isosys,1.},{IsosysStat,1.},{IsosysSyst,1.}};
+	={{Id_N,1.},{Id_Y,1.},{Id_A,1.},{Id_T,1. },
+	  {IsoN,1.},{IsoY,1.},{IsoA,1.},{IsoT,1.}};
 	if(2<debug)std::cout<<"mu eff giver"<<std::endl;
 	if(20.f <= pt && pt <= 120.f && ata <= 2.4f) return dict;
-	std::string fname,hname;
-	TFile *Fname;
-	TH2 *h_RunsBCDEF;
 	int PtBin,EtaBin;
+	 PtBin     = id_N->GetXaxis()->FindBin(pt );
+	EtaBin     = id_N->GetYaxis()->FindBin(ata);
+	dict[Id_N] = id_N->GetBinContent(PtBin,EtaBin);
+	 PtBin     = id_Y->GetXaxis()->FindBin(pt );
+	EtaBin     = id_Y->GetYaxis()->FindBin(ata);
+	dict[Id_Y] = id_Y->GetBinContent(PtBin,EtaBin);
+	 PtBin     = id_A->GetXaxis()->FindBin(pt );
+	EtaBin     = id_A->GetYaxis()->FindBin(ata);
+	dict[Id_A] = id_A->GetBinError  (PtBin,EtaBin);
+	 PtBin     = id_T->GetXaxis()->FindBin(pt );
+	EtaBin     = id_T->GetYaxis()->FindBin(ata);
+	dict[Id_T] = id_T->GetBinError  (PtBin,EtaBin);
 
-	 fname = "aux/muEff/Muon_RunBCDEF_SF_ID.root";
-	 hname = "NUM_TightID_DEN_genTracks_pt_abseta";
-	 Fname = TFile::Open(fname.c_str());
-	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
-	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
-	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
-	dict[Id]
-	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
-	Fname->Close();
+	 PtBin     = isoN->GetXaxis()->FindBin(pt );
+	EtaBin     = isoN->GetYaxis()->FindBin(ata);
+	dict[IsoN] = isoN->GetBinContent(PtBin,EtaBin);
+	 PtBin     = isoY->GetXaxis()->FindBin(pt );
+	EtaBin     = isoY->GetYaxis()->FindBin(ata);
+	dict[IsoY] = isoY->GetBinContent(PtBin,EtaBin);
+	 PtBin     = isoA->GetXaxis()->FindBin(pt );
+	EtaBin     = isoA->GetYaxis()->FindBin(ata);
+	dict[IsoA] = isoA->GetBinError  (PtBin,EtaBin);
+	 PtBin     = isoT->GetXaxis()->FindBin(pt );
+	EtaBin     = isoT->GetYaxis()->FindBin(ata);
+	dict[IsoT] = isoT->GetBinError  (PtBin,EtaBin);
 
-	 fname = "aux/muEff/Muon_RunBCDEF_SF_ID_syst.root";
-	 hname = "NUM_TightID_DEN_genTracks_pt_abseta";
-	 Fname = TFile::Open(fname.c_str());
-	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
-	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
-	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
-	dict[Idsys]
-	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
-	Fname->Close();
-
-	 fname = "aux/muEff/Muon_RunBCDEF_SF_ID_syst.root";
-	 hname = "NUM_TightID_DEN_genTracks_pt_abseta_stat";
-	 Fname = TFile::Open(fname.c_str());
-	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
-	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
-	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
-	dict[IdsysStat]
-	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
-	 hname = "NUM_TightID_DEN_genTracks_pt_abseta_syst";
-	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
-	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
-	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
-	dict[IdsysSyst]
-	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
-	Fname->Close();
-
-	 fname = "aux/muEff/Muon_RunBCDEF_SF_ISO.root";
-	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
-	 Fname = TFile::Open(fname.c_str());
-	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
-	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
-	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
-	dict[Iso]
-	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
-	Fname->Close();
-
-	 fname = "aux/muEff/Muon_RunBCDEF_SF_ISO_syst.root";
-	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta";
-	 Fname = TFile::Open(fname.c_str());
-	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
-	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
-	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
-	dict[Isosys]
-	= h_RunsBCDEF->GetBinContent(PtBin,EtaBin);
-	Fname->Close();
-
-	 fname = "aux/muEff/Muon_RunBCDEF_SF_ISO_syst.root";
-	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat";
-	 Fname = TFile::Open(fname.c_str());
-	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
-	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
-	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
-	dict[IsosysStat]
-	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
-	 hname = "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_syst";
-	 Fname ->GetObject(hname.c_str() ,h_RunsBCDEF);
-	 PtBin = h_RunsBCDEF->GetXaxis()->FindBin(pt );
-	EtaBin = h_RunsBCDEF->GetYaxis()->FindBin(ata);
-	dict[IsosysSyst]
-	= h_RunsBCDEF->GetBinError  (PtBin,EtaBin);
-	Fname->Close();
-
-	if(5<debug)std::cout<<dict[IsosysStat]
-	           <<"\t:\t"<<dict[IsosysSyst]<<std::endl;
+	if(5<debug)std::cout<<dict[IsoA]
+	           <<"\t:\t"<<dict[IsoT]<<std::endl;
 	return dict;
 }
-auto lepEffGiver(const channel ch,const dataSource ds){
-	return [=](const float     pt,const float eta,
-	           const float    phi,const   int Q,
-	           const float gen_pt,const   int nl){
-	if(debug > 0)std::cout<< "lep eff giver"<<std::endl;
+auto lepEffGiver(const channel      ch,
+                 const bool         MC,
+                 const TH2F* const &recoLowEt,
+                 const TH2F* const &reco_pass,
+                 const TH2F* const &tight_94x,
+                 const TH2D* const &id_N,
+                 const TH2D* const &id_Y,
+                 const TH2D* const &id_A,
+                 const TH2D* const &id_T,
+                 const TH2D* const &isoN,
+                 const TH2D* const &isoY,
+                 const TH2D* const &isoA,
+                 const TH2D* const &isoT){
+      return [=](const float     pt,const float eta,
+                 const float    phi,const   int Q,
+                 const float gen_pt,const   int nl){
+//	if(debug > 0)std::cout<< "lep eff giver"<<std::endl;
 	double sf = 1., id = 1., iso = 1., eff = 1., smr = 1.;
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
-	switch (ch){
-	case elnu :{
-		switch(ds){
-		case tzq:
-		case  ww:// fall through
-		case  wz:
-		case  zz:
-		case ttz:{
-			auto  dict = elEffGiver(pt,eta);
-			eff = dict[Eff];
-			smr = dict[Smr];
-			break;}
-		case met: // exptData do not call elEffGiver
-		case cms:;// default sf, id, iso works
-		}
-	break;}// no rocco for elnu
-	case munu :{
-		switch(ds){
-		case tzq:
-		case  ww:// fall through
-		case  wz:
-		case  zz:
-		case ttz:{
-			auto  dict = muEffGiver(pt,eta);
-			id  = dict[Id ];
-			iso = dict[Iso];// muEffGiver done; rocco follows
-			std::cout<<"mu id, iso sf done"<<std::endl;
+	if(MC){switch(ch){
+	case elnu:{
+		auto  dict = elEffGiver(pt,eta,recoLowEt,reco_pass,tight_94x);
+		eff = dict[Eff];
+		smr = dict[Smr];
+		break;}
+	case munu:{
+		auto  dict = muEffGiver(pt,eta
+		                       ,id_N,id_Y,id_A,id_T
+		                       ,isoN,isoY,isoA,isoT
+		);
+		id  = dict[Id_N];
+		iso = dict[IsoN];// muEffGiver done; rocco follows
+		if(gen_pt != 0){
+			std::cout<<"rocco 1"<<std::endl;
+			sf = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
+		}else{
+			std::cout<<"rocco 2"<<std::endl;
+			auto u = gRandom->Rndm();
+			std::cout<<// TODO: not sure if gRandom works!
+			"Warning, u must be between 0 and 1, u is "
+			<<u<<std::endl;
+			sf = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
 /* Rocco scale factor desc.
 scale factors for momentum of each muon:
 // data
@@ -977,24 +919,16 @@ m is error member (default is 0, ranges from 0 to nmembers-1)
 For MC, when switching to different error sets/members for
 a given muon, random number (u) should remain unchanged.
 */
-			if(gen_pt != 0){
-				std::cout<<"rocco 1"<<std::endl;
-				sf = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
-			}
-			else{
-				std::cout<<"rocco 2"<<std::endl;
-				auto u = gRandom->Rndm();
-				std::cout<<// TODO: not sure if gRandom works!
-				"Warning, u must be between 0 and 1, u is "
-				<<u<<std::endl;
-				sf = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
-			}break;}
-		case met:// exptData do not call muEffGiver
-		case cms:{
-				std::cout<<"rocco 3"<<std::endl;
-				sf = rc. kScaleDT(Q,pt,eta,phi,0,0);break;}
 		}
-	break;}}// case munu and switch ch
+		break;}
+	}}else{switch(ch){
+		case elnu:break;
+		case munu:{
+			std::cout<<"rocco 3"<<std::endl;
+			sf = rc. kScaleDT(Q,pt,eta,phi,0,0);
+			break;}
+		}
+	}
 	if(debug > 0) std::cout
 		<< "most " << sf
 		<< " id  " << id
@@ -1063,6 +997,20 @@ auto finalScaling(const dataSource ds,T &rdf){
 	. Alias("nw_ttop_mas"      ,"sf")
 	;
 }
+auto runLBfilter(
+	const std::map<size_t,std::vector<std::pair<size_t,size_t>>>
+	&runLBdict){
+	return [&](const unsigned int run,const unsigned int LB){
+		auto search =  runLBdict.find(run);
+		if(  search == runLBdict.cend()) return false;// Not Found TODO: true?
+		if(std::any_of(search->second.cbegin(),
+		               search->second.  cend(),
+		               [LB](std::pair<size_t,size_t> p)
+		               {return p.first <= LB && LB <= p.second;}))
+		     return  true;
+		else return false;
+	};
+}
 }// namespace
 void calchisto(const channel ch,const dataSource ds){
 	// Open LB file even if Monte Carlo will NOT use it
@@ -1070,10 +1018,63 @@ void calchisto(const channel ch,const dataSource ds){
 	std::ifstream(// open this JSON file once as a stream
 	"aux/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt")
 	>> JSONdict;// and read into this json object, then fix type of key
-	std::map<size_t,std::vector<std::pair<size_t,size_t>>> runLBdic;
+	std::map<size_t,std::vector<std::pair<size_t,size_t>>> runLBdict;
 	for(const auto& [key,value] : JSONdict.items())
-		runLBdic.emplace(std::stoi(key),value);// key:string->size_t
+		runLBdict.emplace(std::stoi(key),value);// key:string->size_t
 	// we now have one single copy of a wonderfully clean dictionary
+	// now we repeat for some other files
+	TFile *tF ;
+	TH2F  *tHf; TH2D *tHd;
+	tF = TFile::Open(
+		"aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root");
+	tF ->GetObject("EGamma_SF2D",tHf);tHf->SetDirectory(nullptr);
+	const TH2F* const recoLowEt = static_cast<const TH2F* const>(tHf);
+	tF->Close();
+	tF = TFile::Open(
+		"aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root");
+	tF ->GetObject("EGamma_SF2D",tHf);tHf->SetDirectory(nullptr);
+	const TH2F* const reco_pass = static_cast<const TH2F* const>(tHf);
+	tF->Close();
+	tF = TFile::Open(
+		"aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root");
+	tF ->GetObject("EGamma_SF2D",tHf);tHf->SetDirectory(nullptr);
+	const TH2F* const tight_94x = static_cast<const TH2F* const>(tHf);
+	tF->Close();
+	tF = TFile::Open("aux/muEff/Muon_RunBCDEF_SF_ID.root");
+	tF ->GetObject("NUM_TightID_DEN_genTracks_pt_abseta",tHd);
+	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	const TH2D* const id_N = static_cast<const TH2D* const>(tHd);
+	tF ->Close();
+	tF = TFile::Open("aux/muEff/Muon_RunBCDEF_SF_ID_syst.root");
+	tF ->GetObject("NUM_TightID_DEN_genTracks_pt_abseta",tHd);
+	tHd->SetDirectory(nullptr);
+	const TH2D* const id_Y = static_cast<const TH2D* const>(tHd);
+	tF ->GetObject("NUM_TightID_DEN_genTracks_pt_abseta_stat",tHd);
+	tHd->SetDirectory(nullptr);
+	const TH2D* const id_A = static_cast<const TH2D* const>(tHd);
+	tF ->GetObject("NUM_TightID_DEN_genTracks_pt_abseta_syst",tHd);
+	tHd->SetDirectory(nullptr);
+	const TH2D* const id_T = static_cast<const TH2D* const>(tHd);
+	tF ->Close();
+	tF = TFile::Open("aux/muEff/Muon_RunBCDEF_SF_ISO.root");
+	tF ->GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta",tHd);
+	tHd->SetDirectory(nullptr);
+	const TH2D* const isoN = static_cast<const TH2D* const>(tHd);
+	tF ->Close();
+	tF = TFile::Open("aux/muEff/Muon_RunBCDEF_SF_ISO_syst.root");
+	tF ->GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta",tHd);
+	tHd->SetDirectory(nullptr);
+	const TH2D* const isoY = static_cast<const TH2D* const>(tHd);
+	tF ->GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_stat",tHd);
+	tHd->SetDirectory(nullptr);
+	const TH2D* const isoA = static_cast<const TH2D* const>(tHd);
+	tF ->GetObject("NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta_syst",tHd);
+	tHd->SetDirectory(nullptr);
+	const TH2D* const isoT = static_cast<const TH2D* const>(tHd);
+	tF ->Close();
+	tF	= nullptr; tHf = nullptr; tHd = nullptr;
+	std::cout<<"Auxiliary files processed"       <<std::endl;
+	std::cout<<recoLowEt->GetXaxis()->FindBin(1.)<<std::endl;
 
 	// Open data files even if unused
 	// then automatically choose which one to read from
@@ -1142,8 +1143,9 @@ void calchisto(const channel ch,const dataSource ds){
 //		default  :throw std::invalid_argument(
 //			"Unimplemented ch (init)");
 	}
+	//ROOT::EnableImplicitMT();
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(10000);
+	//auto dfr = df.Range(10000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
@@ -1333,9 +1335,13 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("lep__nl"    ,[=](ints L,ints m){if(munu==ch)return L[m][0];
 	                                         else        return      0 ;},
 	       {"Muon_nTrackerLayers","loose_leps"})
-	.Define("mostSF"     ,lepEffGiver(ch,ds) ,{"lep__pt","lep_eta",
-	                                           "lep_phi","lep___q",
-	                                           "lep_gpt","lep__nl"})
+	.Define("mostSF"     ,lepEffGiver(ch,MC
+	                       , recoLowEt,reco_pass,tight_94x
+	                       , id_N,id_Y,id_A,id_T
+	                       , isoN,isoY,isoA,isoT
+	                      ),{"lep__pt","lep_eta",
+	                         "lep_phi","lep___q",
+	                         "lep_gpt","lep__nl"})
 	;
 	auto finalDF = finalScaling(ds,
 	     has_btag_eff )
@@ -1512,8 +1518,8 @@ void calchisto(const channel ch,const dataSource ds){
 	} else {
 	auto expt_bjets
 	   = init_selection
-	.Filter(runLBfilter(runLBdic),{"run","luminosityBlock"},
-			  "LuminosityBlock filter")
+	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
+	        "LuminosityBlock filter")
 	.Define("fin_jets__pt",[](floats& x){return static_cast<doubles>(x);},
 	     {"tight_jets__pt"})
 	.Define("fin_jets_eta",[](floats& x){return static_cast<doubles>(x);},
@@ -1532,9 +1538,13 @@ void calchisto(const channel ch,const dataSource ds){
 	auto not_btag_eff
 	   = reco
 	.Define("btag_w"     ,[](){return 1.;})
-	.Define("mostSF"     ,lepEffGiver(ch,ds) ,{"lep__pt","lep_eta",
-	                                           "lep_phi","lep___q",
-	              /* last 2 unused */          "lep_phi","lep___q"})
+	.Define("mostSF"     ,lepEffGiver(ch,MC
+	                       , recoLowEt,reco_pass,tight_94x
+	                       , id_N,id_Y,id_A,id_T
+	                       , isoN,isoY,isoA,isoT
+	                      ),{"lep__pt","lep_eta",
+	                         "lep_phi","lep___q", // last 4 unused
+	                         "lep_phi","lep___q"})// last 2 repeat is fine
 	;
 	auto finalDF = finalScaling(ds,
 	     not_btag_eff )
