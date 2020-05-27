@@ -4,6 +4,7 @@
 // TODO: MET unclustering correction
 // TODO: Matching genjet to jets via using:Muon_genPartIdx,Electron_genPartIdx,Jet_genJetIdx
 // TODO: plotsstack for all dataSources and channels
+// TODO: Investigate why histograms are all zeroes
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <TLorentzVector.h>
@@ -767,9 +768,9 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 }
 */
 auto btag_weight(const double p_data,const double p_MC){
-	double  weight = p_data / p_MC;
-	if(FP_NORMAL != std::fpclassify(weight)) weight = 1;// Rids non-zero/inf/NaN
-//	if(debug > 0)   std::cout<<"btag_w is "<<weight<<std::endl;
+	double weight =p_data/p_MC;
+	if(FP_NORMAL !=std::fpclassify(weight))weight=1.;// Rids non-zero/inf/NaN
+//	if(debug > 0)  std::cout<<"btag_w is "<<weight<<std::endl;
 	return  weight;
 }
 auto  lep_gpt(const channel ch){
@@ -793,13 +794,14 @@ auto elEffGiver(const float              pt ,
 	std::map<elSf,double> dict = {{Eff,1.},{Smr,1.}};
 	// eff == electron    regression    corrections
 	// smr == energy scale and smearing corrections
+	if(2.5 < std::abs(eta)) return dict;
 	int PtBin,EtaBin;
 	if(2<debug)std::cout<<"el eff giver"<<std::endl;
-	if(   20.f <= pt){
+	if( pt      < 20.f){
 		EtaBin   = recoLowEt->GetXaxis()-> FindBin(eta);
 		 PtBin   = recoLowEt->GetYaxis()-> FindBin(pt );
 		dict[Eff]= recoLowEt->GetBinContent(EtaBin,PtBin);
-	}else{//if(pt < 20.f){
+	}else{
 		EtaBin   = reco_pass->GetXaxis()-> FindBin(eta);
 		 PtBin   = reco_pass->GetYaxis()-> FindBin(pt );
 		dict[Eff]= reco_pass->GetBinContent(EtaBin,PtBin);
@@ -808,7 +810,10 @@ auto elEffGiver(const float              pt ,
 		 PtBin   = tight_94x->GetYaxis()-> FindBin(pt );
 		dict[Smr]= tight_94x->GetBinContent(EtaBin,PtBin);
 //	}
+	// TODO: GetBinError
 	if(5<debug)std::cout<<dict[Eff]<<" eff , smr "<<dict[Smr]<<std::endl;
+	// TODO: Eff == 0 cross check
+	if(FP_NORMAL != std::fpclassify(dict[Eff])) dict[Eff] = 1.;
 	return dict;
 }
 auto muEffGiver(const float         pt ,
@@ -1143,10 +1148,10 @@ void calchisto(const channel ch,const dataSource ds){
 //		default  :throw std::invalid_argument(
 //			"Unimplemented ch (init)");
 	}
-	//ROOT::EnableImplicitMT();
+//	ROOT::EnableImplicitMT();
 	// make test runs faster by restriction. Real run should not
-	//auto dfr = df.Range(10000);// remember to enable MT when NOT range
-	auto init_selection = df// remove one letter to do all
+	auto dfr = df.Range(10000);// remember to enable MT when NOT range
+	auto init_selection = dfr// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
 	.Define("loose_leps",lep_sel(ch),
