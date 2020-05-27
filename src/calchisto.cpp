@@ -4,7 +4,6 @@
 // TODO: MET unclustering correction
 // TODO: Matching genjet to jets via using:Muon_genPartIdx,Electron_genPartIdx,Jet_genJetIdx
 // TODO: plotsstack for all dataSources and channels
-// TODO: Investigate why histograms are all zeroes
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <TLorentzVector.h>
@@ -30,7 +29,7 @@ using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 6;
+  constexpr    int debug = 0;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -85,6 +84,7 @@ constexpr double ZZLLQQ_W =  .0485;
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
 template <typename T> constexpr T TPI = PI<T> * 2;
 
+enum      puSf      {puW,upW,dnW};
 enum      elSf      {Eff,Smr};
 enum      muSf      {Id_N,Id_Y,Id_A,Id_T,//  Id, Idsys, IdsysStat, IdsysSyst,
                      IsoN,IsoY,IsoA,IsoT};//Iso,Isosys,IsosysStat,IsosysSyst};
@@ -208,7 +208,7 @@ auto jet_lep_min_deltaR(const    T& jet_etas,
 	if(jet_phis.empty())
 		throw std::logic_error(
 		      "Collections must not be empty for (jet-lep dR)");
-	//if(debug>0) std::cout<<"jet_lep_min_dR"<<std::endl;
+	//if(0<debug) std::cout<<"jet_lep_min_dR"<<std::endl;
 	doubles min_dRs; min_dRs.reserve(jet_etas.size());
 	std::transform(
 		jet_etas.cbegin(),
@@ -223,11 +223,11 @@ auto tight_jet_id(const doubles& jet_lep_min_dRs,
                   const  floats& pts,
                   const  floats& etas,
                   const    ints& ids){
-	//if(debug>0) std::cout<<"tight_jet_id"<<std::endl;
+	//if(0<debug) std::cout<<"tight_jet_id"<<std::endl;
 	return pts>JET__PT_MIN&&abs(etas)<JET_ETA_MAX&&jet_lep_min_dRs>JET_ISO&&ids>=2;
 }
 auto jetCutter(const unsigned jmin, const unsigned jmax){
-	if(debug>3) std::cout<<"jet cut "<< jmin <<" "<< jmax <<std::endl;
+	if(3<debug) std::cout<<"jet cut "<< jmin <<" "<< jmax <<std::endl;
 	return[=](const ints& jetmask){
 		const auto nj = std:: count_if(
 			jetmask.cbegin(),
@@ -265,7 +265,7 @@ auto retVar(const T& v){return[&](){return v;};}
 */
 // Jet Energy Resolution and Jet Energy Smearing
 auto jet_smear_pt_resol(const floats& pt,const floats& eta,const float rho){
-	//if(debug>0) std::cout<<"jet smear pt resol"<<std::endl;
+	//if(0<debug) std::cout<<"jet smear pt resol"<<std::endl;
 	doubles resol(pt.size());
 	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
 		"Collections must be the same size (jet_smear_pt_resol)");
@@ -291,7 +291,7 @@ auto jet_smear_pt_resol(const floats& pt,const floats& eta,const float rho){
 	return resol;//};
 }
 auto jet_smear_Sjer(const floats& etas){
-	//if(debug>0) std::cout<<"jet smear sjer"<<std::endl;
+	//if(0<debug) std::cout<<"jet smear sjer"<<std::endl;
    doubles Sjers(            etas.size());
 	double  etaMin,etaMax;
 	double  centralSF,dnSF,upSF;
@@ -313,7 +313,7 @@ auto delta_R_jet_smear(const floats& jpt,const floats& jeta,const floats& jphi,
                        const float   rho,
                        const floats& gpt,const floats& geta,const floats& gphi,
                        const   ints& mask){// mask is tight jets
-	if(debug>0) std::cout<<"delta r jet smear"<<std::endl;
+	if(0<debug) std::cout<<"delta r jet smear"<<std::endl;
 	if(!all_equal(jpt.size(),jeta.size(),jphi.size(),mask.size())
 	|| !all_equal(gpt.size(),geta.size(),gphi.size()))
 		throw std::logic_error(
@@ -377,7 +377,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
                const doubles& pt  ,
                const doubles& eta ,
                const    ints& flav){
-	if(debug>0)std::cout<<"btagCSVv2 entered"<<std::endl;
+	if(0<debug)std::cout<<"btagCSVv2 entered"<<std::endl;
 	const size_t     size = pt  .size();
 	strings formulae(size  ,"1");//,check_CSVv2 ? "1" : "0");
 	doubles  results(size );
@@ -447,7 +447,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
 		results[j] = ev.eval(const_cast<char*>(
 		             formulae[j].c_str())).real();
 	}
-	if(debug>0)std::cout<<"btagCSVv2 exiting"<<std::endl;
+	if(0<debug)std::cout<<"btagCSVv2 exiting"<<std::endl;
 	return results; };
 }
 template <typename T>
@@ -455,7 +455,7 @@ auto abs_deltaphi(const double Zphi,const T Wphi)
 	{return std::abs(delta_phi(Zphi-Wphi));}
 
 auto jet_deltaphi(const doubles& phis){
-	if(debug>0) std::cout<<"jet deltaphi"<<std::endl;
+	if(0<debug) std::cout<<"jet deltaphi"<<std::endl;
 	doubles deltaphis;// half of anti-symmetric matrix has n(n-1)/2 elements
 	deltaphis.reserve((phis.size()*(phis.size()-1))/2);// reserving size
 	// The following two for loops stack correctly     // yet leave
@@ -465,7 +465,7 @@ auto jet_deltaphi(const doubles& phis){
 	return deltaphis;
 }
 auto find_lead_mask(const doubles& vals,const ints& mask){
-	//if(debug>0) std::cout<<"lead mask"<<std::endl;
+	//if(0<debug) std::cout<<"lead mask"<<std::endl;
 	if(!all_equal(mask.size(),vals.size())) throw std::logic_error(
 		"Collections must be the same size in lead_mask");
 	if(mask.empty()) throw std::logic_error(
@@ -484,7 +484,7 @@ auto find_z_pair(const doubles& pts,
                  const doubles& phis,
                  const doubles& ms,
                  const    ints& lead_bjet){
-	if(debug>0) std::cout<<"find z pair"<<std::endl;
+	if(0<debug) std::cout<<"find z pair"<<std::endl;
 	// This function finds the pair nearest to z mass
 	double  z_reco_mass = std::numeric_limits<double>::infinity();
 	size_t  jet_index_1 = std::numeric_limits<size_t>::max();
@@ -512,14 +512,14 @@ auto find_z_pair(const doubles& pts,
 	}
 	z_pair[jet_index_1] = 1;
 	z_pair[jet_index_2] = 1;
-	//if(debug>1) std::cout<<"z pair"<<z_pair<<std::endl;
+	//if(1<debug) std::cout<<"z pair"<<z_pair<<std::endl;
 	return z_pair;
 }
 auto TLVpairAdd(const doubles& pt__pair,// Create TLorentzV from 2 jets 4-mom
                 const doubles& eta_pair,
                 const doubles& phi_pair,
                 const doubles& mas_pair){
-	//if(debug>0) std::cout<<"TLVpairAdd"<<std::endl;
+	//if(0<debug) std::cout<<"TLVpairAdd"<<std::endl;
 	if(2 != pt__pair.size()) throw std::logic_error(
 		"Not pair of Z (TLVpairAdd)");
 	TLorentzVector v,p;
@@ -529,7 +529,7 @@ auto TLVpairAdd(const doubles& pt__pair,// Create TLorentzV from 2 jets 4-mom
 }
 auto TLVex(   const PtEtaPhiM         what){
    return [=](const TLorentzVector& object){
-		//if(debug>0) std::cout<<"TLVex"<<std::endl;
+		//if(0<debug) std::cout<<"TLVex"<<std::endl;
 		double result;
 		switch(what){
 			case  pt:{result = object.Pt ();break;}
@@ -557,7 +557,7 @@ auto top_reconst(const doubles& bjets_pt,
                  const double   wpair_eta,
                  const double   wpair_phi,
                  const double   wpair_mass){
-	if(debug>0) std::cout<<"top recnst"<<std::endl;
+	if(0<debug) std::cout<<"top recnst"<<std::endl;
 	// This function finds the closest to top mass
 	double     cur_mass = std::numeric_limits<double>::infinity();
 	const size_t nbjets = bjets_pt.size();
@@ -643,7 +643,7 @@ auto allReconstruction(T &rdf){
 // Btagging for eff i and eff j
 auto BTaggedEffGiver(TH2D*& ratio,bool b){
 return [&,b](const doubles& pts,const doubles& etas){
-	if(debug>0) std::cout<<"bt eff giver in  "<< ratio <<std::endl;
+	if(0<debug) std::cout<<"bt eff giver in  "<< ratio <<std::endl;
 	if(!all_equal(pts.size(),etas.size())) throw std::logic_error(
 		"Collections must be the same size (effGiver)");
 	if(pts.empty()) throw std::logic_error(
@@ -661,21 +661,21 @@ return [&,b](const doubles& pts,const doubles& etas){
 		//if(!b && std::abs(eff-1.) <= 2*std::numeric_limits<double>::epsilon())
 		//	BTaggedEff[i] = 0.;
 	}
-	if(debug>5) std::cout<<"bt eff giver "<< BTaggedEff <<" for b "<<b<<std::endl;
+	if(5<debug) std::cout<<"bt eff giver "<< BTaggedEff <<" for b "<<b<<std::endl;
 	return BTaggedEff;};
 }
 auto EffIsBTaggedProduct(const doubles& EffIsBTagged){
 	double     result  = 1.;
 	for(size_t i=0; i  < EffIsBTagged.size() ;++i)
 	           result *= EffIsBTagged[i];
-	if(debug>5) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
+	if(5<debug) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
 	return     result;
 }
 auto EffNoBTaggedProduct(const doubles& EffNoBTagged){
 	double result  = 1.;
 	for(size_t i=0;  i < EffNoBTagged.size();++i)
 	       result *= 1.- EffNoBTagged[i];
-	if(debug>5) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
+	if(5<debug) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
 auto Sfi_EffIsBTaggedProduct(const doubles& EffIsBTagged,const doubles& sfi){
@@ -685,7 +685,7 @@ auto Sfi_EffIsBTaggedProduct(const doubles& EffIsBTagged,const doubles& sfi){
 	size_t   size = b < s ? b : s;
 	for(size_t i=0; i < size ;++i)
 	       result    *= sfi[i] * EffIsBTagged[i];
-	if(debug>5)std::cout<<"sfi = "<<sfi<<" product = "<<result<<std::endl;
+	if(5<debug)std::cout<<"sfi = "<<sfi<<" product = "<<result<<std::endl;
 	return result;
 }
 auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
@@ -697,7 +697,7 @@ auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
 	for(size_t i=0; i < size ;++i)
 //	       result*= -std::fma(EffNoBTagged[i],sfj[i],-1.);
 	       result*= 1. - EffNoBTagged[i]*sfj[i];
-	if(debug>5)std::cout<<"sfj = "<<sfj<<" product = "<<result<<std::endl;
+	if(5<debug)std::cout<<"sfj = "<<sfj<<" product = "<<result<<std::endl;
 	return result;
 }
 /*
@@ -707,7 +707,7 @@ auto EffIsBTaggedProduct(const doubles& IsEffBTagged){
 		IsEffBTagged.   cend(),// un-sequentially
 		1.,std::multiplies<>()
 	);
-	if(debug>1) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
+	if(1<debug) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
 	return result;
 }
 auto EffNoBTaggedProduct(const doubles& NoEffBTagged){
@@ -717,7 +717,7 @@ auto EffNoBTaggedProduct(const doubles& NoEffBTagged){
 		     values.  cend(),// un-sequentially
 		     1.,std::multiplies<>()
 	);
-	if(debug>1) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
+	if(1<debug) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
 	return  result;
 }
 auto Sfi_EffIsBTaggedProduct(const doubles& IsEffBTagged,const doubles& sfi){
@@ -739,7 +739,7 @@ auto Sfi_EffIsBTaggedProduct(const doubles& IsEffBTagged,const doubles& sfi){
 			1.,std::multiplies<>(),std::multiplies<>()
 		);
 	}
-	if(debug>1)std::cout<<"Sfi_EffIsBTaggedProduct "<<result<<std::endl;
+	if(1<debug)std::cout<<"Sfi_EffIsBTaggedProduct "<<result<<std::endl;
 	return result;
 }
 auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
@@ -763,14 +763,14 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 			[](double x,double y){return -std::fma(x,y,-1.);}
 		);
 	}
-	if(debug>1)std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
+	if(1<debug)std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
 */
 auto btag_weight(const double p_data,const double p_MC){
 	double weight =p_data/p_MC;
 	if(FP_NORMAL !=std::fpclassify(weight))weight=1.;// Rids non-zero/inf/NaN
-//	if(debug > 0)  std::cout<<"btag_w is "<<weight<<std::endl;
+//	if(0 < debug)  std::cout<<"btag_w is "<<weight<<std::endl;
 	return  weight;
 }
 auto  lep_gpt(const channel ch){
@@ -879,7 +879,7 @@ auto lepEffGiver(const channel      ch,
       return [=](const float     pt,const float eta,
                  const float    phi,const   int Q,
                  const float gen_pt,const   int nl){
-//	if(debug > 0)std::cout<< "lep eff giver"<<std::endl;
+//	if(0 < debug)std::cout<< "lep eff giver"<<std::endl;
 	double sf = 1., id = 1., iso = 1., eff = 1., smr = 1.;
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
 	if(MC){switch(ch){
@@ -934,7 +934,7 @@ a given muon, random number (u) should remain unchanged.
 			break;}
 		}
 	}
-	if(debug > 0) std::cout
+	if(0 < debug) std::cout
 		<< "most " << sf
 		<< " id  " << id
 		<< " iso " << iso
@@ -943,9 +943,22 @@ a given muon, random number (u) should remain unchanged.
 		<< " for " << ch << std::endl;
 	return sf * id * iso * eff * smr;};
 }
+auto pile(const TH1D* const &PuWd,
+          const TH1D* const &PuUd,
+          const TH1D* const &PuDd){
+return[=](const int   npv){
+	std::map<puSf,double> dict = {{puW,1.},{upW,1.},{dnW,1.}};
+	dict[puW] = PuWd->GetBinContent(PuWd->GetXaxis()->FindBin(npv));
+	dict[upW] = PuUd->GetBinContent(PuUd->GetXaxis()->FindBin(npv));
+	dict[dnW] = PuDd->GetBinContent(PuDd->GetXaxis()->FindBin(npv));
+	if(-1<debug)std::cout<<"pile "<<npv<<" "
+		<<dict[puW]<<" "<<dict[upW]<<" "<<dict[dnW]<<std::endl;
+	return dict;
+};
+}
 // Simulation correction Scale Factors
 auto sf(const  dataSource ds){
-	if(debug>0) std::cout<<"scale factor "<<std::endl;
+	if(0<debug) std::cout<<"scale factor "<<std::endl;
 	return [=](const double b,
 	           const double mostSF){
 		// TODO: lepton smearing and trigger efficiency
@@ -961,7 +974,7 @@ auto sf(const  dataSource ds){
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (sf)");
 		}
-		if(debug > 5)std::cout<<"b_w "<<b
+		if(5<debug)std::cout<<"b_w "<<b
 		<<" sf "<<result*b//<<std::endl;
 		<<" mostSF " << mostSF<<std::endl;
 		return result*b*mostSF;
@@ -969,7 +982,7 @@ auto sf(const  dataSource ds){
 }
 auto rep_const(const double sf,const doubles& iRVec){
 	// this function just repeats sf, for the size of iRVec
-	if(debug>0) std::cout<<"repeat const "<<iRVec.size()<<std::endl;
+	if(0<debug) std::cout<<"repeat const "<<iRVec.size()<<std::endl;
 	doubles weight(iRVec.size(),sf);
 	return  weight;
 }
@@ -1029,7 +1042,8 @@ void calchisto(const channel ch,const dataSource ds){
 	// we now have one single copy of a wonderfully clean dictionary
 	// now we repeat for some other files
 	TFile *tF ;
-	TH2F  *tHf; TH2D *tHd;
+	TH2F  *tHf; TH2D *tHd; TH1D* t1d;
+	// electron efficiencies
 	tF = TFile::Open(
 		"aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root");
 	tF ->GetObject("EGamma_SF2D",tHf);tHf->SetDirectory(nullptr);
@@ -1045,6 +1059,7 @@ void calchisto(const channel ch,const dataSource ds){
 	tF ->GetObject("EGamma_SF2D",tHf);tHf->SetDirectory(nullptr);
 	const TH2F* const tight_94x = static_cast<const TH2F* const>(tHf);
 	tF->Close();
+	// muon efficiencies
 	tF = TFile::Open("aux/muEff/Muon_RunBCDEF_SF_ID.root");
 	tF ->GetObject("NUM_TightID_DEN_genTracks_pt_abseta",tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
@@ -1077,9 +1092,32 @@ void calchisto(const channel ch,const dataSource ds){
 	tHd->SetDirectory(nullptr);
 	const TH2D* const isoT = static_cast<const TH2D* const>(tHd);
 	tF ->Close();
-	tF	= nullptr; tHf = nullptr; tHd = nullptr;
-	std::cout<<"Auxiliary files processed"       <<std::endl;
-	std::cout<<recoLowEt->GetXaxis()->FindBin(1.)<<std::endl;
+	// pile up
+	tF = TFile::Open("aux/pileupMC.root");// denom because wrong
+	tF ->GetObject("pileup",t1d);t1d->SetDirectory(nullptr);
+	t1d->Scale(1.0/t1d->Integral());
+	const TH1D* const PuDe = static_cast<const TH1D* const>(t1d);
+	tF ->Close();
+	tF = TFile::Open("aux/truePileupTest.root");
+	tF ->GetObject("pileup",t1d);t1d->SetDirectory(nullptr);
+	t1d->Scale(1.0/t1d->Integral());
+	t1d->Divide(PuDe);
+	const TH1D* const PuWd = static_cast<const TH1D* const>(t1d);
+	tF ->Close();
+	tF = TFile::Open("aux/truePileupUp.root");
+	tF ->GetObject("pileup",t1d);t1d->SetDirectory(nullptr);
+	t1d->Scale(1.0/t1d->Integral());
+	t1d->Divide(PuDe);
+	const TH1D* const PuUd = static_cast<const TH1D* const>(t1d);
+	tF ->Close();
+	tF = TFile::Open("aux/truePileupDown.root");
+	tF ->GetObject("pileup",t1d);t1d->SetDirectory(nullptr);
+	t1d->Scale(1.0/t1d->Integral());
+	t1d->Divide(PuDe);
+	const TH1D* const PuDd = static_cast<const TH1D* const>(t1d);
+	tF ->Close();
+	tF	= nullptr; tHf = nullptr; tHd = nullptr; t1d = nullptr;
+//	std::cout<<"Auxiliary files processed"       <<std::endl;
 
 	// Open data files even if unused
 	// then automatically choose which one to read from
@@ -1347,6 +1385,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                      ),{"lep__pt","lep_eta",
 	                         "lep_phi","lep___q",
 	                         "lep_gpt","lep__nl"})
+//	.Define("puSf",pile(PuWd,PuUd,PuDd),{"PV_npvs"})
 	;
 	auto finalDF = finalScaling(ds,
 	     has_btag_eff )
@@ -1550,6 +1589,8 @@ void calchisto(const channel ch,const dataSource ds){
 	                      ),{"lep__pt","lep_eta",
 	                         "lep_phi","lep___q", // last 4 unused
 	                         "lep_phi","lep___q"})// last 2 repeat is fine
+//	.Define("puSf",[](){return std::map<puSf,double>
+//	                   {{puW,1.},{upW,1.},{dnW,1.}};})
 	;
 	auto finalDF = finalScaling(ds,
 	     not_btag_eff )
