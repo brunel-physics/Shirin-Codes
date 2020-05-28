@@ -72,6 +72,8 @@ constexpr unsigned   BJETS_MAX = 3;
 //constexpr double DELTA_PHI_ZW   = 2.;
 //constexpr double DELTA_PHI_ZMET = 2.;
 
+constexpr double RconeBy2 =  .2;
+
 constexpr double    TZQ_W =  .0128;
 constexpr double WWLNQQ_W = 2.1740;
 constexpr double WZLNQQ_W =  .2335;
@@ -262,9 +264,8 @@ template<typename T>// allow us to return w/o knowing data type
 auto retVar(const T& v){return[&](){return v;};}
 */
 // Jet Energy Resolution and Jet Energy Smearing
-auto jet_smear_pt_resol(const floats& pt,const floats& eta,const float rho,
-			const bool fatjet){
-	if(0<debug) std::cout<<"jet smear pt resol"<<std::endl;
+auto jet_smear_pt_resol(const floats& pt,const floats& eta,const float rho){
+	//if(0<debug) std::cout<<"jet smear pt resol"<<std::endl;
 	doubles resol(pt.size());
 	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
 		"Collections must be the same size (jet_smear_pt_resol)");
@@ -273,12 +274,7 @@ auto jet_smear_pt_resol(const floats& pt,const floats& eta,const float rho,
 	double etaMin,etaMax,rhoMin,rhoMax;
 	double pt_Min,pt_Max;
 	double a,b,c,d;
-	std:string temp_header="aux/Fall17_V3_MC_PtResolution_AK",
-		   temp_footer = "PFchs.txt",temp_opener;
-	if(!fatjet)
-	     temp_opener = temp_header + "4" + temp_footer;
-	else{temp_opener = temp_header + "8" + temp_footer;}
-	io::CSVReader<10> thisCSVfile(temp_opener.c_str());
+	io::CSVReader<10> thisCSVfile("aux/Fall17_V3_MC_PtResolution_AK4PFchs.txt");
 	thisCSVfile.read_header(io::ignore_extra_column,
 	"etaMin","etaMax","rhoMin","rhoMax","ptMin","ptMax","a","b","c","d");
 	while(thisCSVfile.read_row(
@@ -294,17 +290,12 @@ auto jet_smear_pt_resol(const floats& pt,const floats& eta,const float rho,
 	}// No need to close file after this while loop
 	return resol;//};
 }
-auto jet_smear_Sjer(const floats& etas,const bool fatjet){
+auto jet_smear_Sjer(const floats& etas){
 	//if(0<debug) std::cout<<"jet smear sjer"<<std::endl;
    doubles Sjers(            etas.size());
 	double  etaMin,etaMax;
 	double  centralSF,dnSF,upSF;
-        std:string temp_header="aux/Fall17_V3_MC_SF_AK",
-                   temp_footer = "PFchs.txt",temp_opener;
-        if(!fatjet)
-             temp_opener = temp_header + "4" + temp_footer;
-        else{temp_opener = temp_header + "8" + temp_footer;}
-        io::CSVReader<10> thisCSVfile(temp_opener.c_str());
+	io::CSVReader<5> thisCSVfile("aux/Fall17_V3_MC_SF_AK4PF.txt");
 	thisCSVfile.read_header(io::ignore_extra_column,
 	                          "etaMin","etaMax","centralSF","dnSF","upSF");
 	while(thisCSVfile.read_row(etaMin , etaMax , centralSF , dnSF , upSF)){
@@ -318,28 +309,28 @@ auto jet_smear_Sjer(const floats& etas,const bool fatjet){
 	if(Sjer > 0.) return Sjer;
 	else          return   0.;
 }
-auto delta_R_jet_smear(bool fatjet){
-	return[&,fatjet](const floats& jpt,const floats& jeta,const floats& jphi,
+auto delta_R_jet_smear(const floats& jpt,const floats& jeta,const floats& jphi,
                        const float   rho,
-                       const floats& gpt,const floats& geta,const floats& gphi){
+                       const floats& gpt,const floats& geta,const floats& gphi,
+                       const   ints& mask){// mask is tight jets
 	if(0<debug) std::cout<<"delta r jet smear"<<std::endl;
-	if(!all_equal(jpt.size(),jeta.size(),jphi.size())
+	if(!all_equal(jpt.size(),jeta.size(),jphi.size(),mask.size())
 	|| !all_equal(gpt.size(),geta.size(),gphi.size()))
 		throw std::logic_error(
 			"Collections must be the same size (deltaR_Jsmear)");
 	if(jpt.empty()) throw std::logic_error(
 			"Collections must not be empty for (deltaR_Jsmear)");
 	// the method used in here is the Jets Smearing Hybrid Method
-	double RconeBy2;
-	if(fatjet)RconeBy2 = 0.8/2;
-	else{RconeBy2 = 0.4/2;}
 	const size_t size = jpt.size();
 	double temp;
-	doubles cjers; cjers.reserve(size);
+	const size_t                 tJ_final_size
+	= count_if(mask.cbegin(),mask.cend(),[](int i){return 0 != i;});
+	doubles cjers; cjers.reserve(tJ_final_size);
 	ints gen(gpt.size(),1); gen.resize(size);
-	auto resol = jet_smear_pt_resol/*(ptRcsv)*/(jpt,jeta,rho,fatjet);
-	auto  Sjer = jet_smear_Sjer   /*(sjerCsv)*/(    jeta	,fatjet);
+	auto resol = jet_smear_pt_resol/*(ptRcsv)*/(jpt,jeta,rho);
+	auto  Sjer = jet_smear_Sjer   /*(sjerCsv)*/(    jeta    );
 	for(size_t i=0; i < size ;++i){
+	if(   0!=mask[i]){// only do stuff if tight jet
 		if(0!=gen [i] && std::abs(jpt [i]-gpt [i]) < 3*resol[i]*jpt[i]
 		&& deltaR(geta[i],gphi[i],jeta[i],jphi[i]) < RconeBy2){
 			temp = (1+(1+Sjer[i])// Scaling method
@@ -351,9 +342,11 @@ auto delta_R_jet_smear(bool fatjet){
 		}
 		if(temp < 0) temp = 0;
 		cjers.emplace_back(temp);
-	}
+	}}
+	if(cjers.size() != tJ_final_size) throw std::logic_error(
+		"Defective cjers has wrong size");
 	return cjers;
-};}
+}
 auto      is_bjet_id(const doubles& etas,const floats& btags){// added jec_eta
    ints   is_bjet_id = BTAG_DISC_MIN < btags;// A MASK!
           is_bjet_id.resize(etas.size(),0);// discard tail or pad zeroes
@@ -1193,10 +1186,10 @@ void calchisto(const channel ch,const dataSource ds){
 //		default  :throw std::invalid_argument(
 //			"Unimplemented ch (init)");
 	}
-//	ROOT::EnableImplicitMT();
+	ROOT::EnableImplicitMT();
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(10000);// remember to enable MT when NOT range
-	auto init_selection = dfr// remove one letter to do all
+	//auto dfr = df.Range(10000);// remember to enable MT when NOT range
+	auto init_selection = df// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
 	.Define("loose_leps",lep_sel(ch),
@@ -1279,17 +1272,13 @@ void calchisto(const channel ch,const dataSource ds){
 	        "Flag_eeBadScFilter"
 	       },
 	        "Event Cleaning filter")
-	.Define("cjer",    delta_R_jet_smear(false)  ,
+	.Define("cjer",    delta_R_jet_smear    ,
 	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","fixedGridRhoFastjetAll",
-	        "GenJet_pt","GenJet_eta","GenJet_phi"})
-	.Define("fat_cjer",    delta_R_jet_smear(true)  ,
-               {   "FatJet_pt",   "FatJet_eta",   "FatJet_phi","fixedGridRhoFastjetAll",
-                "GenJetAK8_pt","GenJetAK8_eta","GenJetAK8_phi"})
-	.Define("tight_cjer"  ,"cjer [tight_jets]")
-	.Define("fin_jets__pt" ,"tight_jets__pt * tight_cjer")// these are JEC
-	.Define("fin_jets_eta" ,"tight_jets_eta * tight_cjer")// Monte Carlo
-	.Define("fin_jets_phi" ,"tight_jets_phi * tight_cjer")// needs JEC
-	.Define("fin_jets_mas" ,"tight_jets_mas * tight_cjer")// fin = final
+	        "GenJet_pt","GenJet_eta","GenJet_phi","tight_jets"})
+	.Define("fin_jets__pt" ,"tight_jets__pt * cjer")// these are JEC
+	.Define("fin_jets_eta" ,"tight_jets_eta * cjer")// Monte Carlo
+	.Define("fin_jets_phi" ,"tight_jets_phi * cjer")// needs JEC
+	.Define("fin_jets_mas" ,"tight_jets_mas * cjer")// fin = final
 	// jets selected, now bjets and btagging preliminaries
 	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","tJ_btagCSVv2"})
 	.Filter(jetCutter(BJETS_MIN,BJETS_MAX)   ,{"is_bjets"},"b jet cut")

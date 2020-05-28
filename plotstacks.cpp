@@ -8,24 +8,21 @@
 #include "src/calchisto.hpp"
 //#include "calchisto.cpp" // only for compiling reasons
 
-dataSource ds{"tzq","ww","wz","zz","ttz"};
-channel	   ch{"elnu","munu"};
-
-std::string ch_ds = ch + "_" + dataSource;
-
-switch (ch){
-	case elnu:{switch(ds){case ttz:
-
-	}
-	 }
-	case munu:{}
 
 
 int plotstacks(){
 	setTDRStyle();
+/*	std::string channel = "elnu_";
 
-	std::string opener="elnu_tzq";// become 2 for loops
-	TFile hf((opener+".histo").c_str());
+
+	for(dataSource x:{ww,ttz}){// To include all dataSources later on.
+	        std::string opener= channel;// become 2 for loops
+		int colour;
+
+	switch (x){case  ww:{opener += "ww";colour =1;break;}
+		   case ttz:{opener +="ttz";colour =2;break;}
+		  }
+	TFile hf(("histo/"+opener+".histo").c_str());*/
 	//TH1D *htransT, *htransW, *hzmetdph, *hzwdph, *hzjetdphi, *hWinvmass;
 	for(std::string particle:{"fin_jets","lep","bjet"}){
                 std::string title = particle;
@@ -35,7 +32,37 @@ int plotstacks(){
 	for(PtEtaPhiM k:PtEtaPhiMall){
 		std::string kstring = "_" ;
 		std::string xAxisStr;
-		switch (k){
+	        std::string channel = "elnu_";
+        switch (k){
+                   case pt :{kstring += "_pt";
+                             xAxisStr = "pT/GeV";
+                             tkstr    = " pT";                    ;break;}
+                   case eta:{kstring += "eta";
+                             xAxisStr = "PseudoRapidity eta";
+                             tkstr    = " eta"                    ;break;}
+                   case phi:{kstring += "phi";
+                             xAxisStr = "Azimuthal angle, phi/rad";
+                             tkstr    = " phi"                    ;break;}
+                   case m  :{kstring += "mas";
+                             xAxisStr = "mass GeV/C^2";
+                             tkstr    = " mass"                   ;break;}
+                 }
+        std::string   stname = (particle + kstring).c_str();
+        THStack *hstack = new THStack(stname.c_str(),(title + tkstr).c_str());
+        auto hcanvas    = new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);
+
+        TH1D *hobj;
+
+        for(dataSource x:{ww,ttz}){// To include all dataSources later on.
+                std::string opener= channel;// become 2 for loops
+                int colour;
+
+        switch (x){case  ww:{opener += "_ww";colour=1;break;}
+                   case ttz:{opener +="ttz";colour=2;break;}
+                  }
+        TFile hf(("histo/"+opener+".histo").c_str());
+
+/*		switch (k){
 			case pt :{kstring += "_pt";
 				  xAxisStr = "pT/GeV";
 				  tkstr    = " pT"; 		       ;break;}
@@ -48,21 +75,24 @@ int plotstacks(){
 			case m  :{kstring += "mas";
 				  xAxisStr = "mass GeV/C^2";
 				  tkstr	   = " mass"		       ;break;}
-		}
+		}*/
 	std::string hobjname = (opener+"_"+particle+kstring).c_str();
-	std::string   stname = (particle + kstring).c_str();
+	/*std::string   stname = (particle + kstring).c_str();
         THStack *hstack = new THStack(stname.c_str(),(title + tkstr).c_str());
-	TH1D *hobj;
+	TH1D *hobj;*/
 	hf.GetObject(hobjname.c_str(),hobj);
+	hobj->SetDirectory(nullptr);
 	// clone hobj by DrawClone or add to stack here
-	hobj->SetLineColor(kBlack);// TBC when other ds are inlcuded.
-	hstack->Add(static_cast<TH1D*> (hobj->Clone()));
-	auto hcanvas =
-	new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);
+	hobj->SetLineColor(colour);// TBC when other ds are inlcuded.
+	hstack->Add(static_cast<TH1D*> (hobj/*->Clone()*/));
+	/*auto hcanvas =
+	new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);*/
 	hobj->DrawClone("SAME");
         hcanvas->cd(2);// From here downward
         hstack->Draw("HIST");// should be done
 	gPad->Update();
+	hf.Close();
+	}
         hstack->GetXaxis()->SetTitle(xAxisStr.c_str());
         hstack->GetYaxis()->SetTitle("Event");
         hcanvas->BuildLegend();// once all data sources
@@ -70,9 +100,8 @@ int plotstacks(){
         hcanvas->SaveAs((stname + ".root").c_str());// are included
         //hcanvas->SaveAs((stname + ".pdf" ).c_str());
 	}}
-	
         // Adding other Plots
-	
+	/*
         std::string hTransTm = (opener + " Transverse Top mass").c_str();
         std::string   stname = (opener+  "_transTm").c_str();
         THStack *h_transT_stack = new THStack(stname.c_str(),stname.c_str());// change title
@@ -93,6 +122,9 @@ int plotstacks(){
         h_transT_stack->Draw("HIST");// should be done
         h_transT_canvas->BuildLegend();// once all data sources
         h_transT_canvas->SaveAs((stname + ".root").c_str());// are included
+
+
+
         //h_transT_canvas->SaveAs((stname + ".pdf" ).c_str());
 
 // *htransW, *hzmetdph, *hzwdph, *hzjetdphi, *hWinvmass;
@@ -126,7 +158,7 @@ int plotstacks(){
 	//h_events_no_btag_PtVsEta_canvas->SaveAs("h_events_no_btag_PtVsEta_canvas.root");
 	h_events_no_btag_PtVsEta_canvas->SaveAs("h_events_no_btag_PtVsEta_canvas.pdf");
 */	
-	hf.Close();
+
 	return 0;
 }
 
