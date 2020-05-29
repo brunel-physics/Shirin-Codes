@@ -25,14 +25,11 @@ int plotstacks(){
 	TFile hf(("histo/"+opener+".histo").c_str());*/
 	//TH1D *htransT, *htransW, *hzmetdph, *hzwdph, *hzjetdphi, *hWinvmass;
 	for(std::string particle:{"fin_jets","lep","bjet"}){
-                std::string title = particle;
 		std::string tkstr;
-                if("fin_jets" == particle)title = "jets";
 
 	for(PtEtaPhiM k:PtEtaPhiMall){
 		std::string kstring = "_" ;
 		std::string xAxisStr;
-	        std::string channel = "elnu_";
         switch (k){
                    case pt :{kstring += "_pt";
                              xAxisStr = "pT/GeV";
@@ -47,18 +44,25 @@ int plotstacks(){
                              xAxisStr = "mass GeV/C^2";
                              tkstr    = " mass"                   ;break;}
                  }
-        std::string   stname = (particle + kstring).c_str();
+        for(channel ch:channelAll){
+        std::string chn;
+
+        switch (ch){case elnu:{chn ="elnu";break;}
+                    case munu:{chn ="munu";break; }
+                   }
+        std::string title = chn+ " " +particle;
+        if("fin_jets" == particle)title = chn +" jets";
+        std::string   stname = (chn+"_"+particle + kstring).c_str();
         THStack *hstack = new THStack(stname.c_str(),(title + tkstr).c_str());
         auto hcanvas    = new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);
 
         TH1D *hobj;
-
-        for(dataSource x:{ww,ttz}){// To include all dataSources later on.
-                std::string opener= channel;// become 2 for loops
+        for(dataSource ds:{ww,ttz}){// To include all dataSources later on.
+                std::string opener= chn+"_";
                 int colour;
 
-        switch (x){case  ww:{opener += "_ww";colour=1;break;}
-                   case ttz:{opener +="ttz";colour=2;break;}
+        switch (ds){case  ww:{opener += "_ww";colour=2;break;}// red
+                   case ttz:{opener  +="ttz";colour=3;break;}// green
                   }
         TFile hf(("histo/"+opener+".histo").c_str());
 
@@ -83,7 +87,7 @@ int plotstacks(){
 	hf.GetObject(hobjname.c_str(),hobj);
 	hobj->SetDirectory(nullptr);
 	// clone hobj by DrawClone or add to stack here
-	hobj->SetLineColor(colour);// TBC when other ds are inlcuded.
+	hobj->SetFillColor(colour);// TBC when other ds are inlcuded.
 	hstack->Add(static_cast<TH1D*> (hobj/*->Clone()*/));
 	/*auto hcanvas =
 	new TCanvas(stname.c_str(), stname.c_str(),10,10,900,900);*/
@@ -92,14 +96,18 @@ int plotstacks(){
         hstack->Draw("HIST");// should be done
 	gPad->Update();
 	hf.Close();
-	}
+	}// DataSource
         hstack->GetXaxis()->SetTitle(xAxisStr.c_str());
         hstack->GetYaxis()->SetTitle("Event");
         hcanvas->BuildLegend();// once all data sources
 	gPad->Update();
         hcanvas->SaveAs((stname + ".root").c_str());// are included
         //hcanvas->SaveAs((stname + ".pdf" ).c_str());
-	}}
+	hcanvas->Close();
+	gSystem->ProcessEvents();// Ask to process closing
+	delete hcanvas;
+	hcanvas = nullptr;
+	}}}// Particle, Component, channel
         // Adding other Plots
 	/*
         std::string hTransTm = (opener + " Transverse Top mass").c_str();
