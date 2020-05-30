@@ -790,8 +790,8 @@ auto  lep_gpt(const channel ch){
               const ints &eidx,const ints &midx){
 	int i;
 	switch(ch){
-		case elnu:{i = eidx[mask][0];}
-		case munu:{i = midx[mask][0];}
+		case elnu:{i = eidx[mask][0];break;}
+		case munu:{i = midx[mask][0];break;}
 	}
 	if(-1!=i) return pt[i]; else return -1.f;
 	};
@@ -1209,7 +1209,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	ROOT::EnableImplicitMT();
 	// make test runs faster by restriction. Real run should not
-	//auto dfr = df.Range(10000);// remember to enable MT when NOT range
+//	auto dfr = df.Range(10000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
 	// lepton selection first
 //	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
@@ -1501,7 +1501,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("sfi "+temp_header).c_str(),
 	50,-10,10},"sfi");
 	h_sfi->GetXaxis()->SetTitle("sfi");
-	h_sfi->GetYaxis()->SetTitle("Evemt");
+	h_sfi->GetYaxis()->SetTitle("Event");
 	h_sfi->SetLineStyle(kSolid);
 
 	auto h_sfj = finalDF.Histo1D({
@@ -1509,39 +1509,39 @@ void calchisto(const channel ch,const dataSource ds){
 	("sfj "+temp_header).c_str(),
 	50,-10,10},"sfj");
 	h_sfj->GetXaxis()->SetTitle("sfj");
-	h_sfj->GetYaxis()->SetTitle("Evemt");
+	h_sfj->GetYaxis()->SetTitle("Event");
 	h_sfj->SetLineStyle(kSolid);
 
 	auto h_p_ei = finalDF.Histo1D({
 	("p_ei_"+temp_header).c_str(),
 	("p_ei "+temp_header).c_str(),
 	50,-10,10},"P___ei");
-	h_p_ei->GetXaxis()->SetTitle("\\text{Product of }e_{i}");
-	h_p_ei->GetYaxis()->SetTitle("Evemt");
+	h_p_ei->GetXaxis()->SetTitle("\\prod_{i} e_{i}");
+	h_p_ei->GetYaxis()->SetTitle("Event");
 	h_p_ei->SetLineStyle(kSolid);
 
 	auto h_p_ej = finalDF.Histo1D({
 	("p_ej_"+temp_header).c_str(),
 	("p_ej "+temp_header).c_str(),
 	50,-10,10},"P___ej");
-	h_p_ej->GetXaxis()->SetTitle("\\text{Product of } 1 - e_{j}");
-	h_p_ej->GetYaxis()->SetTitle("Evemt");
+	h_p_ej->GetXaxis()->SetTitle("\\prod_{j} 1 - e_{j}");
+	h_p_ej->GetYaxis()->SetTitle("Event");
 	h_p_ej->SetLineStyle(kSolid);
 
 	auto h_p_sfei= finalDF.Histo1D({
 	("p_sfei_"+temp_header).c_str(),
 	("p_sfei "+temp_header).c_str(),
 	50,-10,10},"P_sfei");
-	h_p_sfei->GetXaxis()->SetTitle("\\text{Product of sf}_{i}e_{i}");
-	h_p_sfei->GetYaxis()->SetTitle("Evemt");
+	h_p_sfei->GetXaxis()->SetTitle("\\prod_{i} \\text{sf}_{i} e_{i}");
+	h_p_sfei->GetYaxis()->SetTitle("Event");
 	h_p_sfei->SetLineStyle(kSolid);
 
 	auto h_p_sfej= finalDF.Histo1D({
 	("p_sfej_"+temp_header).c_str(),
 	("p_sfej "+temp_header).c_str(),
 	50,-10,10},"P_sfej");
-	h_p_sfej->GetXaxis()->SetTitle("\\text{Product of } 1 - \\text{sf}_{j}e_{j}");
-	h_p_sfej->GetYaxis()->SetTitle("Evemt");
+	h_p_sfej->GetXaxis()->SetTitle("\\prod_{j} 1 - \\text{sf}_{j} e_{j}");
+	h_p_sfej->GetYaxis()->SetTitle("Event");
 	h_p_sfej->SetLineStyle(kSolid);
 
 	auto h_btag_w= finalDF.Histo1D({
@@ -1549,13 +1549,13 @@ void calchisto(const channel ch,const dataSource ds){
 	("btag_W "+temp_header).c_str(),
 	50,-100,100},"btag_w");
 	h_btag_w->GetXaxis()->SetTitle("btag weight");
-	h_btag_w->GetYaxis()->SetTitle("Evemt");
+	h_btag_w->GetYaxis()->SetTitle("Event");
 	h_btag_w->SetLineStyle(kSolid);
 // end MC only
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/"+temp_header+".histo").c_str(),"RECREATE");
+	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
 // MC only
 		hf.WriteTObject(h_sfi   .GetPtr());
 		hf.WriteTObject(h_sfj   .GetPtr());
@@ -1594,11 +1594,11 @@ void calchisto(const channel ch,const dataSource ds){
 			case phi:{kstring += "phi";xmin = -7;xmax =  7 ;
 			          xAxisStr = "Azimuthal angle #phi/rad";break;}
 			case  m :{kstring += "mas";xmin =  0;xmax = 200;
-			          xAxisStr = "mass GeV/#c^{2}"         ;break;}
+			          xAxisStr = "\\text{mass GeV/}c^{2}"  ;break;}
 //			default :throw std::invalid_argument(
 //				"Unimplemented component (histo)");
 		}
-		temp_footer = particle + kstring;
+		temp_footer = particle    + kstring;
 		temp_opener = temp_header + "_" + temp_footer;
 		auto
 		h = finalDF.Histo1D(
@@ -1644,7 +1644,6 @@ void calchisto(const channel ch,const dataSource ds){
 	                ),{"lep__pt","lep_eta",
 	                   "lep_phi","lep___q", // last 4 unused
 	                   "lep_phi","lep___q"})// last 2 repeat is fine
-	//. Alias("PV_npvs", "lep___q")// another useless hack
 	;
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,// unused but send pile
 	     not_btag_eff )
@@ -1733,7 +1732,7 @@ void calchisto(const channel ch,const dataSource ds){
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/"+temp_header+".histo").c_str(),"RECREATE");
+	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
 	hf.WriteTObject(h_trans_T .GetPtr());
 	hf.WriteTObject(h_trans_w .GetPtr());
 	hf.WriteTObject(h_Winvmas .GetPtr());
@@ -1761,7 +1760,7 @@ void calchisto(const channel ch,const dataSource ds){
 //			default :throw std::invalid_argument(
 //				"Unimplemented component (histo)");
 		}
-		temp_footer = particle + kstring;
+		temp_footer = particle    + kstring;
 		temp_opener = temp_header + "_" + temp_footer;
 		auto
 		h = finalDF.Histo1D(
