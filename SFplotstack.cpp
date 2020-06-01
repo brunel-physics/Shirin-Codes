@@ -6,10 +6,10 @@
 #include "src/tdrstyle.C"
 #include "src/calchisto.hpp"
 
-int plotstacks(){
+int SFplotstack(){
 	gROOT->SetBatch(kTRUE);// no open canvas window
 	setTDRStyle();
-	TFile     cf("plots/components.root","RECREATE");
+	TFile     cf("plots/MC.root","RECREATE");
 	TCanvas canv("name to reset","title to reset",10,10,900,900);
 	TH1D   *hobj;
 	// now we open ALL the files
@@ -35,40 +35,25 @@ int plotstacks(){
 	hFd[std::make_pair(ch,ds)]
 		= new TFile(("histo/" + opener + ".root").c_str());
 	}}// now we have a histogram file dictionary of all the files miahahaha
-	for(std::string particle:{"fin_jets","lep","bjet"}){
-	for(PtEtaPhiM k:PtEtaPhiMall){
-	std::string   kstring = "_", tkstr = " ", xAxisStr;
-	switch(k){
-	case pt :{kstring += "_pt";
-	          tkstr    = " p_{T}";// Latex p_{T}
-	          xAxisStr = " p_{T}/GeV";
-	          break;}
-	case eta:{kstring +=  "eta";
-	          tkstr   +=  "eta";
-	          xAxisStr = "#eta"; // # is for Latex symbol
-	          break;}
-	case phi:{kstring += "phi";
-	          tkstr   += "phi";
-	          xAxisStr = "Azimuthal angle #varphi/rad";
-	          break;}
-	case  m :{kstring += "mas" ;
-	          tkstr   += "mass";
-	          xAxisStr = "\\text{mass GeV/}c^{2}";// Latex
-	          break;}
-	}
+	for(std::string sf:{"sfi","sfj","p_ei","p_ej"}){// TODO::Add other sfs
+	std::string xAxisStr;
+	     if(sf == "sfi" )xAxisStr = "sfi";// TODO:: Find proper names
+	else if(sf == "sfj" )xAxisStr = "sfj";
+	else if(sf == "p_ei")xAxisStr ="p_ei";
+	else if(sf == "p_ej")xAxisStr ="p_ej";
 	for(channel ch:channelAll){
 	std::string chN;
 	switch     (ch){
 		case elnu:  {chN ="elnu";break;}
 		case munu:  {chN ="munu";break;}
 	}
-	std::string                title = chN + " " + particle;
-	if("fin_jets" == particle) title = chN + " jets";
-	std::string  stname =(chN+"_"+particle + kstring).c_str() ;
+	std::string                title = sf + " " + chN;
+	std::string  stname =(sf + "_" + chN).c_str() ;
 	canv.SetName(stname.c_str());canv.SetTitle(stname.c_str());
-	THStack stac(stname.c_str(),(title + tkstr).c_str());
+	THStack stac(stname.c_str(),title.c_str());
 	for(dataSource ds:dataSourceAll){
 	std::string  opener  = chN + "_";
+	if(cms == ds || met == ds)continue; // Since 
 	int colour;
 	switch  (ds){
 		case tzq:{opener += "tzq";colour = 6;break;}// magenta
@@ -79,7 +64,7 @@ int plotstacks(){
 		case met:{opener += "met";colour = 9;break;}// violet
 		case cms:{opener += "cms";colour = 1;break;}// black
 	}
-	std::string    hobjN = opener + "_" + particle + kstring ;
+	std::string    hobjN = sf + "_" + opener ;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),hobj);
 	                              hobj->SetDirectory(nullptr);
 	if( cms == ds || met == ds )  hobj->SetLineColor( colour);
@@ -97,7 +82,7 @@ int plotstacks(){
 //	canv .SaveAs(("plots/" + stname + ".pdf" ).c_str());
 	canv .Clear();// clear rather than delete, reusable!
 	// stac will auto clean up since it is not new-ed
-	}}}// channel, particle, component
+	}}// channel, particle
 	for(auto &x : hFd){
 		x.second->Close(); x.second = nullptr;
 	}

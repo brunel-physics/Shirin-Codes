@@ -48,8 +48,8 @@ namespace{
   constexpr  float MU_TIGHT_ISO = .25f;
 
 //constexpr  float MET__PT_MIN  = 40.f;
-  constexpr  float MET_EL_PT    = 80.f;
-  constexpr  float MET_MU_PT    = 40.f;
+  constexpr  float MET_EL_PT    = 20.f;//80.f;
+  constexpr  float MET_MU_PT    = 25.f;//40.f;
 
   constexpr double   Z_MASS     =  91.1876;
   constexpr double   Z_MASS_CUT =  20.;
@@ -391,7 +391,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
                const    ints& flav){
 	if(0<debug)std::cout<<"btagCSVv2 entered"<<std::endl;
 	const size_t     size = pt  .size();
-	strings formulae(size  ,"1");//,check_CSVv2 ? "1" : "0");
+	strings formulae(size  ,"0");//,check_CSVv2 ? "1" : "0");
 	doubles  results(size );
 	if(!all_equal(   size  ,flav.size(),
 	             eta.size(),btag.size())) throw std::logic_error(
@@ -438,7 +438,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
 	&& etaMin < eta [i] && eta [i] < etaMax
 	&& pt_Min < pt  [i] && pt  [i] < pt_Max){
 
-	if("1" == formulae[i]){// only 1st found wins
+	if(1 == formulae[i].length()){// only 1st found wins
 
 	if(std::string::npos != tempFormula.find("x")){
 
@@ -634,8 +634,8 @@ auto allReconstruction(T &rdf){
 	.Define( "zmet_Dph" , abs_deltaphi<float >,{"z_phi","MET_phi"})
 //	.Filter(      deltaphi_cut(DELTA_PHI_ZMET),
 //	       { "zmet_Dph"},"Z met cut ")
-	// Adding a mask to pick the z_pair_phi from the fin_jets_phi
-	.Define("z_jets_Dph", jet_deltaphi   ,{"z_pair_phi"})
+	.Define("z_pair_Dph",[](doubles p){return
+	                      abs_deltaphi(p[0],p[1]);},{"z_pair_phi"})
 	// reconstruct transverse top follows; z reconstructed
 	.Define("recoTtop",top_reconst,
 	       {"bjet__pt",
@@ -660,7 +660,7 @@ return [&,b](const doubles& pt,const doubles& eta){
 		"Collections must be the same size (effGiver)");
 	if(pt.empty()) throw std::logic_error(
 		"Collections must not be empty in  (effGiver)");
-	doubles BTaggedEff(pt.size(),1);//pts.size(), b ? 1. : 0.);
+	doubles BTaggedEff(pt.size(),0);//pts.size(), b ? 1. : 0.);
 	for(size_t   i=0; i <  pt.size() ;++i){
 		int  PtBin = ratio->GetXaxis()->FindBin(         pt [i] );
 		int EtaBin = ratio->GetYaxis()->FindBin(std::abs(eta[i]));
@@ -687,7 +687,7 @@ auto EffNoBTaggedProduct(const doubles& EffNoBTagged){
 	double result  = 1.;
 	for(size_t i=0;  i < EffNoBTagged.size();++i)
 	       result *= 1.- EffNoBTagged[i];
-	if(5<debug) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
+	if(-1<debug) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
 auto Sfi_EffIsBTaggedProduct(const doubles& EffIsBTagged,const doubles& sfi){
@@ -709,7 +709,7 @@ auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
 	for(size_t i=0; i < size ;++i)
 //	       result*= -std::fma(EffNoBTagged[i],sfj[i],-1.);
 	       result*= 1. - EffNoBTagged[i]*sfj[i];
-	if(5<debug)std::cout<<"sfj = "<<sfj<<" product = "<<result<<std::endl;
+	if(-1<debug)std::cout<<"sfj = "<<sfj<<" product = "<<result<<std::endl;
 	return result;
 }
 /*
@@ -781,8 +781,9 @@ auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 */
 auto btag_weight(const double p_data,const double p_MC){
 	double weight = p_data / p_MC;
-	if(FP_NORMAL !=std::fpclassify(weight)) weight=1.;// Rids non-zero/inf/NaN
-//	if(0 < debug)  std::cout<<"btag_w is "<<weight<<std::endl;
+//	if(FP_NORMAL !=std::fpclassify(weight)) weight=1.;// Rids non-zero/inf/NaN
+//	if(0 < debug)  std::cout<<"btag_w is   "<<weight<<std::endl;
+	if(weight < 0) std::cout<<"btag_w lt 0 "        <<std::endl;
 	return  weight;
 }
 auto  lep_gpt(const channel ch){
@@ -874,7 +875,7 @@ auto muEffGiver(const float         pt ,
 	           <<"\t:\t"<<dict[IsoT]<<std::endl;
 	return dict;
 }
-auto lepEffGiver(      RoccoR       rc,
+auto lepEffGiver(      RoccoR      &rc,
                  const channel      ch,
                  const bool         MC,
                  const TH2F* const &recoLowEt,
@@ -892,7 +893,7 @@ auto lepEffGiver(      RoccoR       rc,
                  const float    phi,const   int Q,
                  const float gen_pt,const   int nl){
 //	if(0 < debug)std::cout<< "lep eff giver"<<std::endl;
-	double sf = 1., id = 1., iso = 1., eff = 1., smr = 1.;
+	double roc = 1., id = 1., iso = 1., eff = 1., smr = 1.;
 	if(MC){switch(ch){
 	case elnu:{
 		auto  dict = elEffGiver(pt,eta,recoLowEt,reco_pass,tight_94x);
@@ -908,14 +909,14 @@ auto lepEffGiver(      RoccoR       rc,
 		iso = dict[IsoN];// muEffGiver done; rocco follows
 		if(0.f < gen_pt){
 			std::cout<<"rocco 1"<<std::endl;
-			sf = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
+			roc = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
 		}else{
 			std::cout<<"rocco 2"<<std::endl;
 			auto u = gRandom->Rndm();
 			std::cout<<// TODO: not sure if gRandom works!
 			"Warning, u must be between 0 and 1, u is "
 			<<u<<std::endl;
-			sf = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
+			roc = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
 /* Rocco scale factor desc.
 scale factors for momentum of each muon:
 // data
@@ -941,18 +942,24 @@ a given muon, random number (u) should remain unchanged.
 		case elnu:break;
 		case munu:{
 			std::cout<<"rocco 3"<<std::endl;
-			sf = rc. kScaleDT(Q,pt,eta,phi,0,0);
+			roc = rc. kScaleDT(Q,pt,eta,phi,0,0);
 			break;}
 		}
 	}
 	if(0 < debug) std::cout
-		<< "most " << sf
+		<< " roc " << roc
 		<< " id  " << id
 		<< " iso " << iso
 		<< " eff " << eff
 		<< " smr " << smr
 		<< " for " << ch << std::endl;
-	return sf * id * iso * eff * smr;};
+	if(roc < 0)  std::cout << "roc lt 0 ";
+	if(id  < 0)  std::cout << "id  lt 0 ";
+	if(iso < 0)  std::cout << "iso lt 0 ";
+	if(eff < 0)  std::cout << "eff lt 0 ";
+	if(smr < 0)  std::cout << "smr lt 0 ";
+	std::cout << std::endl;
+	return roc * id * iso * eff * smr;};
 }
 auto pile(const TH1D* const &PuWd,
           const TH1D* const &PuUd,
@@ -962,7 +969,7 @@ return[=](const int   npv){
 	dict[puW] = PuWd->GetBinContent(PuWd->GetXaxis()->FindBin(npv));
 	dict[upW] = PuUd->GetBinContent(PuUd->GetXaxis()->FindBin(npv));
 	dict[dnW] = PuDd->GetBinContent(PuDd->GetXaxis()->FindBin(npv));
-	if(-1<debug)std::cout<<"pile "<<npv<<" "
+	if(0<debug)std::cout<<"pile "<<npv<<" "
 		<<dict[puW]<<" "<<dict[upW]<<" "<<dict[dnW]<<std::endl;
 	return dict;
 };
@@ -991,10 +998,13 @@ auto sf(const  dataSource    ds,
 //				"Unimplemented ds (sf)");
 		}
 		if(MC) result *= pile(PuWd,PuUd,PuDd)(npv)[puW];
-		if(5<debug)std::cout<<"b_w "<<b
-		<<" sf "<<result*b//<<std::endl;
-		<<" mostSF " << mostSF<<std::endl;
-		return result*b*mostSF;
+		if(result < 0)std::cout<<"pile lt 0"<<std::endl;
+		if(5<debug)   std::cout<<"b_w "<< b
+		<<" few_SF " << result//<<std::endl;
+		<<" mostSF " << mostSF  <<std::endl;
+		result *=   b * mostSF;
+		if(result < 0)std::cout<<"final sf lt 0 "<<result<<std::endl;
+		return result;
 	};
 }
 auto rep_const(const double sf,const doubles& iRVec){
@@ -1027,7 +1037,7 @@ auto finalScaling(const dataSource     ds,
 	. Alias( "nw_tw_lep_mas"   ,"sf")
 	. Alias(  "nw_z_mas"       ,"sf")
 	.Define("nw_fin_jets_Dph"  ,rep_const,{"sf","fin_jets_Dph"})
-	.Define("nw_z_jets_Dph"	   ,rep_const,{"sf",  "z_jets_Dph"})
+	.Define(  "nw_z_pair_Dph"	,"sf")
 	. Alias(    "nw_zmet_Dph"  ,"sf")
 	. Alias(      "nw_zw_Dph"  ,"sf")
 	. Alias("nw_lep_nu_invmass","sf")
@@ -1413,12 +1423,70 @@ void calchisto(const channel ch,const dataSource ds){
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
 	;
-	// Copied to below, delete MC-only
+	// Copied to below, skip MC-only
 	// Assuming temp_header and footer and all are set per (hist titles)!
+// MC only
+	auto h_sfi = finalDF.Histo1D({
+	("sfi_"+temp_header).c_str(),
+	("sfi "+temp_header).c_str(),
+	5000,0,1.3},"sfi");
+	h_sfi->GetXaxis()->SetTitle("sfi");
+	h_sfi->GetYaxis()->SetTitle("Event");
+	h_sfi->SetLineStyle(kSolid);
+
+	auto h_sfj = finalDF.Histo1D({
+	("sfj_"+temp_header).c_str(),
+	("sfj "+temp_header).c_str(),
+	5000,0,1.3},"sfj");
+	h_sfj->GetXaxis()->SetTitle("sfj");
+	h_sfj->GetYaxis()->SetTitle("Event");
+	h_sfj->SetLineStyle(kSolid);
+
+	auto h_p_ei = finalDF.Histo1D({
+	("p_ei_"+temp_header).c_str(),
+	("p_ei "+temp_header).c_str(),
+	5000,0,1.3},"P___ei");
+	h_p_ei->GetXaxis()->SetTitle("\\prod_{i} e_{i}");
+	h_p_ei->GetYaxis()->SetTitle("Event");
+	h_p_ei->SetLineStyle(kSolid);
+
+	auto h_p_ej = finalDF.Histo1D({
+	("p_ej_"+temp_header).c_str(),
+	("p_ej "+temp_header).c_str(),
+	5000,-.5,.5},"P___ej");
+	h_p_ej->GetXaxis()->SetTitle("\\prod_{j} 1 - e_{j}");
+	h_p_ej->GetYaxis()->SetTitle("Event");
+	h_p_ej->SetLineStyle(kSolid);
+
+	auto h_p_sfei= finalDF.Histo1D({
+	("p_sfei_"+temp_header).c_str(),
+	("p_sfei "+temp_header).c_str(),
+	5000,0,1.3},"P_sfei");
+	h_p_sfei->GetXaxis()->SetTitle("\\prod_{i} \\text{sf}_{i} e_{i}");
+	h_p_sfei->GetYaxis()->SetTitle("Event");
+	h_p_sfei->SetLineStyle(kSolid);
+
+	auto h_p_sfej= finalDF.Histo1D({
+	("p_sfej_"+temp_header).c_str(),
+	("p_sfej "+temp_header).c_str(),
+	5000,-.5,.5},"P_sfej");
+	h_p_sfej->GetXaxis()->SetTitle("\\prod_{j} 1 - \\text{sf}_{j} e_{j}");
+	h_p_sfej->GetYaxis()->SetTitle("Event");
+	h_p_sfej->SetLineStyle(kSolid);
+
+	auto h_btag_w= finalDF.Histo1D({
+	("btag_w_"+temp_header).c_str(),
+	("btag_W "+temp_header).c_str(),
+	50,-100,100},"btag_w");
+	h_btag_w->GetXaxis()->SetTitle("btag weight");
+	h_btag_w->GetYaxis()->SetTitle("Event");
+	h_btag_w->SetLineStyle(kSolid);
+// end MC only
+
 	auto h_trans_T = finalDF.Histo1D({
 	(          "tTm_"     + temp_header).c_str(),
 	("Transverse T mass " + temp_header).c_str(),
-	50,0,180},
+	50,0,250},
 	"ttop_mas","nw_ttop_mas");
 	h_trans_T->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_trans_T->GetYaxis()->SetTitle("Event");
@@ -1443,17 +1511,17 @@ void calchisto(const channel ch,const dataSource ds){
 	h_Winvmas->SetLineStyle(kSolid);
 
 	auto h_ev_w = finalDF.Histo1D({
-	(   "ev_w_"    +temp_header).c_str(),
-	("Event weight"+temp_header).c_str(),
-	50,-50,50},"sf");
+	(   "ev_w_"     +temp_header).c_str(),
+	("Event weight "+temp_header).c_str(),
+	50,-100,100},"sf");
 	h_ev_w->GetXaxis()->SetTitle("weight");
 	h_ev_w->GetYaxis()->SetTitle("Event" );
 	h_ev_w->SetLineStyle(kSolid);
 
 	auto h_z_mas = finalDF.Histo1D({
-	(        "zmas_" + temp_header).c_str(),
-	("Recon. Z mass" + temp_header).c_str(),
-	50,0,200},
+	(        "zmas_"  + temp_header).c_str(),
+	("Recon. Z mass " + temp_header).c_str(),
+	50,0,150},
 	"z_mas","nw_z_mas");
 	h_z_mas->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_z_mas->GetYaxis()->SetTitle("Event");
@@ -1462,7 +1530,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_zw_Dph = finalDF.Histo1D({
 	("Z_W_Delta_Phi_" + temp_header).c_str(),
 	("Z W Delta Phi " + temp_header).c_str(),
-	50,-7,7},
+	50,0,3.2},
 	"zw_Dph","nw_zw_Dph");
 	h_zw_Dph->GetXaxis()->SetTitle("Z & W #Delta#phi/rad");
 	h_zw_Dph->GetYaxis()->SetTitle("Event");
@@ -1471,7 +1539,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_zmet_Dph = finalDF.Histo1D({
 	("Z_MET_Delta_Phi_" + temp_header).c_str(),
 	("Z MET Delta Phi " + temp_header).c_str(),
-	50,-7,7},
+	50,0,3.2},
 	"zmet_Dph","nw_zmet_Dph");
 	h_zmet_Dph->GetXaxis()->SetTitle("Z & MET #Delta#phi/rad");
 	h_zmet_Dph->GetYaxis()->SetTitle("Event");
@@ -1480,8 +1548,8 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_z_daughters_Dph = finalDF.Histo1D({
 	("Z_pair_jets_Delta_Phi_" + temp_header).c_str(),
 	("Z pair jets Delta Phi " + temp_header).c_str(),
-	50,-7,7},
-	"z_jets_Dph","nw_z_jets_Dph");
+	50,0,7},
+	"z_pair_Dph","nw_z_pair_Dph");
 	h_z_daughters_Dph->GetXaxis()->SetTitle("Z pair jets #Delta#phi/rad");
 	h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
 	h_z_daughters_Dph->SetLineStyle(kSolid);
@@ -1489,74 +1557,17 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_tWmVsZmass = finalDF.Histo2D({
 	("tWmVsZmass_" + temp_header).c_str(),
 	("tWmVsZmass " + temp_header).c_str(),
-	50,0,200,50,0,200},
+	50,0,180,50,0,150},
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("\\text{  tWm  GeV/}c^{2}");
 	h_tWmVsZmass->GetYaxis()->SetTitle("\\text{Z mass GeV/}c^{2}");
 	// No SetLineStyle here
 
-// MC only
-	auto h_sfi = finalDF.Histo1D({
-	("sfi_"+temp_header).c_str(),
-	("sfi "+temp_header).c_str(),
-	50,-10,10},"sfi");
-	h_sfi->GetXaxis()->SetTitle("sfi");
-	h_sfi->GetYaxis()->SetTitle("Event");
-	h_sfi->SetLineStyle(kSolid);
-
-	auto h_sfj = finalDF.Histo1D({
-	("sfj_"+temp_header).c_str(),
-	("sfj "+temp_header).c_str(),
-	50,-10,10},"sfj");
-	h_sfj->GetXaxis()->SetTitle("sfj");
-	h_sfj->GetYaxis()->SetTitle("Event");
-	h_sfj->SetLineStyle(kSolid);
-
-	auto h_p_ei = finalDF.Histo1D({
-	("p_ei_"+temp_header).c_str(),
-	("p_ei "+temp_header).c_str(),
-	50,-10,10},"P___ei");
-	h_p_ei->GetXaxis()->SetTitle("\\prod_{i} e_{i}");
-	h_p_ei->GetYaxis()->SetTitle("Event");
-	h_p_ei->SetLineStyle(kSolid);
-
-	auto h_p_ej = finalDF.Histo1D({
-	("p_ej_"+temp_header).c_str(),
-	("p_ej "+temp_header).c_str(),
-	50,-10,10},"P___ej");
-	h_p_ej->GetXaxis()->SetTitle("\\prod_{j} 1 - e_{j}");
-	h_p_ej->GetYaxis()->SetTitle("Event");
-	h_p_ej->SetLineStyle(kSolid);
-
-	auto h_p_sfei= finalDF.Histo1D({
-	("p_sfei_"+temp_header).c_str(),
-	("p_sfei "+temp_header).c_str(),
-	50,-10,10},"P_sfei");
-	h_p_sfei->GetXaxis()->SetTitle("\\prod_{i} \\text{sf}_{i} e_{i}");
-	h_p_sfei->GetYaxis()->SetTitle("Event");
-	h_p_sfei->SetLineStyle(kSolid);
-
-	auto h_p_sfej= finalDF.Histo1D({
-	("p_sfej_"+temp_header).c_str(),
-	("p_sfej "+temp_header).c_str(),
-	50,-10,10},"P_sfej");
-	h_p_sfej->GetXaxis()->SetTitle("\\prod_{j} 1 - \\text{sf}_{j} e_{j}");
-	h_p_sfej->GetYaxis()->SetTitle("Event");
-	h_p_sfej->SetLineStyle(kSolid);
-
-	auto h_btag_w= finalDF.Histo1D({
-	("btag_w_"+temp_header).c_str(),
-	("btag_W "+temp_header).c_str(),
-	50,-100,100},"btag_w");
-	h_btag_w->GetXaxis()->SetTitle("btag weight");
-	h_btag_w->GetYaxis()->SetTitle("Event");
-	h_btag_w->SetLineStyle(kSolid);
-// end MC only
-
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
-// MC only
+	hf.Write();// everything
+/*// MC only
 		hf.WriteTObject(h_sfi   .GetPtr());
 		hf.WriteTObject(h_sfj   .GetPtr());
 		hf.WriteTObject(h_p_ei  .GetPtr());
@@ -1580,7 +1591,7 @@ void calchisto(const channel ch,const dataSource ds){
 	hf.WriteTObject(h_zmet_Dph.GetPtr());
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());
 	hf.WriteTObject(h_tWmVsZmass.GetPtr());
-	// the following two for loops stack correctly
+*/	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
 		std::string  kstring  = "_";
@@ -1653,7 +1664,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_trans_T = finalDF.Histo1D({
 	(          "tTm_"     + temp_header).c_str(),
 	("Transverse T mass " + temp_header).c_str(),
-	50,0,180},
+	50,0,250},
 	"ttop_mas","nw_ttop_mas");
 	h_trans_T->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_trans_T->GetYaxis()->SetTitle("Event");
@@ -1678,17 +1689,17 @@ void calchisto(const channel ch,const dataSource ds){
 	h_Winvmas->SetLineStyle(kSolid);
 
 	auto h_ev_w = finalDF.Histo1D({
-	(   "ev_w_"    +temp_header).c_str(),
-	("Event weight"+temp_header).c_str(),
-	50,-50,50},"sf");
+	(   "ev_w_"     +temp_header).c_str(),
+	("Event weight "+temp_header).c_str(),
+	50,-100,100},"sf");
 	h_ev_w->GetXaxis()->SetTitle("weight");
 	h_ev_w->GetYaxis()->SetTitle("Event" );
 	h_ev_w->SetLineStyle(kSolid);
 
 	auto h_z_mas = finalDF.Histo1D({
-	(        "zmas_" + temp_header).c_str(),
-	("Recon. Z mass" + temp_header).c_str(),
-	50,0,200},
+	(        "zmas_"  + temp_header).c_str(),
+	("Recon. Z mass " + temp_header).c_str(),
+	50,0,150},
 	"z_mas","nw_z_mas");
 	h_z_mas->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_z_mas->GetYaxis()->SetTitle("Event");
@@ -1697,7 +1708,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_zw_Dph = finalDF.Histo1D({
 	("Z_W_Delta_Phi_" + temp_header).c_str(),
 	("Z W Delta Phi " + temp_header).c_str(),
-	50,-7,7},
+	50,0,3.2},
 	"zw_Dph","nw_zw_Dph");
 	h_zw_Dph->GetXaxis()->SetTitle("Z & W #Delta#phi/rad");
 	h_zw_Dph->GetYaxis()->SetTitle("Event");
@@ -1706,7 +1717,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_zmet_Dph = finalDF.Histo1D({
 	("Z_MET_Delta_Phi_" + temp_header).c_str(),
 	("Z MET Delta Phi " + temp_header).c_str(),
-	50,-7,7},
+	50,0,3.2},
 	"zmet_Dph","nw_zmet_Dph");
 	h_zmet_Dph->GetXaxis()->SetTitle("Z & MET #Delta#phi/rad");
 	h_zmet_Dph->GetYaxis()->SetTitle("Event");
@@ -1715,8 +1726,8 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_z_daughters_Dph = finalDF.Histo1D({
 	("Z_pair_jets_Delta_Phi_" + temp_header).c_str(),
 	("Z pair jets Delta Phi " + temp_header).c_str(),
-	50,-7,7},
-	"z_jets_Dph","nw_z_jets_Dph");
+	50,0,7},
+	"z_pair_Dph","nw_z_pair_Dph");
 	h_z_daughters_Dph->GetXaxis()->SetTitle("Z pair jets #Delta#phi/rad");
 	h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
 	h_z_daughters_Dph->SetLineStyle(kSolid);
@@ -1724,7 +1735,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_tWmVsZmass = finalDF.Histo2D({
 	("tWmVsZmass_" + temp_header).c_str(),
 	("tWmVsZmass " + temp_header).c_str(),
-	50,0,200,50,0,200},
+	50,0,180,50,0,150},
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("\\text{  tWm  GeV/}c^{2}");
 	h_tWmVsZmass->GetYaxis()->SetTitle("\\text{Z mass GeV/}c^{2}");
@@ -1733,7 +1744,8 @@ void calchisto(const channel ch,const dataSource ds){
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
-	hf.WriteTObject(h_trans_T .GetPtr());
+	hf.Write();// everything
+/*	hf.WriteTObject(h_trans_T .GetPtr());
 	hf.WriteTObject(h_trans_w .GetPtr());
 	hf.WriteTObject(h_Winvmas .GetPtr());
 	hf.WriteTObject(h_ev_w    .GetPtr());
@@ -1742,7 +1754,7 @@ void calchisto(const channel ch,const dataSource ds){
 	hf.WriteTObject(h_zmet_Dph.GetPtr());
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());
 	hf.WriteTObject(h_tWmVsZmass.GetPtr());
-	// the following two for loops stack correctly
+*/	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
 		std::string  kstring  = "_";
