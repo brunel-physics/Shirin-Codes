@@ -86,7 +86,7 @@ constexpr double ZZLLQQ_W =  .0485;
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
 template <typename T> constexpr T TPI = PI<T> * 2;
 
-enum      puSf      {puW,upW,dnW};
+enum      puSf      {puW,upW,dnW };
 enum      elSf      {Eff,Smr};
 enum      muSf      {Id_N,Id_Y,Id_A,Id_T,//  Id, Idsys, IdsysStat, IdsysSyst,
                      IsoN,IsoY,IsoA,IsoT};//Iso,Isosys,IsosysStat,IsosysSyst};
@@ -359,6 +359,37 @@ auto delta_R_jet_smear(const bool fat){
 		"Defective cjers has wrong size");
 	return cjers;};
 }
+auto 	MET_Correction(const floats tj__pt, const floats tj_eta,
+		       const floats tj_phi, const floats tj_mas,
+		       const float  mt__pt, const float  mt_phi,
+		       const float sm__Et, const floats   cjer){
+	// fj_* are the jets including the cjer,
+	// tj_* are the jets excluding the cjer.
+        if(0<debug) std::cout<<"MET Correction"<<std::endl;
+        if(!all_equal(tj__pt.size(),tj_eta.size(),
+		      tj_phi.size(),tj_mas.size(),cjer.size()))
+                throw std::logic_error(
+                        "Collections must be the same size (MET correction)");
+        if(tj__pt.empty()) throw std::logic_error(
+                        "Collections must not be empty for (MET correction)");
+        floats fj__pt,fj_eta,fj_phi,fj_mas;
+	TLorentzVector unsmr,smr,met;
+        met.SetPtEtaPhiE(mt__pt,0,mt_phi,sm__Et);
+        float met_px = met.Px(), met_py=met.Py();
+        fj__pt = cjer*tj__pt;
+        fj_eta = cjer*tj_eta;
+        fj_phi = cjer*tj_phi;
+        fj_mas = cjer*tj_mas;
+
+	for(size_t i=0; i<fj__pt.size();i++){
+                  smr.SetPtEtaPhiM(fj__pt[i],fj_eta[i],tj_phi[i],fj_mas[i]);
+		unsmr.SetPtEtaPhiM(tj__pt[i],tj_eta[i],tj_phi[i],tj_mas[i]);
+		met_px += (unsmr.Px() - smr.Px());
+		met_py += (unsmr.Py() - smr.Py());
+	}
+	met.SetPxPyPzE(met_px,met_py,0,sm__Et);
+	return met;
+}
 auto      is_bjet_id(const doubles& etas,const floats& btags){// added jec_eta
    ints   is_bjet_id = BTAG_DISC_MIN < btags;// A MASK!
           is_bjet_id.resize(etas.size(),0);// discard tail or pad zeroes
@@ -391,7 +422,7 @@ auto btagCSVv2(const bool check_CSVv2){//,
                const    ints& flav){
 	if(0<debug)std::cout<<"btagCSVv2 entered"<<std::endl;
 	const size_t     size = pt  .size();
-	strings formulae(size  ,"0");//,check_CSVv2 ? "1" : "0");
+	strings formulae(size  ,check_CSVv2 ? "0" : "1");// TODO: testing max bad
 	doubles  results(size );
 	if(!all_equal(   size  ,flav.size(),
 	             eta.size(),btag.size())) throw std::logic_error(
@@ -632,7 +663,7 @@ auto allReconstruction(T &rdf){
 //	.Filter(      deltaphi_cut(DELTA_PHI_ZW),
 //	       {   "zw_Dph"},"delta phi ZW cut")
 	.Define( "zmet_Dph" , abs_deltaphi<float >,{"z_phi","MET_phi"})
-//	.Filter(      deltaphi_cut(DELTA_PHI_ZMET),
+//	.Filter(      deltalphi_cut(DELTA_PHI_ZMET),
 //	       { "zmet_Dph"},"Z met cut ")
 	.Define("z_pair_Dph",[](doubles p){return
 	                      abs_deltaphi(p[0],p[1]);},{"z_pair_phi"})
@@ -660,7 +691,7 @@ return [&,b](const doubles& pt,const doubles& eta){
 		"Collections must be the same size (effGiver)");
 	if(pt.empty()) throw std::logic_error(
 		"Collections must not be empty in  (effGiver)");
-	doubles BTaggedEff(pt.size(),0);//pts.size(), b ? 1. : 0.);
+	doubles BTaggedEff(pt.size(),b ? 0. : 1.);// TODO: testing max bad
 	for(size_t   i=0; i <  pt.size() ;++i){
 		int  PtBin = ratio->GetXaxis()->FindBin(         pt [i] );
 		int EtaBin = ratio->GetYaxis()->FindBin(std::abs(eta[i]));
@@ -687,7 +718,7 @@ auto EffNoBTaggedProduct(const doubles& EffNoBTagged){
 	double result  = 1.;
 	for(size_t i=0;  i < EffNoBTagged.size();++i)
 	       result *= 1.- EffNoBTagged[i];
-	if(-1<debug) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
+	if(0<debug) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
 auto Sfi_EffIsBTaggedProduct(const doubles& EffIsBTagged,const doubles& sfi){
@@ -709,7 +740,7 @@ auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
 	for(size_t i=0; i < size ;++i)
 //	       result*= -std::fma(EffNoBTagged[i],sfj[i],-1.);
 	       result*= 1. - EffNoBTagged[i]*sfj[i];
-	if(-1<debug)std::cout<<"sfj = "<<sfj<<" product = "<<result<<std::endl;
+	if(0<debug)std::cout<<"sfj = "<<sfj<<" product = "<<result<<std::endl;
 	return result;
 }
 /*
@@ -784,6 +815,9 @@ auto btag_weight(const double p_data,const double p_MC){
 //	if(FP_NORMAL !=std::fpclassify(weight)) weight=1.;// Rids non-zero/inf/NaN
 //	if(0 < debug)  std::cout<<"btag_w is   "<<weight<<std::endl;
 	if(weight < 0) std::cout<<"btag_w lt 0 "        <<std::endl;
+	if(9999 < std::abs(weight)){std::cout<<"btag_w huge "<<weight
+//	<<" huge;replaced"<<std::endl; weight = 1.;}
+	<<std::endl;}
 	return  weight;
 }
 auto  lep_gpt(const channel ch){
@@ -1078,17 +1112,17 @@ void calchisto(const channel ch,const dataSource ds){
 		"aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root");
 	tF ->GetObject("EGamma_SF2D",tHf);tHf->SetDirectory(nullptr);
 	const TH2F* const recoLowEt = static_cast<const TH2F* const>(tHf);
-	tF->Close();
+	tF ->Close();
 	tF = TFile::Open(
 		"aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root");
 	tF ->GetObject("EGamma_SF2D",tHf);tHf->SetDirectory(nullptr);
 	const TH2F* const reco_pass = static_cast<const TH2F* const>(tHf);
-	tF->Close();
+	tF ->Close();
 	tF = TFile::Open(
 		"aux/elEff/egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root");
 	tF ->GetObject("EGamma_SF2D",tHf);tHf->SetDirectory(nullptr);
 	const TH2F* const tight_94x = static_cast<const TH2F* const>(tHf);
-	tF->Close();
+	tF ->Close();
 	// muon efficiencies
 	tF = TFile::Open("aux/muEff/Muon_RunBCDEF_SF_ID.root");
 	tF ->GetObject("NUM_TightID_DEN_genTracks_pt_abseta",tHd);
@@ -1312,6 +1346,13 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("fin_jets_phi" ,"tight_jets_phi * cjer")// needs JEC
 	.Define("fin_jets_mas" ,"tight_jets_mas * cjer")// fin = final
 	// jets selected, now bjets and btagging preliminaries
+	.Define("Nu_TLV",MET_Correction,{"tight_jets__pt","tight_jets_eta",
+					     "tight_jets_phi","tight_jets_mas",
+					     "MET_pt","MET_phi","MET_sumEt",
+					     "cjer"})
+	.Define("Nu__pt",TLVex(pt   ),{"Nu_TLV"})
+	.Define("Nu_phi",TLVex(eta  ),{"Nu_TLV"})
+	.Define("Nu_Est",TLVex(Esumt),{"Nu_TLV"})// Enum must be fixed for it
 	.Define("is_bjets"         ,is_bjet_id   ,{"fin_jets_eta","tJ_btagCSVv2"})
 	.Filter(jetCutter(BJETS_MIN,BJETS_MAX)   ,{"is_bjets"},"b jet cut")
 	.Define("no_bjets"         ,no_bjet_id   ,{"fin_jets_eta"   })
@@ -1341,56 +1382,68 @@ void calchisto(const channel ch,const dataSource ds){
 	     jecs_bjets )
 	;
 
-	auto h_is_btag_numer_PtVsEta
-	   = reco.Histo2D({
+	auto
+	h_is_btag_numer_PtVsEta =
+	     reco.Histo2D({
 	(        "is_numer_" + temp_header).c_str(),
 	("MC is btag numer " + temp_footer).c_str(),
 	12,0,200,12,0,3},
 	"is_btag_numer__pt",
-	"is_btag_numer_eta");
+	"is_btag_numer_eta")
+	;
+	h_is_btag_numer_PtVsEta->Draw("COLZ");
 	h_is_btag_numer_PtVsEta->GetXaxis()->SetTitle("p_{T}/GeV");
 	h_is_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity #eta");
 
-	auto h_no_btag_numer_PtVsEta
-	   = reco.Histo2D({
+	auto
+	h_no_btag_numer_PtVsEta =
+	     reco.Histo2D({
 	(        "no_numer_" + temp_header).c_str(),
 	("MC no btag numer " + temp_footer).c_str(),
 	12,0,200,12,0,3},
 	"no_btag_numer__pt",
-	"no_btag_numer_eta");
+	"no_btag_numer_eta")
+	;
+	h_no_btag_numer_PtVsEta->Draw("COLZ");
 	h_no_btag_numer_PtVsEta->GetXaxis()->SetTitle("p_{T}/GeV");
 	h_no_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity #eta");
 
-	auto h_is_btag_denom_PtVsEta
-	   = reco.Histo2D({
+	auto
+	h_is_btag_denom_PtVsEta =
+	     reco.Histo2D({
 	(        "is_denom_" + temp_header).c_str(),
 	("MC is btag denom " + temp_footer).c_str(),
 	12,0,200,12,0,3},
 	"is_btag_denom__pt",
-	"is_btag_denom_eta");
+	"is_btag_denom_eta")
+	;
+	h_is_btag_denom_PtVsEta->Draw("COLZ");
 	h_is_btag_denom_PtVsEta->GetXaxis()->SetTitle("p_{T}/GeV");
 	h_is_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity #eta");
 
-	auto h_no_btag_denom_PtVsEta
-	   = reco.Histo2D({
+	auto
+	h_no_btag_denom_PtVsEta =
+	     reco.Histo2D({
 	(        "no_denom_" + temp_header).c_str(),
 	("MC no btag denom " + temp_footer).c_str(),
 	12,0,200,12,0,3},
 	"no_btag_denom__pt",
-	"no_btag_denom_eta");
+	"no_btag_denom_eta")
+	;
+	h_no_btag_denom_PtVsEta->Draw("COLZ");
 	h_no_btag_denom_PtVsEta->GetXaxis()->SetTitle("p_{T}/GeV");
 	h_no_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity #eta");
 
 	TH2D *
 	is_btag_ratio = static_cast<TH2D*>(h_is_btag_numer_PtVsEta->Clone());
 	is_btag_ratio->Divide(             h_is_btag_denom_PtVsEta.GetPtr());
-	is_btag_ratio->SetNameTitle("ei", "is b tag ei");
 	is_btag_ratio->Draw("COLZ");// trigger getting everything done
+	is_btag_ratio->SetNameTitle("ei", "is b tag ei");
 	TH2D *
 	no_btag_ratio = static_cast<TH2D*>(h_no_btag_numer_PtVsEta->Clone());
 	no_btag_ratio->Divide(             h_no_btag_denom_PtVsEta.GetPtr());
+	no_btag_ratio->Draw("COLZ");
 	no_btag_ratio->SetNameTitle("ej", "no b tag ej");
-	no_btag_ratio->Draw("COLZ");// DELETED @ EoF
 
 	auto has_btag_eff
 	   = reco
@@ -1477,7 +1530,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_btag_w= finalDF.Histo1D({
 	("btag_w_"+temp_header).c_str(),
 	("btag_W "+temp_header).c_str(),
-	50,-100,100},"btag_w");
+	5000,-100,100},"btag_w");
 	h_btag_w->GetXaxis()->SetTitle("btag weight");
 	h_btag_w->GetYaxis()->SetTitle("Event");
 	h_btag_w->SetLineStyle(kSolid);
@@ -1566,8 +1619,7 @@ void calchisto(const channel ch,const dataSource ds){
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
-	hf.Write();// everything
-/*// MC only
+// MC only
 		hf.WriteTObject(h_sfi   .GetPtr());
 		hf.WriteTObject(h_sfj   .GetPtr());
 		hf.WriteTObject(h_p_ei  .GetPtr());
@@ -1591,7 +1643,7 @@ void calchisto(const channel ch,const dataSource ds){
 	hf.WriteTObject(h_zmet_Dph.GetPtr());
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());
 	hf.WriteTObject(h_tWmVsZmass.GetPtr());
-*/	// the following two for loops stack correctly
+	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
 		std::string  kstring  = "_";
@@ -1744,8 +1796,7 @@ void calchisto(const channel ch,const dataSource ds){
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
-	hf.Write();// everything
-/*	hf.WriteTObject(h_trans_T .GetPtr());
+	hf.WriteTObject(h_trans_T .GetPtr());
 	hf.WriteTObject(h_trans_w .GetPtr());
 	hf.WriteTObject(h_Winvmas .GetPtr());
 	hf.WriteTObject(h_ev_w    .GetPtr());
@@ -1754,7 +1805,7 @@ void calchisto(const channel ch,const dataSource ds){
 	hf.WriteTObject(h_zmet_Dph.GetPtr());
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());
 	hf.WriteTObject(h_tWmVsZmass.GetPtr());
-*/	// the following two for loops stack correctly
+	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
 		std::string  kstring  = "_";
