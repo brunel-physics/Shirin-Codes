@@ -14,7 +14,6 @@ int plotstacks(){
 	TH1D   *hobj;
 	// now we open ALL the files
 	std::map<std::pair<channel,dataSource>,TFile*> hFd;
-	// Channel and dataSource taken, to map to a TFile pointer
 	for(channel ch:channelAll){
 	std::string chN;
 	switch     (ch){
@@ -37,23 +36,24 @@ int plotstacks(){
 	}}// now we have a histogram file dictionary of all the files miahahaha
 	for(std::string particle:{"fin_jets","lep","bjet"}){
 	for(PtEtaPhiM k:PtEtaPhiMall){
+	if ( e == k ) continue;
 	std::string   kstring = "_", tkstr = " ", xAxisStr;
 	switch(k){
 	case pt :{kstring += "_pt";
-	          tkstr    = " p_{T}";// Latex p_{T}
+	          tkstr    = " p_{T}";
 	          xAxisStr = " p_{T}/GeV";
 	          break;}
-	case eta:{kstring +=  "eta";
-	          tkstr   +=  "eta";
-	          xAxisStr = "#eta"; // # is for Latex symbol
+	case eta:{kstring += "eta";
+	          tkstr   += "eta";
+	          xAxisStr = "PseudoRapidity #eta";
 	          break;}
 	case phi:{kstring += "phi";
 	          tkstr   += "phi";
 	          xAxisStr = "Azimuthal angle #varphi/rad";
 	          break;}
-	case  m :{kstring += "mas" ;
+	case  m :{kstring += "mas";
 	          tkstr   += "mass";
-	          xAxisStr = "\\text{mass GeV/}c^{2}";// Latex
+	          xAxisStr = "\\text{mass GeV/}c^{2}";
 	          break;}
 	}
 	for(channel ch:channelAll){
