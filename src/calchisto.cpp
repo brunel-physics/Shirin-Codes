@@ -30,7 +30,7 @@ using   bools = ROOT::VecOps::RVec<bool>;
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 10;
+  constexpr    int debug = 0;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -81,6 +81,7 @@ constexpr double WWLNQQ_W = 2.1740;
 constexpr double WZLNQQ_W =  .2335;
 constexpr double  TTZQQ_W =  .0237;
 constexpr double ZZLLQQ_W =  .0485;
+constexpr double   TTLV_W = 1.3791;
 
 // This Pi is more accurate than binary256; good for eternity
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
@@ -402,7 +403,7 @@ auto btagCSVv2(const bool check_CSVv2){
                const    ints& flav){
 	if(0<debug)std::cout<<"btagCSVv2 entered"<<std::endl;
 	const size_t     size = pt  .size();
-	strings formulae(size  ,check_CSVv2 ? "1" : "0");// TODO: testing min bad
+	strings formulae(size  ,"1");//check_CSVv2 ? "1" : "0");
 	doubles  results(size );
 	if(!all_equal(   size  ,flav.size(),
 	             eta.size(),btag.size())) throw std::logic_error(
@@ -628,7 +629,7 @@ auto allReconstruction(T &rdf){
 	           "z_pair_phi"   ,
 	           "z_pair_mas"  })
 	.Define(   "z_mas"        ,LVex<ROOT::Math::PtEtaPhiMVector>( m ),{"z_LV"})
-	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut")
+//	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut")
 	.Define(   "z__pt"        ,LVex<ROOT::Math::PtEtaPhiMVector>(pt ),{"z_LV"})
 	.Define(   "z_eta"        ,LVex<ROOT::Math::PtEtaPhiMVector>(eta),{"z_LV"})
 	.Define(   "z_phi"        ,LVex<ROOT::Math::PtEtaPhiMVector>(phi),{"z_LV"})
@@ -676,32 +677,34 @@ return [&,b](const doubles& pt,const doubles& eta){
 		int  PtBin = ratio->GetXaxis()->FindBin(         pt [i] );
 		int EtaBin = ratio->GetYaxis()->FindBin(std::abs(eta[i]));
 		double eff = ratio->GetBinContent(PtBin,EtaBin);
-		if(FP_NORMAL == std::fpclassify(eff))// if eff non-zero/inf/NaN
+		// NOTE: The below comments are outdated. Now 0 <= e <= 1
+//		if(FP_NORMAL == std::fpclassify(eff))// if eff non-zero/inf/NaN
 			BTaggedEff[i] = eff;
 		// above only pushed back nonzero nice eff
 		// what do we do with eff==0? check with kathryn
 		// below, if ej, and near 1., we put 0. instead
-		if(!b && std::abs(eff-1.) <= 2*std::numeric_limits<double>::epsilon())
-			BTaggedEff[i] = 0.;
+//		if(!b && std::abs(eff-1.) <= 2*std::numeric_limits<double>::epsilon())
+//			BTaggedEff[i] = 0.;
 	}
 	if(5<debug) std::cout<<"bt eff giver "<< BTaggedEff <<" for b "<<b<<std::endl;
 	return BTaggedEff;};
 }
-inline auto EffIsBTaggedProduct(const doubles& EffIsBTagged){
+/*
+inline auto IsEffBTaggedProduct(const doubles& IsEffBTagged){
 	double     result  = 1.;
 	for(size_t i=0; i  < EffIsBTagged.size() ;++i)
 	           result *= EffIsBTagged[i];
 	if(5<debug) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
 	return     result;
 }
-inline auto EffNoBTaggedProduct(const doubles& EffNoBTagged){
+inline auto NoEffBTaggedProduct(const doubles& NoEffBTagged){
 	double result  = 1.;
 	for(size_t i=0;  i < EffNoBTagged.size();++i)
 	       result *= 1.- EffNoBTagged[i];
 	if(0<debug) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
-inline auto Sfi_EffIsBTaggedProduct(const doubles& EffIsBTagged,const doubles& sfi){
+inline auto Sfi_IsEffBTaggedProduct(const doubles& IsEffBTagged,const doubles& sfi){
 	double result = 1.;
 	size_t b = EffIsBTagged.size(), s = sfi.size();
 	if(b!=s)std::cout<<"Sfi_EffIsBTaggedProduct got diff sizes"<<std::endl;
@@ -711,7 +714,7 @@ inline auto Sfi_EffIsBTaggedProduct(const doubles& EffIsBTagged,const doubles& s
 	if(5<debug)std::cout<<"sfi = "<<sfi<<" product = "<<result<<std::endl;
 	return result;
 }
-inline auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& sfj){
+inline auto Sfj_NoEffBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 	double result = 1.;
 	size_t b = EffNoBTagged.size(), s = sfj.size();
 	if(b!=s)std::cout<<"Sfj_EffNoBTaggedProduct got diff sizes"<<std::endl;
@@ -723,80 +726,75 @@ inline auto Sfj_EffNoBTaggedProduct(const doubles& EffNoBTagged,const doubles& s
 	if(0<debug)std::cout<<"sfj = "<<sfj<<" product = "<<result<<std::endl;
 	return result;
 }
-/*
-inline auto EffIsBTaggedProduct(const doubles& IsEffBTagged){
-	double result = std::reduce(//std::execution::par_unseq,
+*/
+inline auto IsEffBTaggedProduct(const doubles& IsEffBTagged){
+//	double result = std::reduce(//std::execution::par_unseq,
+	double result = std::accumulate(
 		IsEffBTagged. cbegin(),// parallel multiply
 		IsEffBTagged.   cend(),// un-sequentially
 		1.,std::multiplies<>()
 	);
-	if(1<debug) std::cout<<"EffIsBTaggedProduct "<<result<<std::endl;
+	if(20<debug) std::cout<<"    IsEffBTaggedProduct "<<result<<std::endl;
 	return result;
 }
-inline auto EffNoBTaggedProduct(const doubles& NoEffBTagged){
+inline auto NoEffBTaggedProduct(const doubles& NoEffBTagged){
 	doubles values = 1. - NoEffBTagged;
-	double  result = std::reduce(//std::execution::par_unseq,
-		     values.cbegin(),// parallel multiply
-		     values.  cend(),// un-sequentially
-		     1.,std::multiplies<>()
+//	double  result = std::reduce(//std::execution::par_unseq,
+	double  result = std::accumulate(
+	        values.cbegin(),// parallel multiply
+	        values.  cend(),// un-sequentially
+	        1.,std::multiplies<>()
 	);
-	if(1<debug) std::cout<<"EffNoBTaggedProduct "<<result<<std::endl;
+	if(5<debug)  std::cout<<"    NoEffBTaggedProduct "<<result<<std::endl;
 	return  result;
 }
-inline auto Sfi_EffIsBTaggedProduct(const doubles& IsEffBTagged,const doubles& sfi){
-	if(IsEffBTagged.size() != sfi.size()) std::cout
-		<< "Sfi_EffIsBTaggedProduct got diff sizes"  <<std::endl;
-	double result;
-	if(IsEffBTagged.size() <= sfi.size()){
-		result = std::transform_reduce(//std::execution::par_unseq,
-			IsEffBTagged. cbegin(),// parallel multiply
-			IsEffBTagged.   cend(),// un-sequentially
-			         sfi. cbegin(),// stops correctly
-			1.,std::multiplies<>(),std::multiplies<>()
-		);
-	} else{
-		result = std::transform_reduce(//std::execution::par_unseq,
-			         sfi. cbegin(),// parallel multiply
-			         sfi.   cend(),// un-sequentially
-			IsEffBTagged. cbegin(),// stops correctly
-			1.,std::multiplies<>(),std::multiplies<>()
-		);
-	}
-	if(1<debug)std::cout<<"Sfi_EffIsBTaggedProduct "<<result<<std::endl;
-	return result;
-}
-inline auto Sfj_EffNoBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
-	if(NoEffBTagged.size() != sfj.size()) std::cout
-		<< "Sfj_EffNoBTaggedProduct got diff sizes"  <<std::endl;
-	double result;
-	if(NoEffBTagged.size() <= sfj.size()){
-		result = std::transform_reduce(//std::execution::par_unseq,
-			NoEffBTagged. cbegin(),// parallel multiply
-			NoEffBTagged.   cend(),// un-sequentially
-			         sfj. cbegin(),// stops correctly
-			1.,std::multiplies<>(),
-			[](double x,double y){return -std::fma(x,y,-1.);}
-		);// this multiplies together a lot of 1 - ej * sfj
-	} else{
-		result = std::transform_reduce(//std::execution::par_unseq,
-			         sfj. cbegin(),// parallel multiply
-			         sfj.   cend(),// un-sequentially
-			NoEffBTagged. cbegin(),// stops correctly
-			1.,std::multiplies<>(),
-			[](double x,double y){return -std::fma(x,y,-1.);}
-		);
-	}
-	if(1<debug)std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
-	return result;
-}
+inline auto Sfi_IsEffBTaggedProduct(const doubles& IsEffBTagged,const doubles& sfi){
+	if(IsEffBTagged.size() != sfi.size()) throw std::logic_error(
+		"Sfi_IsEffBTaggedProduct got diff sizes");// both tJ len
+	doubles values = sfi * IsEffBTagged;
+	double  result = std::accumulate(
+	        values.cbegin(),
+	        values.  cend(),
+	        1.,std::multiplies<>()
+	);
+/*	double  result = std::transform_reduce(//std::execution::par_unseq,
+		         sfi. cbegin(),// parallel multiply
+		         sfi.   cend(),// un-sequentially
+		IsEffBTagged. cbegin(),// stops correctly
+		1.,std::multiplies<>(),std::multiplies<>()
+	);
 */
+	if(20<debug) std::cout<<"Sfi_IsEffBTaggedProduct "<<result<<std::endl;
+	return result;
+}
+inline auto Sfj_NoEffBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
+	if(NoEffBTagged.size() != sfj.size()) throw std::logic_error(
+		"Sfj_NoEffBTaggedProduct got diff sizes");// both tJ len
+	doubles values = 1. - sfj * NoEffBTagged;
+	double  result = std::accumulate(
+	        values.cbegin(),
+	        values.  cend(),
+	        1.,std::multiplies<>()
+	);
+/*	double  result = std::transform_reduce(//std::execution::par_unseq,
+		         sfj. cbegin(),// parallel multiply
+		         sfj.   cend(),// un-sequentially
+		NoEffBTagged. cbegin(),// stops correctly
+		1.,std::multiplies<>(),
+//		[](double x,double y){return -std::fma(x,y,-1.);}
+		[](double x,double y){return 1. - x*y;}
+	);
+*/
+	if(5<debug)  std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
+	return result;
+}
 constexpr auto btag_weight(const double p_data,const double p_MC){
-	double weight = std::abs( p_data / p_MC);
+	double weight = p_data / p_MC;
 //	if(FP_NORMAL != std::fpclassify(weight))weight=1.;// Rids non-zero/inf/NaN
 //	if(0 < debug)   std::cout<<"btag_w is   "<<weight<<std::endl;
 //	if(weight < 0)  std::cout<<"btag_w lt 0 "        <<std::endl;
-	if(9999<weight){std::cout<<"btag_w huge "<<weight
-	<<" huge;replaced"<<std::endl; weight = 1.;}
+//	if(9999<weight){std::cout<<"btag_w huge "<<weight
+//	<<" huge;replaced"<<std::endl; weight = 1.;}
 //	<<std::endl;}
 	return  weight;
 }
@@ -1005,6 +1003,7 @@ inline auto sf(const  dataSource    ds,
 			case  ww:{result = WWLNQQ_W;break;}
 			case  wz:{result = WZLNQQ_W;break;}
 			case  zz:{result = ZZLLQQ_W;break;}
+			case ttb:{result =   TTLV_W;break;}
 			case ttz:{result =  TTZQQ_W;break;}
 			case met:// fall through to cms
 			case cms:{result = 1.;MC=false;break;}// ignore btag wt
@@ -1172,13 +1171,14 @@ void calchisto(const channel ch,const dataSource ds){
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// tzq and exptData use disk3!
-	case tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root";break;}/**/
-	case  ww:{temp_opener=temp_header+  "WWToLNuQQ"    +temp_footer;break;}
-	case  wz:{temp_opener=temp_header+  "WZTo1L1Nu2Q"  +temp_footer;break;}
-	case  zz:{temp_opener=temp_header+  "ZZTo2L2Q"     +temp_footer;break;}
-	case ttz:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
-	case met:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
-	case cms:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
+	case tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root" ;break;}/**/
+	case  ww:{temp_opener=temp_header+   "WWToLNuQQ"    +temp_footer;break;}
+	case  wz:{temp_opener=temp_header+   "WZTo1L1Nu2Q"  +temp_footer;break;}
+	case  zz:{temp_opener=temp_header+   "ZZTo2L2Q"     +temp_footer;break;}
+	case ttb:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
+	case ttz:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
+	case met:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
+	case cms:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}// CMS and MET MUST do some OPENABLE file ; reject later
 	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
@@ -1213,6 +1213,7 @@ void calchisto(const channel ch,const dataSource ds){
 			case  ww:// fall through!
 			case  wz:
 			case  zz:
+			case ttb:
 			case ttz:{           return mc__df;break;}
 			case met:{           return bothdf;break;}
 			case cms:{switch(ch){// MC is already false
@@ -1293,12 +1294,13 @@ void calchisto(const channel ch,const dataSource ds){
 //		default  :throw std::invalid_argument(
 //			"Unimplemented ch (hist titles)");
 	}
-	temp_footer = "pt vs eta in" + temp_footer + " channel for ";
+	temp_footer = "pt vs eta in " + temp_footer + " channel for ";
 	switch(ds){
 		case tzq:{temp_header+="tzq";temp_footer+="tZq";break;}
 		case  ww:{temp_header+="_ww";temp_footer+=" WW";break;}
 		case  wz:{temp_header+="_wz";temp_footer+=" WZ";break;}
 		case  zz:{temp_header+="_zz";temp_footer+=" ZZ";break;}
+		case ttb:{temp_header+="ttb";temp_footer+="ttb";break;}
 		case ttz:{temp_header+="ttz";temp_footer+="ttZ";break;}
 		case met:{temp_header+="met";temp_footer+="MET";break;}
 		case cms:{temp_header+="cms";temp_footer+="CMS";break;}
@@ -1431,10 +1433,10 @@ void calchisto(const channel ch,const dataSource ds){
 	       {"fin_jets__pt","fin_jets_eta"})// TODO: check sensibility
 	.Define("NoEffBTagged",BTaggedEffGiver(no_btag_ratio,false),
 	       {"fin_jets__pt","fin_jets_eta"})// of this eff formula
-	.Define("P___ei" ,    EffIsBTaggedProduct,{"IsEffBTagged"})
-	.Define("P_sfei" ,Sfi_EffIsBTaggedProduct,{"IsEffBTagged","sfi"})
-	.Define("P___ej" ,    EffNoBTaggedProduct,{"NoEffBTagged"})
-	.Define("P_sfej" ,Sfj_EffNoBTaggedProduct,{"NoEffBTagged","sfj"})
+	.Define("P___ei" ,    IsEffBTaggedProduct,{"IsEffBTagged"})
+	.Define("P_sfei" ,Sfi_IsEffBTaggedProduct,{"IsEffBTagged","sfi"})
+	.Define("P___ej" ,    NoEffBTaggedProduct,{"NoEffBTagged"})
+	.Define("P_sfej" ,Sfj_NoEffBTaggedProduct,{"NoEffBTagged","sfj"})
 	.Define("P_MC"   ,"P___ei * P___ej")
 	.Define("P_Data" ,"P_sfei * P_sfej")
 	.Define("btag_w" ,btag_weight,{"P_Data","P_MC"})
