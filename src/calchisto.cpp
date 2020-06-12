@@ -79,9 +79,9 @@ constexpr double ak8RconeBy2 =  .4;
 constexpr double    TZQ_W =  .0128;
 constexpr double WWLNQQ_W = 2.1740;
 constexpr double WZLNQQ_W =  .2335;
+constexpr double  TTBLV_W = 1.3791;
 constexpr double  TTZQQ_W =  .0237;
 constexpr double ZZLLQQ_W =  .0485;
-constexpr double   TTLV_W = 1.3791;
 
 // This Pi is more accurate than binary256; good for eternity
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
@@ -973,6 +973,36 @@ a given muon, random number (u) should remain unchanged.
 	std::cout << std::endl;
 	return roc * id * iso * eff * smr;};
 }
+auto top_pt_sf(const dataSource ds){
+    return [=](const ints& gId, const ints& flag, const floats& pt){
+	// gId = GenPart_pdgId, flag = GenPart_statusFlags, pt = GenPart_pt
+	// This reweighing is only computed for the regions where ttbar dominates
+	// the signal, so firstly those regions should be found, i.e (pt_min-pt_max)
+	// only for the ttbar sample.
+	// Top pt reweighing is computed using MC truth and applied as weight across
+	// the analysis for the ttbar sample.
+	if(ttb != ds) return 1.;
+	if(0<debug)std::cout<<"top pt sf"<<std::endl;
+	if(!all_equal(gId.size(),pt.size())) throw std::logic_error(
+		"Collections must be the same size (top_pt_reweigh)");
+	if(gId.empty()) throw std::logic_error(
+		"Collections must not be empty for (top_pt_reweigh)");
+	ints idxs = 6 == abs(gId);
+	// TODO: confirm whether we really want ONLY 1 top 1 tbar
+	std::cout << "t/-bar from " << gId << std::endl;
+	if(2 != idxs.size() || 0 != Sum(gId[idxs])) throw std::runtime_error(
+		"not exactly 1 top 1 tbar (top_pt_reweigh)");
+	if(Any(13 != flag[idxs])) throw std::runtime_error(
+		"not lastCopy (top_pt_reweigh)");// or just return 1.
+	auto pts =     pt[idxs];// TODO: new global constexpr ptMin ptMax
+	if(2 != Sum(0.<pts && pts < 500.)) throw std::runtime_error(
+		"pt out of bounds (top_pt_reweigh)");
+	auto wts = Map(pts,[](float p){
+		return exp(.0615 - .0005*static_cast<double>(p));});
+	double sf = std::sqrt(wts[0]*wts[1]);
+	if(0<debug) std::cout<<"top pt sf is "<<sf<<std::endl;
+	return sf;};
+}
 inline auto pile(const TH1D* const &PuWd,
                  const TH1D* const &PuUd,
                  const TH1D* const &PuDd){
@@ -1003,7 +1033,7 @@ inline auto sf(const  dataSource    ds,
 			case  ww:{result = WWLNQQ_W;break;}
 			case  wz:{result = WZLNQQ_W;break;}
 			case  zz:{result = ZZLLQQ_W;break;}
-			case ttb:{result =   TTLV_W;break;}
+			case ttb:{result =  TTBLV_W;break;}
 			case ttz:{result =  TTZQQ_W;break;}
 			case met:// fall through to cms
 			case cms:{result = 1.;MC=false;break;}// ignore btag wt
@@ -1447,13 +1477,17 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("lep__nl",[=](ints L,ints m){if(munu==ch)return L[m][0];
 	                                     else        return      0 ;},
 	       {"Muon_nTrackerLayers","loose_leps"})
-	.Define("mostSF" , lepEffGiver(rc,ch,MC
+	.Define("ttbSF"  , top_pt_sf(ds),{"GenPart_pdgId",
+	                                  "GenPart_statusFlags",
+	                                  "GenPart_pt"})
+	.Define("lepSF"  , lepEffGiver(rc,ch,MC
 	                 , recoLowEt,reco_pass,tight_94x
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta",
 	                   "lep_phi","lep___q",
 	                   "lep_gpt","lep__nl"})
+	.Define("mostSF" , "lepSF * ttbSF")
 	;
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
@@ -1681,13 +1715,14 @@ void calchisto(const channel ch,const dataSource ds){
 	auto not_btag_eff
 	   = reco
 	.Define("btag_w" , [](){return 1.;})
-	.Define("mostSF" , lepEffGiver(rc,ch,MC
+	.Define("lepSF"  , lepEffGiver(rc,ch,MC
 	                 , recoLowEt,reco_pass,tight_94x
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta",
 	                   "lep_phi","lep___q", // last 4 unused
 	                   "lep_phi","lep___q"})// last 2 repeat is fine
+	. Alias("mostSF" , "lepSF")
 	;
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,// unused but send pile
 	     not_btag_eff )
