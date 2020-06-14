@@ -727,6 +727,7 @@ inline auto Sfj_NoEffBTaggedProduct(const doubles& NoEffBTagged,const doubles& s
 	return result;
 }
 */
+/*
 inline auto IsEffBTaggedProduct(const doubles& IsEffBTagged){
 //	double result = std::reduce(//std::execution::par_unseq,
 	double result = std::accumulate(
@@ -737,6 +738,7 @@ inline auto IsEffBTaggedProduct(const doubles& IsEffBTagged){
 	if(20<debug) std::cout<<"    IsEffBTaggedProduct "<<result<<std::endl;
 	return result;
 }
+*/
 inline auto NoEffBTaggedProduct(const doubles& NoEffBTagged){
 	doubles values = 1. - NoEffBTagged;
 //	double  result = std::reduce(//std::execution::par_unseq,
@@ -748,6 +750,7 @@ inline auto NoEffBTaggedProduct(const doubles& NoEffBTagged){
 	if(5<debug)  std::cout<<"    NoEffBTaggedProduct "<<result<<std::endl;
 	return  result;
 }
+/*
 inline auto Sfi_IsEffBTaggedProduct(const doubles& IsEffBTagged,const doubles& sfi){
 	if(IsEffBTagged.size() != sfi.size()) throw std::logic_error(
 		"Sfi_IsEffBTaggedProduct got diff sizes");// both tJ len
@@ -757,15 +760,18 @@ inline auto Sfi_IsEffBTaggedProduct(const doubles& IsEffBTagged,const doubles& s
 	        values.  cend(),
 	        1.,std::multiplies<>()
 	);
-/*	double  result = std::transform_reduce(//std::execution::par_unseq,
-		         sfi. cbegin(),// parallel multiply
-		         sfi.   cend(),// un-sequentially
-		IsEffBTagged. cbegin(),// stops correctly
-		1.,std::multiplies<>(),std::multiplies<>()
-	);
-*/
+//	double  result = std::transform_reduce(//std::execution::par_unseq,
+//		         sfi. cbegin(),// parallel multiply
+//		         sfi.   cend(),// un-sequentially
+//		IsEffBTagged. cbegin(),// stops correctly
+//		1.,std::multiplies<>(),std::multiplies<>()
+//	);
 	if(20<debug) std::cout<<"Sfi_IsEffBTaggedProduct "<<result<<std::endl;
 	return result;
+}
+*/
+inline auto product(const doubles &sfi){
+	return std::accumulate(sfi.cbegin(),sfi.cend(),1.,std::multiplies<>());
 }
 inline auto Sfj_NoEffBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 	if(NoEffBTagged.size() != sfj.size()) throw std::logic_error(
@@ -788,6 +794,7 @@ inline auto Sfj_NoEffBTaggedProduct(const doubles& NoEffBTagged,const doubles& s
 	if(5<debug)  std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
+/*
 constexpr auto btag_weight(const double p_data,const double p_MC){
 	double weight = p_data / p_MC;
 //	if(FP_NORMAL != std::fpclassify(weight))weight=1.;// Rids non-zero/inf/NaN
@@ -798,6 +805,7 @@ constexpr auto btag_weight(const double p_data,const double p_MC){
 //	<<std::endl;}
 	return  weight;
 }
+*/
 inline auto  lep_gpt(const channel ch){
    return [=](const floats &pt,const ints &mask,
               const ints &eidx,const ints &midx){
@@ -1262,7 +1270,7 @@ void calchisto(const channel ch,const dataSource ds){
 //		default  :throw std::invalid_argument(
 //			"Unimplemented ch (init)");
 	}
-	ROOT::EnableImplicitMT();
+//	ROOT::EnableImplicitMT();
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(10000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
@@ -1394,43 +1402,21 @@ void calchisto(const channel ch,const dataSource ds){
 	     jecs_bjets )
 	;
 
-	auto
-	h_is_btag_numer_PtVsEta =
-	     reco.Histo2D({
-	(        "is_numer_" + temp_header).c_str(),
-	("MC is btag numer " + temp_footer).c_str(),
-	12,0,200,12,0,3},
-	"is_btag_numer__pt",
-	"is_btag_numer_eta")
-	;
-	h_is_btag_numer_PtVsEta->Draw("COLZ");
-	h_is_btag_numer_PtVsEta->GetXaxis()->SetTitle("p_{T}/GeV");
-	h_is_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity #eta");
-
-	auto
-	h_is_btag_denom_PtVsEta =
-	     reco.Histo2D({
-	(        "is_denom_" + temp_header).c_str(),
-	("MC is btag denom " + temp_footer).c_str(),
-	12,0,200,12,0,3},
-	"is_btag_denom__pt",
-	"is_btag_denom_eta")
-	;
-	h_is_btag_denom_PtVsEta->Draw("COLZ");
-	h_is_btag_denom_PtVsEta->GetXaxis()->SetTitle("p_{T}/GeV");
-	h_is_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity #eta");
-
+	const std::vector<double> ptBins
+	= {0.,20.,30.,40.,45.,50.,55.,60.,65.,75.,85.,100.,150.,500.};
+	const int ptBinsSize = ptBins.size() - 1;
 	auto
 	h_no_btag_numer_PtVsEta =
 	     reco.Histo2D({
 	(        "no_numer_" + temp_header).c_str(),
 	("MC no btag numer " + temp_footer).c_str(),
-	12,0,200,12,0,3},
+//	12,0,200,12,0,3},
+	ptBinsSize,ptBins.data(),12,0,3},
 	"no_btag_numer__pt",
 	"no_btag_numer_eta")
 	;
 	h_no_btag_numer_PtVsEta->Draw("COLZ");
-	h_no_btag_numer_PtVsEta->GetXaxis()->SetTitle("p_{T}/GeV");
+	h_no_btag_numer_PtVsEta->GetXaxis()->SetTitle("p_{T} (GeV/c)");
 	h_no_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity #eta");
 
 	auto
@@ -1438,19 +1424,14 @@ void calchisto(const channel ch,const dataSource ds){
 	     reco.Histo2D({
 	(        "no_denom_" + temp_header).c_str(),
 	("MC no btag denom " + temp_footer).c_str(),
-	12,0,200,12,0,3},
+	ptBinsSize,ptBins.data(),12,0,3},
 	"no_btag_denom__pt",
 	"no_btag_denom_eta")
 	;
 	h_no_btag_denom_PtVsEta->Draw("COLZ");
-	h_no_btag_denom_PtVsEta->GetXaxis()->SetTitle("p_{T}/GeV");
+	h_no_btag_denom_PtVsEta->GetXaxis()->SetTitle("p_{T} (GeV/c)");
 	h_no_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity #eta");
 
-	TH2D *
-	is_btag_ratio = static_cast<TH2D*>(h_is_btag_numer_PtVsEta->Clone());
-	is_btag_ratio->Divide(             h_is_btag_denom_PtVsEta.GetPtr());
-	is_btag_ratio->Draw("COLZ");// trigger getting everything done
-	is_btag_ratio->SetNameTitle("ei", "is b tag ei");
 	TH2D *
 	no_btag_ratio = static_cast<TH2D*>(h_no_btag_numer_PtVsEta->Clone());
 	no_btag_ratio->Divide(             h_no_btag_denom_PtVsEta.GetPtr());
@@ -1459,17 +1440,19 @@ void calchisto(const channel ch,const dataSource ds){
 
 	auto has_btag_eff
 	   = reco
-	.Define("IsEffBTagged",BTaggedEffGiver(is_btag_ratio, true),
-	       {"fin_jets__pt","fin_jets_eta"})// TODO: check sensibility
+//	.Define("IsEffBTagged",BTaggedEffGiver(is_btag_ratio, true),
+//	       {"fin_jets__pt","fin_jets_eta"})// TODO: check sensibility
 	.Define("NoEffBTagged",BTaggedEffGiver(no_btag_ratio,false),
 	       {"fin_jets__pt","fin_jets_eta"})// of this eff formula
-	.Define("P___ei" ,    IsEffBTaggedProduct,{"IsEffBTagged"})
-	.Define("P_sfei" ,Sfi_IsEffBTaggedProduct,{"IsEffBTagged","sfi"})
+//	.Define("P___ei" ,    IsEffBTaggedProduct,{"IsEffBTagged"})
+//	.Define("P_sfei" ,Sfi_IsEffBTaggedProduct,{"IsEffBTagged","sfi"})
 	.Define("P___ej" ,    NoEffBTaggedProduct,{"NoEffBTagged"})
 	.Define("P_sfej" ,Sfj_NoEffBTaggedProduct,{"NoEffBTagged","sfj"})
-	.Define("P_MC"   ,"P___ei * P___ej")
-	.Define("P_Data" ,"P_sfei * P_sfej")
-	.Define("btag_w" ,btag_weight,{"P_Data","P_MC"})
+//	.Define("P_MC"   ,"P___ei * P___ej")
+//	.Define("P_Data" ,"P_sfei * P_sfej")
+//	.Define("btag_w" ,btag_weight,{"P_Data","P_MC"})
+	.Define("P_sf_i",product,{"sfi"})
+	.Define("btag_w","P_sf_i * P_sfej / P___ej")
 	// next few lines are just for muons
 	.Define("lep_gpt",lep_gpt(ch),{"GenPart_pt","loose_leps",
 	                               "Electron_genPartIdx",
@@ -1495,11 +1478,43 @@ void calchisto(const channel ch,const dataSource ds){
 	// Copied to below, skip MC-only
 	// Assuming temp_header and footer and all are set per (hist titles)!
 // MC only
+		auto
+	h_is_btag_numer_PtVsEta =
+	     reco.Histo2D({
+	(        "is_numer_" + temp_header).c_str(),
+	("MC is btag numer " + temp_footer).c_str(),
+	ptBinsSize,ptBins.data(),12,0,3},
+	"is_btag_numer__pt",
+	"is_btag_numer_eta")
+	;
+	h_is_btag_numer_PtVsEta->Draw("COLZ");
+	h_is_btag_numer_PtVsEta->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+	h_is_btag_numer_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity #eta");
+
+	auto
+	h_is_btag_denom_PtVsEta =
+	     reco.Histo2D({
+	(        "is_denom_" + temp_header).c_str(),
+	("MC is btag denom " + temp_footer).c_str(),
+	ptBinsSize,ptBins.data(),12,0,3},
+	"is_btag_denom__pt",
+	"is_btag_denom_eta")
+	;
+	h_is_btag_denom_PtVsEta->Draw("COLZ");
+	h_is_btag_denom_PtVsEta->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+	h_is_btag_denom_PtVsEta->GetYaxis()->SetTitle("PseudoRapidity #eta");
+
+	TH2D *
+	is_btag_ratio = static_cast<TH2D*>(h_is_btag_numer_PtVsEta->Clone());
+	is_btag_ratio->Divide(             h_is_btag_denom_PtVsEta.GetPtr());
+	is_btag_ratio->Draw("COLZ");// trigger getting everything done
+	is_btag_ratio->SetNameTitle("ei", "is b tag ei");
+
 	auto h_sfi = finalDF.Histo1D({
 	("sfi_"+temp_header).c_str(),
 	("sfi "+temp_header).c_str(),
 	5000,0,1.3},"sfi");
-	h_sfi->GetXaxis()->SetTitle("sfi");
+	h_sfi->GetXaxis()->SetTitle("sf_{i}");
 	h_sfi->GetYaxis()->SetTitle("Event");
 	h_sfi->SetLineStyle(kSolid);
 
@@ -1507,10 +1522,10 @@ void calchisto(const channel ch,const dataSource ds){
 	("sfj_"+temp_header).c_str(),
 	("sfj "+temp_header).c_str(),
 	5000,0,1.3},"sfj");
-	h_sfj->GetXaxis()->SetTitle("sfj");
+	h_sfj->GetXaxis()->SetTitle("sf_{j}");
 	h_sfj->GetYaxis()->SetTitle("Event");
 	h_sfj->SetLineStyle(kSolid);
-
+/*
 	auto h_p_ei = finalDF.Histo1D({
 	("p_ei_"+temp_header).c_str(),
 	("p_ei "+temp_header).c_str(),
@@ -1518,27 +1533,27 @@ void calchisto(const channel ch,const dataSource ds){
 	h_p_ei->GetXaxis()->SetTitle("\\prod_{i} e_{i}");
 	h_p_ei->GetYaxis()->SetTitle("Event");
 	h_p_ei->SetLineStyle(kSolid);
-
+*/
 	auto h_p_ej = finalDF.Histo1D({
 	("p_ej_"+temp_header).c_str(),
 	("p_ej "+temp_header).c_str(),
-	5000,-.5,.5},"P___ej");
+	5000,0,1.3},"P___ej");
 	h_p_ej->GetXaxis()->SetTitle("\\prod_{j} 1 - e_{j}");
 	h_p_ej->GetYaxis()->SetTitle("Event");
 	h_p_ej->SetLineStyle(kSolid);
 
-	auto h_p_sfei= finalDF.Histo1D({
-	("p_sfei_"+temp_header).c_str(),
-	("p_sfei "+temp_header).c_str(),
-	5000,0,1.3},"P_sfei");
-	h_p_sfei->GetXaxis()->SetTitle("\\prod_{i} \\text{sf}_{i} e_{i}");
-	h_p_sfei->GetYaxis()->SetTitle("Event");
-	h_p_sfei->SetLineStyle(kSolid);
+	auto h_p_sf_i= finalDF.Histo1D({
+	("p_sf_i_"+temp_header).c_str(),
+	("p_sf_i "+temp_header).c_str(),
+	5000,0,1.3},"P_sf_i");
+	h_p_sf_i->GetXaxis()->SetTitle("\\prod_{i} \\text{sf}_{i}");// e_{i}");
+	h_p_sf_i->GetYaxis()->SetTitle("Event");
+	h_p_sf_i->SetLineStyle(kSolid);
 
 	auto h_p_sfej= finalDF.Histo1D({
 	("p_sfej_"+temp_header).c_str(),
 	("p_sfej "+temp_header).c_str(),
-	5000,-.5,.5},"P_sfej");
+	5000,0,1.3},"P_sfej");
 	h_p_sfej->GetXaxis()->SetTitle("\\prod_{j} 1 - \\text{sf}_{j} e_{j}");
 	h_p_sfej->GetYaxis()->SetTitle("Event");
 	h_p_sfej->SetLineStyle(kSolid);
@@ -1546,7 +1561,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_btag_w= finalDF.Histo1D({
 	("btag_w_"+temp_header).c_str(),
 	("btag_W "+temp_header).c_str(),
-	5000,-100,100},"btag_w");
+	5000,-1,1.3},"btag_w");
 	h_btag_w->GetXaxis()->SetTitle("btag weight");
 	h_btag_w->GetYaxis()->SetTitle("Event");
 	h_btag_w->SetLineStyle(kSolid);
@@ -1582,7 +1597,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_ev_w = finalDF.Histo1D({
 	(   "ev_w_"     +temp_header).c_str(),
 	("Event weight "+temp_header).c_str(),
-	50,-100,100},"sf");
+	50,-1,3},"sf");
 	h_ev_w->GetXaxis()->SetTitle("weight");
 	h_ev_w->GetYaxis()->SetTitle("Event" );
 	h_ev_w->SetLineStyle(kSolid);
@@ -1638,9 +1653,9 @@ void calchisto(const channel ch,const dataSource ds){
 // MC only
 		hf.WriteTObject(h_sfi   .GetPtr());
 		hf.WriteTObject(h_sfj   .GetPtr());
-		hf.WriteTObject(h_p_ei  .GetPtr());
+//		hf.WriteTObject(h_p_ei  .GetPtr());
 		hf.WriteTObject(h_p_ej  .GetPtr());
-		hf.WriteTObject(h_p_sfei.GetPtr());
+		hf.WriteTObject(h_p_sf_i.GetPtr());
 		hf.WriteTObject(h_p_sfej.GetPtr());
 		hf.WriteTObject(h_btag_w.GetPtr());
 		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());
@@ -1668,7 +1683,7 @@ void calchisto(const channel ch,const dataSource ds){
 		double xmin,xmax;
 		switch(k){
 			case pt :{kstring += "_pt";xmin =  0;xmax = 200;
-			          xAxisStr = "p_{T}/GeV"               ;break;}
+			          xAxisStr = "p_{T} (GeV/c)"           ;break;}
 			case eta:{kstring += "eta";xmin = -3;xmax =  3 ;
 			          xAxisStr = "PseudoRapidity  #eta"    ;break;}
 			case phi:{kstring += "phi";xmin = -7;xmax =  7 ;
@@ -1759,7 +1774,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_ev_w = finalDF.Histo1D({
 	(   "ev_w_"     +temp_header).c_str(),
 	("Event weight "+temp_header).c_str(),
-	50,-100,100},"sf");
+	50,-1,3},"sf");
 	h_ev_w->GetXaxis()->SetTitle("weight");
 	h_ev_w->GetYaxis()->SetTitle("Event" );
 	h_ev_w->SetLineStyle(kSolid);
@@ -1830,7 +1845,7 @@ void calchisto(const channel ch,const dataSource ds){
 		double xmin,xmax;
 		switch(k){
 			case pt :{kstring += "_pt";xmin =  0;xmax = 200;
-			          xAxisStr = "p_{T}/GeV"               ;break;}
+			          xAxisStr = "p_{T} (GeV/c)"           ;break;}
 			case eta:{kstring += "eta";xmin = -3;xmax =  3 ;
 			          xAxisStr = "PseudoRapidity  #eta"    ;break;}
 			case phi:{kstring += "phi";xmin = -7;xmax =  7 ;

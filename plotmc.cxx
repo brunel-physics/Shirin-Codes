@@ -36,12 +36,16 @@ int plotmc(){
 	hFd[std::make_pair(ch,ds)]
 		= new TFile(("histo/" + opener + ".root").c_str());
 	}}// now we have a histogram file dictionary of all the files miahahaha
-	for(std::string sf:{"sfi","sfj","p_ei","p_ej"}){// TODO::Add other sfs
+	for(std::string sf:
+	{"sfi","sfj","p_ej","p_sfej","p_sf_i","btag_w"}){
 	std::string xAxisStr;
-	     if(sf == "sfi" )xAxisStr = "sfi";// TODO:: Find proper names
-	else if(sf == "sfj" )xAxisStr = "sfj";
-	else if(sf == "p_ei")xAxisStr ="p_ei";
-	else if(sf == "p_ej")xAxisStr ="p_ej";
+	if(false);
+	else if(  "sfi"  == sf) xAxisStr = "sf_{i}";
+	else if(  "sfj"  == sf) xAxisStr = "sf_{j}";
+	else if("p_ej"   == sf) xAxisStr = "\\prod_{j} 1 -                e_{j}";
+	else if("p_sfej" == sf) xAxisStr = "\\prod_{j} 1 - \\text{sf}_{j} e_{j}";
+	else if("p_sf_i" == sf) xAxisStr = "\\prod_{i}     \\text{sf}_{i}      ";
+	else if("btag_w" == sf) xAxisStr = "btag weight";
 	for(channel ch:channelAll){
 	std::string chN;
 	switch     (ch){
@@ -54,7 +58,7 @@ int plotmc(){
 	THStack stac(stname.c_str(),title.c_str());
 	for(dataSource ds:dataSourceAll){
 	std::string  opener  = chN + "_";
-	if(cms == ds || met == ds)continue; // Since 
+	if(cms == ds || met == ds)continue;// NOTE: Skip since NOT Monte Carlo
 	int colour;
 	switch  (ds){
 		case tzq:{opener += "tzq";colour = 6;break;}// magenta

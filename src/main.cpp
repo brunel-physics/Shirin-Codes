@@ -39,6 +39,7 @@ int main(int argc,char* argv[]){
 		else if( "ww"   == dsN){ds =  ww;}
 		else if( "wz"   == dsN){ds =  wz;}
 		else if( "zz"   == dsN){ds =  zz;}
+		else if("ttb"   == dsN){ds = ttb;}
 		else if("ttz"   == dsN){ds = ttz;}
 		else if("met"   == dsN){ds = met;}
 		else if("cms"   == dsN){ds = cms;}
