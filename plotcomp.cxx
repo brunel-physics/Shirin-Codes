@@ -16,11 +16,12 @@ int plotcomp(){
 	std::map<std::pair<channel,dataSource>,TFile*> hFd;
 	for(channel ch:channelAll){
 	std::string chN;
-	switch     (ch){
+		switch     (ch){
 		case elnu:  {chN ="elnu_";break;}
 		case munu:  {chN ="munu_";break;}
 	}
 	for(dataSource ds:dataSourceAll){
+	if(ds == cms || ds == met || ds == ttb)continue;
 	std::string  opener  =  chN ;
 	switch  (ds){
 		case tzq:{opener += "tzq";break;}
@@ -37,6 +38,7 @@ int plotcomp(){
 	}}// now we have a histogram file dictionary of all the files miahahaha
 	for(std::string particle:{"fin_jets","lep","bjet"}){
 	for(PtEtaPhiM k:PtEtaPhiMall){
+        if(ds == cms || ds == met || ds == ttb)continue;
 	if ( e == k ) continue;
 	std::string   kstring = "_", tkstr = " ", xAxisStr;
 	switch(k){

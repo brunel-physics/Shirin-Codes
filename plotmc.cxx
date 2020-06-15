@@ -22,6 +22,7 @@ int plotmc(){
 		case munu:  {chN ="munu_";break;}
 	}
 	for(dataSource ds:dataSourceAll){
+	if(cms == ds || met == ds)continue;
 	std::string  opener  =  chN ;
 	switch  (ds){
 		case tzq:{opener += "tzq";break;}
