@@ -1460,17 +1460,17 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("lep__nl",[=](ints L,ints m){if(munu==ch)return L[m][0];
 	                                     else        return      0 ;},
 	       {"Muon_nTrackerLayers","loose_leps"})
-	.Define("ttbSF"  , top_pt_sf(ds),{"GenPart_pdgId",
+	/*.Define("ttbSF"  , top_pt_sf(ds),{"GenPart_pdgId",
 	                                  "GenPart_statusFlags",
 	                                  "GenPart_pt"})
-	.Define("lepSF"  , lepEffGiver(rc,ch,MC
+	*/.Define("lepSF"  , lepEffGiver(rc,ch,MC
 	                 , recoLowEt,reco_pass,tight_94x
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta",
 	                   "lep_phi","lep___q",
 	                   "lep_gpt","lep__nl"})
-	.Define("mostSF" , "lepSF * ttbSF")
+	.Define("mostSF" , "lepSF" /* ttbSF"*/)
 	;
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
