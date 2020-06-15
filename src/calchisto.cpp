@@ -978,7 +978,6 @@ a given muon, random number (u) should remain unchanged.
 	if(iso < 0)  std::cout << "iso lt 0 ";
 	if(eff < 0)  std::cout << "eff lt 0 ";
 	if(smr < 0)  std::cout << "smr lt 0 ";
-	std::cout << std::endl;
 	return roc * id * iso * eff * smr;};
 }
 auto top_pt_sf(const dataSource ds){
