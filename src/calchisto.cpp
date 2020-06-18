@@ -59,8 +59,8 @@ namespace{
 //constexpr double TOP_MASS_CUT =  20.;
 
 constexpr float    JET_ETA_MAX =  4.7f;
-constexpr float    JET__PT_MIN = 30.f;
-constexpr double       JET_ISO =   .4;
+constexpr float    JET_PT__MIN = 30.0f;
+constexpr double       JET_ISO =   .4 ;
 constexpr unsigned    JETS_MIN = 4;
 constexpr unsigned    JETS_MAX = 6;
 
@@ -99,17 +99,6 @@ constexpr elSf
           elSfAll[]={Eff,Smr};
 */
 
-inline auto met_pt_cut(const channel ch){
-	float lower_bound;
-	switch(ch){
-		case elnu:{lower_bound = MET_EL_PT;break;}
-		case munu:{lower_bound = MET_MU_PT;break;}
-		default  :throw std::invalid_argument(
-			"Unimplemented ch (met_pt_cut)");
-	}
-	return [=](const float   met_pt)->bool
-	   {return lower_bound < met_pt;};
-}
 inline auto lep_sel(const channel ch){
          return [=](const  bools& isPFs,
                     const floats& pts,
@@ -169,32 +158,6 @@ inline auto deltaR(
 	const double eta2,const double phi2)
 	{return std::hypot(eta1-eta2,delta_phi(phi1-phi2));}//hypot from geometry
 
-inline double transverse_w_mass(const double lep__pt,
-                                const double lep_phi,
-                                const  float met__pt,
-                                const  float met_phi){
-	return std::sqrt(2*                    lep__pt
-	                  *static_cast<double>(met__pt)
-	*(1.-cos(delta_phi(                    lep_phi
-	                  -static_cast<double>(met_phi)))));
-}
-auto lep_nu_invmass(const double lep_pt    ,
-                    const double lep_eta   ,
-                    const double lep_phi   ,
-                    const double lep_mass  ,
-                    const float  cal_metpt ,// TODO: If NOT cal, rename
-                    const float  cal_metphi){//,
-                  //const float  cal_metEt ){// cal_metEt is unused
-	// this function computes the invariant mass of charged lepton
-	// and neutrino system, in order to calculate the W mass later on.
-	ROOT::Math::PtEtaPhiMVector
-	lep(   lep_pt,lep_eta,   lep_phi,lep_mass),
-	neu(cal_metpt,lep_eta,cal_metphi,   0.   );
-	return (lep+neu).M();
-}
-inline auto easy_mass_cut(const double theo,const double cut){
-               return [=](const double ours){return std::abs(ours-theo)<cut;};
-}
 template<typename T,typename U>
 [[gnu::const]] bool all_equal(const T& t, const U& u){return t == u;}
 template<typename T,typename U,typename... Types>
@@ -222,14 +185,14 @@ auto jet_lep_min_deltaR(const doubles &jet_etas,
 	return min_dRs;
 }
 inline auto tight_jet_id(const doubles& jet_lep_min_dRs,
-                         const doubles& pts,
-                         const doubles& etas,
+                         const  floats& pts,
+                         const  floats& etas,
                          const    ints& ids){
 	//if(0<debug) std::cout<<"tight_jet_id"<<std::endl;
-	return ( JET__PT_MIN < pts )
-	&& ( abs(etas) < JET_ETA_MAX )
-	&& (   JET_ISO < jet_lep_min_dRs )
-	&& ( 2 <= ids ) ;
+	return ( JET_PT__MIN <  pts             )
+	&&     (  abs(etas)  <  JET_ETA_MAX     )
+	&&     ( JET_ISO     <  jet_lep_min_dRs )
+	&&     (      2      <= ids             );
 }
 inline auto jetCutter(const unsigned jmin, const unsigned jmax){
 	if(3<debug) std::cout<<"jet cut "<< jmin <<" "<< jmax <<std::endl;
@@ -269,14 +232,15 @@ template<typename T>// allow us to return w/o knowing data type
 auto retVar(const T& v){return[&](){return v;};}
 */
 // Jet Energy Resolution and Jet Energy Smearing
-auto jet_smear_pt_resol(const doubles& pt,const doubles& eta,
-                        const float   rho,const bool     fat){
+auto jet_smear_pt_resol(const floats &pt,const floats &eta,
+                        const float  rho,const bool    fat){
 	if(0<debug) std::cout<<"jet smear pt resol"<<std::endl;
 	doubles resol(pt.size());
 	if(!all_equal(pt.size(),eta.size())) throw std::logic_error(
 		"Collections must be the same size (jet_smear_pt_resol)");
 	if(pt.empty()) throw std::logic_error(
 		"Collections must not be empty in  (jet_smear_pt_resol)");
+	const  doubles ptD = static_cast<doubles>(pt);
 	double etaMin,etaMax,rhoMin,rhoMax;
 	double pt_Min,pt_Max;
 	double a,b,c,d;
@@ -291,14 +255,14 @@ auto jet_smear_pt_resol(const doubles& pt,const doubles& eta,
 		if(rhoMin < rho && rho < rhoMax)
 		for(size_t i=0; i < pt.size() ;++i)
 		if(etaMin < eta[i] && eta[i] < etaMax
-		&& pt_Min < pt [i] && pt [i] < pt_Max){
-			resol[i] += std::sqrt(  a * std::abs(a)/(pt[i]*pt[i])
-			                    + b*b * std::pow(pt[i],d) + c*c);
+		&& pt_Min < ptD[i] && ptD[i] < pt_Max){
+			resol[i] += std::sqrt(  a * std::abs(a)/(ptD[i]*ptD[i])
+			                    + b*b * std::pow(ptD[i],d) + c*c);
 		}
 	}// No need to close file after this while loop
 	return resol;//};
 }
-auto jet_smear_Sjer(const doubles& etas,const bool fat){
+auto jet_smear_Sjer(const floats &etas,const bool fat){
 	//if(0<debug) std::cout<<"jet smear sjer"<<std::endl;
    doubles Sjers(etas.size());
 	double  etaMin,etaMax;
@@ -320,80 +284,78 @@ constexpr auto ramp(const double Sjer){
 	else          return   0.;
 }
 auto delta_R_jet_smear(const bool fat){
-  return [=](const doubles &jpt ,const doubles &jeta,const doubles &jphi,
-             const    ints &jma ,// jet gen match
-             const  floats &gpt ,const  floats &geta,const  floats &gphi,
-             const    ints &mask,// mask is tight jets
-             const  float   rho){
+  return [=](const floats &jpt ,const floats &jeta,const floats &jphi,
+             const   ints &jma ,// jet gen match
+             const floats &gpt ,const floats &geta,const floats &gphi,
+//           const   ints &mask,// mask is tight jets
+             const float   rho){
 	if(0<debug) std::cout<<"delta r jet smear"<<std::endl;
-	if(!all_equal(jpt.size(),jeta.size(),jphi.size(),jma.size(),mask.size())
+	const size_t size = jpt.size();
+	if(!all_equal(    size  ,jeta.size(),jphi.size(),jma.size())//,mask.size())
 	|| !all_equal(gpt.size(),geta.size(),gphi.size()))
 		throw std::logic_error(
 			"Collections must be the same size (deltaR_Jsmear)");
 	if(jpt.empty()) throw std::logic_error(
 			"Collections must not be empty for (deltaR_Jsmear)");
 	// the method used in here is the Jets Smearing Hybrid Method
-	const size_t size = jpt.size();
 	double temp,RconeBy2 = ak4RconeBy2;
 	if(fat)     RconeBy2 = ak8RconeBy2;
-	const size_t                 tJ_final_size = static_cast<size_t>(
-		count_if(mask.cbegin(),mask.cend(),[](int i){return 0 != i;}));
-	doubles cjers; cjers.reserve(tJ_final_size);
-	ints gen(gpt.size(),1);    gen.resize(size);// ones and zeroes
+//	const size_t                 tJ_final_size = static_cast<size_t>(
+//		count_if(mask.cbegin(),mask.cend(),[](int i){return 0 != i;}));
+	doubles cjers; cjers.reserve(/*tJ_final_*/size);
+//	ints gen(gpt.size(),1);    gen.resize(size);// ones and zeroes
 	auto resol = jet_smear_pt_resol/*(ptRcsv)*/(jpt,jeta,rho,fat);
 	auto  Sjer = jet_smear_Sjer   /*(sjerCsv)*/(    jeta    ,fat);
 	for(size_t j=0; j < size ;++j){// j goes with jet, i goes with gen
 	    int      i ;// we will store the index from jma here(see below)
-	if(    0 !=      mask[j]){// only do stuff if tight jet
+//	if(    0 !=      mask[j]){// only do stuff if tight jet
 	   if(-1 != (i = jma [j])// -1 == jma when gen level info is absent
-	   && std::abs(  jpt [j] - gpt [i]) <   3*resol[j]*jpt [j]
+	   && std::abs(  jpt [j] - gpt [i]) <  3.*resol[j]*jpt [j]
 	   && deltaR(    geta[i],  gphi[i],jeta[j],jphi[j]) < RconeBy2){
-		   temp = (1+(1+Sjer[j])// Scaling method
-		     *((jpt [j]-gpt [i])/jpt[j]));
+		   temp = (1.+(1.+Sjer[j])// Scaling method
+		             *(1.-gpt [i]/jpt[j]));
 	   }else{// Stochastic smearing
-		   double Normdist = gRandom->Gaus(0,Sjer[j]);
-		   double  max_val =       Sjer[j] * Sjer[j] - 1;
-		   temp = (1+Normdist*std::sqrt(ramp(max_val)));
+		   double Normdist = gRandom->Gaus(0.,Sjer[j]);
+		   double  max_val =        Sjer[j] * Sjer[j] - 1.;
+		   temp = (1.+Normdist*std::sqrt(ramp(max_val)));
 	   }
-	   if(temp < 0) temp = 0;
+	   if(temp < 0.) temp = 0.;
 	   cjers.emplace_back(temp);
-	}}
-	if(cjers.size() != tJ_final_size) throw std::logic_error(
-		"Defective cjers has wrong size");
+	}//}
+//	if(cjers.size() != /*tJ_final_*/size) throw std::logic_error(
+//		"Defective cjers has wrong size");
 	return cjers;};
 }
-auto metCjer(const doubles& jpt ,const doubles& jeta,// tight
-                   const doubles& jphi,const doubles& jmas,
-                   const doubles& cjer){
-        if(0<debug) std::cout<<"MET Correction"<<std::endl;
-        if(!all_equal(jpt .size(),jeta.size(),jphi.size(),
-                      jmas.size(),cjer.size()))throw std::logic_error(
-                "Collections must be the same size (MET correction)");
-        if(jpt.empty()) throw std::logic_error(
-                "Collections must not be empty for (MET correction)");
-        ROOT::Math::PxPyPzMVector acc;// initial corrections all zero
-        for(size_t i=0; i < jpt.size() ;++i){
-                double omc = 1. - cjer[i];
-                ROOT::Math::PtEtaPhiMVector
-                jet(omc*jpt[i],jeta[i],jphi[i],omc*jmas[i]);
-                acc +=  jet;// same as unsmeared jp - smeared jp
-        }
-        return  acc;
+auto metCjer(const  floats &jpt ,const floats &jeta,
+             const  floats &jphi,const floats &jmas,
+             const doubles &cjer){
+	if(0<debug) std::cout<<"MET Correction"<<std::endl;
+	if(!all_equal(jpt .size(),jeta.size(),jphi.size(),
+	              jmas.size(),cjer.size()))throw std::logic_error(
+		"Collections must be the same size (MET correction)");
+	if(jpt.empty()) throw std::logic_error(
+		"Collections must not be empty for (MET correction)");
+	ROOT::Math::PxPyPzMVector acc;// initial corrections all zero
+	for(size_t i=0; i  < jpt.size() ;++i){
+		double omc = 1. - cjer[i];
+		ROOT::Math::PtEtaPhiMVector
+		jet(omc*jpt[i],jeta[i],jphi[i],omc*jmas[i]);
+		acc +=  jet;// same as unsmeared jp - smeared jp
+	}
+	return acc;
 }
-auto metCorrection(ROOT::Math::PxPyPzMVector &TJcorr,
-                   ROOT::Math::PxPyPzMVector &FJcorr,
-                   const float mpt , const float mphi, const float mSEt){
-        ROOT::Math::PxPyPzEVector
-        corr((TJcorr+FJcorr).Px(),(TJcorr+FJcorr).Py(),0,(TJcorr+FJcorr).Et());
-        ROOT::Math::PtEtaPhiEVector cmet(mpt,0.,mphi,mSEt);
-        cmet += corr;
-return cmet;
-
+auto metCorrection(ROOT::Math::PxPyPzMVector  &cTJer,
+                   ROOT::Math::PxPyPzMVector  &cFJer,
+                   const float mpt ,const float mphi,const float mSEt){
+	ROOT::Math::PxPyPzEVector
+	corr((cTJer+cFJer).Px(),(cTJer+cFJer).Py(),0,(cTJer+cFJer).Et());
+	ROOT::Math::PtEtaPhiEVector cmet(mpt,0.,mphi,mSEt);
+	cmet += corr;
+	return  cmet;
 }
-
 // btag suPer set and btag suB set
 inline auto btagP(const doubles &eta){return abs(eta) < BJET_ETA_MAX;}
-inline auto btagB(const ints &btagP ,const floats &btags){
+inline auto btagB(const ints  &btagP,const floats &btags){
 	return   btagP && ( BTAG_DISC_MIN < btags );// all tJ length
 }
 inline auto	isBquark(   const ints &id , const ints &mask ){
@@ -477,6 +439,43 @@ auto btagCSVv2(const bool check_CSVv2){
 	}
 	if(0<debug)std::cout<<"btagCSVv2 exiting"<<std::endl;
 	return results; };
+}
+inline auto met_pt_cut(const channel ch){
+	float lower_bound;
+	switch(ch){
+		case elnu:{lower_bound = MET_EL_PT;break;}
+		case munu:{lower_bound = MET_MU_PT;break;}
+		default  :throw std::invalid_argument(
+			"Unimplemented ch (met_pt_cut)");
+	}
+	return [=](const float   met_pt)->bool
+	   {return lower_bound < met_pt;};
+}
+inline double transverse_w_mass(const double lep__pt,
+                                const double lep_phi,
+                                const  float met__pt,
+                                const  float met_phi){
+	return std::sqrt(2*                    lep__pt
+	                  *static_cast<double>(met__pt)
+	*(1.-cos(delta_phi(                    lep_phi
+	                  -static_cast<double>(met_phi)))));
+}
+auto lep_nu_invmass(const double lep_pt    ,
+                    const double lep_eta   ,
+                    const double lep_phi   ,
+                    const double lep_mass  ,
+                    const float  cal_metpt ,// TODO: If NOT cal, rename
+                    const float  cal_metphi){//,
+                  //const float  cal_metEt ){// cal_metEt is unused
+	// this function computes the invariant mass of charged lepton
+	// and neutrino system, in order to calculate the W mass later on.
+	ROOT::Math::PtEtaPhiMVector
+	lep(   lep_pt,lep_eta,   lep_phi,lep_mass),
+	neu(cal_metpt,lep_eta,cal_metphi,   0.   );
+	return (lep+neu).M();
+}
+inline auto easy_mass_cut(const double theo,const double cut){
+               return [=](const double ours){return std::abs(ours-theo)<cut;};
 }
 constexpr auto abs_deltaphi(const double Zphi,const double Wphi)
 	{return std::abs(delta_phi(Zphi-Wphi));}
@@ -614,6 +613,19 @@ auto top_reconst(const doubles& bjets__pt,
 template <typename T>
 auto allReconstruction(T &rdf){
 	return rdf
+//	.Filter(met_pt_cut(ch),{"cmet__pt"},"MET Pt cut")// TODO: Re-enable!
+	.Define("tw_lep_mas",transverse_w_mass,// TODO: raw MET ?
+	       {"tw_lep__pt",
+	        "tw_lep_phi","cmet__pt","cmet_phi"})
+	.Define(   "lep_nu_invmass",lep_nu_invmass,// TODO: raw MET ?
+	       {   "lep__pt",
+	           "lep_eta",
+	           "lep_phi",
+	           "lep_mas",
+	          "cmet__pt" ,
+	          "cmet_phi"})
+//	       "CaloMET_sumEt"})// TODO: add this back
+//	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
 	// reconstruct z avoiding bjets first
 	.Define(   "fin_jets_Dph" , jet_deltaphi  ,{"fin_jets_phi"})
 	.Define( "lead_bjet"      , find_lead_mask,{"fin_jets__pt","btagB"})
@@ -649,8 +661,8 @@ auto allReconstruction(T &rdf){
 	.Define(   "zw_Dph" , abs_deltaphi,{"z_phi","tw_lep_phi"})
 //	.Filter(      deltaphi_cut(DELTA_PHI_ZW),
 //	       {   "zw_Dph"},"delta phi ZW cut")
-	.Define("rawMET_phi","static_cast<double>(MET_phi)")
-	.Define( "zmet_Dph" , abs_deltaphi,{"z_phi","rawMET_phi"})
+//	.Define("rawMET_phi","static_cast<double>(MET_phi)")
+	.Define( "zmet_Dph" , abs_deltaphi,{"z_phi","cmet_phi"})
 //	.Filter(      deltaphi_cut(DELTA_PHI_ZMET),
 //	       { "zmet_Dph"},"Z met cut ")
 	.Define("z_pair_Dph",[](doubles p){return
@@ -777,9 +789,6 @@ inline auto Sfi_IsEffBTaggedProduct(const doubles& IsEffBTagged,const doubles& s
 	return result;
 }
 */
-inline auto product(const doubles &sfi){
-	return std::accumulate(sfi.cbegin(),sfi.cend(),1.,std::multiplies<>());
-}
 inline auto Sfj_NoEffBTaggedProduct(const doubles& NoEffBTagged,const doubles& sfj){
 	if(NoEffBTagged.size() != sfj.size()) throw std::logic_error(
 		"Sfj_NoEffBTaggedProduct got diff sizes");// both tJ len
@@ -800,6 +809,9 @@ inline auto Sfj_NoEffBTaggedProduct(const doubles& NoEffBTagged,const doubles& s
 */
 	if(5<debug)  std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
+}
+inline auto product(const doubles &sfi){
+	return std::accumulate(sfi.cbegin(),sfi.cend(),1.,std::multiplies<>());
 }
 /*
 constexpr auto btag_weight(const double p_data,const double p_MC){
@@ -823,6 +835,36 @@ inline auto  lep_gpt(const channel ch){
 	}
 	if(-1!=i) return static_cast<double>(pt[i]); else return -1.;
 	};
+}
+auto top_pt_sf(const dataSource ds){
+    return [=](const ints& gId, const ints& flag, const floats& pt){
+	// gId = GenPart_pdgId, flag = GenPart_statusFlags, pt = GenPart_pt
+	// This reweighing is only computed for the regions where ttbar dominates
+	// the signal, so firstly those regions should be found, i.e (pt_min-pt_max)
+	// only for the ttbar sample.
+	// Top pt reweighing is computed using MC truth and applied as weight across
+	// the analysis for the ttbar sample.
+	if(ttb != ds) return 1.;
+	if(0<debug)std::cout<<"top pt sf"<<std::endl;
+	if(!all_equal(gId.size(),pt.size())) throw std::logic_error(
+		"Collections must be the same size (top_pt_reweigh)");
+	if(gId.empty()) throw std::logic_error(
+		"Collections must not be empty for (top_pt_reweigh)");
+	ints idxs = 6 == abs(gId);
+	// TODO: confirm whether we really want ONLY 1 top 1 tbar
+	std::cout << "t/-bar from " << gId << std::endl;
+	if(2 != idxs.size() || 0 != Sum(gId[idxs])) throw std::runtime_error(
+		"not exactly 1 top 1 tbar (top_pt_reweigh)");
+	if(Any(13 != flag[idxs])) throw std::runtime_error(
+		"not lastCopy (top_pt_reweigh)");// or just return 1.
+	auto pts =     pt[idxs];// TODO: new global constexpr ptMin ptMax
+	if(2 != Sum(0.<pts && pts < 500.)) throw std::runtime_error(
+		"pt out of bounds (top_pt_reweigh)");
+	auto wts = Map(pts,[](float p){
+		return exp(.0615 - .0005*static_cast<double>(p));});
+	double sf = std::sqrt(wts[0]*wts[1]);
+	if(0<debug) std::cout<<"top pt sf is "<<sf<<std::endl;
+	return sf;};
 }
 // Lepton efficiencies
 auto elEffGiver(const double             pt ,
@@ -980,42 +1022,13 @@ a given muon, random number (u) should remain unchanged.
 		<< " eff " << eff
 		<< " smr " << smr
 		<< " for " << ch << std::endl;
-	if(roc < 0)  std::cout << "roc lt 0 ";
+/*	if(roc < 0)  std::cout << "roc lt 0 ";
 	if(id  < 0)  std::cout << "id  lt 0 ";
 	if(iso < 0)  std::cout << "iso lt 0 ";
 	if(eff < 0)  std::cout << "eff lt 0 ";
 	if(smr < 0)  std::cout << "smr lt 0 ";
-	return roc * id * iso * eff * smr;};
-}
-auto top_pt_sf(const dataSource ds){
-    return [=](const ints& gId, const ints& flag, const floats& pt){
-	// gId = GenPart_pdgId, flag = GenPart_statusFlags, pt = GenPart_pt
-	// This reweighing is only computed for the regions where ttbar dominates
-	// the signal, so firstly those regions should be found, i.e (pt_min-pt_max)
-	// only for the ttbar sample.
-	// Top pt reweighing is computed using MC truth and applied as weight across
-	// the analysis for the ttbar sample.
-	if(ttb != ds) return 1.;
-	if(0<debug)std::cout<<"top pt sf"<<std::endl;
-	if(!all_equal(gId.size(),pt.size())) throw std::logic_error(
-		"Collections must be the same size (top_pt_reweigh)");
-	if(gId.empty()) throw std::logic_error(
-		"Collections must not be empty for (top_pt_reweigh)");
-	ints idxs = 6 == abs(gId);
-	// TODO: confirm whether we really want ONLY 1 top 1 tbar
-	std::cout << "t/-bar from " << gId << std::endl;
-	if(2 != idxs.size() || 0 != Sum(gId[idxs])) throw std::runtime_error(
-		"not exactly 1 top 1 tbar (top_pt_reweigh)");
-	if(Any(13 != flag[idxs])) throw std::runtime_error(
-		"not lastCopy (top_pt_reweigh)");// or just return 1.
-	auto pts =     pt[idxs];// TODO: new global constexpr ptMin ptMax
-	if(2 != Sum(0.<pts && pts < 500.)) throw std::runtime_error(
-		"pt out of bounds (top_pt_reweigh)");
-	auto wts = Map(pts,[](float p){
-		return exp(.0615 - .0005*static_cast<double>(p));});
-	double sf = std::sqrt(wts[0]*wts[1]);
-	if(0<debug) std::cout<<"top pt sf is "<<sf<<std::endl;
-	return sf;};
+	std::cout << std::endl;
+*/	return roc * id * iso * eff * smr;};
 }
 inline auto pile(const TH1D* const &PuWd,
                  const TH1D* const &PuUd,
@@ -1221,7 +1234,7 @@ void calchisto(const channel ch,const dataSource ds){
 	case  zz:{temp_opener=temp_header+   "ZZTo2L2Q"     +temp_footer;break;}
 	case ttb:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
 	case ttz:{temp_opener=              "ttz_dir"       +temp_footer;break;}
-	case met:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
+	case met:{temp_opener=temp_header+  "ttZToQQ_ext"   +temp_footer;break;}
 	case cms:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}// CMS and MET MUST do some OPENABLE file ; reject later
@@ -1281,7 +1294,6 @@ void calchisto(const channel ch,const dataSource ds){
 //	auto dfr = df.Range(10000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
 	// lepton selection first
-//	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
 	.Define("loose_leps",lep_sel(ch),
 	       {temp_header+"isPFcand",
 	        temp_header+"pt" ,
@@ -1301,33 +1313,19 @@ void calchisto(const channel ch,const dataSource ds){
 	. Alias("tw_lep__pt","lep__pt")
 	. Alias("tw_lep_eta","lep_eta")
 	. Alias("tw_lep_phi","lep_phi")
-	.Define("tw_lep_mas",transverse_w_mass,
-	       {"tw_lep__pt",
-	        "tw_lep_phi","MET_pt","MET_phi"})
-	.Define(   "lep_nu_invmass",lep_nu_invmass,
-	       {   "lep__pt",
-	           "lep_eta",
-	           "lep_phi",
-	           "lep_mas",
-	           "MET_pt" ,
-	           "MET_phi"})
-//	       "CaloMET_sumEt"})// TODO: add this back
-//	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
 	// jets selection follows; tW done and lepton selected
-	.Define("rawJet__pt","static_cast<ROOT::RVec<double>>(Jet_pt  )")
 	.Define("rawJet_eta","static_cast<ROOT::RVec<double>>(Jet_eta )")
 	.Define("rawJet_phi","static_cast<ROOT::RVec<double>>(Jet_phi )")
-	.Define("rawJet_mas","static_cast<ROOT::RVec<double>>(Jet_mass)")
-	.Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,
-	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})
+	.Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
+	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
 	.Define("tight_jets"       ,tight_jet_id,
-	       {"jet_lep_min_dR"   ,"rawJet__pt","rawJet_eta","Jet_jetId"})
+	       {"jet_lep_min_dR"   ,"Jet__pt","Jet_eta","Jet_jetId"})
 	.Filter( jetCutter(JETS_MIN,JETS_MAX),{"tight_jets" },"Jet cut")
-	.Define("tight_jets__pt"   ,"rawJet__pt[tight_jets]")
+/*	.Define("tight_jets__pt"   ,"rawJet__pt[tight_jets]")
 	.Define("tight_jets_eta"   ,"rawJet_eta[tight_jets]")
 	.Define("tight_jets_phi"   ,"rawJet_phi[tight_jets]")
 	.Define("tight_jets_mas"   ,"rawJet_mas[tight_jets]")
-	.Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")// leave as floats
+*/	.Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")// leave as floats
 	;
 	// now we make the histogram names and titles
 	switch(ch){// laugh at muon-neutrino below
@@ -1367,21 +1365,27 @@ void calchisto(const channel ch,const dataSource ds){
 	        "Flag_eeBadScFilter"
 	       },
 	        "Event Cleaning filter")
-	.Define("cjer"      ,delta_R_jet_smear(false) ,// AK4 == false
-	       {"rawJet__pt","rawJet_eta","rawJet_phi","Jet_genJetIdx",
-	        "GenJet_pt" ,"GenJet_eta","GenJet_phi","tight_jets",
+	.Define("cTjer"    ,delta_R_jet_smear(false) ,// AK4 == false; Thin jets
+	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","Jet_genJetIdx",
+	        "GenJet_pt","GenJet_eta","GenJet_phi",//"tight_jets",
 	        "fixedGridRhoFastjetAll"})
-	.Define("fin_jets__pt"     , "tight_jets__pt * cjer")// these are JEC
-	. Alias("fin_jets_eta"     , "tight_jets_eta"       )// Monte Carlo
-	. Alias("fin_jets_phi"     , "tight_jets_phi"       )// needs JEC
-	.Define("fin_jets_mas"     , "tight_jets_mas * cjer")// fin = final
-	.Define("CmetLV",metCorrection,{
-	        "tight_jets__pt"  ,"tight_jets_eta",
-	        "tight_jets_phi"  ,"tight_jets_mas",
-	        "MET_pt","MET_phi","MET_sumEt","cjer"})
+	.Define("cFjer"    ,delta_R_jet_smear( true) ,// AK8 ==  true; Fat  jets
+	       {   "FatJet_pt",   "FatJet_eta",   "FatJet_phi","FatJet_genJetAK8Idx",
+	        "GenJetAK8_pt","GenJetAK8_eta","GenJetAK8_phi",
+	        "fixedGridRhoFastjetAll"})
+	.Define("cTJer" ,metCjer,{   "Jet_pt" ,   "Jet_eta"
+	                        ,    "Jet_phi",   "Jet_mass","cTjer"})
+	.Define("cFJer" ,metCjer,{"FatJet_pt" ,"FatJet_eta"
+	                        , "FatJet_phi","FatJet_mass","cFjer"})
+	.Define("CmetLV",metCorrection,{"cTJer","cFJer","MET_pt","MET_phi","MET_sumEt"})
 	.Define("cmet__pt",LVex<ROOT::Math::PtEtaPhiEVector>(pt ),{"CmetLV"})
 	.Define("cmet_phi",LVex<ROOT::Math::PtEtaPhiEVector>(phi),{"CmetLV"})
 	.Define("cmet_sEt",LVex<ROOT::Math::PtEtaPhiEVector>( e ),{"CmetLV"})
+	// fin = final; Monte Carlo needs JEC
+	.Define("fin_jets__pt","                       (cTjer * Jet_pt  )[tight_jets] ")
+	.Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta  [tight_jets])")
+	.Define("fin_jets_phi","static_cast<ROOT::RVec<double>>(Jet_phi  [tight_jets])")
+	.Define("fin_jets_mas","                       (cTjer * Jet_mass)[tight_jets] ")
 	// jets selected, now bjets and btagging preliminaries
 	.Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
 	.Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
@@ -1466,10 +1470,10 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("lep__nl",[=](ints L,ints m){if(munu==ch)return L[m][0];
 	                                     else        return      0 ;},
 	       {"Muon_nTrackerLayers","loose_leps"})
-	/*.Define("ttbSF"  , top_pt_sf(ds),{"GenPart_pdgId",
-	                                  "GenPart_statusFlags",
-	                                  "GenPart_pt"})
-	*/.Define("lepSF"  , lepEffGiver(rc,ch,MC
+//	.Define("ttbSF"  , top_pt_sf(ds),{"GenPart_pdgId",
+//	                                  "GenPart_statusFlags",
+//	                                  "GenPart_pt"})
+	.Define("lepSF"  , lepEffGiver(rc,ch,MC
 	                 , recoLowEt,reco_pass,tight_94x
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
@@ -1721,10 +1725,12 @@ void calchisto(const channel ch,const dataSource ds){
 	   = init_selection
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 	        "LuminosityBlock filter")
-	. Alias("fin_jets__pt","tight_jets__pt")
-	. Alias("fin_jets_eta","tight_jets_eta")
-	. Alias("fin_jets_phi","tight_jets_phi")
-	. Alias("fin_jets_mas","tight_jets_mas")
+	. Alias("cmet__pt","MET_pt" )// no need sumEt
+	. Alias("cmet_phi","MET_phi")
+	.Define("fin_jets__pt","static_cast<ROOT::RVec<double>>(Jet_pt  [tight_jets])")
+	.Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta [tight_jets])")
+	.Define("fin_jets_phi","static_cast<ROOT::RVec<double>>(Jet_phi [tight_jets])")
+	.Define("fin_jets_mas","static_cast<ROOT::RVec<double>>(Jet_mass[tight_jets])")
 	.Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
 	.Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
 	.Filter(jetCutter(BJETS_MIN,BJETS_MAX),{"btagB"},"b jet cut")
