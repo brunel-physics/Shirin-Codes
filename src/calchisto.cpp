@@ -362,28 +362,35 @@ auto delta_R_jet_smear(const bool fat){
 		"Defective cjers has wrong size");
 	return cjers;};
 }
-auto metCorrection(const doubles& jpt ,const doubles& jeta,// tight
+auto metCjer(const doubles& jpt ,const doubles& jeta,// tight
                    const doubles& jphi,const doubles& jmas,
-                   const  float   mpt ,const  float   mphi,
-                   const  float   mSEt,const doubles& cjer){
-	if(0<debug) std::cout<<"MET Correction"<<std::endl;
-	if(!all_equal(jpt .size(),jeta.size(),jphi.size(),
-	              jmas.size(),cjer.size()))throw std::logic_error(
-		"Collections must be the same size (MET correction)");
-	if(jpt.empty()) throw std::logic_error(
-		"Collections must not be empty for (MET correction)");
-	ROOT::Math::PxPyPzMVector acc;// initial corrections all zero
-	for(size_t i=0; i < jpt.size() ;++i){
-		double omc = 1. - cjer[i];
-		ROOT::Math::PtEtaPhiMVector
-		jet(omc*jpt[i],jeta[i],jphi[i],omc*jmas[i]);
-		acc +=  jet;// same as unsmeared jp - smeared jp
-	}
-	ROOT::Math::PtEtaPhiEVector cmet(mpt,0.,mphi,mSEt);
-	ROOT::Math::PxPyPzEVector   corr(acc.Px(),acc.Py(),0.,acc.Et());
-	cmet += corr;
-	return  cmet;
+                   const doubles& cjer){
+        if(0<debug) std::cout<<"MET Correction"<<std::endl;
+        if(!all_equal(jpt .size(),jeta.size(),jphi.size(),
+                      jmas.size(),cjer.size()))throw std::logic_error(
+                "Collections must be the same size (MET correction)");
+        if(jpt.empty()) throw std::logic_error(
+                "Collections must not be empty for (MET correction)");
+        ROOT::Math::PxPyPzMVector acc;// initial corrections all zero
+        for(size_t i=0; i < jpt.size() ;++i){
+                double omc = 1. - cjer[i];
+                ROOT::Math::PtEtaPhiMVector
+                jet(omc*jpt[i],jeta[i],jphi[i],omc*jmas[i]);
+                acc +=  jet;// same as unsmeared jp - smeared jp
+        }
+        return  acc;
 }
+auto metCorrection(ROOT::Math::PxPyPzMVector &TJcorr,
+                   ROOT::Math::PxPyPzMVector &FJcorr,
+                   const float mpt , const float mphi, const float mSEt){
+        ROOT::Math::PxPyPzEVector
+        corr((TJcorr+FJcorr).Px(),(TJcorr+FJcorr).Py(),0,(TJcorr+FJcorr).Et());
+        ROOT::Math::PtEtaPhiEVector cmet(mpt,0.,mphi,mSEt);
+        cmet += corr;
+return cmet;
+
+}
+
 // btag suPer set and btag suB set
 inline auto btagP(const doubles &eta){return abs(eta) < BJET_ETA_MAX;}
 inline auto btagB(const ints &btagP ,const floats &btags){
@@ -1213,7 +1220,7 @@ void calchisto(const channel ch,const dataSource ds){
 	case  wz:{temp_opener=temp_header+   "WZTo1L1Nu2Q"  +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+   "ZZTo2L2Q"     +temp_footer;break;}
 	case ttb:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
-	case ttz:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
+	case ttz:{temp_opener=              "ttz_dir"       +temp_footer;break;}
 	case met:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
 	case cms:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
