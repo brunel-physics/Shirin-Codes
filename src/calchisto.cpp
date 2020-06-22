@@ -44,8 +44,8 @@ namespace{
   constexpr  float MU__PT_MIN   = 40.f;//min 33, AP 40,
 //constexpr  float MU_LPT_MIN   = 26.f;// Leading
   constexpr  float MU_ETA_MAX   = 2.4f;
-  constexpr  float MU_LOOSE_ISO = .15f;
-  constexpr  float MU_TIGHT_ISO = .25f;
+  constexpr  float MU_LOOSE_ISO = .25f;
+  constexpr  float MU_TIGHT_ISO = .15f;
 
 //constexpr  float MET__PT_MIN  = 40.f;
   constexpr  float MET_EL_PT    = 20.f;//80.f;
@@ -850,19 +850,15 @@ auto top_pt_sf(const dataSource ds){
 		"Collections must be the same size (top_pt_reweigh)");
 	if(gId.empty()) throw std::logic_error(
 		"Collections must not be empty for (top_pt_reweigh)");
-	ints idxs = 6 == abs(gId);
-	// TODO: confirm whether we really want ONLY 1 top 1 tbar
-	std::cout << "t/-bar from " << gId << std::endl;
-	if(2 != idxs.size() || 0 != Sum(gId[idxs])) throw std::runtime_error(
-		"not exactly 1 top 1 tbar (top_pt_reweigh)");
-	if(Any(13 != flag[idxs])) throw std::runtime_error(
-		"not lastCopy (top_pt_reweigh)");// or just return 1.
-	auto pts =     pt[idxs];// TODO: new global constexpr ptMin ptMax
-	if(2 != Sum(0.<pts && pts < 500.)) throw std::runtime_error(
-		"pt out of bounds (top_pt_reweigh)");
-	auto wts = Map(pts,[](float p){
-		return exp(.0615 - .0005*static_cast<double>(p));});
-	double sf = std::sqrt(wts[0]*wts[1]);
+	ints idxs = (6 == abs(gId) && 13 == flag);
+	auto  pts =      pt[idxs];// TODO: new global constexpr ptMin ptMax
+	double sf = 1.;
+	pts = [0.<pts && pts < 500.]; /* pt min and max needs adjustment*/
+	if( 0 < pts.size()){
+	   sf = std::sqrt(product(Map(pts,[](float p){
+		return exp(.0615 - .0005*static_cast<double>(p));})));
+	}
+	sf = std::sqrt(product(wts));
 	if(0<debug) std::cout<<"top pt sf is "<<sf<<std::endl;
 	return sf;};
 }
@@ -944,8 +940,7 @@ auto muEffGiver(const double        pt ,
 	           <<"\t:\t"<<dict[IsoT]<<std::endl;
 	return dict;
 }
-auto lepEffGiver(      RoccoR      &rc,
-                 const channel      ch,
+auto lepEffGiver(const channel      ch,
                  const bool         MC,
                  const TH2F* const &recoLowEt,
                  const TH2F* const &reco_pass,
@@ -958,12 +953,11 @@ auto lepEffGiver(      RoccoR      &rc,
                  const TH2D* const &isoY,
                  const TH2D* const &isoA,
                  const TH2D* const &isoT){
-      return [=](const double     pt,const double eta,
-                 const double    phi,const   int Q,
-                 const double gen_pt,const   int nl){
-//	if(0 < debug)std::cout<< "lep eff giver"<<std::endl;
-	double roc = 1., id = 1., iso = 1., eff = 1., smr = 1.;
-	if(MC){switch(ch){
+      return [=](const double     pt,const double eta){
+	if(0 < debug)std::cout<< "lep eff giver"<<std::endl;
+	double id = 1., iso = 1., eff = 1., smr = 1.;
+	if(!MC)return 1.;
+	else{switch(ch){
 	case elnu:{
 		auto  dict = elEffGiver(pt,eta,recoLowEt,reco_pass,tight_94x);
 		eff = dict[Eff];
@@ -975,17 +969,24 @@ auto lepEffGiver(      RoccoR      &rc,
 		                       ,isoN,isoY,isoA,isoT
 		);
 		id  = dict[Id_N];
-		iso = dict[IsoN];// muEffGiver done; rocco follows
-		if(0. < gen_pt){
-			std::cout<<"rocco 1"<<std::endl;
-			roc = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
-		}else{
-			std::cout<<"rocco 2"<<std::endl;
-			auto u = gRandom->Rndm();
-			std::cout<<// TODO: not sure if gRandom works!
-			"Warning, u must be between 0 and 1, u is "
-			<<u<<std::endl;
-			roc = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
+		iso = dict[IsoN];// muEffGiver done;
+		break;}
+		}
+	}
+	if(0 < debug) std::cout
+		<< " id  " << id
+		<< " iso " << iso
+		<< " eff " << eff
+		<< " smr " << smr
+		<< " for " << ch << std::endl;
+	return  id * iso * eff * smr;};
+}
+auto roccoSF(RoccoR      &rc
+	     channel     ch
+	     bool        MC){
+	return[=](const double     pt,const double eta,
+                  const double    phi,const   int Q,
+                  const double gen_pt,const   int nl)){
 /* Rocco scale factor desc.
 scale factors for momentum of each muon:
 // data
@@ -994,6 +995,7 @@ double dtSF = rc.kScaleDT(Q, pt, eta, phi, s=0, m=0);
 double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genPt, s=0, m=0);
 // MC scale and extra smearing when matched gen muon does not exist
 double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, s=0, m=0);
+
 ----------------------------------------------------------
 Here:
 Q is charge
@@ -1005,30 +1007,24 @@ m is error member (default is 0, ranges from 0 to nmembers-1)
 For MC, when switching to different error sets/members for
 a given muon, random number (u) should remain unchanged.
 */
-		}
-		break;}
-	}}else{switch(ch){
-		case elnu:break;
-		case munu:{
-			std::cout<<"rocco 3"<<std::endl;
-			roc = rc. kScaleDT(Q,pt,eta,phi,0,0);
-			break;}
-		}
+	if(0 < debug)std::cout<<"Rocco"<<std:endl;
+        double roc = 1.;
+	switch (ch){case elnu:{return roc;}
+		    case munu:{if(MC){if(0. < gen_pt){
+                        	std::cout<<"rocco 1"<<std::endl;
+                        	roc = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
+                		}else{
+                        	std::cout<<"rocco 2"<<std::endl;
+                        	auto u = gRandom->Rndm();
+                        	roc = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
+        			}}else{
+                        	std::cout<<"rocco 3"<<std::endl;
+                        	roc = rc. kScaleDT(Q,pt,eta,phi,0,0);
+                		break;}
 	}
-	if(0 < debug) std::cout
-		<< " roc " << roc
-		<< " id  " << id
-		<< " iso " << iso
-		<< " eff " << eff
-		<< " smr " << smr
-		<< " for " << ch << std::endl;
-/*	if(roc < 0)  std::cout << "roc lt 0 ";
-	if(id  < 0)  std::cout << "id  lt 0 ";
-	if(iso < 0)  std::cout << "iso lt 0 ";
-	if(eff < 0)  std::cout << "eff lt 0 ";
-	if(smr < 0)  std::cout << "smr lt 0 ";
-	std::cout << std::endl;
-*/	return roc * id * iso * eff * smr;};
+	return roc;
+
+};
 }
 inline auto pile(const TH1D* const &PuWd,
                  const TH1D* const &PuUd,
@@ -1319,7 +1315,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
 	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
 	.Define("tight_jets"       ,tight_jet_id,
-	       {"jet_lep_min_dR"   ,"Jet__pt","Jet_eta","Jet_jetId"})
+	       {"jet_lep_min_dR"   ,"Jet_pt","Jet_eta","Jet_jetId"})
 	.Filter( jetCutter(JETS_MIN,JETS_MAX),{"tight_jets" },"Jet cut")
 /*	.Define("tight_jets__pt"   ,"rawJet__pt[tight_jets]")
 	.Define("tight_jets_eta"   ,"rawJet_eta[tight_jets]")
@@ -1473,13 +1469,11 @@ void calchisto(const channel ch,const dataSource ds){
 //	.Define("ttbSF"  , top_pt_sf(ds),{"GenPart_pdgId",
 //	                                  "GenPart_statusFlags",
 //	                                  "GenPart_pt"})
-	.Define("lepSF"  , lepEffGiver(rc,ch,MC
+	.Define("lepSF"  , lepEffGiver(ch,MC
 	                 , recoLowEt,reco_pass,tight_94x
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
-	                ),{"lep__pt","lep_eta",
-	                   "lep_phi","lep___q",
-	                   "lep_gpt","lep__nl"})
+	                ),{"lep__pt","lep_eta"})
 	.Define("mostSF" , "lepSF" /* ttbSF"*/)
 	;
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,
@@ -1742,13 +1736,11 @@ void calchisto(const channel ch,const dataSource ds){
 	auto not_btag_eff
 	   = reco
 	.Define("btag_w" , [](){return 1.;})
-	.Define("lepSF"  , lepEffGiver(rc,ch,MC
+	.Define("lepSF"  , lepEffGiver(ch,MC
 	                 , recoLowEt,reco_pass,tight_94x
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
-	                ),{"lep__pt","lep_eta",
-	                   "lep_phi","lep___q", // last 4 unused
-	                   "lep_phi","lep___q"})// last 2 repeat is fine
+	                ),{"lep__pt","lep_eta"})// last 2 repeat is fine
 	. Alias("mostSF" , "lepSF")
 	;
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,// unused but send pile
