@@ -614,6 +614,9 @@ template <typename T>
 auto allReconstruction(T &rdf){
 	return rdf
 //	.Filter(met_pt_cut(ch),{"cmet__pt"},"MET Pt cut")// TODO: Re-enable!
+	. Alias("tw_lep__pt","lep__pt")
+        . Alias("tw_lep_eta","lep_eta")
+        . Alias("tw_lep_phi","lep_phi"
 	.Define("tw_lep_mas",transverse_w_mass,// TODO: raw MET ?
 	       {"tw_lep__pt",
 	        "tw_lep_phi","cmet__pt","cmet_phi"})
@@ -1300,16 +1303,13 @@ void calchisto(const channel ch,const dataSource ds){
 	.Filter(lep_tight_cut(ch),{"loose_leps",
 	        "Electron_cutBased",// left with 1 tight lepton, no loose
 	        "Muon_pfRelIso04_all"},"lepton cut")
-	.Define("lep__pt","static_cast<double>("+temp_header+ "pt [loose_leps][0])")
+	.Define("lep_Bpt","static_cast<double>("+temp_header+ "pt [loose_leps][0])")
 	.Define("lep_eta","static_cast<double>("+temp_header+ "eta[loose_leps][0])")
 	.Define("lep_phi","static_cast<double>("+temp_header+ "phi[loose_leps][0])")
-	.Define("lep_mas","static_cast<double>("+temp_header+"mass[loose_leps][0])")
+	.Define("lepBmas","static_cast<double>("+temp_header+"mass[loose_leps][0])")
 	.Define("lep___q",temp_header+"charge[loose_leps][0]")// int, only for rocco
-	// now for transverse W; lepton selected
-	. Alias("tw_lep__pt","lep__pt")
-	. Alias("tw_lep_eta","lep_eta")
-	. Alias("tw_lep_phi","lep_phi")
-	// jets selection follows; tW done and lepton selected
+	// B standing for before rocco; lepton selected,
+	// jets selection follows;
 	.Define("rawJet_eta","static_cast<ROOT::RVec<double>>(Jet_eta )")
 	.Define("rawJet_phi","static_cast<ROOT::RVec<double>>(Jet_phi )")
 	.Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
