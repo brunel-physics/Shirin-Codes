@@ -984,9 +984,9 @@ auto lepEffGiver(const channel      ch,
 		<< " for " << ch << std::endl;
 	return  id * iso * eff * smr;};
 }
-auto roccoSF(RoccoR      &rc
-	     channel     ch
-	     bool        MC){
+auto roccorSF(RoccoR      &rc
+	      channel     ch
+	      bool        MC){
 	return[=](const double     pt,const double eta,
                   const double    phi,const   int Q,
                   const double gen_pt,const   int nl)){
@@ -1303,7 +1303,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Filter(lep_tight_cut(ch),{"loose_leps",
 	        "Electron_cutBased",// left with 1 tight lepton, no loose
 	        "Muon_pfRelIso04_all"},"lepton cut")
-	.Define("lep_Bpt","static_cast<double>("+temp_header+ "pt [loose_leps][0])")
+	.Define("lepB_pt","static_cast<double>("+temp_header+ "pt [loose_leps][0])")
 	.Define("lep_eta","static_cast<double>("+temp_header+ "eta[loose_leps][0])")
 	.Define("lep_phi","static_cast<double>("+temp_header+ "phi[loose_leps][0])")
 	.Define("lepBmas","static_cast<double>("+temp_header+"mass[loose_leps][0])")
@@ -1361,6 +1361,18 @@ void calchisto(const channel ch,const dataSource ds){
 	        "Flag_eeBadScFilter"
 	       },
 	        "Event Cleaning filter")
+	.Define("lep_gpt",lep_gpt(ch),{"GenPart_pt","loose_leps",
+                                       "Electron_genPartIdx",
+                                           "Muon_genPartIdx"})
+        .Define("lep__nl",[=](ints L,ints m){if(munu==ch)return L[m][0];
+                                             else        return      0 ;},
+               {"Muon_nTrackerLayers","loose_leps"})
+        .Define("roccorSF", roccorSF(rc,ch,MC)
+                          ,{"lepB_pt","lep_eta",// TODO: B_pt; Bare
+                            "lep_phi","lep___q",
+                            "lep_gpt","lep__nl"})
+        .Define("lep__pt" , "lepB_pt * roccorSF")// only pt and mass scales
+        .Define("lep_mas" , "lepBmas * roccorSF")// eta and phi untouched
 	.Define("cTjer"    ,delta_R_jet_smear(false) ,// AK4 == false; Thin jets
 	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","Jet_genJetIdx",
 	        "GenJet_pt","GenJet_eta","GenJet_phi",//"tight_jets",
@@ -1466,15 +1478,15 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("lep__nl",[=](ints L,ints m){if(munu==ch)return L[m][0];
 	                                     else        return      0 ;},
 	       {"Muon_nTrackerLayers","loose_leps"})
-//	.Define("ttbSF"  , top_pt_sf(ds),{"GenPart_pdgId",
-//	                                  "GenPart_statusFlags",
-//	                                  "GenPart_pt"})
+	.Define("ttbSF"  , top_pt_sf(ds),{"GenPart_pdgId",
+	                                  "GenPart_statusFlags",
+	                                  "GenPart_pt"})
 	.Define("lepSF"  , lepEffGiver(ch,MC
 	                 , recoLowEt,reco_pass,tight_94x
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-	.Define("mostSF" , "lepSF" /* ttbSF"*/)
+	.Define("mostSF" , "lepSF * ttbSF")
 	;
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
@@ -1719,6 +1731,18 @@ void calchisto(const channel ch,const dataSource ds){
 	   = init_selection
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 	        "LuminosityBlock filter")
+	        .Define("lep_gpt",lep_gpt(ch),{"GenPart_pt","loose_leps",
+                                       "Electron_genPartIdx",
+                                           "Muon_genPartIdx"})
+        .Define("lep__nl",[=](ints L,ints m){if(munu==ch)return L[m][0];
+                                             else        return      0 ;},
+               {"Muon_nTrackerLayers","loose_leps"})
+        .Define("roccorSF", roccorSF(rc,ch,MC)
+                          ,{"lepB_pt","lep_eta",// TODO: B_pt; Bare
+                            "lep_phi","lep___q",
+                            "lepB_pt","lep__nl"})
+        .Define("lep__pt" , "lepB_pt * roccorSF")// only pt and mass scales
+        .Define("lep_mas" , "lepBmas * roccorSF")// eta and phi untouched
 	. Alias("cmet__pt","MET_pt" )// no need sumEt
 	. Alias("cmet_phi","MET_phi")
 	.Define("fin_jets__pt","static_cast<ROOT::RVec<double>>(Jet_pt  [tight_jets])")
