@@ -542,8 +542,8 @@ inline auto met_pt_cut(const channel ch){
 inline double transverse_w_mass(
 	 const double lep__pt
 	,const double lep_phi
-	,const  float met__pt
-	,const  float met_phi
+	,const double met__pt
+	,const double met_phi
 ){
 	return 2.
 		* std::abs (std::sin( delta_phi(lep_phi
@@ -556,8 +556,8 @@ auto lep_nu_invmass(
 	,const double lep_eta
 	,const double lep_phi
 	,const double lep_mass
-	,const float  cal_metpt// TODO: If NOT cal, rename
-	,const float  cal_metphi
+	,const double cal_metpt// TODO: If NOT cal, rename
+	,const double cal_metphi
 //	,const float  cal_metEt// cal_metEt is unused
 ){
 	// this function computes the invariant mass of charged lepton
@@ -1241,10 +1241,10 @@ void calchisto(const channel ch,const dataSource ds){
 	// No penalty for opening and leaving unused
 	// Can even open multiple times at once in parallel
 	// Open MC data source EVEN IF UNUSED
-	std::string temp_header="/data/disk0/nanoAOD_2017/",
-	temp_opener,temp_footer="/*.root";/**/
+	std::string temp_header="/data/disk3/nanoAOD_2017/",
+	temp_opener,temp_footer="_v7/*.root";/**/
 	switch(ds){// tzq and exptData use disk3!
-	case tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root" ;break;}/**/
+	case tzq:{temp_opener=temp_header+   "tZqlvqq"      +temp_footer;break;}
 	case  ww:{temp_opener=temp_header+   "WWToLNuQQ"    +temp_footer;break;}
 	case  wz:{temp_opener=temp_header+   "WZTo1L1Nu2Q"  +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+   "ZZTo2L2Q"     +temp_footer;break;}
@@ -1394,14 +1394,15 @@ void calchisto(const channel ch,const dataSource ds){
 	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","Jet_genJetIdx",
 	        "GenJet_pt","GenJet_eta","GenJet_phi",//"tight_jets",
 	        "fixedGridRhoFastjetAll"})
-	.Define("cFjer"    ,delta_R_jet_smear( true) ,// AK8 ==  true; Fat  jets
-	       {   "FatJet_pt",   "FatJet_eta",   "FatJet_phi","FatJet_genJetAK8Idx",
-	        "GenJetAK8_pt","GenJetAK8_eta","GenJetAK8_phi",
-	        "fixedGridRhoFastjetAll"})
+//	.Define("cFjer"    ,delta_R_jet_smear( true) ,// AK8 ==  true; Fat  jets
+//	       {   "FatJet_pt",   "FatJet_eta",   "FatJet_phi","FatJet_genJetAK8Idx",
+//	        "GenJetAK8_pt","GenJetAK8_eta","GenJetAK8_phi",
+//	        "fixedGridRhoFastjetAll"})
 	.Define("cTJer" ,metCjer,{   "Jet_pt" ,   "Jet_eta"
 	                        ,    "Jet_phi",   "Jet_mass","cTjer"})
-	.Define("cFJer" ,metCjer,{"FatJet_pt" ,"FatJet_eta"
-	                        , "FatJet_phi","FatJet_mass","cFjer"})
+	.Define("cFJer" ,[](){return ROOT::Math::PxPyPzMVector();})
+//	.Define("cFJer" ,metCjer,{"FatJet_pt" ,"FatJet_eta"
+//	                        , "FatJet_phi","FatJet_mass","cFjer"})
 	.Define("CmetLV",metCorrection,{"cTJer","cFJer","MET_pt","MET_phi","MET_sumEt"})
 	.Define("cmet__pt",LVex<ROOT::Math::PtEtaPhiEVector>(pt ),{"CmetLV"})
 	.Define("cmet_phi",LVex<ROOT::Math::PtEtaPhiEVector>(phi),{"CmetLV"})
@@ -1745,8 +1746,8 @@ void calchisto(const channel ch,const dataSource ds){
 	                  ,{"lepB_pt","lep_eta",
 	                    "lep_phi","lep___q", // last 4 unused
 	                    "lep_phi","lep___q"})// last 2 repeat is fine
-	. Alias("cmet__pt", "MET_pt" )// no need sumEt
-	. Alias("cmet_phi", "MET_phi")
+	.Define("cmet__pt"    ,"static_cast<double>(MET_pt )")// no need sumEt
+	.Define("cmet_phi"    ,"static_cast<double>(MET_phi)")
 	.Define("fin_jets__pt","static_cast<ROOT::RVec<double>>(Jet_pt  [tight_jets])")
 	.Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta [tight_jets])")
 	.Define("fin_jets_phi","static_cast<ROOT::RVec<double>>(Jet_phi [tight_jets])")
