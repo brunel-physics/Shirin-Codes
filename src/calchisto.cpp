@@ -40,7 +40,10 @@ namespace{
   constexpr  float EL_ETA_MAX   = 2.5f;
   constexpr    int EL_LOOSE_ID  = 1;
   constexpr    int EL_TIGHT_ID  = 4;
-
+  constexpr  float ENDCAP_DZ = 0.2f;
+  constexpr  float BARREL_DZ = 0.1f;
+  constexpr  float ENDCAP_DXY= 0.1f;
+  constexpr  float BARREL_DXY= 0.5f;
 //constexpr    int MU_MAX_NUM   = 1;
   constexpr  float MU__PT_MIN   = 40.f;//min 33, AP 40,
 //constexpr  float MU_LPT_MIN   = 26.f;// Leading
@@ -108,13 +111,19 @@ inline auto lep_sel(const channel ch){
 		,const   ints& elids
 		,const  bools& muids
 		,const floats& isos
+		,const floats& dxy
+		,const floats& dz
 	){
 		const auto abs_etas = abs( etas);
 		switch(ch){
 			case elnu:return (isPFs && pts >  EL__PT_MIN
 			                 && ((abs_etas <  EL_ETA_MAX
-			                 &&   abs_etas >  ENDCAP_ETA_MIN)
-			                 ||  (abs_etas <  BARREL_ETA_MAX))
+			                 &&   abs_etas >  ENDCAP_ETA_MIN
+					 &&   dz       <  ENDCAP_DZ
+					 &&   dxy      <  ENDCAP_DXY)
+			                 ||  (abs_etas <  BARREL_ETA_MAX
+					 &&   dz       <  BARREL_DZ
+					 &&   dxy      <  BARREL_DXY))
 			                 &&      elids >= EL_LOOSE_ID);
 			case munu:return (    muids    && isPFs
 			                 &&   pts      >  MU__PT_MIN
@@ -1249,7 +1258,7 @@ void calchisto(const channel ch,const dataSource ds){
 	case  wz:{temp_opener=temp_header+   "WZTo1L1Nu2Q"  +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+   "ZZTo2L2Q"     +temp_footer;break;}
 	case ttb:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
-	case ttz:{temp_opener=temo_header+  "ttZToQQ"       +temp_footer;break;}
+	case ttz:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
 	case met:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
 	case cms:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
@@ -1316,7 +1325,9 @@ void calchisto(const channel ch,const dataSource ds){
 	        temp_header+"eta",
 	        "Electron_cutBased",
 	        "Muon_tightId",
-	        "Muon_pfRelIso04_all"})
+	        "Muon_pfRelIso04_all",
+		temp_header+"dxy",
+		temp_header+"dz"})
 	.Filter(lep_tight_cut(ch),{"loose_leps",
 	        "Electron_cutBased",// left with 1 tight lepton, no loose
 	        "Muon_pfRelIso04_all"},"lepton cut")
@@ -1394,15 +1405,14 @@ void calchisto(const channel ch,const dataSource ds){
 	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","Jet_genJetIdx",
 	        "GenJet_pt","GenJet_eta","GenJet_phi",//"tight_jets",
 	        "fixedGridRhoFastjetAll"})
-//	.Define("cFjer"    ,delta_R_jet_smear( true) ,// AK8 ==  true; Fat  jets
-//	       {   "FatJet_pt",   "FatJet_eta",   "FatJet_phi","FatJet_genJetAK8Idx",
-//	        "GenJetAK8_pt","GenJetAK8_eta","GenJetAK8_phi",
-//	        "fixedGridRhoFastjetAll"})
+	.Define("cFjer"    ,delta_R_jet_smear( true) ,// AK8 ==  true; Fat  jets
+	       {   "FatJet_pt",   "FatJet_eta",   "FatJet_phi","FatJet_genJetAK8Idx",
+	        "GenJetAK8_pt","GenJetAK8_eta","GenJetAK8_phi",
+	        "fixedGridRhoFastjetAll"})
 	.Define("cTJer" ,metCjer,{   "Jet_pt" ,   "Jet_eta"
 	                        ,    "Jet_phi",   "Jet_mass","cTjer"})
-	.Define("cFJer" ,[](){return ROOT::Math::PxPyPzMVector();})
-//	.Define("cFJer" ,metCjer,{"FatJet_pt" ,"FatJet_eta"
-//	                        , "FatJet_phi","FatJet_mass","cFjer"})
+	.Define("cFJer" ,metCjer,{"FatJet_pt" ,"FatJet_eta"
+	                        , "FatJet_phi","FatJet_mass","cFjer"})
 	.Define("CmetLV",metCorrection,{"cTJer","cFJer","MET_pt","MET_phi","MET_sumEt"})
 	.Define("cmet__pt",LVex<ROOT::Math::PtEtaPhiEVector>(pt ),{"CmetLV"})
 	.Define("cmet_phi",LVex<ROOT::Math::PtEtaPhiEVector>(phi),{"CmetLV"})
