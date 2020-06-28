@@ -1249,8 +1249,8 @@ void calchisto(const channel ch,const dataSource ds){
 	case  wz:{temp_opener=temp_header+   "WZTo1L1Nu2Q"  +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+   "ZZTo2L2Q"     +temp_footer;break;}
 	case ttb:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
-	case ttz:{temp_opener=              "ttz_dir"       +temp_footer;break;}
-	case met:{temp_opener=temp_header+  "ttZToQQ_ext"   +temp_footer;break;}
+	case ttz:{temp_opener=temo_header+  "ttZToQQ"       +temp_footer;break;}
+	case met:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
 	case cms:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}// CMS and MET MUST do some OPENABLE file ; reject later
