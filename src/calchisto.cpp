@@ -35,18 +35,18 @@ namespace{
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
-  constexpr  float EL__PT_MIN   = 45.f;//{15}//min 12, AP 45,
-//constexpr  float EL_LPT_MIN   = 35.f;// Leading
+  constexpr  float EL__PT_MIN   = 15.f;//{15}//min 12, AP 45,
+  constexpr  float EL_LPT_MIN   = 35.f;// Leading
   constexpr  float EL_ETA_MAX   = 2.5f;
   constexpr    int EL_LOOSE_ID  = 1;
   constexpr    int EL_TIGHT_ID  = 4;
   constexpr  float ENDCAP_DZ = 0.2f;
   constexpr  float BARREL_DZ = 0.1f;
   constexpr  float ENDCAP_DXY= 0.1f;
-  constexpr  float BARREL_DXY= 0.5f;
+  constexpr  float BARREL_DXY= 0.05f;
 //constexpr    int MU_MAX_NUM   = 1;
-  constexpr  float MU__PT_MIN   = 40.f;//min 33, AP 40,
-//constexpr  float MU_LPT_MIN   = 26.f;// Leading
+  constexpr  float MU__PT_MIN   = 20.f;//min 33, AP 40,
+  constexpr  float MU_LPT_MIN   = 26.f;// Leading
   constexpr  float MU_ETA_MAX   = 2.4f;
   constexpr  float MU_LOOSE_ISO = .25f;
   constexpr  float MU_TIGHT_ISO = .15f;
@@ -136,7 +136,8 @@ inline auto lep_sel(const channel ch){
 }
 inline auto lep_tight_cut(const channel ch){
 	return [=](
-		 const   ints& mask
+		 const floats& pt
+		,const   ints& mask
 		,const   ints& elids
 		,const floats& isos
 	){
@@ -146,11 +147,13 @@ inline auto lep_tight_cut(const channel ch){
 		 else if(ch==elnu){
 			ints   temp = elids[mask];
 			result = temp.size() == 1;// Choosing 1 Tight Lepton
-			result = result && temp[0] >= EL_TIGHT_ID;// NOTE
+			result = result && pt[mask][0] >= EL_LPT_MIN ;
+			result = result &&    temp [0] >= EL_TIGHT_ID;// NOTE
 		}else if(ch==munu){
 			floats temp = isos[mask];
 			result = temp.size() == 1;
-			result = result && temp[0] <= MU_TIGHT_ISO;// NOTE
+			result = result && pt[mask][0] >= MU_LPT_MIN  ;
+			result = result &&    temp [0] <= MU_TIGHT_ISO;// NOTE
 		}else{throw std::invalid_argument(
 			"Unimplemented ch (lep_tight_cut)");}
 		return result;
@@ -1328,7 +1331,7 @@ void calchisto(const channel ch,const dataSource ds){
 	        "Muon_pfRelIso04_all",
 		temp_header+"dxy",
 		temp_header+"dz"})
-	.Filter(lep_tight_cut(ch),{"loose_leps",
+	.Filter(lep_tight_cut(ch),{temp_header +"pt","loose_leps",
 	        "Electron_cutBased",// left with 1 tight lepton, no loose
 	        "Muon_pfRelIso04_all"},"lepton cut")
 	// B for Bare, Before muon RoccoR; only pt mass scales, eta phi untouched
