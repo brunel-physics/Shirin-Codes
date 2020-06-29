@@ -389,8 +389,9 @@ auto delta_R_jet_smear(const bool fat){
 	|| !all_equal(gpt.size(),geta.size(),gphi.size()))
 		throw std::logic_error(
 			"Collections must be the same size (deltaR_Jsmear)");
-	if(jpt.empty()) throw std::logic_error(
+	if(!fat && jpt.empty()) throw std::logic_error(
 			"Collections must not be empty for (deltaR_Jsmear)");
+	if(fat  && jpt.empty())return doubles();
 	// the method used in here is the Jets Smearing Hybrid Method
 	double temp,RconeBy2 = ak4RconeBy2;
 	if(fat)     RconeBy2 = ak8RconeBy2;
@@ -429,8 +430,6 @@ auto metCjer(
 	if(!all_equal(jpt .size(),jeta.size(),jphi.size(),
 	              jmas.size(),cjer.size()))throw std::logic_error(
 		"Collections must be the same size (MET correction)");
-	if(jpt.empty()) throw std::logic_error(
-		"Collections must not be empty for (MET correction)");
 	ROOT::Math::PxPyPzMVector acc;// initial corrections all zero
 	for(size_t i=0; i  < jpt.size() ;++i){
 		double omc = 1. - cjer[i];
