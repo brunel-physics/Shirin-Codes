@@ -1,11 +1,11 @@
 // TODO: Adding Triggers
 // TODO: lepton trigger efficiency
 // TODO: Shape uncertainties
-// TODO: top pt reweighing
+// TODO: top pt reweighing-> fetch pt min and max from ttb
 // TODO: non prompt lepton corrections
 // TODO: Pile Up uncertainties (done: weight)
 // TODO: MET unclustering correction
-// TODO: plot cmet_sEt
+
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <Math/Vector4D.h>
@@ -31,7 +31,7 @@ using   bools = ROOT::VecOps::RVec<bool>;
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 0;
+  constexpr    int debug = 10;
   constexpr  float ENDCAP_ETA_MIN = 1.566f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
 //constexpr    int EL_MAX_NUM   = 1;
@@ -356,7 +356,7 @@ auto jet_smear_pt_resol(
 }
 auto jet_smear_Sjer(const floats &etas,const bool fat){
 	//if(0<debug) std::cout<<"jet smear sjer"<<std::endl;
-   doubles Sjers(etas.size());
+        doubles Sjers(etas.size());
 	double  etaMin,etaMax;
 	double  centralSF,dnSF,upSF;
 	char    filepath[  ] = "aux/Fall17_V3_MC_SF_AK4PFchs.txt";
@@ -385,19 +385,20 @@ auto delta_R_jet_smear(const bool fat){
 	){
 	if(0<debug) std::cout<<"delta r jet smear"<<std::endl;
 	const size_t size = jpt.size();
+        doubles cjers; cjers.reserve(/*tJ_final_*/size);
 	if(!all_equal(    size  ,jeta.size(),jphi.size(),jma.size())//,mask.size())
 	|| !all_equal(gpt.size(),geta.size(),gphi.size()))
 		throw std::logic_error(
 			"Collections must be the same size (deltaR_Jsmear)");
 	if(!fat && jpt.empty()) throw std::logic_error(
 			"Collections must not be empty for (deltaR_Jsmear)");
-	if(fat  && jpt.empty())return doubles();
+	if(fat  && jpt.empty()){std::cout<<"fat jet empty"<<std::endl;return cjers;}
+	//if(!fat && jpt.empty()){std::cout<<    "jet empty"<<std::endl;return cjers;}
 	// the method used in here is the Jets Smearing Hybrid Method
 	double temp,RconeBy2 = ak4RconeBy2;
 	if(fat)     RconeBy2 = ak8RconeBy2;
 //	const size_t                 tJ_final_size = static_cast<size_t>(
 //		count_if(mask.cbegin(),mask.cend(),[](int i){return 0 != i;}));
-	doubles cjers; cjers.reserve(/*tJ_final_*/size);
 //	ints gen(gpt.size(),1);    gen.resize(size);// ones and zeroes
 	auto resol = jet_smear_pt_resol/*(ptRcsv)*/(jpt,jeta,rho,fat);
 	auto  Sjer = jet_smear_Sjer   /*(sjerCsv)*/(    jeta    ,fat);
@@ -1318,7 +1319,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 //	ROOT::EnableImplicitMT();
 	// make test runs faster by restriction. Real run should not
-//	auto dfr = df.Range(10000);// remember to enable MT when NOT range
+	//auto dfr = df.Range(1000000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),
@@ -1411,10 +1412,11 @@ void calchisto(const channel ch,const dataSource ds){
 	       {   "FatJet_pt",   "FatJet_eta",   "FatJet_phi","FatJet_genJetAK8Idx",
 	        "GenJetAK8_pt","GenJetAK8_eta","GenJetAK8_phi",
 	        "fixedGridRhoFastjetAll"})
+	.Define("cFJer" ,[](){return ROOT::Math::PxPyPzMVector();})
 	.Define("cTJer" ,metCjer,{   "Jet_pt" ,   "Jet_eta"
 	                        ,    "Jet_phi",   "Jet_mass","cTjer"})
-	.Define("cFJer" ,metCjer,{"FatJet_pt" ,"FatJet_eta"
-	                        , "FatJet_phi","FatJet_mass","cFjer"})
+	/*.Define("cFJer" ,metCjer,{"FatJet_pt" ,"FatJet_eta"
+	                        , "FatJet_phi","FatJet_mass","cFjer"})*/
 	.Define("CmetLV",metCorrection,{"cTJer","cFJer","MET_pt","MET_phi","MET_sumEt"})
 	.Define("cmet__pt",LVex<ROOT::Math::PtEtaPhiEVector>(pt ),{"CmetLV"})
 	.Define("cmet_phi",LVex<ROOT::Math::PtEtaPhiEVector>(phi),{"CmetLV"})
@@ -1604,6 +1606,15 @@ void calchisto(const channel ch,const dataSource ds){
 	h_btag_w->GetXaxis()->SetTitle("btag weight");
 	h_btag_w->GetYaxis()->SetTitle("Event");
 	h_btag_w->SetLineStyle(kSolid);
+
+	auto h_cmet_sEt= finalDF.Histo1D({
+        ("cmet_sEt_"+temp_header).c_str(),
+        ("cmet_sEt "+temp_header).c_str(),
+        50,0,300},"cmet_sEt");
+        h_cmet_sEt->GetXaxis()->SetTitle("corrected MET Sum Et");
+        h_cmet_sEt->GetYaxis()->SetTitle("Event");
+        h_cmet_sEt->SetLineStyle(kSolid);
+
 // end MC only
 
 	auto h_trans_T = finalDF.Histo1D({
@@ -1684,6 +1695,15 @@ void calchisto(const channel ch,const dataSource ds){
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("\\text{  tWm  GeV/}c^{2}");
 	h_tWmVsZmass->GetYaxis()->SetTitle("\\text{Z mass GeV/}c^{2}");
+
+        auto h_met_sEt= finalDF.Histo1D({
+        ("met_sEt_"+temp_header).c_str(),
+        ("met_sEt "+temp_header).c_str(),
+        50,0,300},"MET_sumEt");
+        h_met_sEt->GetXaxis()->SetTitle("MET Sum Et");
+        h_met_sEt->GetYaxis()->SetTitle("Event");
+        h_met_sEt->SetLineStyle(kSolid);
+
 	// No SetLineStyle here
 
 	// write histograms to a root file
@@ -1703,6 +1723,7 @@ void calchisto(const channel ch,const dataSource ds){
 		hf.WriteTObject(h_no_btag_denom_PtVsEta.GetPtr());
 		hf.WriteTObject(is_btag_ratio);
 		hf.WriteTObject(no_btag_ratio);
+		hf.WriteTObject(h_cmet_sEt.GetPtr());
 // end MC only
 	hf.WriteTObject(h_trans_T .GetPtr());
 	hf.WriteTObject(h_trans_w .GetPtr());
