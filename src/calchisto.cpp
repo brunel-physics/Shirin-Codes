@@ -1,11 +1,10 @@
 // TODO: Adding Triggers
 // TODO: lepton trigger efficiency
 // TODO: Shape uncertainties
-// TODO: top pt reweighing-> fetch pt min and max from ttb
+// TODO: top pt reweighing -> fetch pt min and max from ttb
 // TODO: non prompt lepton corrections
 // TODO: Pile Up uncertainties (done: weight)
 // TODO: MET unclustering correction
-
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <Math/Vector4D.h>
@@ -27,65 +26,65 @@ using doubles = ROOT::VecOps::RVec<double>;
 using  floats = ROOT::VecOps::RVec<float>;
 using    ints = ROOT::VecOps::RVec<int>;
 using   bools = ROOT::VecOps::RVec<bool>;
-//using   chars = ROOT::VecOps::RVec<UChar_t>;// aka 1 byte ints
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-  constexpr    int debug = 10;
-  constexpr  float ENDCAP_ETA_MIN = 1.566f;
+  constexpr    int debug = 0;
+//constexpr    int EL_MAX_NUM     = 1      ;
+  constexpr  float EL__PT_MIN     =  .0f   ;// TODO: plot -> pick
+  constexpr  float EL_LPT_MIN     =  .0f   ;// TODO: plot -> pick
+  constexpr  float EL_ETA_MAX     = 2.5f   ;
+  constexpr    int EL_LOOSE_ID    = 1      ;
+  constexpr    int EL_TIGHT_ID    = 4      ;
+  constexpr  float ENDCAP_DZ      =  .2f   ;
+  constexpr  float ENDCAP_DXY     =  .1f   ;
+  constexpr  float ENDCAP_ETA_MIN = 1.5660f;
   constexpr  float BARREL_ETA_MAX = 1.4442f;
-//constexpr    int EL_MAX_NUM   = 1;
-  constexpr  float EL__PT_MIN   = 15.f;//{15}//min 12, AP 45,
-  constexpr  float EL_LPT_MIN   = 35.f;// Leading
-  constexpr  float EL_ETA_MAX   = 2.5f;
-  constexpr    int EL_LOOSE_ID  = 1;
-  constexpr    int EL_TIGHT_ID  = 4;
-  constexpr  float ENDCAP_DZ = 0.2f;
-  constexpr  float BARREL_DZ = 0.1f;
-  constexpr  float ENDCAP_DXY= 0.1f;
-  constexpr  float BARREL_DXY= 0.05f;
-//constexpr    int MU_MAX_NUM   = 1;
-  constexpr  float MU__PT_MIN   = 20.f;//min 33, AP 40,
-  constexpr  float MU_LPT_MIN   = 26.f;// Leading
-  constexpr  float MU_ETA_MAX   = 2.4f;
-  constexpr  float MU_LOOSE_ISO = .25f;
-  constexpr  float MU_TIGHT_ISO = .15f;
+  constexpr  float BARREL_DXY     =  .05f  ;
+  constexpr  float BARREL_DZ      =  .10f  ;
 
-//constexpr  float MET__PT_MIN  = 40.f;
-  constexpr  float MET_EL_PT    = 20.f;//80.f;
-  constexpr  float MET_MU_PT    = 25.f;//40.f;
+//constexpr    int MU_MAX_NUM     = 1   ;
+  constexpr  float MU__PT_MIN     =  .0f;// TODO: plot -> pick
+  constexpr  float MU_LPT_MIN     =  .0f;// TODO: plot -> pick
+  constexpr  float MU_ETA_MAX     = 2.4f;
+  constexpr  float MU_LOOSE_ISO   = .25f;
+  constexpr  float MU_TIGHT_ISO   = .15f;
 
-  constexpr double   Z_MASS     =  91.1876;
-  constexpr double   Z_MASS_CUT =  20.;
-  constexpr double   W_MASS     =  80.385;
-  constexpr double   W_MASS_CUT =  20.;
-  constexpr double TOP_MASS     = 172.5;
-//constexpr double TOP_MASS_CUT =  20.;
+//constexpr  float MET__PT_MIN    = 40.f;
+  constexpr  float MET_EL_PT      = 20.f;//80.f;// TODO: Need new values
+  constexpr  float MET_MU_PT      = 25.f;//40.f;
 
-constexpr float    JET_ETA_MAX =  4.7f;
-constexpr float    JET_PT__MIN = 30.0f;
-constexpr double       JET_ISO =   .4 ;
-constexpr unsigned    JETS_MIN = 4;
-constexpr unsigned    JETS_MAX = 6;
+  constexpr double   Z_MASS       =  91.1876;
+  constexpr double   Z_MASS_CUT   =  20.    ;
+  constexpr double   W_MASS       =  80.385 ;
+  constexpr double   W_MASS_CUT   =  20.    ;
+  constexpr double TOP_MASS       = 172.5   ;
+//constexpr double TOP_MASS_CUT   =  20.    ;
 
-constexpr double  BJET_ETA_MAX = 2.4;
-constexpr double BTAG_DISC_MIN =  .8838;
-constexpr unsigned   BJETS_MIN = 1;
-constexpr unsigned   BJETS_MAX = 3;
+  constexpr float    JET_ETA_MAX  =  4.7f;
+  constexpr float    JET_PT__MIN  = 30.0f;
+  constexpr double       JET_ISO  =   .4 ;
+  constexpr unsigned    JETS_MIN  =  4   ;
+  constexpr unsigned    JETS_MAX  =  6   ;
+
+  constexpr double  BJET_ETA_MAX  = 2.4   ;
+  constexpr double BTAG_DISC_MIN  =  .8838;
+  constexpr unsigned   BJETS_MIN  = 1     ;
+  constexpr unsigned   BJETS_MAX  = 3     ;
 
 //constexpr double DELTA___R_ZL   = 1.6;
-//constexpr double DELTA_PHI_ZW   = 2.;
-//constexpr double DELTA_PHI_ZMET = 2.;
+//constexpr double DELTA_PHI_ZW   = 2. ;
+//constexpr double DELTA_PHI_ZMET = 2. ;
 
-constexpr double ak4RconeBy2 =  .2;
-constexpr double ak8RconeBy2 =  .4;
+  constexpr double ak4RconeBy2    =  .2;
+  constexpr double ak8RconeBy2    =  .4;
 
-constexpr double    TZQ_W =  .0128;
-constexpr double WWLNQQ_W = 2.1740;
-constexpr double WZLNQQ_W =  .2335;
-constexpr double  TTBLV_W = 1.3791;
-constexpr double  TTZQQ_W =  .0237;
-constexpr double ZZLLQQ_W =  .0485;
+  constexpr double    TZQ_W       =  .0128;
+  constexpr double WWLNQQ_W       = 2.1740;
+  constexpr double WZLNQQ_W       =  .2335;
+  constexpr double  TTBLV_W       = 1.3791;
+  constexpr double  TTZQQ_W       =  .0237;
+  constexpr double ZZLLQQ_W       =  .0485;
 
 // This Pi is more accurate than binary256; good for eternity
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
@@ -118,17 +117,17 @@ inline auto lep_sel(const channel ch){
 		switch(ch){
 			case elnu:return (isPFs && pts >  EL__PT_MIN
 			                 && ((abs_etas <  EL_ETA_MAX
-			                 &&   abs_etas >  ENDCAP_ETA_MIN
-					 &&   dz       <  ENDCAP_DZ
-					 &&   dxy      <  ENDCAP_DXY)
+			                 &&        dz  <  ENDCAP_DZ
+			                 &&        dxy <  ENDCAP_DXY
+			                 &&   abs_etas >  ENDCAP_ETA_MIN)
 			                 ||  (abs_etas <  BARREL_ETA_MAX
-					 &&   dz       <  BARREL_DZ
-					 &&   dxy      <  BARREL_DXY))
+			                 &&        dxy <  BARREL_DXY
+			                 &&        dz  <  BARREL_DZ))
 			                 &&      elids >= EL_LOOSE_ID);
-			case munu:return (    muids    && isPFs
-			                 &&   pts      >  MU__PT_MIN
+			case munu:return (       muids && isPFs
+			                 &&        pts >  MU__PT_MIN
 			                 &&   abs_etas <  MU_ETA_MAX
-			                 &&   isos     <= MU_LOOSE_ISO);
+			                 &&       isos <= MU_LOOSE_ISO);
 			default  :throw std::invalid_argument(
 				"Unimplemented ch (lep_sel)");
 		}
@@ -141,18 +140,18 @@ inline auto lep_tight_cut(const channel ch){
 		,const   ints& elids
 		,const floats& isos
 	){
-// TODO: In the case we want 1 loose lepton, comment the 2 NOTE lines below
+// TODO: In the case we want 1 loose lepton, comment the 4 NOTE lines below
 		bool result;
 		if(false);
 		 else if(ch==elnu){
 			ints   temp = elids[mask];
 			result = temp.size() == 1;// Choosing 1 Tight Lepton
-			result = result && pt[mask][0] >= EL_LPT_MIN ;
-			result = result &&    temp [0] >= EL_TIGHT_ID;// NOTE
+			result = result && pt[mask][0] >= EL_LPT_MIN  ;// NOTE
+			result = result &&    temp [0] >= EL_TIGHT_ID ;// NOTE
 		}else if(ch==munu){
 			floats temp = isos[mask];
 			result = temp.size() == 1;
-			result = result && pt[mask][0] >= MU_LPT_MIN  ;
+			result = result && pt[mask][0] >= MU_LPT_MIN  ;// NOTE
 			result = result &&    temp [0] <= MU_TIGHT_ISO;// NOTE
 		}else{throw std::invalid_argument(
 			"Unimplemented ch (lep_tight_cut)");}
@@ -285,31 +284,9 @@ auto roccorSF(
 			}else{
 				std::cout<<"rocco 2"<<std::endl;
 				auto u = gRandom->Rndm();
-//				std::cout <<// TODO: not sure if gRandom works!
-//				"Warning, u must be between 0 and 1, u is "
-//				<< u << std::endl;
 				roc = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
 			}
 		}else{
-/* Rocco scale factor desc.
-scale factors for momentum of each muon:
-// data
-double dtSF = rc.kScaleDT(Q, pt, eta, phi, s=0, m=0);
-// (recommended),MC scale and resolution correction when gen muon exists
-double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genPt, s=0, m=0);
-// MC scale and extra smearing when matched gen muon does not exist
-double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, s=0, m=0);
-----------------------------------------------------------
-Here:
-Q is charge
-nl is trackerLayersWithMeasurement
-u is a random number distributed uniformly between 0 and 1
-(gRandom->Rndm());
-s is error set    (default is 0)
-m is error member (default is 0, ranges from 0 to nmembers-1)
-For MC, when switching to different error sets/members for
-a given muon, random number (u) should remain unchanged.
-*/
 				std::cout<<"rocco 3"<<std::endl;
 				roc = rc. kScaleDT(Q,pt,eta,phi,0,0);
 		}break;}}// not MC, case munu, switch
@@ -356,7 +333,7 @@ auto jet_smear_pt_resol(
 }
 auto jet_smear_Sjer(const floats &etas,const bool fat){
 	//if(0<debug) std::cout<<"jet smear sjer"<<std::endl;
-        doubles Sjers(etas.size());
+	doubles Sjers(etas.size());
 	double  etaMin,etaMax;
 	double  centralSF,dnSF,upSF;
 	char    filepath[  ] = "aux/Fall17_V3_MC_SF_AK4PFchs.txt";
@@ -385,21 +362,18 @@ auto delta_R_jet_smear(const bool fat){
 	){
 	if(0<debug) std::cout<<"delta r jet smear"<<std::endl;
 	const size_t size = jpt.size();
-        doubles cjers; cjers.reserve(/*tJ_final_*/size);
+	doubles cjers; cjers.reserve(/*tJ_final_*/size);
 	if(!all_equal(    size  ,jeta.size(),jphi.size(),jma.size())//,mask.size())
 	|| !all_equal(gpt.size(),geta.size(),gphi.size()))
 		throw std::logic_error(
 			"Collections must be the same size (deltaR_Jsmear)");
-	if(!fat && jpt.empty()) throw std::logic_error(
+	if(!size &&  fat){std::cout<<"fat  jet empty"<<std::endl;return cjers;}
+//	if(!size && !fat){std::cout<<"thin jet empty"<<std::endl;return cjers;}
+	if(!size && !fat) throw std::logic_error(
 			"Collections must not be empty for (deltaR_Jsmear)");
-	if(fat  && jpt.empty()){std::cout<<"fat jet empty"<<std::endl;return cjers;}
-	//if(!fat && jpt.empty()){std::cout<<    "jet empty"<<std::endl;return cjers;}
 	// the method used in here is the Jets Smearing Hybrid Method
 	double temp,RconeBy2 = ak4RconeBy2;
 	if(fat)     RconeBy2 = ak8RconeBy2;
-//	const size_t                 tJ_final_size = static_cast<size_t>(
-//		count_if(mask.cbegin(),mask.cend(),[](int i){return 0 != i;}));
-//	ints gen(gpt.size(),1);    gen.resize(size);// ones and zeroes
 	auto resol = jet_smear_pt_resol/*(ptRcsv)*/(jpt,jeta,rho,fat);
 	auto  Sjer = jet_smear_Sjer   /*(sjerCsv)*/(    jeta    ,fat);
 	for(size_t j=0; j < size ;++j){// j goes with jet, i goes with gen
@@ -431,6 +405,8 @@ auto metCjer(
 	if(!all_equal(jpt .size(),jeta.size(),jphi.size(),
 	              jmas.size(),cjer.size()))throw std::logic_error(
 		"Collections must be the same size (MET correction)");
+//	if(jpt.empty()) throw std::logic_error(
+//		"Collections must not be empty for (MET correction)");
 	ROOT::Math::PxPyPzMVector acc;// initial corrections all zero
 	for(size_t i=0; i  < jpt.size() ;++i){
 		double omc = 1. - cjer[i];
@@ -590,7 +566,7 @@ inline auto jet_deltaphi(const doubles& phis){
 	doubles deltaphis;// half of anti-symmetric matrix has n(n-1)/2 elements
 	deltaphis.reserve((phis.size()*(phis.size()-1))/2);// reserving size
 	// The following two for loops stack correctly     // yet leave
-	for(size_t   i=0; i < phis.size()-1 ;++i)	         // empty.
+	for(size_t   i=0; i < phis.size()-1 ;++i)          // empty.
 	for(size_t j=i+1; j < phis.size()   ;++j)
 		deltaphis.emplace_back(abs_deltaphi(phis[i],phis[j]));
 	return deltaphis;
@@ -1255,33 +1231,33 @@ void calchisto(const channel ch,const dataSource ds){
 	// Open MC data source EVEN IF UNUSED
 	std::string temp_header="/data/disk3/nanoAOD_2017/",
 	temp_opener,temp_footer="_v7/*.root";/**/
-	switch(ds){// tzq and exptData use disk3!
-	case tzq:{temp_opener=temp_header+   "tZqlvqq"      +temp_footer;break;}
-	case  ww:{temp_opener=temp_header+   "WWToLNuQQ"    +temp_footer;break;}
-	case  wz:{temp_opener=temp_header+   "WZTo1L1Nu2Q"  +temp_footer;break;}
-	case  zz:{temp_opener=temp_header+   "ZZTo2L2Q"     +temp_footer;break;}
-	case ttb:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
-	case ttz:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
-	case met:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
-	case cms:{temp_opener=temp_header+  "ttZToQQ"       +temp_footer;break;}
+	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
+	case tzq:{temp_opener=temp_header+   "tZqlvqq"       +temp_footer;break;}
+	case  ww:{temp_opener=temp_header+ "WWToLNuQQ"       +temp_footer;break;}
+	case  wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
+	case  zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
+	case ttb:{temp_opener=temp_header+ "TTToSemileptonic"+temp_footer;break;}
+	case ttz:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
+	case met:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
+	case cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
-	}// CMS and MET MUST do some OPENABLE file ; reject later
+	}
 	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
 	// Open chains of exptData EVEN IF UNUSED
 	TChain elnuCMS("Events");
 	TChain munuCMS("Events");
 	TChain bothMET("Events");
-	temp_footer = "/*.root" ;/* just to be sure */
+	temp_footer = "/*.root" ;/* safety redefinition now saving us */
 	temp_header =
 		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_Run";
 	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
-		elnuCMS.Add(temp_opener.c_str());
+		elnuCMS.Add(temp_opener. c_str());
 	}
 	temp_header="/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_Run";
 	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
-		munuCMS.Add(temp_opener.c_str());
+		munuCMS.Add(temp_opener. c_str());
 	}
 	temp_header="/data/disk0/nanoAOD_2017/METRun2017";
 	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
@@ -1319,21 +1295,22 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 //	ROOT::EnableImplicitMT();
 	// make test runs faster by restriction. Real run should not
-	//auto dfr = df.Range(1000000);// remember to enable MT when NOT range
+//	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
 	// lepton selection first
-	.Define("loose_leps",lep_sel(ch),
-	       {temp_header+"isPFcand",
-	        temp_header+"pt" ,
-	        temp_header+"eta",
-	        "Electron_cutBased",
-	        "Muon_tightId",
-	        "Muon_pfRelIso04_all",
-		temp_header+"dxy",
-		temp_header+"dz"})
-	.Filter(lep_tight_cut(ch),{temp_header +"pt","loose_leps",
-	        "Electron_cutBased",// left with 1 tight lepton, no loose
-	        "Muon_pfRelIso04_all"},"lepton cut")
+	.Define("loose_leps",lep_sel(ch),{
+	        temp_header+"isPFcand"
+	       ,temp_header+"pt"
+	       ,temp_header+"eta"
+	       ,"Electron_cutBased"
+	       ,"Muon_tightId"
+	       ,"Muon_pfRelIso04_all"
+	       ,temp_header+"dxy"
+	       ,temp_header+"dz"
+	       })
+	.Filter(lep_tight_cut(ch),{temp_header+"pt","loose_leps",
+	        "Electron_cutBased",// edit function for  tight -> loose
+	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 tight lepton
 	// B for Bare, Before muon RoccoR; only pt mass scales, eta phi untouched
 	.Define("lepB_pt","static_cast<double>("+temp_header+ "pt [loose_leps][0])")
 	.Define("lep_eta","static_cast<double>("+temp_header+ "eta[loose_leps][0])")
@@ -1408,15 +1385,16 @@ void calchisto(const channel ch,const dataSource ds){
 	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","Jet_genJetIdx",
 	        "GenJet_pt","GenJet_eta","GenJet_phi",//"tight_jets",
 	        "fixedGridRhoFastjetAll"})
+	// leave cFjer defined---let ROOT ignore b/c not used
 	.Define("cFjer"    ,delta_R_jet_smear( true) ,// AK8 ==  true; Fat  jets
 	       {   "FatJet_pt",   "FatJet_eta",   "FatJet_phi","FatJet_genJetAK8Idx",
 	        "GenJetAK8_pt","GenJetAK8_eta","GenJetAK8_phi",
 	        "fixedGridRhoFastjetAll"})
-	.Define("cFJer" ,[](){return ROOT::Math::PxPyPzMVector();})
 	.Define("cTJer" ,metCjer,{   "Jet_pt" ,   "Jet_eta"
 	                        ,    "Jet_phi",   "Jet_mass","cTjer"})
-	/*.Define("cFJer" ,metCjer,{"FatJet_pt" ,"FatJet_eta"
-	                        , "FatJet_phi","FatJet_mass","cFjer"})*/
+	.Define("cFJer" ,[](){return ROOT::Math::PxPyPzMVector();})
+//	.Define("cFJer" ,metCjer,{"FatJet_pt" ,"FatJet_eta"
+//	                        , "FatJet_phi","FatJet_mass","cFjer"})
 	.Define("CmetLV",metCorrection,{"cTJer","cFJer","MET_pt","MET_phi","MET_sumEt"})
 	.Define("cmet__pt",LVex<ROOT::Math::PtEtaPhiEVector>(pt ),{"CmetLV"})
 	.Define("cmet_phi",LVex<ROOT::Math::PtEtaPhiEVector>(phi),{"CmetLV"})
@@ -1516,7 +1494,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
 	;
-	// Copied to below, skip MC-only
+	// Copied to below, skip MC-only, ADD MET_sumEt!
 	// Assuming temp_header and footer and all are set per (hist titles)!
 // MC only
 		auto
@@ -1583,7 +1561,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_p_ej->GetYaxis()->SetTitle("Event");
 	h_p_ej->SetLineStyle(kSolid);
 
-	auto h_p_sf_i= finalDF.Histo1D({
+	auto h_p_sf_i = finalDF.Histo1D({
 	("p_sf_i_"+temp_header).c_str(),
 	("p_sf_i "+temp_header).c_str(),
 	5000,0,1.3},"P_sf_i");
@@ -1591,7 +1569,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_p_sf_i->GetYaxis()->SetTitle("Event");
 	h_p_sf_i->SetLineStyle(kSolid);
 
-	auto h_p_sfej= finalDF.Histo1D({
+	auto h_p_sfej = finalDF.Histo1D({
 	("p_sfej_"+temp_header).c_str(),
 	("p_sfej "+temp_header).c_str(),
 	5000,0,1.3},"P_sfej");
@@ -1599,7 +1577,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_p_sfej->GetYaxis()->SetTitle("Event");
 	h_p_sfej->SetLineStyle(kSolid);
 
-	auto h_btag_w= finalDF.Histo1D({
+	auto h_btag_w = finalDF.Histo1D({
 	("btag_w_"+temp_header).c_str(),
 	("btag_W "+temp_header).c_str(),
 	5000,-1,1.3},"btag_w");
@@ -1607,14 +1585,21 @@ void calchisto(const channel ch,const dataSource ds){
 	h_btag_w->GetYaxis()->SetTitle("Event");
 	h_btag_w->SetLineStyle(kSolid);
 
-	auto h_cmet_sEt= finalDF.Histo1D({
-        ("cmet_sEt_"+temp_header).c_str(),
-        ("cmet_sEt "+temp_header).c_str(),
-        50,0,300},"cmet_sEt");
-        h_cmet_sEt->GetXaxis()->SetTitle("corrected MET Sum Et");
-        h_cmet_sEt->GetYaxis()->SetTitle("Event");
-        h_cmet_sEt->SetLineStyle(kSolid);
+	auto h_cmet_sEt = finalDF.Histo1D({
+	("cmet_sEt_"+temp_header).c_str(),
+	("cmet_sEt "+temp_header).c_str(),
+	50,0,300},"cmet_sEt");
+	h_cmet_sEt->GetXaxis()->SetTitle("corrected MET Sum Et GeV");
+	h_cmet_sEt->GetYaxis()->SetTitle("Event");
+	h_cmet_sEt->SetLineStyle(kSolid);
 
+        auto h_cmet_pt = finalDF.Histo1D({
+        ("cmet_pt_"+temp_header).c_str(),
+        ("cmet_pt "+temp_header).c_str(),
+        50,0,300},"cmet__pt");
+        h_cmet_pt->GetXaxis()->SetTitle("corrected MET p_{T} (GeV/c)");
+        h_cmet_pt->GetYaxis()->SetTitle("Event");
+        h_cmet_pt->SetLineStyle(kSolid);
 // end MC only
 
 	auto h_trans_T = finalDF.Histo1D({
@@ -1695,45 +1680,37 @@ void calchisto(const channel ch,const dataSource ds){
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("\\text{  tWm  GeV/}c^{2}");
 	h_tWmVsZmass->GetYaxis()->SetTitle("\\text{Z mass GeV/}c^{2}");
-
-        auto h_met_sEt= finalDF.Histo1D({
-        ("met_sEt_"+temp_header).c_str(),
-        ("met_sEt "+temp_header).c_str(),
-        50,0,300},"MET_sumEt");
-        h_met_sEt->GetXaxis()->SetTitle("MET Sum Et");
-        h_met_sEt->GetYaxis()->SetTitle("Event");
-        h_met_sEt->SetLineStyle(kSolid);
-
 	// No SetLineStyle here
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
 // MC only
-		hf.WriteTObject(h_sfi   .GetPtr());
-		hf.WriteTObject(h_sfj   .GetPtr());
-//		hf.WriteTObject(h_p_ei  .GetPtr());
-		hf.WriteTObject(h_p_ej  .GetPtr());
-		hf.WriteTObject(h_p_sf_i.GetPtr());
-		hf.WriteTObject(h_p_sfej.GetPtr());
-		hf.WriteTObject(h_btag_w.GetPtr());
-		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());
-		hf.WriteTObject(h_no_btag_numer_PtVsEta.GetPtr());
-		hf.WriteTObject(h_is_btag_denom_PtVsEta.GetPtr());
-		hf.WriteTObject(h_no_btag_denom_PtVsEta.GetPtr());
-		hf.WriteTObject(is_btag_ratio);
-		hf.WriteTObject(no_btag_ratio);
-		hf.WriteTObject(h_cmet_sEt.GetPtr());
+		hf.WriteTObject(h_sfi                  .GetPtr());hf.Flush();
+		hf.WriteTObject(h_sfj                  .GetPtr());hf.Flush();
+//		hf.WriteTObject(h_p_ei                 .GetPtr());hf.Flush();
+		hf.WriteTObject(h_p_ej                 .GetPtr());hf.Flush();
+		hf.WriteTObject(h_p_sf_i               .GetPtr());hf.Flush();
+		hf.WriteTObject(h_p_sfej               .GetPtr());hf.Flush();
+		hf.WriteTObject(h_btag_w               .GetPtr());hf.Flush();
+		hf.WriteTObject(h_cmet_sEt             .GetPtr());hf.Flush();
+                hf.WriteTObject(h_cmet_pt              .GetPtr());hf.Flush();
+		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());hf.Flush();
+		hf.WriteTObject(h_no_btag_numer_PtVsEta.GetPtr());hf.Flush();
+		hf.WriteTObject(h_is_btag_denom_PtVsEta.GetPtr());hf.Flush();
+		hf.WriteTObject(h_no_btag_denom_PtVsEta.GetPtr());hf.Flush();
+		hf.WriteTObject(is_btag_ratio)                   ;hf.Flush();
+		hf.WriteTObject(no_btag_ratio)                   ;hf.Flush();
 // end MC only
-	hf.WriteTObject(h_trans_T .GetPtr());
-	hf.WriteTObject(h_trans_w .GetPtr());
-	hf.WriteTObject(h_Winvmas .GetPtr());
-	hf.WriteTObject(h_ev_w    .GetPtr());
-	hf.WriteTObject(h_z_mas   .GetPtr());
-	hf.WriteTObject(  h_zw_Dph.GetPtr());
-	hf.WriteTObject(h_zmet_Dph.GetPtr());
-	hf.WriteTObject(h_z_daughters_Dph.GetPtr());
-	hf.WriteTObject(h_tWmVsZmass.GetPtr());
+	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();
+	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();
+	hf.WriteTObject(h_Winvmas        .GetPtr());hf.Flush();
+	hf.WriteTObject(h_ev_w           .GetPtr());hf.Flush();
+	hf.WriteTObject(h_z_mas          .GetPtr());hf.Flush();
+	hf.WriteTObject(  h_zw_Dph       .GetPtr());hf.Flush();
+	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();
+	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();
+	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -1767,10 +1744,8 @@ void calchisto(const channel ch,const dataSource ds){
 		h->SetLineStyle(kSolid);
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
-		hf.WriteTObject(h.GetPtr());
-	}
-	hf.Flush();
-	} else {
+		hf.WriteTObject(h.GetPtr());hf.Flush();
+	}} else {
 	auto expt_bjets
 	   = init_selection
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
@@ -1806,8 +1781,25 @@ void calchisto(const channel ch,const dataSource ds){
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,// unused but send pile
 	     not_btag_eff )
 	;
-	// Copied from earlier, delete MC-only
+	// Copied from earlier, delete MC-only, ADD MET_sumEt!
 	// Assuming temp_header and footer and all are set per (hist titles)!
+	auto h_met_sEt = finalDF.Histo1D({
+	("met_sEt_"+temp_header).c_str(),
+	("met_sEt "+temp_header).c_str(),
+	50,0,300},"MET_sumEt");
+	h_met_sEt->GetXaxis()->SetTitle("MET Sum Et GeV");
+	h_met_sEt->GetYaxis()->SetTitle("Event");
+	h_met_sEt->SetLineStyle(kSolid);
+
+        auto h_met_pt = finalDF.Histo1D({
+        ("met_pt_"+temp_header).c_str(),
+        ("met_pt "+temp_header).c_str(),
+        50,0,300},"MET_pt");
+        h_met_pt->GetXaxis()->SetTitle("MET p_{T} (GeV/c)");
+        h_met_pt->GetYaxis()->SetTitle("Event");
+        h_met_pt->SetLineStyle(kSolid);
+
+
 	auto h_trans_T = finalDF.Histo1D({
 	(          "tTm_"     + temp_header).c_str(),
 	("Transverse T mass " + temp_header).c_str(),
@@ -1891,15 +1883,17 @@ void calchisto(const channel ch,const dataSource ds){
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
-	hf.WriteTObject(h_trans_T .GetPtr());
-	hf.WriteTObject(h_trans_w .GetPtr());
-	hf.WriteTObject(h_Winvmas .GetPtr());
-	hf.WriteTObject(h_ev_w    .GetPtr());
-	hf.WriteTObject(h_z_mas   .GetPtr());
-	hf.WriteTObject(  h_zw_Dph.GetPtr());
-	hf.WriteTObject(h_zmet_Dph.GetPtr());
-	hf.WriteTObject(h_z_daughters_Dph.GetPtr());
-	hf.WriteTObject(h_tWmVsZmass.GetPtr());
+	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();
+	hf.WriteTObject(h_met_pt         .GetPtr());hf.Flush();
+	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();
+	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();
+	hf.WriteTObject(h_Winvmas        .GetPtr());hf.Flush();
+	hf.WriteTObject(h_ev_w           .GetPtr());hf.Flush();
+	hf.WriteTObject(h_z_mas          .GetPtr());hf.Flush();
+	hf.WriteTObject(  h_zw_Dph       .GetPtr());hf.Flush();
+	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();
+	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();
+	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -1933,9 +1927,7 @@ void calchisto(const channel ch,const dataSource ds){
 		h->SetLineStyle(kSolid);
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
-		hf.WriteTObject(h.GetPtr());
-	}
-	hf.Flush();
-	}
+		hf.WriteTObject(h.GetPtr());hf.Flush();
+	}}
 	std::cout<<"calchisto successfully completed"<<std::endl;
 }
