@@ -77,7 +77,7 @@ namespace{
 //constexpr double DELTA_PHI_ZMET = 2. ;
 
   constexpr double    ak4RconeBy2 =  .2;
-  constexpr double    ak8RconeBy2 =  .4;
+//constexpr double    ak8RconeBy2 =  .4;
 
   constexpr double          TZQ_W =  .0128;
   constexpr double       WWLNQQ_W = 2.1740;
@@ -128,21 +128,27 @@ inline auto lep_sel(const channel ch){
 		,const floats& dxy
 		,const floats& dz
 	){
-		const auto abs_etas = abs( etas);
+		const auto abs_etas = abs(etas);
 		switch(ch){
-			case elnu:return (isPFs && pts >  EL__PT_MIN
-			                 && ((abs_etas <  EL_ETA_MAX
-			                 &&        dz  <  ENDCAP_DZ
-			                 &&        dxy <  ENDCAP_DXY
-			                 &&   abs_etas >  ENDCAP_ETA_MIN)
-			                 ||  (abs_etas <  BARREL_ETA_MAX
-			                 &&        dxy <  BARREL_DXY
-			                 &&        dz  <  BARREL_DZ))
-			                 &&      elids >= EL_LOOSE_ID);
-			case munu:return (       muids && isPFs
-			                 &&        pts >  MU__PT_MIN
-			                 &&   abs_etas <  MU_ETA_MAX
-			                 &&       isos <= MU_LOOSE_ISO);
+			case elnu:return ( true
+				&&     isPFs
+				&&       pts  >  EL__PT_MIN
+				&& ((abs_etas <  EL_ETA_MAX
+				&&        dz  <  ENDCAP_DZ
+				&&        dxy <  ENDCAP_DXY
+				&&   abs_etas >  ENDCAP_ETA_MIN)
+				||  (abs_etas <  BARREL_ETA_MAX
+				&&        dxy <  BARREL_DXY
+				&&        dz  <  BARREL_DZ))
+				&&      elids >= EL_LOOSE_ID
+			);
+			case munu:return ( true
+				&&   muids
+				&&   isPFs
+				&&     pts  >  MU__PT_MIN
+				&& abs_etas <  MU_ETA_MAX
+				&&     isos <= MU_LOOSE_ISO
+			);
 			default  :throw std::invalid_argument(
 				"Unimplemented ch (lep_sel)");
 		}
@@ -157,7 +163,7 @@ inline auto lep_tight_cut(const channel ch){
 	){
 // TODO: In the case we want 1 loose lepton, comment the 4 NOTE lines below
 		bool result;
-		if(false);
+		 if(false) ;
 		 else if(ch==elnu){
 			ints   temp = elids[mask];
 			result = temp.size() == 1;// Choosing 1 Tight Lepton
@@ -356,6 +362,8 @@ auto delta_R_jet_smear(
 	|| !all_equal(gpt.size(),geta.size(),gphi.size()))
 		throw std::logic_error(
 			"Collections must be the same size (deltaR_Jsmear)");
+	if(!size) throw std::logic_error(
+			"Collections must not be empty for (deltaR_Jsmear)");
 	// the method used in here is the Jets Smearing Hybrid Method
 	double temp,RconeBy2 = ak4RconeBy2;
 	auto resol = jet_smear_pt_resol/*(ptRcsv)*/(jpt,jeta,rho);
@@ -375,16 +383,14 @@ auto delta_R_jet_smear(
 	   }
 	   if(temp < 0.) temp = 0.;
 	   cjers.emplace_back(temp);
-	}//}
-//	if(cjers.size() != /*tJ_final_*/size) throw std::logic_error(
-//		"Defective cjers has wrong size");
-	return cjers;
+	}
+	return cjers;//};
 }
 auto metCorrection(
 	 const  floats &jpt ,const floats &jeta
 	,const  floats &jphi,const floats &jmas
-	,const doubles &cjer,const float mpt
-        ,const float   mphi ,const float mSEt
+	,const doubles &cjer
+	,const float mpt ,const float mphi,const float mSEt
 ){
 	if(0<debug) std::cout<<"MET Correction"<<std::endl;
 	if(!all_equal(jpt .size(),jeta.size(),jphi.size(),
@@ -392,31 +398,19 @@ auto metCorrection(
 		"Collections must be the same size (MET correction)");
 	if(jpt.empty()) throw std::logic_error(
 		"Collections must not be empty for (MET correction)");
-	ROOT::Math::PtEtaPhiEVector cmet(mpt,0.,mphi,mSEt);
+	ROOT::Math::PxPyPzMVector acc;// initial corrections all zero
 	for(size_t i=0; i  < jpt.size() ;++i){
 		double omc = 1. - cjer[i];
 		ROOT::Math::PtEtaPhiMVector
 		jet(omc*jpt[i],jeta[i],jphi[i],omc*jmas[i]);
-                ROOT::Math::PxPyPzMVector acc;// initial corrections all zero
 		acc +=  jet;// same as unsmeared jp - smeared jp
-		ROOT::Math::PxPyPzEVector
-        	corr(acc.Px(),acc.Py(),0,acc.Et());
-        	ROOT::Math::PtEtaPhiEVector cmet(mpt,0.,mphi,mSEt);
-        	cmet += corr;
 	}
-        return  cmet;
-}
-/*auto metCorrection(
-	 ROOT::Math::PxPyPzMVector  &cTJer
-	,ROOT::Math::PxPyPzMVector  &cFJer
-	,const float mpt ,const float mphi,const float mSEt
-){
-	ROOT::Math::PxPyPzEVector
-	corr((cTJer+cFJer).Px(),(cTJer+cFJer).Py(),0,(cTJer+cFJer).Et());
 	ROOT::Math::PtEtaPhiEVector cmet(mpt,0.,mphi,mSEt);
+	ROOT::Math::PxPyPzEVector
+	corr(acc.Px(),acc.Py(),0,acc.Et());
 	cmet += corr;
 	return  cmet;
-}*/
+}
 // btag suPer set and btag suB set
 inline auto btagP(const doubles &eta){return abs(eta) < BJET_ETA_MAX;}
 inline auto btagB(const ints  &btagP,const floats &btags){
@@ -1287,13 +1281,13 @@ void calchisto(const channel ch,const dataSource ds){
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
-	/*.Filter(triggers(ch),
+/*	.Filter(triggers(ch),
 		{ "HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
 		 ,"HLT_PFMET120_PFMHT120_IDTight"
 		 ,"HLT_IsoMu24_eta2p1"
-		},"Triggers Filter")*/
+		},"Triggers Filter")
 	// lepton selection first
-	.Define("loose_leps",lep_sel(ch),{
+*/	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
 	       ,temp_header+"pt"
 	       ,temp_header+"eta"
@@ -1352,6 +1346,7 @@ void calchisto(const channel ch,const dataSource ds){
 	if(MC){
 	auto jecs_bjets// JEC == Jet Energy Correction, only for MC
 	   = init_selection
+	.Filter("1 < Jet_pt.size()","v7 MC missing jet filter")
 	.Filter("Flag_goodVertices"
 	    " || Flag_globalSuperTightHalo2016Filter"
 	    " || Flag_HBHENoiseFilter"
@@ -1374,22 +1369,21 @@ void calchisto(const channel ch,const dataSource ds){
 	                    "lep_phi","lep___q",
 	                    "lep_gpt","lep__nl"})
 	// make lep__pt and lep_mas using roccorSF in allReconstruction later
-	.Define("cTjer"    ,delta_R_jet_smear,
+	.Define("cjer"     ,delta_R_jet_smear,
 	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","Jet_genJetIdx",
 	        "GenJet_pt","GenJet_eta","GenJet_phi",//"tight_jets",
 	        "fixedGridRhoFastjetAll"})
-	// leave cFjer defined---let ROOT ignore b/c not used
-	.Define("CmetLV" ,metCorrection,{   "Jet_pt" ,   "Jet_eta"
-	                         ,    "Jet_phi",   "Jet_mass","cTjer"
-				 ,"MET_pt"     ,"MET_phi","MET_sumEt"})
+	.Define("CmetLV",metCorrection,
+	       {"Jet_pt","Jet_eta","Jet_phi","Jet_mass","cjer"
+	       ,"MET_pt"          ,"MET_phi","MET_sumEt"})
 	.Define("cmet__pt",LVex<ROOT::Math::PtEtaPhiEVector>(pt ),{"CmetLV"})
 	.Define("cmet_phi",LVex<ROOT::Math::PtEtaPhiEVector>(phi),{"CmetLV"})
 	.Define("cmet_sEt",LVex<ROOT::Math::PtEtaPhiEVector>( e ),{"CmetLV"})
 	// fin = final; Monte Carlo needs JEC
-	.Define("fin_jets__pt","                       (cTjer * Jet_pt  )[tight_jets] ")
+	.Define("fin_jets__pt","                        (cjer * Jet_pt  )[tight_jets] ")
 	.Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta  [tight_jets])")
 	.Define("fin_jets_phi","static_cast<ROOT::RVec<double>>(Jet_phi  [tight_jets])")
-	.Define("fin_jets_mas","                       (cTjer * Jet_mass)[tight_jets] ")
+	.Define("fin_jets_mas","                        (cjer * Jet_mass)[tight_jets] ")
 	// jets selected, now bjets and btagging preliminaries
 	.Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
 	.Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
@@ -1672,31 +1666,31 @@ void calchisto(const channel ch,const dataSource ds){
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
 // MC only
-		hf.WriteTObject(h_sfi                  .GetPtr());hf.Flush();
-		hf.WriteTObject(h_sfj                  .GetPtr());hf.Flush();
-//		hf.WriteTObject(h_p_ei                 .GetPtr());hf.Flush();
-		hf.WriteTObject(h_p_ej                 .GetPtr());hf.Flush();
-		hf.WriteTObject(h_p_sf_i               .GetPtr());hf.Flush();
-		hf.WriteTObject(h_p_sfej               .GetPtr());hf.Flush();
-		hf.WriteTObject(h_btag_w               .GetPtr());hf.Flush();
-		hf.WriteTObject(h_cmet_sEt             .GetPtr());hf.Flush();
-		hf.WriteTObject(h_cmet__pt             .GetPtr());hf.Flush();
-		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());hf.Flush();
-		hf.WriteTObject(h_no_btag_numer_PtVsEta.GetPtr());hf.Flush();
-		hf.WriteTObject(h_is_btag_denom_PtVsEta.GetPtr());hf.Flush();
-		hf.WriteTObject(h_no_btag_denom_PtVsEta.GetPtr());hf.Flush();
-		hf.WriteTObject(is_btag_ratio)                   ;hf.Flush();
-		hf.WriteTObject(no_btag_ratio)                   ;hf.Flush();
-// end MC only
-	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();
-	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();
-	hf.WriteTObject(h_Winvmas        .GetPtr());hf.Flush();
-	hf.WriteTObject(h_ev_w           .GetPtr());hf.Flush();
-	hf.WriteTObject(h_z_mas          .GetPtr());hf.Flush();
-	hf.WriteTObject(  h_zw_Dph       .GetPtr());hf.Flush();
-	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();
-	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();
-	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();
+		hf.WriteTObject(h_sfi                  .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_sfj                  .GetPtr());hf.Flush();sync();
+//		hf.WriteTObject(h_p_ei                 .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_p_ej                 .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_p_sf_i               .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_p_sfej               .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_btag_w               .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_cmet_sEt             .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_cmet__pt             .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_no_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_is_btag_denom_PtVsEta.GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_no_btag_denom_PtVsEta.GetPtr());hf.Flush();sync();
+		hf.WriteTObject(is_btag_ratio)                   ;hf.Flush();sync();
+		hf.WriteTObject(no_btag_ratio)                   ;hf.Flush();sync();
+// end MC only; ADD MET_sumEt!
+	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_Winvmas        .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_ev_w           .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_z_mas          .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(  h_zw_Dph       .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -1730,7 +1724,7 @@ void calchisto(const channel ch,const dataSource ds){
 		h->SetLineStyle(kSolid);
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
-		hf.WriteTObject(h.GetPtr());hf.Flush();
+		hf.WriteTObject(h.GetPtr());hf.Flush();sync();
 	}} else {
 	auto expt_bjets
 	   = init_selection
@@ -1868,17 +1862,17 @@ void calchisto(const channel ch,const dataSource ds){
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
-	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();
-	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();
-	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();
-	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();
-	hf.WriteTObject(h_Winvmas        .GetPtr());hf.Flush();
-	hf.WriteTObject(h_ev_w           .GetPtr());hf.Flush();
-	hf.WriteTObject(h_z_mas          .GetPtr());hf.Flush();
-	hf.WriteTObject(  h_zw_Dph       .GetPtr());hf.Flush();
-	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();
-	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();
-	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();
+	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_Winvmas        .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_ev_w           .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_z_mas          .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(  h_zw_Dph       .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -1912,7 +1906,7 @@ void calchisto(const channel ch,const dataSource ds){
 		h->SetLineStyle(kSolid);
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
-		hf.WriteTObject(h.GetPtr());hf.Flush();
+		hf.WriteTObject(h.GetPtr());hf.Flush();sync();
 	}}
 	std::cout<<"calchisto successfully completed"<<std::endl;
 }
