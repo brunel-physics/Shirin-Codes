@@ -1213,16 +1213,16 @@ void calchisto(const channel ch,const dataSource ds){
 	// No penalty for opening and leaving unused
 	// Can even open multiple times at once in parallel
 	// Open MC data source EVEN IF UNUSED
-	std::string temp_header="/data/disk3/nanoAOD_2017/",
-	temp_opener,temp_footer="_v7/*.root";/**/
+	std::string temp_header="/data/disk0/nanoAOD_2017/",
+	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
-	case tzq:{temp_opener=temp_header+   "tZqlvqq"       +temp_footer;break;}
+	case tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}/**/
 	case  ww:{temp_opener=temp_header+ "WWToLNuQQ"       +temp_footer;break;}
 	case  wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
 	case ttb:{temp_opener=temp_header+ "TTToSemileptonic"+temp_footer;break;}
-	case ttz:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
-	case met:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
+	case ttz:{temp_opener=            "ttz_dir"          +temp_footer;break;}
+	case met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
 	case cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
@@ -1346,7 +1346,6 @@ void calchisto(const channel ch,const dataSource ds){
 	if(MC){
 	auto jecs_bjets// JEC == Jet Energy Correction, only for MC
 	   = init_selection
-	.Filter("1 < Jet_pt.size()","v7 MC missing jet filter")
 	.Filter("Flag_goodVertices"
 	    " || Flag_globalSuperTightHalo2016Filter"
 	    " || Flag_HBHENoiseFilter"
