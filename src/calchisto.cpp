@@ -43,48 +43,48 @@ namespace{
   constexpr  float BARREL_DXY     =  .05f  ;
   constexpr  float BARREL_DZ      =  .10f  ;
 
-//constexpr    int MU_MAX_NUM     = 1   ;
-  constexpr  float MU__PT_MIN     =  .0f;// TODO: plot -> pick
-  constexpr  float MU_LPT_MIN     =  .0f;// TODO: plot -> pick
-  constexpr  float MU_ETA_MAX     = 2.4f;
-  constexpr  float MU_LOOSE_ISO   = .25f;
-  constexpr  float MU_TIGHT_ISO   = .15f;
+//constexpr    int   MU_MAX_NUM   = 1   ;
+  constexpr  float   MU__PT_MIN   =  .0f;// TODO: plot -> pick
+  constexpr  float   MU_LPT_MIN   =  .0f;// TODO: plot -> pick
+  constexpr  float   MU_ETA_MAX   = 2.4f;
+  constexpr  float   MU_LOOSE_ISO = .25f;
+  constexpr  float   MU_TIGHT_ISO = .15f;
 
-//constexpr  float MET__PT_MIN    = 40.f;
-  constexpr  float MET_EL_PT      = 20.f;//80.f;// TODO: Need new values
-  constexpr  float MET_MU_PT      = 25.f;//40.f;
+//constexpr  float    MET__PT_MIN = 40.f;
+  constexpr  float    MET_EL_PT   = 20.f;//80.f;// TODO: Need new values
+  constexpr  float    MET_MU_PT   = 25.f;//40.f;
 
-  constexpr double   Z_MASS       =  91.1876;
-  constexpr double   Z_MASS_CUT   =  20.    ;
-  constexpr double   W_MASS       =  80.385 ;
-  constexpr double   W_MASS_CUT   =  20.    ;
-  constexpr double TOP_MASS       = 172.5   ;
-//constexpr double TOP_MASS_CUT   =  20.    ;
+  constexpr double     Z_MASS     =  91.1876;
+  constexpr double     Z_MASS_CUT =  20.    ;
+  constexpr double     W_MASS     =  80.385 ;
+  constexpr double     W_MASS_CUT =  20.    ;
+  constexpr double   TOP_MASS     = 172.5   ;
+//constexpr double   TOP_MASS_CUT =  20.    ;
 
-  constexpr float    JET_ETA_MAX  =  4.7f;
-  constexpr float    JET_PT__MIN  = 30.0f;
-  constexpr double       JET_ISO  =   .4 ;
-  constexpr unsigned    JETS_MIN  =  4   ;
-  constexpr unsigned    JETS_MAX  =  6   ;
+  constexpr float     JET_ETA_MAX =  4.7f;
+  constexpr float     JET_PT__MIN = 30.0f;
+  constexpr double        JET_ISO =   .4 ;
+  constexpr unsigned     JETS_MIN =  4   ;
+  constexpr unsigned     JETS_MAX =  6   ;
 
-  constexpr double  BJET_ETA_MAX  = 2.4   ;
-  constexpr double BTAG_DISC_MIN  =  .8838;
-  constexpr unsigned   BJETS_MIN  = 1     ;
-  constexpr unsigned   BJETS_MAX  = 3     ;
+  constexpr double   BJET_ETA_MAX = 2.4   ;
+  constexpr double  BTAG_DISC_MIN =  .8838;
+  constexpr unsigned    BJETS_MIN = 1     ;
+  constexpr unsigned    BJETS_MAX = 3     ;
 
 //constexpr double DELTA___R_ZL   = 1.6;
 //constexpr double DELTA_PHI_ZW   = 2. ;
 //constexpr double DELTA_PHI_ZMET = 2. ;
 
-  constexpr double ak4RconeBy2    =  .2;
-  constexpr double ak8RconeBy2    =  .4;
+  constexpr double    ak4RconeBy2 =  .2;
+  constexpr double    ak8RconeBy2 =  .4;
 
-  constexpr double    TZQ_W       =  .0128;
-  constexpr double WWLNQQ_W       = 2.1740;
-  constexpr double WZLNQQ_W       =  .2335;
-  constexpr double  TTBLV_W       = 1.3791;
-  constexpr double  TTZQQ_W       =  .0237;
-  constexpr double ZZLLQQ_W       =  .0485;
+  constexpr double          TZQ_W =  .0128;
+  constexpr double       WWLNQQ_W = 2.1740;
+  constexpr double       WZLNQQ_W =  .2335;
+  constexpr double        TTBLV_W = 1.3791;
+  constexpr double        TTZQQ_W =  .0237;
+  constexpr double       ZZLLQQ_W =  .0485;
 
 // This Pi is more accurate than binary256; good for eternity
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
@@ -102,6 +102,21 @@ constexpr elSf
           elSfAll[]={Eff,Smr};
 */
 
+inline auto triggers(channel ch){
+	return [=](
+	 const bool el// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
+	,const bool nu// HLT_PFMET120_PFMHT120_IDTight
+	,const bool mu// HLT_IsoMu24_eta2p1
+){
+	switch(ch){
+//	case elnu:return nu;
+//	case elnu:return el;
+	case elnu:return el && nu;
+	case munu:return mu && nu;
+//	case munu:return mu;
+//	case munu:return nu;
+	}};
+}
 inline auto lep_sel(const channel ch){
 	return [=](
 		 const  bools& isPFs
@@ -225,29 +240,6 @@ inline auto jetCutter(const unsigned jmin,const unsigned jmax){
 		return jmin <= nj && nj <= jmax;
 	};
 }
-inline auto event_cleaning(
-	 const bool Flag_goodVertices
-	,const bool Flag_globalSuperTightHalo2016Filter
-	,const bool Flag_HBHENoiseFilter
-	,const bool Flag_HBHENoiseIsoFilter
-	,const bool Flag_EcalDeadCellTriggerPrimitiveFilter
-	,const bool Flag_BadPFMuonFilter
-	,const bool Flag_BadChargedCandidateFilter
-	,const bool Flag_ecalBadCalibFilter
-	,const bool Flag_eeBadScFilter
-){
-	return
-		   Flag_goodVertices
-		|| Flag_globalSuperTightHalo2016Filter
-		|| Flag_HBHENoiseFilter
-		|| Flag_HBHENoiseIsoFilter
-		|| Flag_EcalDeadCellTriggerPrimitiveFilter
-		|| Flag_BadPFMuonFilter
-		|| Flag_BadChargedCandidateFilter
-		|| Flag_ecalBadCalibFilter
-		|| Flag_eeBadScFilter
-	;
-}
 inline auto lep_gpt(const channel ch){
 	return [=](
 		 const floats &pt
@@ -301,7 +293,7 @@ auto retVar(const T& v){return[&](){return v;};}
 // Jet Energy Resolution and Jet Energy Smearing
 auto jet_smear_pt_resol(
 	 const floats &pt,const floats &eta
-	,const float  rho,const bool    fat
+	,const float  rho
 ){
 	if(0<debug) std::cout<<"jet smear pt resol"<<std::endl;
 	doubles resol(pt.size());
@@ -314,7 +306,6 @@ auto jet_smear_pt_resol(
 	double pt_Min,pt_Max;
 	double a,b,c,d;
 	char    filepath[  ] = "aux/Fall17_V3_MC_PtResolution_AK4PFchs.txt";
-	if(fat) filepath[32] = '8';// AK8; this fragile code is tested
 	io::CSVReader<10> thisCSVfile(filepath);
 	thisCSVfile.read_header(io::ignore_extra_column,
 	"etaMin","etaMax","rhoMin","rhoMax","ptMin","ptMax","a","b","c","d");
@@ -331,13 +322,12 @@ auto jet_smear_pt_resol(
 	}// No need to close file after this while loop
 	return resol;//};
 }
-auto jet_smear_Sjer(const floats &etas,const bool fat){
+auto jet_smear_Sjer(const floats &etas){
 	//if(0<debug) std::cout<<"jet smear sjer"<<std::endl;
 	doubles Sjers(etas.size());
 	double  etaMin,etaMax;
 	double  centralSF,dnSF,upSF;
 	char    filepath[  ] = "aux/Fall17_V3_MC_SF_AK4PFchs.txt";
-	if(fat) filepath[22] = '8';// AK8; this fragile code is tested
 	io::CSVReader<5> thisCSVfile(filepath);
 	thisCSVfile.read_header(io::ignore_extra_column,
 	                          "etaMin","etaMax","centralSF","dnSF","upSF");
@@ -352,8 +342,7 @@ constexpr auto ramp(const double Sjer){
 	if(0. < Sjer) return Sjer;
 	else          return   0.;
 }
-auto delta_R_jet_smear(const bool fat){
-	return [=](
+auto delta_R_jet_smear(
 		 const floats &jpt ,const floats &jeta,const floats &jphi
 		,const   ints &jma  // jet gen match
 		,const floats &gpt ,const floats &geta,const floats &gphi
@@ -367,15 +356,10 @@ auto delta_R_jet_smear(const bool fat){
 	|| !all_equal(gpt.size(),geta.size(),gphi.size()))
 		throw std::logic_error(
 			"Collections must be the same size (deltaR_Jsmear)");
-	if(!size &&  fat){std::cout<<"fat  jet empty"<<std::endl;return cjers;}
-//	if(!size && !fat){std::cout<<"thin jet empty"<<std::endl;return cjers;}
-	if(!size && !fat) throw std::logic_error(
-			"Collections must not be empty for (deltaR_Jsmear)");
 	// the method used in here is the Jets Smearing Hybrid Method
 	double temp,RconeBy2 = ak4RconeBy2;
-	if(fat)     RconeBy2 = ak8RconeBy2;
-	auto resol = jet_smear_pt_resol/*(ptRcsv)*/(jpt,jeta,rho,fat);
-	auto  Sjer = jet_smear_Sjer   /*(sjerCsv)*/(    jeta    ,fat);
+	auto resol = jet_smear_pt_resol/*(ptRcsv)*/(jpt,jeta,rho);
+	auto  Sjer = jet_smear_Sjer   /*(sjerCsv)*/(    jeta    );
 	for(size_t j=0; j < size ;++j){// j goes with jet, i goes with gen
 	    int      i ;// we will store the index from jma here(see below)
 //	if(    0 !=      mask[j]){// only do stuff if tight jet
@@ -394,29 +378,35 @@ auto delta_R_jet_smear(const bool fat){
 	}//}
 //	if(cjers.size() != /*tJ_final_*/size) throw std::logic_error(
 //		"Defective cjers has wrong size");
-	return cjers;};
+	return cjers;
 }
-auto metCjer(
+auto metCorrection(
 	 const  floats &jpt ,const floats &jeta
 	,const  floats &jphi,const floats &jmas
-	,const doubles &cjer
+	,const doubles &cjer,const float mpt
+        ,const float   mphi ,const float mSEt
 ){
 	if(0<debug) std::cout<<"MET Correction"<<std::endl;
 	if(!all_equal(jpt .size(),jeta.size(),jphi.size(),
 	              jmas.size(),cjer.size()))throw std::logic_error(
 		"Collections must be the same size (MET correction)");
-//	if(jpt.empty()) throw std::logic_error(
-//		"Collections must not be empty for (MET correction)");
-	ROOT::Math::PxPyPzMVector acc;// initial corrections all zero
+	if(jpt.empty()) throw std::logic_error(
+		"Collections must not be empty for (MET correction)");
+	ROOT::Math::PtEtaPhiEVector cmet(mpt,0.,mphi,mSEt);
 	for(size_t i=0; i  < jpt.size() ;++i){
 		double omc = 1. - cjer[i];
 		ROOT::Math::PtEtaPhiMVector
 		jet(omc*jpt[i],jeta[i],jphi[i],omc*jmas[i]);
+                ROOT::Math::PxPyPzMVector acc;// initial corrections all zero
 		acc +=  jet;// same as unsmeared jp - smeared jp
+		ROOT::Math::PxPyPzEVector
+        	corr(acc.Px(),acc.Py(),0,acc.Et());
+        	ROOT::Math::PtEtaPhiEVector cmet(mpt,0.,mphi,mSEt);
+        	cmet += corr;
 	}
-	return acc;
+        return  cmet;
 }
-auto metCorrection(
+/*auto metCorrection(
 	 ROOT::Math::PxPyPzMVector  &cTJer
 	,ROOT::Math::PxPyPzMVector  &cFJer
 	,const float mpt ,const float mphi,const float mSEt
@@ -426,7 +416,7 @@ auto metCorrection(
 	ROOT::Math::PtEtaPhiEVector cmet(mpt,0.,mphi,mSEt);
 	cmet += corr;
 	return  cmet;
-}
+}*/
 // btag suPer set and btag suB set
 inline auto btagP(const doubles &eta){return abs(eta) < BJET_ETA_MAX;}
 inline auto btagB(const ints  &btagP,const floats &btags){
@@ -1052,7 +1042,7 @@ inline auto sf(
 		,const double mostSF
 		,const    int npv
 	){
-		// TODO: lepton smearing and trigger efficiency
+		// TODO: trigger efficiency
 		double result;
 		bool MC = true;
 		switch(ds){
@@ -1297,6 +1287,11 @@ void calchisto(const channel ch,const dataSource ds){
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
+	/*.Filter(triggers(ch),
+		{ "HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
+		 ,"HLT_PFMET120_PFMHT120_IDTight"
+		 ,"HLT_IsoMu24_eta2p1"
+		},"Triggers Filter")*/
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
@@ -1357,18 +1352,16 @@ void calchisto(const channel ch,const dataSource ds){
 	if(MC){
 	auto jecs_bjets// JEC == Jet Energy Correction, only for MC
 	   = init_selection
-	.Filter(event_cleaning,{
-	        "Flag_goodVertices",
-	        "Flag_globalSuperTightHalo2016Filter",
-	        "Flag_HBHENoiseFilter",
-	        "Flag_HBHENoiseIsoFilter",
-	        "Flag_EcalDeadCellTriggerPrimitiveFilter",
-	        "Flag_BadPFMuonFilter",
-	        "Flag_BadChargedCandidateFilter",
-	        "Flag_ecalBadCalibFilter",// TODO: v2?
-	        "Flag_eeBadScFilter"
-	       },
-	        "Event Cleaning filter")
+	.Filter("Flag_goodVertices"
+	    " || Flag_globalSuperTightHalo2016Filter"
+	    " || Flag_HBHENoiseFilter"
+	    " || Flag_HBHENoiseIsoFilter"
+	    " || Flag_EcalDeadCellTriggerPrimitiveFilter"
+	    " || Flag_BadPFMuonFilter"
+	    " || Flag_BadChargedCandidateFilter"
+	    " || Flag_ecalBadCalibFilter"// TODO: v2?
+	    " || Flag_eeBadScFilter"
+	       ,"Event Cleaning filter")
 	// next 3 defines are just for muons, which need RoccoR
 	.Define("lep_gpt",lep_gpt(ch),{"GenPart_pt","loose_leps"
 	                              ,"Electron_genPartIdx"
@@ -1381,21 +1374,14 @@ void calchisto(const channel ch,const dataSource ds){
 	                    "lep_phi","lep___q",
 	                    "lep_gpt","lep__nl"})
 	// make lep__pt and lep_mas using roccorSF in allReconstruction later
-	.Define("cTjer"    ,delta_R_jet_smear(false) ,// AK4 == false; Thin jets
+	.Define("cTjer"    ,delta_R_jet_smear,
 	       {   "Jet_pt",   "Jet_eta",   "Jet_phi","Jet_genJetIdx",
 	        "GenJet_pt","GenJet_eta","GenJet_phi",//"tight_jets",
 	        "fixedGridRhoFastjetAll"})
 	// leave cFjer defined---let ROOT ignore b/c not used
-	.Define("cFjer"    ,delta_R_jet_smear( true) ,// AK8 ==  true; Fat  jets
-	       {   "FatJet_pt",   "FatJet_eta",   "FatJet_phi","FatJet_genJetAK8Idx",
-	        "GenJetAK8_pt","GenJetAK8_eta","GenJetAK8_phi",
-	        "fixedGridRhoFastjetAll"})
-	.Define("cTJer" ,metCjer,{   "Jet_pt" ,   "Jet_eta"
-	                        ,    "Jet_phi",   "Jet_mass","cTjer"})
-	.Define("cFJer" ,[](){return ROOT::Math::PxPyPzMVector();})
-//	.Define("cFJer" ,metCjer,{"FatJet_pt" ,"FatJet_eta"
-//	                        , "FatJet_phi","FatJet_mass","cFjer"})
-	.Define("CmetLV",metCorrection,{"cTJer","cFJer","MET_pt","MET_phi","MET_sumEt"})
+	.Define("CmetLV" ,metCorrection,{   "Jet_pt" ,   "Jet_eta"
+	                         ,    "Jet_phi",   "Jet_mass","cTjer"
+				 ,"MET_pt"     ,"MET_phi","MET_sumEt"})
 	.Define("cmet__pt",LVex<ROOT::Math::PtEtaPhiEVector>(pt ),{"CmetLV"})
 	.Define("cmet_phi",LVex<ROOT::Math::PtEtaPhiEVector>(phi),{"CmetLV"})
 	.Define("cmet_sEt",LVex<ROOT::Math::PtEtaPhiEVector>( e ),{"CmetLV"})
@@ -1589,17 +1575,17 @@ void calchisto(const channel ch,const dataSource ds){
 	("cmet_sEt_"+temp_header).c_str(),
 	("cmet_sEt "+temp_header).c_str(),
 	50,0,300},"cmet_sEt");
-	h_cmet_sEt->GetXaxis()->SetTitle("corrected MET Sum Et GeV");
+	h_cmet_sEt->GetXaxis()->SetTitle("corrected MET Sum Et (GeV)");
 	h_cmet_sEt->GetYaxis()->SetTitle("Event");
 	h_cmet_sEt->SetLineStyle(kSolid);
 
-        auto h_cmet_pt = finalDF.Histo1D({
-        ("cmet_pt_"+temp_header).c_str(),
-        ("cmet_pt "+temp_header).c_str(),
-        50,0,300},"cmet__pt");
-        h_cmet_pt->GetXaxis()->SetTitle("corrected MET p_{T} (GeV/c)");
-        h_cmet_pt->GetYaxis()->SetTitle("Event");
-        h_cmet_pt->SetLineStyle(kSolid);
+	auto h_cmet__pt = finalDF.Histo1D({
+	("cmet__pt_"+temp_header).c_str(),
+	("cmet__pt "+temp_header).c_str(),
+	50,0,300},"cmet__pt");
+	h_cmet__pt->GetXaxis()->SetTitle("corrected MET p_{T} (GeV/c)");
+	h_cmet__pt->GetYaxis()->SetTitle("Event");
+	h_cmet__pt->SetLineStyle(kSolid);
 // end MC only
 
 	auto h_trans_T = finalDF.Histo1D({
@@ -1694,7 +1680,7 @@ void calchisto(const channel ch,const dataSource ds){
 		hf.WriteTObject(h_p_sfej               .GetPtr());hf.Flush();
 		hf.WriteTObject(h_btag_w               .GetPtr());hf.Flush();
 		hf.WriteTObject(h_cmet_sEt             .GetPtr());hf.Flush();
-                hf.WriteTObject(h_cmet_pt              .GetPtr());hf.Flush();
+		hf.WriteTObject(h_cmet__pt             .GetPtr());hf.Flush();
 		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());hf.Flush();
 		hf.WriteTObject(h_no_btag_numer_PtVsEta.GetPtr());hf.Flush();
 		hf.WriteTObject(h_is_btag_denom_PtVsEta.GetPtr());hf.Flush();
@@ -1787,18 +1773,17 @@ void calchisto(const channel ch,const dataSource ds){
 	("met_sEt_"+temp_header).c_str(),
 	("met_sEt "+temp_header).c_str(),
 	50,0,300},"MET_sumEt");
-	h_met_sEt->GetXaxis()->SetTitle("MET Sum Et GeV");
+	h_met_sEt->GetXaxis()->SetTitle("MET Sum Et (GeV)");
 	h_met_sEt->GetYaxis()->SetTitle("Event");
 	h_met_sEt->SetLineStyle(kSolid);
 
-        auto h_met_pt = finalDF.Histo1D({
-        ("met_pt_"+temp_header).c_str(),
-        ("met_pt "+temp_header).c_str(),
-        50,0,300},"MET_pt");
-        h_met_pt->GetXaxis()->SetTitle("MET p_{T} (GeV/c)");
-        h_met_pt->GetYaxis()->SetTitle("Event");
-        h_met_pt->SetLineStyle(kSolid);
-
+	auto h_met__pt = finalDF.Histo1D({
+	("met__pt_"+temp_header).c_str(),
+	("met__pt "+temp_header).c_str(),
+	50,0,300},"MET_pt");
+	h_met__pt->GetXaxis()->SetTitle("MET p_{T} (GeV/c)");
+	h_met__pt->GetYaxis()->SetTitle("Event");
+	h_met__pt->SetLineStyle(kSolid);
 
 	auto h_trans_T = finalDF.Histo1D({
 	(          "tTm_"     + temp_header).c_str(),
@@ -1884,7 +1869,7 @@ void calchisto(const channel ch,const dataSource ds){
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
 	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();
-	hf.WriteTObject(h_met_pt         .GetPtr());hf.Flush();
+	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();
 	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();
 	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();
 	hf.WriteTObject(h_Winvmas        .GetPtr());hf.Flush();
