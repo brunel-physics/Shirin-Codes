@@ -933,7 +933,7 @@ auto muEffGiver(
 	={{Id_N,1.},{Id_Y,1.},{Id_A,1.},{Id_T,1. },
 	  {IsoN,1.},{IsoY,1.},{IsoA,1.},{IsoT,1.}};
 	if(2<debug)std::cout<<"mu eff giver"<<std::endl;
-	if(20. <= pt && pt <= 120. && ata <= 2.4) return dict;
+	if(20. <= pt && pt <= 200. && ata <= 2.4) return dict;// 120
 	int PtBin,EtaBin;
 	 PtBin     = id_N->GetXaxis()->FindBin(pt );
 	EtaBin     = id_N->GetYaxis()->FindBin(ata);
@@ -1281,13 +1281,13 @@ void calchisto(const channel ch,const dataSource ds){
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
-/*	.Filter(triggers(ch),
+	.Filter(triggers(ch),
 		{ "HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
 		 ,"HLT_PFMET120_PFMHT120_IDTight"
 		 ,"HLT_IsoMu24_eta2p1"
 		},"Triggers Filter")
 	// lepton selection first
-*/	.Define("loose_leps",lep_sel(ch),{
+	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
 	       ,temp_header+"pt"
 	       ,temp_header+"eta"
