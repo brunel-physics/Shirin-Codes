@@ -35,7 +35,7 @@ int plotmc(){
 		case cms:{opener += "cms";break;}
 	}
 	hFd[std::make_pair(ch,ds)]
-		= new TFile(("histo/" + opener + ".root").c_str());
+		= new TFile(("histo/Result/" + opener + ".root").c_str());
 	}}// now we have a histogram file dictionary of all the files miahahaha
 	for(std::string sf:
 	{"sfi","sfj","p_ej","p_sfej","p_sf_i","btag_w"}){

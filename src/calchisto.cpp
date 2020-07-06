@@ -31,8 +31,8 @@ using strings = ROOT::VecOps::RVec<std::string>;
 namespace{
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM     = 1      ;
-  constexpr  float EL__PT_MIN     =  .0f   ;// TODO: plot -> pick
-  constexpr  float EL_LPT_MIN     =  .0f   ;// TODO: plot -> pick
+  constexpr  float EL__PT_MIN     =  15.f   ;// TODO: plot -> pick
+  constexpr  float EL_LPT_MIN     =  15.f   ;// TODO: plot -> pick
   constexpr  float EL_ETA_MAX     = 2.5f   ;
   constexpr    int EL_LOOSE_ID    = 1      ;
   constexpr    int EL_TIGHT_ID    = 4      ;
@@ -44,8 +44,8 @@ namespace{
   constexpr  float BARREL_DZ      =  .10f  ;
 
 //constexpr    int   MU_MAX_NUM   = 1   ;
-  constexpr  float   MU__PT_MIN   =  .0f;// TODO: plot -> pick
-  constexpr  float   MU_LPT_MIN   =  .0f;// TODO: plot -> pick
+  constexpr  float   MU__PT_MIN   =  15.f;// TODO: plot -> pick
+  constexpr  float   MU_LPT_MIN   =  15.f;// TODO: plot -> pick
   constexpr  float   MU_ETA_MAX   = 2.4f;
   constexpr  float   MU_LOOSE_ISO = .25f;
   constexpr  float   MU_TIGHT_ISO = .15f;
@@ -143,11 +143,11 @@ inline auto lep_sel(const channel ch){
 				&&      elids >= EL_LOOSE_ID
 			);
 			case munu:return ( true
-				&&   muids
-				&&   isPFs
-				&&     pts  >  MU__PT_MIN
-				&& abs_etas <  MU_ETA_MAX
-				&&     isos <= MU_LOOSE_ISO
+				&&     muids
+				&&     isPFs
+				&&       pts  >  MU__PT_MIN
+				&&  abs_etas  <  MU_ETA_MAX
+				&&      isos  <= MU_LOOSE_ISO
 			);
 			default  :throw std::invalid_argument(
 				"Unimplemented ch (lep_sel)");
@@ -939,7 +939,7 @@ auto muEffGiver(
 	std::map<muSf,double> dict
 	={{Id_N,1.},{Id_Y,1.},{Id_A,1.},{Id_T,1. },
 	  {IsoN,1.},{IsoY,1.},{IsoA,1.},{IsoT,1.}};
-	if(2<debug)std::cout<<"mu eff giver"<<std::endl;
+	//if(2<debug)std::cout<<"mu eff giver"<<std::endl;
 	if(20. <= pt && pt <= 200. && ata <= 2.4) return dict;// TODO: 120
 	int PtBin,EtaBin;
 	 PtBin     = id_N->GetXaxis()->FindBin(pt );
@@ -1126,7 +1126,7 @@ auto runLBfilter(
 }
 }// namespace
 void calchisto(const channel ch,const dataSource ds){
-	ROOT::EnableImplicitMT(2);// SYNC WITH CONDOR JOBS!
+	ROOT::EnableImplicitMT(8);// SYNC WITH CONDOR JOBS!
 	// Open LB file even if Monte Carlo will NOT use it
 	nlohmann::json JSONdict;
 	std::ifstream(// open this JSON file once as a stream
@@ -1383,6 +1383,8 @@ void calchisto(const channel ch,const dataSource ds){
 	       {"Jet_pt","Jet_eta","Jet_phi","Jet_mass","cjer"})
 	.Define("CmetLV",metCorrection,{"cTJer"
 	       ,"MET_pt"          ,"MET_phi","MET_sumEt"})
+	.Define("Px","cTJer.Px()")
+	.Define("Py","cTJer.Py()")
 	.Define("cmet__pt",LVex<ROOT::Math::PtEtaPhiEVector>(pt ),{"CmetLV"})
 	.Define("cmet_phi",LVex<ROOT::Math::PtEtaPhiEVector>(phi),{"CmetLV"})
 	.Define("cmet_sEt",LVex<ROOT::Math::PtEtaPhiEVector>( e ),{"CmetLV"})
@@ -1587,6 +1589,42 @@ void calchisto(const channel ch,const dataSource ds){
 	h_cmet__pt->GetXaxis()->SetTitle("corrected MET p_{T} (GeV/c)");
 	h_cmet__pt->GetYaxis()->SetTitle("Event");
 	h_cmet__pt->SetLineStyle(kSolid);
+	// The following two histograms check whether
+	// The correction is working finr or not
+        auto h_MET_sEt = finalDF.Histo1D({
+        ("MET_sEt_"+temp_header).c_str(),
+        ("MET_sEt "+temp_header).c_str(),
+        50,0,300},"MET_sumEt");
+        h_MET_sEt->GetXaxis()->SetTitle("MET Sum Et (GeV)");
+        h_MET_sEt->GetYaxis()->SetTitle("Event");
+        h_MET_sEt->SetLineStyle(kSolid);
+
+        auto h_MET__pt = finalDF.Histo1D({
+        ("MET__pt_"+temp_header).c_str(),
+        ("MET__pt "+temp_header).c_str(),
+        50,0,300},"MET_pt");
+        h_MET__pt->GetXaxis()->SetTitle("MET p_{T} (GeV/c)");
+        h_MET__pt->GetYaxis()->SetTitle("Event");
+        h_MET__pt->SetLineStyle(kSolid);
+
+        auto h_px = finalDF.Histo1D({
+        ("Px_"+temp_header).c_str(),
+        ("Px "+temp_header).c_str(),
+        50,0,300},"Px");
+        h_px->GetXaxis()->SetTitle("P_{x}");
+        h_px->GetYaxis()->SetTitle("Event");
+        h_px->SetLineStyle(kSolid);
+
+        auto h_py = finalDF.Histo1D({
+        ("Py_"+temp_header).c_str(),
+        ("Py "+temp_header).c_str(),
+        50,0,300},"Py");
+        h_py->GetXaxis()->SetTitle("P_{y}");
+        h_py->GetYaxis()->SetTitle("Event");
+        h_py->SetLineStyle(kSolid);
+
+
+
 // end MC only
 
 	auto h_trans_T = finalDF.Histo1D({
@@ -1682,6 +1720,10 @@ void calchisto(const channel ch,const dataSource ds){
 		hf.WriteTObject(h_btag_w               .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet_sEt             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet__pt             .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_MET_sEt              .GetPtr());hf.Flush();sync();
+                hf.WriteTObject(h_MET__pt              .GetPtr());hf.Flush();sync();
+                hf.WriteTObject(h_px                   .GetPtr());hf.Flush();sync();
+                hf.WriteTObject(h_py                   .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_no_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_is_btag_denom_PtVsEta.GetPtr());hf.Flush();sync();

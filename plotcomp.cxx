@@ -16,12 +16,12 @@ int plotcomp(){
 	std::map<std::pair<channel,dataSource>,TFile*> hFd;
 	for(channel ch:channelAll){
 	std::string chN;
-		switch     (ch){
+	switch     (ch){
 		case elnu:  {chN ="elnu_";break;}
 		case munu:  {chN ="munu_";break;}
 	}
 	for(dataSource ds:dataSourceAll){
-	if(ds == cms || ds == met || ds == ttb)continue;
+//	if (ttb == ds || met == ds || cms == ds) continue;
 	std::string  opener  =  chN ;
 	switch  (ds){
 		case tzq:{opener += "tzq";break;}
@@ -34,11 +34,10 @@ int plotcomp(){
 		case cms:{opener += "cms";break;}
 	}
 	hFd[std::make_pair(ch,ds)]
-		= new TFile(("histo/" + opener + ".root").c_str());
+		= new TFile(("histo/Result/" + opener + ".root").c_str());
 	}}// now we have a histogram file dictionary of all the files miahahaha
 	for(std::string particle:{"fin_jets","lep","bjet"}){
 	for(PtEtaPhiM k:PtEtaPhiMall){
-        if(ds == cms || ds == met || ds == ttb)continue;
 	if ( e == k ) continue;
 	std::string   kstring = "_", tkstr = " ", xAxisStr;
 	switch(k){
@@ -58,6 +57,7 @@ int plotcomp(){
 	          tkstr   += "mass";
 	          xAxisStr = "\\text{mass GeV/}c^{2}";
 	          break;}
+	case  e :throw std::logic_error("can't plot energy");
 	}
 	for(channel ch:channelAll){
 	std::string chN;
@@ -71,6 +71,7 @@ int plotcomp(){
 	canv.SetName(stname.c_str());canv.SetTitle(stname.c_str());
 	THStack stac(stname.c_str(),(title + tkstr).c_str());
 	for(dataSource ds:dataSourceAll){
+//	if (ttb == ds || met == ds || cms == ds) continue;
 	std::string  opener  = chN + "_";
 	int colour;
 	switch  (ds){
