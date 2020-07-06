@@ -104,17 +104,17 @@ constexpr elSf
 
 inline auto triggers(channel ch){
 	return [=](
-	 const bool el// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
+	 const bool el// HLT_Ele28_eta2p1_WPTight_Gsf_HT150->HLT_Ele27_WPTight_Gsf
 	,const bool nu// HLT_PFMET120_PFMHT120_IDTight
 	,const bool mu// HLT_IsoMu24_eta2p1
 ){
 	switch(ch){
-	case elnu:return ! nu;
-//	case elnu:return ! el;
+	case elnu:return  nu;
+//	case elnu:return  el;
 //	case elnu:return !(el | nu);
 //	case munu:return !(mu | nu);
-//	case munu:return ! mu;
-	case munu:return ! nu;
+//	case munu:return  mu;
+	case munu:return  nu;
 	}};
 }
 inline auto lep_sel(const channel ch){
@@ -940,7 +940,7 @@ auto muEffGiver(
 	={{Id_N,1.},{Id_Y,1.},{Id_A,1.},{Id_T,1. },
 	  {IsoN,1.},{IsoY,1.},{IsoA,1.},{IsoT,1.}};
 	//if(2<debug)std::cout<<"mu eff giver"<<std::endl;
-	if(20. <= pt && pt <= 200. && ata <= 2.4) return dict;// TODO: 120
+	//if(20. <= pt && pt <= 200. && ata <= 2.4) return dict;// TODO: 120
 	int PtBin,EtaBin;
 	 PtBin     = id_N->GetXaxis()->FindBin(pt );
 	EtaBin     = id_N->GetYaxis()->FindBin(ata);
@@ -1126,7 +1126,7 @@ auto runLBfilter(
 }
 }// namespace
 void calchisto(const channel ch,const dataSource ds){
-	ROOT::EnableImplicitMT(8);// SYNC WITH CONDOR JOBS!
+	ROOT::EnableImplicitMT(4);// SYNC WITH CONDOR JOBS!
 	// Open LB file even if Monte Carlo will NOT use it
 	nlohmann::json JSONdict;
 	std::ifstream(// open this JSON file once as a stream
@@ -1288,11 +1288,11 @@ void calchisto(const channel ch,const dataSource ds){
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
-	/*.Filter(triggers(ch),
-		{ "HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
+	.Filter(triggers(ch),
+		{ "HLT_Ele27_WPTight_Gsf"
 		 ,"HLT_PFMET120_PFMHT120_IDTight"
 		 ,"HLT_IsoMu24_eta2p1"
-		},"Triggers Filter")*/
+		},"Triggers Filter")
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
