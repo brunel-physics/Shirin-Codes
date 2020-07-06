@@ -9,9 +9,9 @@ enum      dataSource      {tzq,ww,wz,zz,ttb,ttz,met,cms};
 constexpr dataSource
           dataSourceAll[]={tzq,ww,wz,zz,ttb,ttz,met,cms};
 
-enum      PtEtaPhiM      {pt,eta,phi,m,e};
+enum      PtEtaPhiM      {pt,eta,phi,m};
 constexpr PtEtaPhiM
-          PtEtaPhiMall[]={pt,eta,phi,m,e};
+          PtEtaPhiMall[]={pt,eta,phi,m};
 
 void calchisto(const channel, const dataSource);
 

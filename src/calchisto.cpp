@@ -31,8 +31,8 @@ using strings = ROOT::VecOps::RVec<std::string>;
 namespace{
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM     = 1      ;
-  constexpr  float EL__PT_MIN     =  15.f   ;// TODO: plot -> pick
-  constexpr  float EL_LPT_MIN     =  15.f   ;// TODO: plot -> pick
+  constexpr  float EL__PT_MIN     = 15.f   ;// TODO: plot -> pick
+  constexpr  float EL_LPT_MIN     = 15.f   ;// TODO: plot -> pick
   constexpr  float EL_ETA_MAX     = 2.5f   ;
   constexpr    int EL_LOOSE_ID    = 1      ;
   constexpr    int EL_TIGHT_ID    = 4      ;
@@ -44,8 +44,8 @@ namespace{
   constexpr  float BARREL_DZ      =  .10f  ;
 
 //constexpr    int   MU_MAX_NUM   = 1   ;
-  constexpr  float   MU__PT_MIN   =  15.f;// TODO: plot -> pick
-  constexpr  float   MU_LPT_MIN   =  15.f;// TODO: plot -> pick
+  constexpr  float   MU__PT_MIN   = 15.f;// TODO: plot -> pick
+  constexpr  float   MU_LPT_MIN   = 15.f;// TODO: plot -> pick
   constexpr  float   MU_ETA_MAX   = 2.4f;
   constexpr  float   MU_LOOSE_ISO = .25f;
   constexpr  float   MU_TIGHT_ISO = .15f;
@@ -104,17 +104,17 @@ constexpr elSf
 
 inline auto triggers(channel ch){
 	return [=](
-	 const bool el// HLT_Ele28_eta2p1_WPTight_Gsf_HT150->HLT_Ele27_WPTight_Gsf
-	,const bool nu// HLT_PFMET120_PFMHT120_IDTight
+	 const bool el// HLT_Ele27_WPTight_Gsf
+	,const bool nu// HLT_MET105_IsoTrk50
 	,const bool mu// HLT_IsoMu24_eta2p1
 ){
 	switch(ch){
-	case elnu:return  nu;
+//	case elnu:return  nu;
 //	case elnu:return  el;
-//	case elnu:return !(el | nu);
-//	case munu:return !(mu | nu);
+	case elnu:return (el && nu);// !(el | nu);
+	case munu:return (mu && nu);// !(mu | nu);
 //	case munu:return  mu;
-	case munu:return  nu;
+//	case munu:return  nu;
 	}};
 }
 inline auto lep_sel(const channel ch){
@@ -143,11 +143,11 @@ inline auto lep_sel(const channel ch){
 				&&      elids >= EL_LOOSE_ID
 			);
 			case munu:return ( true
-				&&     muids
-				&&     isPFs
-				&&       pts  >  MU__PT_MIN
-				&&  abs_etas  <  MU_ETA_MAX
-				&&      isos  <= MU_LOOSE_ISO
+				&&   muids
+				&&   isPFs
+				&&     pts  >  MU__PT_MIN
+				&& abs_etas <  MU_ETA_MAX
+				&&     isos <= MU_LOOSE_ISO
 			);
 			default  :throw std::invalid_argument(
 				"Unimplemented ch (lep_sel)");
@@ -629,23 +629,6 @@ auto LVpairAdd(
 	p(pt__pair[1],eta_pair[1],phi_pair[1],mas_pair[1]);
 	return v+p;
 }
-template <typename T>
-auto LVex	 (const PtEtaPhiM comp){
-	return [=](const T &obj){
-		//if(0<debug) std::cout<<"LVex"<<std::endl;
-		double result;
-		switch(comp){
-			case  pt:{result = obj.Pt ();break;}
-			case eta:{result = obj.Eta();break;}
-			case phi:{result = obj.Phi();break;}
-			case  m :{result = obj. M ();break;}
-			case  e :{result = obj. E ();break;}
-//			default :throw std::invalid_argument(
-//				"LorentzVector extraction not recognised");
-		}
-		return result;
-	};
-}
 /*
 auto deltaphi_cut(const double    x){
       return  [=](const doubles& dps){
@@ -731,11 +714,11 @@ auto allReconstruction(T &rdf){
 	           "z_pair_eta"   ,
 	           "z_pair_phi"   ,
 	           "z_pair_mas"  })
-	.Define(   "z_mas"        ,LVex<ROOT::Math::PtEtaPhiMVector>( m ),{"z_LV"})
+	.Define(   "z_mas"        ,"z_LV. M ()")
 //	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut")
-	.Define(   "z__pt"        ,LVex<ROOT::Math::PtEtaPhiMVector>(pt ),{"z_LV"})
-	.Define(   "z_eta"        ,LVex<ROOT::Math::PtEtaPhiMVector>(eta),{"z_LV"})
-	.Define(   "z_phi"        ,LVex<ROOT::Math::PtEtaPhiMVector>(phi),{"z_LV"})
+	.Define(   "z__pt"        ,"z_LV.Pt ()")
+	.Define(   "z_eta"        ,"z_LV.Eta()")
+	.Define(   "z_phi"        ,"z_LV.Phi()")
 	.Define(   "z_lep_min_dR" , jet_lep_min_deltaR,// TODO: Check input?
 	       {   "z_pair_eta"   ,
 	           "z_pair_phi"   ,
@@ -761,10 +744,11 @@ auto allReconstruction(T &rdf){
 	      "tw_lep_eta",
 	      "tw_lep_phi",
 	      "tw_lep_mas"})
-	.Define("ttop__pt",LVex<ROOT::Math::PtEtaPhiMVector>(pt ),{"recoTtop"})
-	.Define("ttop_eta",LVex<ROOT::Math::PtEtaPhiMVector>(eta),{"recoTtop"})
-	.Define("ttop_phi",LVex<ROOT::Math::PtEtaPhiMVector>(phi),{"recoTtop"})
-	.Define("ttop_mas",LVex<ROOT::Math::PtEtaPhiMVector>( m ),{"recoTtop"})
+	.Define("ttop__pt","recoTtop.Pt ()")
+	.Define("ttop_eta","recoTtop.Eta()")
+	.Define("ttop_phi","recoTtop.Phi()")
+	.Define("ttop_mas","recoTtop. M ()")
+	//.Filter("ttop_mas > 1.","tTm tiny mass filter")
 	;
 }
 // Btagging for eff i and eff j
@@ -939,8 +923,8 @@ auto muEffGiver(
 	std::map<muSf,double> dict
 	={{Id_N,1.},{Id_Y,1.},{Id_A,1.},{Id_T,1. },
 	  {IsoN,1.},{IsoY,1.},{IsoA,1.},{IsoT,1.}};
-	//if(2<debug)std::cout<<"mu eff giver"<<std::endl;
-	//if(20. <= pt && pt <= 200. && ata <= 2.4) return dict;// TODO: 120
+	if(2<debug)std::cout<<"mu eff giver"<<std::endl;
+	if(pt < 20 || pt > 120 || ata > 2.4) return dict;
 	int PtBin,EtaBin;
 	 PtBin     = id_N->GetXaxis()->FindBin(pt );
 	EtaBin     = id_N->GetYaxis()->FindBin(ata);
@@ -1289,8 +1273,8 @@ void calchisto(const channel ch,const dataSource ds){
 //	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
 	.Filter(triggers(ch),
-		{ "HLT_Ele27_WPTight_Gsf"
-		 ,"HLT_PFMET120_PFMHT120_IDTight"
+		{ "HLT_Ele27_WPTight_Gsf"//"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
+		 ,"HLT_MET105_IsoTrk50"//"HLT_PFMET120_PFMHT120_IDTight"
 		 ,"HLT_IsoMu24_eta2p1"
 		},"Triggers Filter")
 	// lepton selection first
@@ -1383,11 +1367,11 @@ void calchisto(const channel ch,const dataSource ds){
 	       {"Jet_pt","Jet_eta","Jet_phi","Jet_mass","cjer"})
 	.Define("CmetLV",metCorrection,{"cTJer"
 	       ,"MET_pt"          ,"MET_phi","MET_sumEt"})
-	.Define("Px","cTJer.Px()")
-	.Define("Py","cTJer.Py()")
-	.Define("cmet__pt",LVex<ROOT::Math::PtEtaPhiEVector>(pt ),{"CmetLV"})
-	.Define("cmet_phi",LVex<ROOT::Math::PtEtaPhiEVector>(phi),{"CmetLV"})
-	.Define("cmet_sEt",LVex<ROOT::Math::PtEtaPhiEVector>( e ),{"CmetLV"})
+	.Define("cmet_dpx","cTJer .Px ()")
+	.Define("cmet_dpy","cTJer .Py ()")
+	.Define("cmet__pt","CmetLV.Pt ()")
+	.Define("cmet_phi","CmetLV.Phi()")
+	.Define("cmet_sEt","CmetLV. E ()")
 	// fin = final; Monte Carlo needs JEC
 	.Define("fin_jets__pt","                        (cjer * Jet_pt  )[tight_jets] ")
 	.Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta  [tight_jets])")
@@ -1577,7 +1561,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_cmet_sEt = finalDF.Histo1D({
 	("cmet_sEt_"+temp_header).c_str(),
 	("cmet_sEt "+temp_header).c_str(),
-	50,0,300},"cmet_sEt");
+	100,0,600},"cmet_sEt");
 	h_cmet_sEt->GetXaxis()->SetTitle("corrected MET Sum Et (GeV)");
 	h_cmet_sEt->GetYaxis()->SetTitle("Event");
 	h_cmet_sEt->SetLineStyle(kSolid);
@@ -1589,43 +1573,39 @@ void calchisto(const channel ch,const dataSource ds){
 	h_cmet__pt->GetXaxis()->SetTitle("corrected MET p_{T} (GeV/c)");
 	h_cmet__pt->GetYaxis()->SetTitle("Event");
 	h_cmet__pt->SetLineStyle(kSolid);
-	// The following two histograms check whether
-	// The correction is working finr or not
-        auto h_MET_sEt = finalDF.Histo1D({
-        ("MET_sEt_"+temp_header).c_str(),
-        ("MET_sEt "+temp_header).c_str(),
-        50,0,300},"MET_sumEt");
-        h_MET_sEt->GetXaxis()->SetTitle("MET Sum Et (GeV)");
-        h_MET_sEt->GetYaxis()->SetTitle("Event");
-        h_MET_sEt->SetLineStyle(kSolid);
 
-        auto h_MET__pt = finalDF.Histo1D({
-        ("MET__pt_"+temp_header).c_str(),
-        ("MET__pt "+temp_header).c_str(),
-        50,0,300},"MET_pt");
-        h_MET__pt->GetXaxis()->SetTitle("MET p_{T} (GeV/c)");
-        h_MET__pt->GetYaxis()->SetTitle("Event");
-        h_MET__pt->SetLineStyle(kSolid);
+	auto h_cmet_dpx = finalDF.Histo1D({
+	("cmet_dpx_"+temp_header).c_str(),
+	("cmet_dpx "+temp_header).c_str(),
+	100,-300,300},"cmet_dpx");
+	h_cmet_dpx->GetXaxis()->SetTitle("MET correction p_{x} (GeV/c)");
+	h_cmet_dpx->GetYaxis()->SetTitle("Event");
+	h_cmet_dpx->SetLineStyle(kSolid);
 
-        auto h_px = finalDF.Histo1D({
-        ("Px_"+temp_header).c_str(),
-        ("Px "+temp_header).c_str(),
-        50,0,300},"Px");
-        h_px->GetXaxis()->SetTitle("P_{x}");
-        h_px->GetYaxis()->SetTitle("Event");
-        h_px->SetLineStyle(kSolid);
-
-        auto h_py = finalDF.Histo1D({
-        ("Py_"+temp_header).c_str(),
-        ("Py "+temp_header).c_str(),
-        50,0,300},"Py");
-        h_py->GetXaxis()->SetTitle("P_{y}");
-        h_py->GetYaxis()->SetTitle("Event");
-        h_py->SetLineStyle(kSolid);
-
-
-
+	auto h_cmet_dpy = finalDF.Histo1D({
+	("cmet_dpy_"+temp_header).c_str(),
+	("cmet_dpy "+temp_header).c_str(),
+	100,-300,300},"cmet_dpy");
+	h_cmet_dpy->GetXaxis()->SetTitle("MET correction p_{y} (GeV/c)");
+	h_cmet_dpy->GetYaxis()->SetTitle("Event");
+	h_cmet_dpy->SetLineStyle(kSolid);
 // end MC only
+
+	auto h_met_sEt = finalDF.Histo1D({
+	("met_sEt_"+temp_header).c_str(),
+	("met_sEt "+temp_header).c_str(),
+	100,0,600},"MET_sumEt");
+	h_met_sEt->GetXaxis()->SetTitle("MET Sum Et (GeV)");
+	h_met_sEt->GetYaxis()->SetTitle("Event");
+	h_met_sEt->SetLineStyle(kSolid);
+
+	auto h_met__pt = finalDF.Histo1D({
+	("met__pt_"+temp_header).c_str(),
+	("met__pt "+temp_header).c_str(),
+	50,0,300},"MET_pt");
+	h_met__pt->GetXaxis()->SetTitle("MET p_{T} (GeV/c)");
+	h_met__pt->GetYaxis()->SetTitle("Event");
+	h_met__pt->SetLineStyle(kSolid);
 
 	auto h_trans_T = finalDF.Histo1D({
 	(          "tTm_"     + temp_header).c_str(),
@@ -1720,17 +1700,17 @@ void calchisto(const channel ch,const dataSource ds){
 		hf.WriteTObject(h_btag_w               .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet_sEt             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet__pt             .GetPtr());hf.Flush();sync();
-		hf.WriteTObject(h_MET_sEt              .GetPtr());hf.Flush();sync();
-                hf.WriteTObject(h_MET__pt              .GetPtr());hf.Flush();sync();
-                hf.WriteTObject(h_px                   .GetPtr());hf.Flush();sync();
-                hf.WriteTObject(h_py                   .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_cmet_dpx             .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_cmet_dpy             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_no_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_is_btag_denom_PtVsEta.GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_no_btag_denom_PtVsEta.GetPtr());hf.Flush();sync();
 		hf.WriteTObject(is_btag_ratio)                   ;hf.Flush();sync();
 		hf.WriteTObject(no_btag_ratio)                   ;hf.Flush();sync();
-// end MC only; ADD MET_sumEt!
+// end MC only;
+	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_Winvmas        .GetPtr());hf.Flush();sync();
@@ -1743,7 +1723,7 @@ void calchisto(const channel ch,const dataSource ds){
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
-		if( e == k ) continue;
+//		if( e == k ) continue;
 		std::string  kstring  = "_";
 		std::string  xAxisStr;
 		double xmin,xmax;
@@ -1756,7 +1736,7 @@ void calchisto(const channel ch,const dataSource ds){
 			          xAxisStr = "Azimuthal angle #phi/rad";break;}
 			case  m :{kstring += "mas";xmin =  0;xmax = 200;
 			          xAxisStr = "\\text{mass GeV/}c^{2}"  ;break;}
-			case  e :
+//			case  e :
 			default :throw std::invalid_argument(
 				"Unimplemented component (histo)");
 		}
@@ -1810,12 +1790,12 @@ void calchisto(const channel ch,const dataSource ds){
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,// unused but send pile
 	     not_btag_eff )
 	;
-	// Copied from earlier, delete MC-only, ADD MET_sumEt!
+	// Copied from earlier, delete MC-only!
 	// Assuming temp_header and footer and all are set per (hist titles)!
 	auto h_met_sEt = finalDF.Histo1D({
 	("met_sEt_"+temp_header).c_str(),
 	("met_sEt "+temp_header).c_str(),
-	50,0,300},"MET_sumEt");
+	100,0,600},"MET_sumEt");
 	h_met_sEt->GetXaxis()->SetTitle("MET Sum Et (GeV)");
 	h_met_sEt->GetYaxis()->SetTitle("Event");
 	h_met_sEt->SetLineStyle(kSolid);
@@ -1925,7 +1905,7 @@ void calchisto(const channel ch,const dataSource ds){
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
-		if( e == k ) continue;
+//		if( e == k ) continue;
 		std::string  kstring  = "_";
 		std::string  xAxisStr;
 		double xmin,xmax;
@@ -1938,7 +1918,7 @@ void calchisto(const channel ch,const dataSource ds){
 			          xAxisStr = "Azimuthal angle #phi/rad";break;}
 			case  m :{kstring += "mas";xmin =  0;xmax = 200;
 			          xAxisStr = "\\text{mass GeV/}c^{2}"  ;break;}
-			case  e :
+//			case  e :
 			default :throw std::invalid_argument(
 				"Unimplemented component (histo)");
 		}
