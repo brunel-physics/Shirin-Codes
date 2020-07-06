@@ -1288,11 +1288,11 @@ void calchisto(const channel ch,const dataSource ds){
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
-	.Filter(triggers(ch),
+	/*.Filter(triggers(ch),
 		{ "HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
 		 ,"HLT_PFMET120_PFMHT120_IDTight"
 		 ,"HLT_IsoMu24_eta2p1"
-		},"Triggers Filter")
+		},"Triggers Filter")*/
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
