@@ -105,16 +105,16 @@ constexpr elSf
 inline auto triggers(channel ch){
 	return [=](
 	 const bool el// HLT_Ele27_WPTight_Gsf
-	,const bool nu// HLT_MET105_IsoTrk50
+	,const bool nu// HLT_PFMET110_PFMHT110_IDTight
 	,const bool mu// HLT_IsoMu24_eta2p1
 ){
 	switch(ch){
-//	case elnu:return  nu;
+	case elnu:return  nu;
 //	case elnu:return  el;
-	case elnu:return (el && nu);// !(el | nu);
-	case munu:return (mu && nu);// !(mu | nu);
+//	case elnu:return (el && nu);// !(el | nu);
+//	case munu:return (mu && nu);// !(mu | nu);
 //	case munu:return  mu;
-//	case munu:return  nu;
+	case munu:return  nu;
 	}};
 }
 inline auto lep_sel(const channel ch){
@@ -1274,7 +1274,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto init_selection = df// remove one letter to do all
 	.Filter(triggers(ch),
 		{ "HLT_Ele27_WPTight_Gsf"//"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
-		 ,"HLT_MET105_IsoTrk50"//"HLT_PFMET120_PFMHT120_IDTight"
+		 ,"HLT_PFMET110_PFMHT110_IDTight"//"HLT_PFMET120_PFMHT120_IDTight"
 		 ,"HLT_IsoMu24_eta2p1"
 		},"Triggers Filter")
 	// lepton selection first
