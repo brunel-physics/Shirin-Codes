@@ -1,5 +1,5 @@
 
-// TODO:: PILE UP NEEDS TO BE IMPLEMENTED WITHOUT ANY OTHER SF ONLY FOR MC (ttz)
+// TODO:: PILE UP NEEDS TO BE IMPLEMENTED WITHOUT ANY OTHER SF ONLY FOR MC (ttb)
 // TODO:: APPLY LEP JET min Dr as a filter aswell
 
 
@@ -253,7 +253,7 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// tzq and exptData use disk3!
-	case ttz:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
+	case ttb:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
 	case cms:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}// CMS and MET MUST do some OPENABLE file ; reject later
@@ -358,7 +358,7 @@ int main ( int argc , char *argv[] ){
 		return 3 ;
 	}
 	     if ( const auto dsN = std::string_view( argv[3] ) ;
-	else if ( "ttz"  ==  dsN ) d = ttz ;
+	else if ( "ttb"  ==  dsN ) d = ttb ;
 	else if ( "cms"  ==  dsN ) d = cms ;
 	else { std::cout << "Error: data source " << dsN
 		<< " not recognised" << std::endl ;
