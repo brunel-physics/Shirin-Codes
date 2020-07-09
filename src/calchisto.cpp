@@ -31,8 +31,7 @@ using strings = ROOT::VecOps::RVec<std::string>;
 namespace{
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM     = 1      ;
-  constexpr  float EL__PT_MIN     = 15.f   ;// TODO: plot -> pick
-  constexpr  float EL_LPT_MIN     = 15.f   ;// TODO: plot -> pick
+  constexpr  float EL__PT_MIN     = 30.f   ;
   constexpr  float EL_ETA_MAX     = 2.5f   ;
   constexpr    int EL_LOOSE_ID    = 1      ;
   constexpr    int EL_TIGHT_ID    = 4      ;
@@ -44,8 +43,7 @@ namespace{
   constexpr  float BARREL_DZ      =  .10f  ;
 
 //constexpr    int   MU_MAX_NUM   = 1   ;
-  constexpr  float   MU__PT_MIN   = 15.f;// TODO: plot -> pick
-  constexpr  float   MU_LPT_MIN   = 15.f;// TODO: plot -> pick
+  constexpr  float   MU__PT_MIN   = 29.f;
   constexpr  float   MU_ETA_MAX   = 2.4f;
   constexpr  float   MU_LOOSE_ISO = .25f;
   constexpr  float   MU_TIGHT_ISO = .15f;
@@ -104,17 +102,18 @@ constexpr elSf
 
 inline auto triggers(channel ch){
 	return [=](
-	 const bool el// HLT_Ele27_WPTight_Gsf
-	,const bool nu// HLT_PFMET110_PFMHT110_IDTight
-	,const bool mu// HLT_IsoMu24_eta2p1
+	 const bool el  // HLT_Ele32_WPTight_Gsf_L1DoubleEG
+	,const bool enu// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
+	,const bool jt  // HLT_PFHT180
+	,const bool mu  // HLT_IsoMu27
 ){
 	switch(ch){
-	case elnu:return  nu;
 //	case elnu:return  el;
-//	case elnu:return (el && nu);// !(el | nu);
-//	case munu:return (mu && nu);// !(mu | nu);
+//	case elnu:return  enu;
+//	case munu:return (mu && jt);
 //	case munu:return  mu;
-	case munu:return  nu;
+	case elnu:return  jt;
+	case munu:return  jt;
 	}};
 }
 inline auto lep_sel(const channel ch){
@@ -155,11 +154,9 @@ inline auto lep_sel(const channel ch){
 	};
 }
 inline auto lep_tight_cut(const channel ch){
-	return [=](
-		 const floats& pt
-		,const   ints& mask
-		,const   ints& elids
-		,const floats& isos
+	return [=](const   ints& mask
+		  ,const   ints& elids
+		  ,const floats& isos
 	){
 // TODO: In the case we want 1 loose lepton, comment the 4 NOTE lines below
 		bool result;
@@ -167,12 +164,10 @@ inline auto lep_tight_cut(const channel ch){
 		 else if(ch==elnu){
 			ints   temp = elids[mask];
 			result = temp.size() == 1;// Choosing 1 Tight Lepton
-			result = result && pt[mask][0] >= EL_LPT_MIN  ;// NOTE
 			result = result &&    temp [0] >= EL_TIGHT_ID ;// NOTE
 		}else if(ch==munu){
 			floats temp = isos[mask];
 			result = temp.size() == 1;
-			result = result && pt[mask][0] >= MU_LPT_MIN  ;// NOTE
 			result = result &&    temp [0] <= MU_TIGHT_ISO;// NOTE
 		}else{throw std::invalid_argument(
 			"Unimplemented ch (lep_tight_cut)");}
@@ -748,7 +743,7 @@ auto allReconstruction(T &rdf){
 	.Define("ttop_eta","recoTtop.Eta()")
 	.Define("ttop_phi","recoTtop.Phi()")
 	.Define("ttop_mas","recoTtop. M ()")
-	//.Filter("ttop_mas > 1.","tTm tiny mass filter")
+	.Filter("ttop_mas > 1.","tTm tiny mass filter")
 	;
 }
 // Btagging for eff i and eff j
@@ -1272,11 +1267,12 @@ void calchisto(const channel ch,const dataSource ds){
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
-	.Filter(triggers(ch),
-		{ "HLT_Ele27_WPTight_Gsf"//"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
-		 ,"HLT_PFMET110_PFMHT110_IDTight"//"HLT_PFMET120_PFMHT120_IDTight"
-		 ,"HLT_IsoMu24_eta2p1"
-		},"Triggers Filter")
+/*	.Filter(triggers(ch),
+		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"//"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
+		 ,"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"//"HLT_PFMET120_PFMHT120_IDTight"
+		 ,"HLT_PFJet15"
+		 ,"HLT_IsoMu27"
+		},"Triggers Filter")*/
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
@@ -1288,7 +1284,7 @@ void calchisto(const channel ch,const dataSource ds){
 	       ,temp_header+"dxy"
 	       ,temp_header+"dz"
 	       })
-	.Filter(lep_tight_cut(ch),{temp_header+"pt","loose_leps",
+	.Filter(lep_tight_cut(ch),{"loose_leps",
 	        "Electron_cutBased",// edit function for  tight -> loose
 	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 tight lepton
 	// B for Bare, Before muon RoccoR; only pt mass scales, eta phi untouched
