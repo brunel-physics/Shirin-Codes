@@ -6,8 +6,10 @@
 //clang++ -Isrc -std=c++17 -march=native -pipe -Ofast -Wall -Wextra -Wpedantic -o build/cht src/cht.cxx build/eval_complex.o `root-config --libs` -lm
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <TRandom3.h>// used Gaussian, uniform each once
+#include <TChain.h>
 
 #include "csv.h"
+#include "json.hpp"
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
 
@@ -225,6 +227,7 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 	// we now have one single copy of a wonderfully clean dictionary
 	// now we repeat for some other files
 	// pile up
+	TFile *tF ;TH1D* t1d;
 	tF = TFile::Open("aux/pileupMC.root");// denom because wrong
 	tF ->GetObject("pileup",t1d);t1d->SetDirectory(nullptr);
 	t1d->Scale(1.0/t1d->Integral());
@@ -298,12 +301,6 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 //	auto dfr = df.Range(10000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
 	// lepton selection first
-/*	.Filter(triggers(ch),
-	{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"//"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
-	 ,"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"//"HLT_PFMET120_PFMHT120_IDTight"
-	 ,"HLT_PFJet15"
-	 ,"HLT_IsoMu27"
-	},"Triggers Filter")*/
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),
 	       {temp_header+"isPFcand",
@@ -329,12 +326,20 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 	    " || Flag_ecalBadCalibFilter"// TODO: v2?
 	    " || Flag_eeBadScFilter"
 	       ,"Event Cleaning filter")
-	}
-}else{
+/*      .Filter(triggers(ch),
+        { "HLT_Ele32_WPTight_Gsf_L1DoubleEG"//"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
+         ,"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"//"HLT_PFMET120_PFMHT120_IDTight"
+         ,"HLT_PFJet15"
+         ,"HLT_IsoMu27"
+        },"Triggers Filter")*/
+	.Report()
+	;
+	}else{
 auto CMS_df = reco
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 	        "LuminosityBlock filter")
 }
+	init_selection->Print();
 int main ( int argc , char *argv[] ){
 	if ( argc < 2 ) {
 		std::cout << "Error: no command provided" << std::endl ;
