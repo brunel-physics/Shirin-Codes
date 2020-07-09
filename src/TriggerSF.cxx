@@ -62,7 +62,6 @@ template <typename T> constexpr T  PI = T(3.141592653589793238462643383279502884
 template <typename T> constexpr T TPI = PI<T> * 2;
 
 enum      puSf      {puW,upW,dnW};
-
 inline auto triggers(channel ch){
 	return [=](
 	 const bool el  // HLT_Ele32_WPTight_Gsf_L1DoubleEG
@@ -179,50 +178,125 @@ inline auto pile(
 		<<dict[puW]<<" "<<dict[upW]<<" "<<dict[dnW]<<std::endl;
 	return dict;};
 }
-auto event_cleaning(
-const bool Flag_goodVertices,
-const bool Flag_globalSuperTightHalo2016Filter,
-const bool Flag_HBHENoiseFilter,
-const bool Flag_HBHENoiseIsoFilter,
-const bool Flag_EcalDeadCellTriggerPrimitiveFilter,
-const bool Flag_BadPFMuonFilter,
-const bool Flag_BadChargedCandidateFilter,
-const bool Flag_ecalBadCalibFilter,
-const bool Flag_eeBadScFilter
+
+inline auto sf(
+	 const  dataSource    ds
+	,const TH1D* const &PuWd
+	,const TH1D* const &PuUd
+	,const TH1D* const &PuDd
+){
+	if(0<debug) std::cout<<"scale factor "<<std::endl;
+	return [=](const    int npv
 	){
-	return
-		   Flag_goodVertices
-		|| Flag_globalSuperTightHalo2016Filter
-		|| Flag_HBHENoiseFilter
-		|| Flag_HBHENoiseIsoFilter
-		|| Flag_EcalDeadCellTriggerPrimitiveFilter
-		|| Flag_BadPFMuonFilter
-		|| Flag_BadChargedCandidateFilter
-		|| Flag_ecalBadCalibFilter
-		|| Flag_eeBadScFilter
-	;
+		// TODO: trigger efficiency
+		double result=1;
+		bool MC = true;
+		if(MC) result *= pile(PuWd,PuUd,PuDd)(npv)[puW];
+		return result;
+	};
 }
+auto runLBfilter(
+	const std::map<size_t,std::vector<std::pair<size_t,size_t>>>
+	&runLBdict
+){
+	return [&](const unsigned int run,const unsigned int LB){
+		auto search =  runLBdict.find(run);
+		if(  search == runLBdict.cend()) return false;// Not Found TODO: true?
+		if(std::any_of(search->second.cbegin(),
+		               search->second.  cend(),
+		               [LB](std::pair<size_t,size_t> p)
+		               {return p.first <= LB && LB <= p.second;}))
+		     return  true;
+		else return false;
+	};
+}
+
 }// namespace
-void cht ( const channel ch , const dataSource ds ){
+void TriggerSF ( const channel ch , const dataSource ds ){
+	ROOT::EnableImplicitMT(4);// SYNC WITH CONDOR JOBS!
+	// Open LB file even if Monte Carlo will NOT use it
+	nlohmann::json JSONdict;
+	std::ifstream(// open this JSON file once as a stream
+	"aux/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt")
+	>> JSONdict;// and read into this json object, then fix type of key
+	std::map<size_t,std::vector<std::pair<size_t,size_t>>> runLBdict;
+	for(const auto& [key,value] : JSONdict.items())
+		runLBdict.emplace(std::stoi(key),value);// key:string->size_t
+	// we now have one single copy of a wonderfully clean dictionary
+	// now we repeat for some other files
+	// pile up
+	tF = TFile::Open("aux/pileupMC.root");// denom because wrong
+	tF ->GetObject("pileup",t1d);t1d->SetDirectory(nullptr);
+	t1d->Scale(1.0/t1d->Integral());
+	const TH1D* const PuDe = static_cast<TH1D*>(t1d);
+	tF ->Close();
+	tF = TFile::Open("aux/truePileupTest.root");
+	tF ->GetObject("pileup",t1d);t1d->SetDirectory(nullptr);
+	t1d->Scale(1.0/t1d->Integral());
+	t1d->Divide(PuDe);
+	const TH1D* const PuWd = static_cast<TH1D*>(t1d);
+	tF ->Close();
+	tF = TFile::Open("aux/truePileupUp.root");
+	tF ->GetObject("pileup",t1d);t1d->SetDirectory(nullptr);
+	t1d->Scale(1.0/t1d->Integral());
+	t1d->Divide(PuDe);
+	const TH1D* const PuUd = static_cast<TH1D*>(t1d);
+	tF ->Close();
+	tF = TFile::Open("aux/truePileupDown.root");
+	tF ->GetObject("pileup",t1d);t1d->SetDirectory(nullptr);
+	t1d->Scale(1.0/t1d->Integral());
+	t1d->Divide(PuDe);
+	const TH1D* const PuDd = static_cast<TH1D*>(t1d);
+	tF ->Close();
+	tF= nullptr;t1d = nullptr;
+
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// tzq and exptData use disk3!
-	case ttz:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
-	case cms:{temp_opener=temp_header+ "ttZToQQ"       +temp_footer;break;}
+	case ttz:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
+	case cms:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}// CMS and MET MUST do some OPENABLE file ; reject later
+	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
+	// Open chains of exptData EVEN IF UNUSED
+	TChain elnuCMS("Events");
+	TChain munuCMS("Events");
+	temp_footer = "/*.root" ;/* safety redefinition now saving us */
+	temp_header =
+		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_Run";
+	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
+		temp_opener=temp_header+ c +temp_footer;
+		elnuCMS.Add(temp_opener. c_str());
+	}
+	temp_header="/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_Run";
+	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
+		temp_opener=temp_header+ c +temp_footer;
+		munuCMS.Add(temp_opener. c_str());
+	}
+	ROOT::RDataFrame  elnudf(elnuCMS);
+	ROOT::RDataFrame  munudf(munuCMS);
+	auto df = [&,ch,ds](){// Get correct data frame
+		switch(ds){
+			case ttb:{           return mc__df;break;}
+			case cms:{switch(ch){// MC is already false
+			          case elnu:{return elnudf;break;}
+			          case munu:{return munudf;break;}
+			          default  :throw std::invalid_argument(
+				"Unimplemented ch (rdf set)");
+				}break;}
+			default :throw std::invalid_argument(
+				"Unimplemented ds (rdf set)");
+		}
+	}();
 	switch(ch){
 		case elnu:{temp_header = "Electron_";break;}
 		case munu:{temp_header =     "Muon_";break;}
 //		default  :throw std::invalid_argument(
 //			"Unimplemented ch (init)");
 	}
-	ROOT::EnableImplicitMT();
-	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
-	auto df  = mc__df ;
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(10000);// remember to enable MT when NOT range
-	auto reco = df// remove one letter to do all
+	auto init_selection = df// remove one letter to do all
 	// lepton selection first
 /*	.Filter(triggers(ch),
 	{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"//"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
@@ -244,29 +318,22 @@ void cht ( const channel ch , const dataSource ds ){
 	// jets selection follows; tW done and lepton selected
 	.Define("jet_lep_min_dR"   , jet_lep_min_deltaR<floats>,
 	       {"Jet_eta","Jet_phi",    "lep_eta" ,"lep_phi"})
-	.Filter(event_cleaning,{
-	        "Flag_goodVertices",
-	        "Flag_globalSuperTightHalo2016Filter",
-	        "Flag_HBHENoiseFilter",
-	        "Flag_HBHENoiseIsoFilter",
-	        "Flag_EcalDeadCellTriggerPrimitiveFilter",
-	        "Flag_BadPFMuonFilter",
-	        "Flag_BadChargedCandidateFilter",
-	        "Flag_ecalBadCalibFilter",// TODO: v2?
-	        "Flag_eeBadScFilter"
-	       },
-	        "Event Cleaning filter")
-	;
-	// now we make the histogram names and titles
-	switch(ch){// laugh at muon-neutrino below
-		case elnu:{temp_header = "elnu_";
-		           temp_footer = "electron-neutrino";break;}
-		case munu:{temp_header = "munu_";
-		           temp_footer = "muon"  "-neutrino";break;}
-//		default  :throw std::invalid_argument(
-//			"Unimplemented ch (hist titles)");
+	.Define("sf",sf(ds,PuWd,PuUd,PuDd),{"PV_npvs"})
+	.Filter("Flag_goodVertices"
+	    " || Flag_globalSuperTightHalo2016Filter"
+	    " || Flag_HBHENoiseFilter"
+	    " || Flag_HBHENoiseIsoFilter"
+	    " || Flag_EcalDeadCellTriggerPrimitiveFilter"
+	    " || Flag_BadPFMuonFilter"
+	    " || Flag_BadChargedCandidateFilter"
+	    " || Flag_ecalBadCalibFilter"// TODO: v2?
+	    " || Flag_eeBadScFilter"
+	       ,"Event Cleaning filter")
 	}
-	}
+}else{
+auto CMS_df = reco
+	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
+	        "LuminosityBlock filter")
 }
 int main ( int argc , char *argv[] ){
 	if ( argc < 2 ) {
