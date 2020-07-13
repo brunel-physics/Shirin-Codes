@@ -97,10 +97,10 @@ inline auto triggers(channel ch){
 	,[[maybe_unused]] const bool mu// HLT_IsoMu27
 ){
 	switch(ch){
-//	case elnu:return el;
-	case elnu:return en;// el && jt
-	case munu:return (mu && jt);
-//	case munu:return mu;
+	case elnu:return el;
+//	case elnu:return en;// el && jt
+//	case munu:return (mu && jt);
+	case munu:return mu;
 //	case elnu:return jt;
 //	case munu:return jt;
 	}};
@@ -344,7 +344,7 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 	}
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(10000);// remember to enable MT when NOT range
-	auto init_selection = df// remove one letter to do all
+	auto tight = df// remove one letter to do all
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
@@ -359,6 +359,9 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 	.Filter(lep_tight_cut(ch),{temp_header+"pt","loose_leps",
 	        "Electron_cutBased",// edit function for  tight -> loose
 	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 tight lepton
+	;
+	auto ltrig = tight
+	.Define("lep__pt","static_cast<double>("+temp_header+  "pt[loose_leps][0])")
 	.Define("lep_eta","static_cast<double>("+temp_header+ "eta[loose_leps][0])")
 	.Define("lep_phi","static_cast<double>("+temp_header+ "phi[loose_leps][0])")
 	// jets selection follows; lepton selected
@@ -385,18 +388,36 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 		},"Triggers Filter")
 	;
 	if(MC){
-	auto ttb_df = init_selection
+	auto ttb_df = ltrig
 	.Report()
 	;
 	ttb_df->Print();
 	}else{
-	auto CMS_df = init_selection
+	auto CMS_df = ltrig
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 	        "LuminosityBlock filter")
 	.Report()
 	;
 	CMS_df->Print();
 	}
+	temp_header = ch +"_"+ds;
+	TFile tsf(("histo/" + "tsfl_"+temp_header+".root").c_str(),"RECREATE");
+
+	auto origiPt = df.Histo1D({
+	(        "origPt_"  + temp_header).c_str(),
+	("Original P{t} "   + temp_header).c_str(),
+	50,0,400},"lep__pt");
+	auto tightPt = tight.Histo1D({
+        (        "tightPt_"  + temp_header).c_str(),
+        ("tight P{t} "   + temp_header).c_str(),
+        50,0,400},"lep__pt");
+	auto ltrigPt = df.Histo1D({
+        (        "ltrigPt_"  + temp_header).c_str(),
+        ("ltrig P{t} "   + temp_header).c_str(),
+        50,0,400},"lep__pt");
+	tsf.WriteTObject(origiPt               .GetPtr());tsf.Flush();sync();
+	tsf.WriteTObject(tightPt               .GetPtr());tsf.Flush();sync();
+	tsf.WriteTObject(ltrigPt               .GetPtr());tsf.Flush();sync();
 }
 int main ( int argc , char *argv[] ){
 	if ( argc < 2 ) {
