@@ -7,7 +7,6 @@
 
 #include "csv.h"
 #include "json.hpp"
-#include "calchisto.hpp"
 
 using doubles = ROOT::VecOps::RVec<double>;
 using  floats = ROOT::VecOps::RVec<float>;
@@ -16,6 +15,8 @@ using   bools = ROOT::VecOps::RVec<bool>;
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
+enum dataSource  { ttb,cms };
+enum channel     {elnu,munu};
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM     = 1      ;
   constexpr  float EL__PT_MIN     = 15.f   ;// TODO: plot -> pick
@@ -68,9 +69,9 @@ namespace{
 
   constexpr double          TZQ_W =  .0128;
   constexpr double       WWLNQQ_W = 2.1740;
-  constexpr double       WZLNQQ_W =  .2335;
+  constexpr double       WZLNQQ_W =  .2335;*/
   constexpr double        TTBLV_W = 1.3791;
-  constexpr double        TTZQQ_W =  .0237;
+/*constexpr double        TTZQQ_W =  .0237;
   constexpr double       ZZLLQQ_W =  .0485;
 */
 // This Pi is more accurate than binary256; good for eternity
@@ -89,20 +90,25 @@ constexpr elSf
           elSfAll[]={Eff,Smr};
 */
 
-inline auto triggers(channel ch){
+inline auto ltriggers(channel ch){
 	return [=](
-	 [[maybe_unused]] const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG
-	,[[maybe_unused]] const bool en// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
-	,[[maybe_unused]] const bool jt// HLT_PFHT180
-	,[[maybe_unused]] const bool mu// HLT_IsoMu27
+	 const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG
+	,const bool mu// HLT_IsoMu27
 ){
 	switch(ch){
-//	case elnu:return el;
+	case elnu:return el;
+	case munu:return mu;
+	}};
+}
+inline auto xtriggers(channel ch){
+	return [=](
+	 const bool en// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
+	,const bool jt// HLT_PFHT180
+	,const bool mu// HLT_IsoMu27
+){
+	switch(ch){
 	case elnu:return en;// el && jt
-	case munu:return (mu && jt);
-//	case munu:return mu;
-//	case elnu:return jt;
-//	case munu:return jt;
+	case munu:return mu && jt;
 	}};
 }
 inline auto lep_sel(const channel ch){
@@ -238,7 +244,7 @@ inline auto sf(
 	){
 		// TODO: trigger efficiency
 		double result  = 1;
-		if(MC) result *= pile(PuWd,PuUd,PuDd)(npv)[puW];
+		if(MC) result *= TTBLV_W * pile(PuWd,PuUd,PuDd)(npv)[puW];
 		return result;
 	};
 }
@@ -259,7 +265,7 @@ auto runLBfilter(
 }
 
 }// namespace
-void TriggerSF ( const channel ch , const dataSource ds ){
+void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	// Open LB file even if Monte Carlo will NOT use it
 	nlohmann::json JSONdict;
 	std::ifstream(// open this JSON file once as a stream
@@ -295,7 +301,7 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 	t1d->Divide(PuDe);
 	const TH1D* const PuDd = static_cast<TH1D*>(t1d);
 	tF ->Close();
-	tF= nullptr;t1d = nullptr;
+	tF = nullptr;t1d = nullptr;
 
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
@@ -322,7 +328,7 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 	}
 	ROOT::RDataFrame  elnudf(elnuCMS);
 	ROOT::RDataFrame  munudf(munuCMS);
-	const bool MC = !(met == ds || cms == ds);
+	const bool MC = ttb == ds;
 	auto df = [&,ch,ds](){// Get correct data frame
 		switch(ds){
 			case ttb:{           return mc__df;break;}
@@ -344,7 +350,22 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 	}
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(10000);// remember to enable MT when NOT range
-	auto tight = df// remove one letter to do all
+	auto origi = df// toggle one letter to do all
+	.Define("lep__pt","static_cast<double>("+temp_header+  "pt[loose_leps][0])")
+	;
+	auto clean = origi
+	.Filter("Flag_goodVertices"
+	    " || Flag_globalSuperTightHalo2016Filter"
+	    " || Flag_HBHENoiseFilter"
+	    " || Flag_HBHENoiseIsoFilter"
+	    " || Flag_EcalDeadCellTriggerPrimitiveFilter"
+	    " || Flag_BadPFMuonFilter"
+	    " || Flag_BadChargedCandidateFilter"
+	    " || Flag_ecalBadCalibFilter"// TODO: v2?
+	    " || Flag_eeBadScFilter"
+	       ,"Event Cleaning filter")
+	;
+	auto tight = clean
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
@@ -359,9 +380,6 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 	.Filter(lep_tight_cut(ch),{temp_header+"pt","loose_leps",
 	        "Electron_cutBased",// edit function for  tight -> loose
 	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 tight lepton
-	;
-	auto ltrig = tight
-	.Define("lep__pt","static_cast<double>("+temp_header+  "pt[loose_leps][0])")
 	.Define("lep_eta","static_cast<double>("+temp_header+ "eta[loose_leps][0])")
 	.Define("lep_phi","static_cast<double>("+temp_header+ "phi[loose_leps][0])")
 	// jets selection follows; lepton selected
@@ -370,67 +388,88 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 	.Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
 	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
 	.Define("sf",sf(MC,PuWd,PuUd,PuDd),{"PV_npvs"})
-	.Filter("Flag_goodVertices"
-	    " || Flag_globalSuperTightHalo2016Filter"
-	    " || Flag_HBHENoiseFilter"
-	    " || Flag_HBHENoiseIsoFilter"
-	    " || Flag_EcalDeadCellTriggerPrimitiveFilter"
-	    " || Flag_BadPFMuonFilter"
-	    " || Flag_BadChargedCandidateFilter"
-	    " || Flag_ecalBadCalibFilter"// TODO: v2?
-	    " || Flag_eeBadScFilter"
-	       ,"Event Cleaning filter")
-	.Filter(triggers(ch),
+	;
+	auto ltrig = tight
+	.Filter(ltriggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"//"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
-		 ,"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"//"HLT_PFMET120_PFMHT120_IDTight"
+		 ,"HLT_IsoMu27"
+		},"Lepton Triggers Filter")
+	;
+	auto xtrig = tight
+	.Filter(xtriggers(ch),
+		{ "HLT_Ele28_eta2p1_WPTight_Gsf_HT150"//"HLT_PFMET120_PFMHT120_IDTight"
 		 ,"HLT_PFHT180"
 		 ,"HLT_IsoMu27"
-		},"Triggers Filter")
+		},"Cross Triggers Filter")
 	;
 	if(MC){
-	auto ttb_df = ltrig
-	.Report()
-	;
+	switch(b)
+	{case 'l':{
+	auto ttb_df = ltrig.Report();
 	ttb_df->Print();
+	}case 'x':{
+	auto ttb_df = xtrig.Report();
+	ttb_df->Print();
+	}default:throw std::logic_error("Only L or C triggers please");}
 	}else{
+	switch(b)
+	{case 'l':{
 	auto CMS_df = ltrig
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 	        "LuminosityBlock filter")
 	.Report()
 	;
 	CMS_df->Print();
+	}case 'x':{
+	auto CMS_df = xtrig
+	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
+	        "LuminosityBlock filter")
+	.Report()
+	;
+	CMS_df->Print();
+	}default:throw std::logic_error("Only L or C triggers please");}
 	}
-        for(channel ch:channelAll){
-        std::string chN;
-        switch     (ch){
-                case elnu:  {chN ="elnu_";break;}
-                case munu:  {chN ="munu_";break;}
-        }
-	for(dataSource ds:dataSourceAll){
-//      if (ttb == ds || met == ds || cms == ds)continue;
-        std::string  opener  =  chN ;
-        switch  (ds){
-                case ttb:{opener += "tzq";break;}
-                case cms:{opener += "cms";break;}
+	std::string opener(1,b); opener.reserve(10);
+	switch(ch){
+	case elnu:{opener += "_elnu_";break;}
+	case munu:{opener += "_munu_";break;}
 	}
-	TFile tsf(("histo/tsfc_"+chN+opener+".root").c_str(),"RECREATE");
-
-	/*auto origiPt = df.Histo1D({
-	(        "origPt_"  + temp_header).c_str(),
-	("Original P{t} "   + temp_header).c_str(),
+	switch(ds){
+	case  ttb:{opener += "ttb";break;}
+	case  cms:{opener += "cms";break;}
+	}
+	TFile tsf(("histo/tsf"+opener+".root").c_str(),"RECREATE");
+	auto origiPt =    df.Histo1D({
+	    "origiPt"       ,
+	    "Original P_{T}",
+	50,0,400},"lep__pt");
+	auto cleanPt = clean.Histo1D({
+	    "cleanPt"       ,
+	    "Cleaned P_{T}" ,
 	50,0,400},"lep__pt");
 	auto tightPt = tight.Histo1D({
-        (        "tightPt_"  + temp_header).c_str(),
-        ("tight P{t} "   + temp_header).c_str(),
-        50,0,400},"lep__pt");*/
-	auto xtrigPt = df.Histo1D({
-        (        "ltrigPt_"  + temp_header).c_str(),
-        ("ltrig P{t} "   + temp_header).c_str(),
-        50,0,400},"lep__pt");
-	/*tsf.WriteTObject(origiPt               .GetPtr());tsf.Flush();sync();
-	tsf.WriteTObject(tightPt               .GetPtr());tsf.Flush();sync();*/
-	tsf.WriteTObject(xtrigPt               .GetPtr());tsf.Flush();sync();
-	}}
+	    "tightPt"       ,
+	    "tight P_{T} "  ,
+	50,0,400},"lep__pt" ,"sf");
+	tsf.WriteTObject(origiPt.GetPtr());tsf.Flush();sync();
+	tsf.WriteTObject(cleanPt.GetPtr());tsf.Flush();sync();
+	tsf.WriteTObject(tightPt.GetPtr());tsf.Flush();sync();
+	switch(b)
+	{case 'l':{
+	auto triggPt = ltrig.Histo1D({
+	   "ltrigPt"            ,
+	"Lepton trigger P_{T} " ,
+	50,0,400},"lep__pt"     ,"sf");
+	tsf.WriteTObject(triggPt.GetPtr());tsf.Flush();sync();
+	}case 'x':{
+	auto triggPt = xtrig.Histo1D({
+	   "xtrigPt"            ,
+	 "Cross trigger P_{T} " ,
+	50,0,400},"lep__pt"     ,"sf");
+	tsf.WriteTObject(triggPt.GetPtr());tsf.Flush();sync();
+	}default:throw std::logic_error("Only L or C triggers please");}
+	tsf.Close();
+	std::cout << "TriggerSF completed successfully" << std::endl;
 }
 int main ( int argc , char *argv[] ){
 	if ( argc < 2 ) {
@@ -439,14 +478,14 @@ int main ( int argc , char *argv[] ){
 	}
 	if ( argc < 3 ) {
 		   std::cout
-		<< "Error: tsf needs channel and data source"
+		<< "Error: tsf needs channel and data source+L or C (for cross trigger)"
 		<< std::endl
-		<< "e.g.   tsf elnu ttb"
+		<< "e.g.   tsf elnu ttbL"
 		<< std::endl
 		;
 		return 2 ;
 	}
-	channel c ; dataSource d ;
+	channel c ; dataSource d ; char b ;
 	     if ( const auto chN = std::string_view( argv[1] ) ; false ) ;
 	else if ( "elnu"  == chN ) c = elnu ;
 	else if ( "munu"  == chN ) c = munu ;
@@ -455,12 +494,14 @@ int main ( int argc , char *argv[] ){
 		return 3 ;
 	}
 	     if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
-	else if ( "ttb"  ==  dsN ) d = ttb ;
-	else if ( "cms"  ==  dsN ) d = cms ;
+	else if ( "ttbL"  ==  dsN ){ d = ttb ; b = 'l' ; }
+	else if ( "ttbC"  ==  dsN ){ d = ttb ; b = 'x' ; }
+	else if ( "cmsL"  ==  dsN ){ d = cms ; b = 'l' ; }
+	else if ( "cmsC"  ==  dsN ){ d = cms ; b = 'x' ; }
 	else { std::cout << "Error: data source " << dsN
 		<< " not recognised" << std::endl ;
 		return 4 ;
 	}
-		TriggerSF(c,d) ;
+		TriggerSF(c,d,b) ;
 		return 0 ;
 }
