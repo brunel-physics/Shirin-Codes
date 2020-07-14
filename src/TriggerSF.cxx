@@ -158,12 +158,12 @@ inline auto lep_tight_cut(const channel ch){
 // TODO: In the case we want 1 loose lepton, comment the 4 NOTE lines below
 		bool result;
 		 if(false) ;
-		 else if(ch==elnu){
+		 else if(elnu==ch){
 			ints   temp = elids[mask];
 			result = temp.size() == 1;// Choosing 1 Tight Lepton
 			result = result && pt[mask][0] >= EL_LPT_MIN  ;// NOTE
 			result = result &&    temp [0] >= EL_TIGHT_ID ;// NOTE
-		}else if(ch==munu){
+		}else if(munu==ch){
 			floats temp = isos[mask];
 			result = temp.size() == 1;
 			result = result && pt[mask][0] >= MU_LPT_MIN  ;// NOTE
@@ -351,7 +351,7 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(10000);// remember to enable MT when NOT range
 	auto origi = df// toggle one letter to do all
-	.Define("lep__pt","static_cast<double>("+temp_header+  "pt[loose_leps][0])")
+	.Define("lep_pts","static_cast<ROOT::RVec<double>>("+temp_header+"pt)")
 	;
 	auto clean = origi
 	.Filter("Flag_goodVertices"
@@ -380,6 +380,7 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	.Filter(lep_tight_cut(ch),{temp_header+"pt","loose_leps",
 	        "Electron_cutBased",// edit function for  tight -> loose
 	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 tight lepton
+	.Define("lep__pt","static_cast<double>("+temp_header+  "pt[loose_leps][0])")
 	.Define("lep_eta","static_cast<double>("+temp_header+ "eta[loose_leps][0])")
 	.Define("lep_phi","static_cast<double>("+temp_header+ "phi[loose_leps][0])")
 	// jets selection follows; lepton selected
@@ -442,14 +443,14 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	auto origiPt =    df.Histo1D({
 	    "origiPt"       ,
 	    "Original P_{T}",
-	50,0,400},"lep__pt");
+	50,0,400},"lep_pts");
 	auto cleanPt = clean.Histo1D({
 	    "cleanPt"       ,
 	    "Cleaned P_{T}" ,
-	50,0,400},"lep__pt");
+	50,0,400},"lep_pts");
 	auto tightPt = tight.Histo1D({
 	    "tightPt"       ,
-	    "tight P_{T} "  ,
+	    "Tight P_{T} "  ,
 	50,0,400},"lep__pt" ,"sf");
 	tsf.WriteTObject(origiPt.GetPtr());tsf.Flush();sync();
 	tsf.WriteTObject(cleanPt.GetPtr());tsf.Flush();sync();
@@ -494,10 +495,10 @@ int main ( int argc , char *argv[] ){
 		return 3 ;
 	}
 	     if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
-	else if ( "ttbL"  ==  dsN ){ d = ttb ; b = 'l' ; }
-	else if ( "ttbC"  ==  dsN ){ d = ttb ; b = 'x' ; }
-	else if ( "cmsL"  ==  dsN ){ d = cms ; b = 'l' ; }
-	else if ( "cmsC"  ==  dsN ){ d = cms ; b = 'x' ; }
+	else if ( "ttbL" ==  dsN ){ d = ttb ; b = 'l' ; }
+	else if ( "ttbC" ==  dsN ){ d = ttb ; b = 'x' ; }
+	else if ( "cmsL" ==  dsN ){ d = cms ; b = 'l' ; }
+	else if ( "cmsC" ==  dsN ){ d = cms ; b = 'x' ; }
 	else { std::cout << "Error: data source " << dsN
 		<< " not recognised" << std::endl ;
 		return 4 ;
