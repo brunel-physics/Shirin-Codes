@@ -408,9 +408,11 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	{case 'l':{
 	auto ttb_df = ltrig.Report();
 	ttb_df->Print();
+	break;
 	}case 'x':{
 	auto ttb_df = xtrig.Report();
 	ttb_df->Print();
+	break;
 	}default:throw std::logic_error("Only L or C triggers please");}
 	}else{
 	switch(b)
@@ -421,6 +423,7 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	.Report()
 	;
 	CMS_df->Print();
+	break;
 	}case 'x':{
 	auto CMS_df = xtrig
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
@@ -428,6 +431,7 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	.Report()
 	;
 	CMS_df->Print();
+	break;
 	}default:throw std::logic_error("Only L or C triggers please");}
 	}
 	std::string opener(1,b); opener.reserve(10);
@@ -462,12 +466,14 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	"Lepton trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject(triggPt.GetPtr());tsf.Flush();sync();
+	break;
 	}case 'x':{
 	auto triggPt = xtrig.Histo1D({
 	   "xtrigPt"            ,
 	 "Cross trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject(triggPt.GetPtr());tsf.Flush();sync();
+	break;
 	}default:throw std::logic_error("Only L or C triggers please");}
 	tsf.Close();
 	std::cout << "TriggerSF completed successfully" << std::endl;
