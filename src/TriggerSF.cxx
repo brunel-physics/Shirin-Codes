@@ -97,10 +97,10 @@ inline auto triggers(channel ch){
 	,[[maybe_unused]] const bool mu// HLT_IsoMu27
 ){
 	switch(ch){
-	case elnu:return el;
-//	case elnu:return en;// el && jt
-//	case munu:return (mu && jt);
-	case munu:return mu;
+//	case elnu:return el;
+	case elnu:return en;// el && jt
+	case munu:return (mu && jt);
+//	case munu:return mu;
 //	case elnu:return jt;
 //	case munu:return jt;
 	}};
@@ -400,24 +400,37 @@ void TriggerSF ( const channel ch , const dataSource ds ){
 	;
 	CMS_df->Print();
 	}
-	temp_header = ch +"_"+ds;
-	TFile tsf(("histo/" + "tsfl_"+temp_header+".root").c_str(),"RECREATE");
+        for(channel ch:channelAll){
+        std::string chN;
+        switch     (ch){
+                case elnu:  {chN ="elnu_";break;}
+                case munu:  {chN ="munu_";break;}
+        }
+	for(dataSource ds:dataSourceAll){
+//      if (ttb == ds || met == ds || cms == ds)continue;
+        std::string  opener  =  chN ;
+        switch  (ds){
+                case ttb:{opener += "tzq";break;}
+                case cms:{opener += "cms";break;}
+	}
+	TFile tsf(("histo/tsfc_"+chN+opener+".root").c_str(),"RECREATE");
 
-	auto origiPt = df.Histo1D({
+	/*auto origiPt = df.Histo1D({
 	(        "origPt_"  + temp_header).c_str(),
 	("Original P{t} "   + temp_header).c_str(),
 	50,0,400},"lep__pt");
 	auto tightPt = tight.Histo1D({
         (        "tightPt_"  + temp_header).c_str(),
         ("tight P{t} "   + temp_header).c_str(),
-        50,0,400},"lep__pt");
-	auto ltrigPt = df.Histo1D({
+        50,0,400},"lep__pt");*/
+	auto xtrigPt = df.Histo1D({
         (        "ltrigPt_"  + temp_header).c_str(),
         ("ltrig P{t} "   + temp_header).c_str(),
         50,0,400},"lep__pt");
-	tsf.WriteTObject(origiPt               .GetPtr());tsf.Flush();sync();
-	tsf.WriteTObject(tightPt               .GetPtr());tsf.Flush();sync();
-	tsf.WriteTObject(ltrigPt               .GetPtr());tsf.Flush();sync();
+	/*tsf.WriteTObject(origiPt               .GetPtr());tsf.Flush();sync();
+	tsf.WriteTObject(tightPt               .GetPtr());tsf.Flush();sync();*/
+	tsf.WriteTObject(xtrigPt               .GetPtr());tsf.Flush();sync();
+	}}
 }
 int main ( int argc , char *argv[] ){
 	if ( argc < 2 ) {
