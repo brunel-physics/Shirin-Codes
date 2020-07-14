@@ -401,50 +401,19 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 		{ "HLT_Ele28_eta2p1_WPTight_Gsf_HT150"//"HLT_PFMET120_PFMHT120_IDTight"
 		 ,"HLT_PFHT180"
 		 ,"HLT_IsoMu27"
-		},"Cross Triggers Filter")
+		}," Cross Triggers Filter")
 	;
-	if(MC){
-	switch(b)
-	{case 'l':{
-	auto ttb_df = ltrig.Report();
-	ttb_df->Print();
-	break;
-	}case 'x':{
-	auto ttb_df = xtrig.Report();
-	ttb_df->Print();
-	break;
-	}default:throw std::logic_error("Only L or C triggers please");}
-	}else{
-	switch(b)
-	{case 'l':{
-	auto CMS_df = ltrig
-	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
-	        "LuminosityBlock filter")
-	.Report()
-	;
-	CMS_df->Print();
-	break;
-	}case 'x':{
-	auto CMS_df = xtrig
-	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
-	        "LuminosityBlock filter")
-	.Report()
-	;
-	CMS_df->Print();
-	break;
-	}default:throw std::logic_error("Only L or C triggers please");}
-	}
 	std::string opener(1,b); opener.reserve(10);
 	switch(ch){
 	case elnu:{opener += "_elnu_";break;}
 	case munu:{opener += "_munu_";break;}
 	}
 	switch(ds){
-	case  ttb:{opener += "ttb";break;}
-	case  cms:{opener += "cms";break;}
+	case  ttb:{opener += "ttb"   ;break;}
+	case  cms:{opener += "cms"   ;break;}
 	}
 	TFile tsf(("histo/tsf"+opener+".root").c_str(),"RECREATE");
-	auto origiPt =    df.Histo1D({
+	auto origiPt = origi.Histo1D({
 	    "origiPt"       ,
 	    "Original P_{T}",
 	50,0,400},"lep_pts");
@@ -461,21 +430,46 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	tsf.WriteTObject(tightPt.GetPtr());tsf.Flush();sync();
 	switch(b)
 	{case 'l':{
-	auto triggPt = ltrig.Histo1D({
-	   "ltrigPt"            ,
+	if(MC){
+	ltrig.Report() ->Print();
+	auto  trigPt = ltrig.Histo1D({
+	    "ltrigPt"           ,
 	"Lepton trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
-	tsf.WriteTObject(triggPt.GetPtr());tsf.Flush();sync();
-	break;
-	}case 'x':{
-	auto triggPt = xtrig.Histo1D({
-	   "xtrigPt"            ,
-	 "Cross trigger P_{T} " ,
+	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
+	}else{
+	auto   CMSdf = ltrig
+	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
+	       "LuminosityBlock filter")
+	;
+	CMSdf.Report() ->Print();
+	auto  trigPt = CMSdf.Histo1D({
+	    "ltrigPt"           ,
+	"Lepton trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
-	tsf.WriteTObject(triggPt.GetPtr());tsf.Flush();sync();
-	break;
+	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
+	}break;
+	}case 'x':{
+	if(MC){
+	xtrig.Report() ->Print();
+	auto  trigPt = xtrig.Histo1D({
+	    "xtrigPt"           ,
+	" Cross trigger P_{T} " ,
+	50,0,400},"lep__pt"     ,"sf");
+	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
+	}else{
+	auto   CMSdf = xtrig
+	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
+	       "LuminosityBlock filter")
+	;
+	CMSdf.Report() ->Print();
+	auto  trigPt = CMSdf.Histo1D({
+	    "xtrigPt"           ,
+	" Cross trigger P_{T} " ,
+	50,0,400},"lep__pt"     ,"sf");
+	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
+	}break;
 	}default:throw std::logic_error("Only L or C triggers please");}
-	tsf.Close();
 	std::cout << "TriggerSF completed successfully" << std::endl;
 }
 int main ( int argc , char *argv[] ){
