@@ -395,7 +395,7 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	auto Ttrig = tight
 	.Filter(Ttriggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf"
-		  "HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
+		 ,"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
 		 ,"HLT_IsoMu24_eta2p1"
 		 ,"HLT_IsoMu27"
 		},"Tag Triggers Filter")
