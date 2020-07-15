@@ -1,6 +1,6 @@
-// TODO:: APPLY LEP JET min Dr as a filter as well
-
 //clang++ -Isrc -std=c++17 -march=native -pipe -Ofast -Wall -Wextra -Wpedantic -o build/tsf src/TriggerSF.cxx `root-config --libs` -lm
+
+
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <TRandom3.h>// used Gaussian, uniform each once
 #include <TChain.h>
@@ -19,8 +19,7 @@ enum dataSource  { ttb,cms };
 enum channel     {elnu,munu};
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM     = 1      ;
-  constexpr  float EL__PT_MIN     = 15.f   ;// TODO: plot -> pick
-  constexpr  float EL_LPT_MIN     = 15.f   ;// TODO: plot -> pick
+  constexpr  float EL__PT_MIN     = 35.f   ;
   constexpr  float EL_ETA_MAX     = 2.5f   ;
   constexpr    int EL_LOOSE_ID    = 1      ;
   constexpr    int EL_TIGHT_ID    = 4      ;
@@ -32,8 +31,7 @@ enum channel     {elnu,munu};
   constexpr  float BARREL_DZ      =  .10f  ;
 
 //constexpr    int   MU_MAX_NUM   = 1   ;
-  constexpr  float   MU__PT_MIN   = 15.f;// TODO: plot -> pick
-  constexpr  float   MU_LPT_MIN   = 15.f;// TODO: plot -> pick
+  constexpr  float   MU__PT_MIN   = 29.f;
   constexpr  float   MU_ETA_MAX   = 2.4f;
   constexpr  float   MU_LOOSE_ISO = .25f;
   constexpr  float   MU_TIGHT_ISO = .15f;
@@ -90,9 +88,9 @@ constexpr elSf
           elSfAll[]={Eff,Smr};
 */
 
-inline auto ltriggers(channel ch){
+inline auto Ptriggers(channel ch){
 	return [=](
-	 const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG
+	 const bool el// HLT_Ele32_WPTight_Gsf
 	,const bool mu// HLT_IsoMu27
 ){
 	switch(ch){
@@ -100,15 +98,16 @@ inline auto ltriggers(channel ch){
 	case munu:return mu;
 	}};
 }
-inline auto xtriggers(channel ch){
+inline auto Ttriggers(channel ch){
 	return [=](
-	 const bool en// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
-	,const bool jt// HLT_PFHT180
+	 const bool el// HLT_Ele32_WPTight_Gsf
+	,const bool en// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
+	,const bool mn// HLT_IsoMu24_eta2p1
 	,const bool mu// HLT_IsoMu27
 ){
 	switch(ch){
-	case elnu:return en;// el && jt
-	case munu:return mu && jt;
+	case elnu:return el && en;
+	case munu:return mu && mn;
 	}};
 }
 inline auto lep_sel(const channel ch){
@@ -150,8 +149,7 @@ inline auto lep_sel(const channel ch){
 }
 inline auto lep_tight_cut(const channel ch){
 	return [=](
-		 const floats& pt
-		,const   ints& mask
+		 const   ints& mask
 		,const   ints& elids
 		,const floats& isos
 	){
@@ -161,12 +159,10 @@ inline auto lep_tight_cut(const channel ch){
 		 else if(elnu==ch){
 			ints   temp = elids[mask];
 			result = temp.size() == 1;// Choosing 1 Tight Lepton
-			result = result && pt[mask][0] >= EL_LPT_MIN  ;// NOTE
 			result = result &&    temp [0] >= EL_TIGHT_ID ;// NOTE
 		}else if(munu==ch){
 			floats temp = isos[mask];
 			result = temp.size() == 1;
-			result = result && pt[mask][0] >= MU_LPT_MIN  ;// NOTE
 			result = result &&    temp [0] <= MU_TIGHT_ISO;// NOTE
 		}else{throw std::invalid_argument(
 			"Unimplemented ch (lep_tight_cut)");}
@@ -377,7 +373,7 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	       ,temp_header+"dxy"
 	       ,temp_header+"dz"
 	       })
-	.Filter(lep_tight_cut(ch),{temp_header+"pt","loose_leps",
+	.Filter(lep_tight_cut(ch),{"loose_leps",
 	        "Electron_cutBased",// edit function for  tight -> loose
 	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 tight lepton
 	.Define("lep__pt","static_cast<double>("+temp_header+  "pt[loose_leps][0])")
@@ -390,18 +386,19 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
 	.Define("sf",sf(MC,PuWd,PuUd,PuDd),{"PV_npvs"})
 	;
-	auto ltrig = tight
-	.Filter(ltriggers(ch),
-		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"//"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
+	auto Ptrig = tight
+	.Filter(Ptriggers(ch),
+		{ "HLT_Ele32_WPTight_Gsf"
 		 ,"HLT_IsoMu27"
-		},"Lepton Triggers Filter")
+		},"Probe Triggers Filter")
 	;
-	auto xtrig = tight
-	.Filter(xtriggers(ch),
-		{ "HLT_Ele28_eta2p1_WPTight_Gsf_HT150"//"HLT_PFMET120_PFMHT120_IDTight"
-		 ,"HLT_PFHT180"
+	auto Ttrig = tight
+	.Filter(Ttriggers(ch),
+		{ "HLT_Ele32_WPTight_Gsf"
+		  "HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
+		 ,"HLT_IsoMu24_eta2p1"
 		 ,"HLT_IsoMu27"
-		}," Cross Triggers Filter")
+		},"Tag Triggers Filter")
 	;
 	std::string opener(1,b); opener.reserve(10);
 	switch(ch){
@@ -431,41 +428,41 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	switch(b)
 	{case 'l':{
 	if(MC){
-	ltrig.Report() ->Print();
-	auto  trigPt = ltrig.Histo1D({
-	    "ltrigPt"           ,
-	"Lepton trigger P_{T} " ,
+	Ptrig.Report() ->Print();
+	auto  trigPt = Ptrig.Histo1D({
+	    "PtrigPt"           ,
+	"Probe trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
 	}else{
-	auto   CMSdf = ltrig
+	auto   CMSdf = Ptrig
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 	       "LuminosityBlock filter")
 	;
 	CMSdf.Report() ->Print();
 	auto  trigPt = CMSdf.Histo1D({
-	    "ltrigPt"           ,
-	"Lepton trigger P_{T} " ,
+	    "PtrigPt"           ,
+	"Probe trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
 	}break;
 	}case 'x':{
 	if(MC){
-	xtrig.Report() ->Print();
-	auto  trigPt = xtrig.Histo1D({
-	    "xtrigPt"           ,
-	" Cross trigger P_{T} " ,
+	Ttrig.Report() ->Print();
+	auto  trigPt = Ttrig.Histo1D({
+	    "TtrigPt"           ,
+	" Tag trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
 	}else{
-	auto   CMSdf = xtrig
+	auto   CMSdf = Ttrig
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 	       "LuminosityBlock filter")
 	;
 	CMSdf.Report() ->Print();
 	auto  trigPt = CMSdf.Histo1D({
-	    "xtrigPt"           ,
-	" Cross trigger P_{T} " ,
+	    "TtrigPt"           ,
+	" Tag trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
 	}break;

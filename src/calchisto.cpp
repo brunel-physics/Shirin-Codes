@@ -31,7 +31,7 @@ using strings = ROOT::VecOps::RVec<std::string>;
 namespace{
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM     = 1      ;
-  constexpr  float EL__PT_MIN     = 30.f   ;
+  constexpr  float EL__PT_MIN     = 35.f   ;
   constexpr  float EL_ETA_MAX     = 2.5f   ;
   constexpr    int EL_LOOSE_ID    = 1      ;
   constexpr    int EL_TIGHT_ID    = 4      ;
