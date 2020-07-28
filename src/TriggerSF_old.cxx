@@ -1,6 +1,6 @@
-//clang++ -Isrc -std=c++17 -march=native -pipe -Ofast -Wall -Wextra -Wpedantic -o build/tsf src/TriggerSF.cxx `root-config --libs` -lm
+// TODO:: APPLY LEP JET min Dr as a filter as well
 
-
+//clang++ -Isrc -std=c++17 -march=native -pipe -Ofast -Wall -Wextra -Wpedantic -o build/tsf_old src/TriggerSF_old.cxx `root-config --libs` -lm
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <TRandom3.h>// used Gaussian, uniform each once
 #include <TChain.h>
@@ -19,7 +19,7 @@ enum dataSource  { ttb,cms };
 enum channel     {elnu,munu};
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM     = 1      ;
-  constexpr  float EL__PT_MIN     = 35.f   ;
+  constexpr  float EL__PT_MIN     = 35.f   ;// TODO: plot -> pick
   constexpr  float EL_ETA_MAX     = 2.5f   ;
   constexpr    int EL_LOOSE_ID    = 1      ;
   constexpr    int EL_TIGHT_ID    = 4      ;
@@ -31,7 +31,7 @@ enum channel     {elnu,munu};
   constexpr  float BARREL_DZ      =  .10f  ;
 
 //constexpr    int   MU_MAX_NUM   = 1   ;
-  constexpr  float   MU__PT_MIN   = 29.f;
+  constexpr  float   MU__PT_MIN   = 29.f;// TODO: plot -> pick
   constexpr  float   MU_ETA_MAX   = 2.4f;
   constexpr  float   MU_LOOSE_ISO = .25f;
   constexpr  float   MU_TIGHT_ISO = .15f;
@@ -88,9 +88,9 @@ constexpr elSf
           elSfAll[]={Eff,Smr};
 */
 
-inline auto Ptriggers(channel ch){
+inline auto ltriggers(channel ch){
 	return [=](
-	 const bool el// HLT_Ele32_WPTight_Gsf
+	 const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG
 	,const bool mu// HLT_IsoMu27
 ){
 	switch(ch){
@@ -98,16 +98,15 @@ inline auto Ptriggers(channel ch){
 	case munu:return mu;
 	}};
 }
-inline auto Ttriggers(channel ch){
+inline auto xtriggers(channel ch){
 	return [=](
-	 const bool el// HLT_Ele32_WPTight_Gsf
-	,const bool en// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
-	,const bool mn// HLT_IsoMu24_eta2p1 or HLT_L1SingleMu25 && HLT IsoTkMu24
+	 const bool en// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
+	,const bool jt// HLT_PFHT180
 	,const bool mu// HLT_IsoMu27
 ){
 	switch(ch){
-	case elnu:return el && en;
-	case munu:return mu && mn;
+	case elnu:return en;// el && jt
+	case munu:return mu && jt;
 	}};
 }
 inline auto lep_sel(const channel ch){
@@ -261,7 +260,7 @@ auto runLBfilter(
 }
 
 }// namespace
-void TriggerSF ( const channel ch , const dataSource ds , const char b ){
+void TriggerSF_old ( const channel ch , const dataSource ds , const char b ){
 	// Open LB file even if Monte Carlo will NOT use it
 	nlohmann::json JSONdict;
 	std::ifstream(// open this JSON file once as a stream
@@ -312,16 +311,17 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	TChain munuCMS("Events");
 	temp_footer = "/*.root" ;/* safety redefinition now saving us */
 	temp_header =
-		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAODO2Apr2020_Run";
+		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD025Apr2020_Run";
 	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
 		elnuCMS.Add(temp_opener. c_str());
 	}
-	temp_header="/data/disk3/nanoAOD_2017/SingleMuon_NanoAODO2Apr2020_Run";
-	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
+	temp_header="/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD02Apr2020_Run";
+	for(std::string c:{"B","C","D","E"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
 		munuCMS.Add(temp_opener. c_str());
-	}
+	}// Need to Add run F fir single Muon
+	munuCMS.Add("/data/disk1/nanoAOD_2017/SingleMuon_NanoAOD02Apr2020_RunF/*.root");
 	ROOT::RDataFrame  elnudf(elnuCMS);
 	ROOT::RDataFrame  munudf(munuCMS);
 	const bool MC = ttb == ds;
@@ -386,19 +386,18 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
 	.Define("sf",sf(MC,PuWd,PuUd,PuDd),{"PV_npvs"})
 	;
-	auto Ptrig = tight
-	.Filter(Ptriggers(ch),
-		{ "HLT_Ele32_WPTight_Gsf"
+	auto ltrig = tight
+	.Filter(ltriggers(ch),
+		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"//"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
 		 ,"HLT_IsoMu27"
-		},"Probe Triggers Filter")
+		},"Lepton Triggers Filter")
 	;
-	auto Ttrig = tight
-	.Filter(Ttriggers(ch),
-		{ "HLT_Ele32_WPTight_Gsf"
-		 ,"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
-		 ,"HLT_IsoMu24_eta2p1"
+	auto xtrig = tight
+	.Filter(xtriggers(ch),
+		{ "HLT_Ele28_eta2p1_WPTight_Gsf_HT150"//"HLT_PFMET120_PFMHT120_IDTight"
+		 ,"HLT_PFHT180"
 		 ,"HLT_IsoMu27"
-		},"Tag Triggers Filter")
+		}," Cross Triggers Filter")
 	;
 	std::string opener(1,b); opener.reserve(10);
 	switch(ch){
@@ -409,7 +408,7 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	case  ttb:{opener += "ttb"   ;break;}
 	case  cms:{opener += "cms"   ;break;}
 	}
-	TFile tsf(("histo/tsf"+opener+".root").c_str(),"RECREATE");
+	TFile tsf(("histo/tsf_old_"+opener+".root").c_str(),"RECREATE");
 	auto origiPt = origi.Histo1D({
 	    "origiPt"       ,
 	    "Original P_{T}",
@@ -428,41 +427,41 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	switch(b)
 	{case 'l':{
 	if(MC){
-	Ptrig.Report() ->Print();
-	auto  trigPt = Ptrig.Histo1D({
-	    "PtrigPt"           ,
-	"Probe trigger P_{T} " ,
+	ltrig.Report() ->Print();
+	auto  trigPt = ltrig.Histo1D({
+	    "ltrigPt"           ,
+	"Lepton trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
 	}else{
-	auto   CMSdf = Ptrig
+	auto   CMSdf = ltrig
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 	       "LuminosityBlock filter")
 	;
 	CMSdf.Report() ->Print();
 	auto  trigPt = CMSdf.Histo1D({
-	    "PtrigPt"           ,
-	"Probe trigger P_{T} " ,
+	    "ltrigPt"           ,
+	"Lepton trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
 	}break;
 	}case 'x':{
 	if(MC){
-	Ttrig.Report() ->Print();
-	auto  trigPt = Ttrig.Histo1D({
-	    "TtrigPt"           ,
-	" Tag trigger P_{T} " ,
+	xtrig.Report() ->Print();
+	auto  trigPt = xtrig.Histo1D({
+	    "xtrigPt"           ,
+	" Cross trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
 	}else{
-	auto   CMSdf = Ttrig
+	auto   CMSdf = xtrig
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 	       "LuminosityBlock filter")
 	;
 	CMSdf.Report() ->Print();
 	auto  trigPt = CMSdf.Histo1D({
-	    "TtrigPt"           ,
-	" Tag trigger P_{T} " ,
+	    "xtrigPt"           ,
+	" Cross trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
 	}break;
@@ -500,6 +499,6 @@ int main ( int argc , char *argv[] ){
 		<< " not recognised" << std::endl ;
 		return 4 ;
 	}
-		TriggerSF(c,d,b) ;
+		TriggerSF_old(c,d,b) ;
 		return 0 ;
 }
