@@ -100,15 +100,11 @@ inline auto Ptriggers(channel ch){
 	case munu:return (mu1 || mu2) && mu3;
 	}};
 }
-inline auto Ttriggers(channel ch){
-	return [=](
-	const double twm// transverse W mass
-){
-	bool twm_cut;
+inline auto Ttriggers(const double twm){
+	bool twm_cut = false;
 	if(std::abs(twm - W_MASS) < W_MASS_CUT)twm_cut = true;
 	// keeping the mass within 20 GeV window.
 	return twm_cut;
-	};
 }
 inline auto lep_sel(const channel ch){
 	return [=](
@@ -412,7 +408,7 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 		},"Probe Triggers Filter")
 	;
 	auto Ttrig = tight
-	.Filter(Ttriggers(ch),
+	.Filter(Ttriggers,
 		{ "tw_lep_mas"
 		},"Tag Triggers Filter")
 	;
