@@ -15,7 +15,7 @@ using   bools = ROOT::VecOps::RVec<bool>;
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-enum dataSource  { ttb,cms };
+enum dataSource  { tzq,cms };
 enum channel     {elnu,munu};
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM     = 1      ;
@@ -64,12 +64,12 @@ enum channel     {elnu,munu};
 
   constexpr double    ak4RconeBy2 =  .2;
 //constexpr double    ak8RconeBy2 =  .4;
-
-  constexpr double          TZQ_W =  .0128;
+*/
+  constexpr double          TZQ_W =  .0128;/*/
   constexpr double       WWLNQQ_W = 2.1740;
   constexpr double       WZLNQQ_W =  .2335;*/
-  constexpr double        TTBLV_W = 1.3791;
-/*constexpr double        TTZQQ_W =  .0237;
+/*  constexpr double        TTBLV_W = 1.3791;
+constexpr double        TTZQQ_W =  .0237;
   constexpr double       ZZLLQQ_W =  .0485;
 */
 // This Pi is more accurate than binary256; good for eternity
@@ -90,30 +90,25 @@ constexpr elSf
 
 inline auto Ptriggers(channel ch){
 	return [=](
-	 const bool el// HLT_Ele32_WPTight_Gsf
-	,const bool mu// HLT_IsoMu27
+	 const bool el1// HLT_Ele32_WPTight_Gsf_L1DoubleEG
+	,const bool mu1// HLT_IsoMu27
+	,const bool mu2// HLT_IsoMu24_eta2p1
+	,const bool mu3// HLT_L1SingleMu25
 ){
 	switch(ch){
-	case elnu:return el;
-	case munu:return mu;
+	case elnu:return el1;
+	case munu:return (mu1 || mu2) && mu3;
 	}};
 }
 inline auto Ttriggers(channel ch){
 	return [=](
-	 const bool   el1// HLT_Ele32_WPTight_Gsf_L1DoubleEG
-	,const bool   ml1// HLT_L1SingleMu25
-	,const bool   mu2// HLT IsoTkMu24
-	,const bool   mu3// HLT_IsoMu24_eta2p1
-	,const double twm// transverse W mass
+	const double twm// transverse W mass
 ){
 	bool twm_cut;
 	if(std::abs(twm - W_MASS) < W_MASS_CUT)twm_cut = true;
 	// keeping the mass within 20 GeV window.
-	switch(ch){
-	case elnu:return  el1 && twm_cut;
-	case munu:return (mu3 || (ml1 && mu2)) && twm_cut;
-	// HLT_IsoMu24_eta2p1 or HLT_L1SingleMu25 && HLT IsoTkMu24
-	}};
+	return twm_cut;
+	};
 }
 inline auto lep_sel(const channel ch){
 	return [=](
@@ -222,8 +217,8 @@ auto jet_lep_min_deltaR(
 inline double transverse_w_mass(
 	 const double lep__pt
 	,const double lep_phi
-	,const double met__pt
-	,const double met_phi
+	,const float  met__pt
+	,const float  met_phi
 ){
 	return 2.
 		* std::abs (std::sin( delta_phi(lep_phi
@@ -257,7 +252,7 @@ inline auto sf(
 	){
 		// TODO: trigger efficiency
 		double result  = 1;
-		if(MC) result *= TTBLV_W * pile(PuWd,PuUd,PuDd)(npv)[puW];
+		if(MC) result *= TZQ_W * pile(PuWd,PuUd,PuDd)(npv)[puW];
 		return result;
 	};
 }
@@ -316,11 +311,11 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	tF ->Close();
 	tF = nullptr;t1d = nullptr;
 
-	std::string temp_header="/data/disk0/nanoAOD_2017/",
+	std::string temp_header="/data/disk3/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
-	case ttb:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
-	case cms:{temp_opener=temp_header+"TTToSemileptonic"+temp_footer;break;}
+	case tzq:{temp_opener=temp_header+"tZqlvqq"+temp_footer;break;}
+	case cms:{temp_opener=temp_header+"tZqlvqq"+temp_footer;break;}
 	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
@@ -329,22 +324,24 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	TChain munuCMS("Events");
 	temp_footer = "/*.root" ;/* safety redefinition now saving us */
 	temp_header =
-		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAODO2Apr2020_Run";
+		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD02Apr2020_Run";
 	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
 		elnuCMS.Add(temp_opener. c_str());
 	}
-	temp_header="/data/disk3/nanoAOD_2017/SingleMuon_NanoAODO2Apr2020_Run";
-	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
+	temp_header="/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD02Apr2020_Run";
+	for(std::string c:{"B","C","D","E"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
 		munuCMS.Add(temp_opener. c_str());
 	}
+	munuCMS.Add(
+	"/data/disk1/nanoAOD_2017/SingleMuon_NanoAOD02Apr2020_RunF/*.root");
 	ROOT::RDataFrame  elnudf(elnuCMS);
 	ROOT::RDataFrame  munudf(munuCMS);
-	const bool MC = ttb == ds;
+	const bool MC = tzq == ds;
 	auto df = [&,ch,ds](){// Get correct data frame
 		switch(ds){
-			case ttb:{           return mc__df;break;}
+			case tzq:{           return mc__df;break;}
 			case cms:{switch(ch){// MC is already false
 			          case elnu:{return elnudf;break;}
 			          case munu:{return munudf;break;}
@@ -408,26 +405,25 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	;
 	auto Ptrig = tight
 	.Filter(Ptriggers(ch),
-		{ "HLT_Ele32_WPTight_Gsf"
+		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
+		 ,"HLT_IsoMu24_eta2p1"
+		 ,"HLT_L1SingleMu25"
 		},"Probe Triggers Filter")
 	;
 	auto Ttrig = tight
 	.Filter(Ttriggers(ch),
-		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"//"HLT_Ele32_WPTight_Gsf"
-		 ,"HLT_L1SingleMu25"
-		 ,"HLT_IsoTkMu24"
-		 ,"HLT_IsoMu24_eta2p1"
-		 ,"tw_lep_mas"
+		{ "tw_lep_mas"
 		},"Tag Triggers Filter")
 	;
+
 	std::string opener(1,b); opener.reserve(10);
 	switch(ch){
 	case elnu:{opener += "_elnu_";break;}
 	case munu:{opener += "_munu_";break;}
 	}
 	switch(ds){
-	case  ttb:{opener += "ttb"   ;break;}
+	case  tzq:{opener += "tzq"   ;break;}
 	case  cms:{opener += "cms"   ;break;}
 	}
 	TFile tsf(("histo/tsf"+opener+".root").c_str(),"RECREATE");
@@ -499,7 +495,7 @@ int main ( int argc , char *argv[] ){
 		   std::cout
 		<< "Error: tsf needs channel and data source+L or C (for cross trigger)"
 		<< std::endl
-		<< "e.g.   tsf elnu ttbL"
+		<< "e.g.   tsf elnu tzqL"
 		<< std::endl
 		;
 		return 2 ;
@@ -513,8 +509,8 @@ int main ( int argc , char *argv[] ){
 		return 3 ;
 	}
 	     if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
-	else if ( "ttbL" ==  dsN ){ d = ttb ; b = 'l' ; }
-	else if ( "ttbC" ==  dsN ){ d = ttb ; b = 'x' ; }
+	else if ( "tzqL" ==  dsN ){ d = tzq ; b = 'l' ; }
+	else if ( "tzqC" ==  dsN ){ d = tzq ; b = 'x' ; }
 	else if ( "cmsL" ==  dsN ){ d = cms ; b = 'l' ; }
 	else if ( "cmsC" ==  dsN ){ d = cms ; b = 'x' ; }
 	else { std::cout << "Error: data source " << dsN
