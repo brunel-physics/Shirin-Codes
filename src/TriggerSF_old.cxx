@@ -311,7 +311,7 @@ void TriggerSF_old ( const channel ch , const dataSource ds , const char b ){
 	TChain munuCMS("Events");
 	temp_footer = "/*.root" ;/* safety redefinition now saving us */
 	temp_header =
-		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD025Apr2020_Run";
+		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD02Apr2020_Run";
 	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
 		elnuCMS.Add(temp_opener. c_str());

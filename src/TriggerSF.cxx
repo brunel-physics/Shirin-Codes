@@ -41,9 +41,9 @@ enum channel     {elnu,munu};
   constexpr  float    MET_MU_PT   = 25.f;//40.f;
 
   constexpr double     Z_MASS     =  91.1876;
-  constexpr double     Z_MASS_CUT =  20.    ;
+  constexpr double     Z_MASS_CUT =  20.    ;*/
   constexpr double     W_MASS     =  80.385 ;
-  constexpr double     W_MASS_CUT =  20.    ;
+  constexpr double     W_MASS_CUT =  20.    ;/*
   constexpr double   TOP_MASS     = 172.5   ;
 //constexpr double   TOP_MASS_CUT =  20.    ;
 
@@ -100,14 +100,19 @@ inline auto Ptriggers(channel ch){
 }
 inline auto Ttriggers(channel ch){
 	return [=](
-	 const bool el// HLT_Ele32_WPTight_Gsf
-	,const bool en// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
-	,const bool mn// HLT_IsoMu24_eta2p1 or HLT_L1SingleMu25 && HLT IsoTkMu24
-	,const bool mu// HLT_IsoMu27
+	 const bool   el1// HLT_Ele32_WPTight_Gsf_L1DoubleEG
+	,const bool   ml1// HLT_L1SingleMu25
+	,const bool   mu2// HLT IsoTkMu24
+	,const bool   mu3// HLT_IsoMu24_eta2p1
+	,const double twm// transverse W mass
 ){
+	bool twm_cut;
+	if(std::abs(twm - W_MASS) < W_MASS_CUT)twm_cut = true;
+	// keeping the mass within 20 GeV window.
 	switch(ch){
-	case elnu:return el && en;
-	case munu:return mu && mn;
+	case elnu:return  el1 && twm_cut;
+	case munu:return (mu3 || (ml1 && mu2)) && twm_cut;
+	// HLT_IsoMu24_eta2p1 or HLT_L1SingleMu25 && HLT IsoTkMu24
 	}};
 }
 inline auto lep_sel(const channel ch){
@@ -213,6 +218,18 @@ auto jet_lep_min_deltaR(
 		[=](double jet_eta, double jet_phi){
 			return deltaR(jet_eta,jet_phi,lep_eta,lep_phi);});
 	return min_dRs;
+}
+inline double transverse_w_mass(
+	 const double lep__pt
+	,const double lep_phi
+	,const double met__pt
+	,const double met_phi
+){
+	return 2.
+		* std::abs (std::sin( delta_phi(lep_phi
+		          - static_cast<double>(met_phi))*.5))
+		* std::sqrt(static_cast<double>(met__pt)
+		                              * lep__pt);
 }
 inline auto pile(
 	 const TH1D* const &PuWd
@@ -379,6 +396,9 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	.Define("lep__pt","static_cast<double>("+temp_header+  "pt[loose_leps][0])")
 	.Define("lep_eta","static_cast<double>("+temp_header+ "eta[loose_leps][0])")
 	.Define("lep_phi","static_cast<double>("+temp_header+ "phi[loose_leps][0])")
+	.Define("tw_lep_mas",transverse_w_mass,
+	       {"lep__pt",
+	        "lep_phi","MET_pt","MET_phi"})
 	// jets selection follows; lepton selected
 	.Define("rawJet_eta","static_cast<ROOT::RVec<double>>(Jet_eta )")
 	.Define("rawJet_phi","static_cast<ROOT::RVec<double>>(Jet_phi )")
@@ -394,10 +414,11 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	;
 	auto Ttrig = tight
 	.Filter(Ttriggers(ch),
-		{ "HLT_Ele32_WPTight_Gsf"
-		 ,"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
+		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"//"HLT_Ele32_WPTight_Gsf"
+		 ,"HLT_L1SingleMu25"
+		 ,"HLT_IsoTkMu24"
 		 ,"HLT_IsoMu24_eta2p1"
-		 ,"HLT_IsoMu27"
+		 ,"tw_lep_mas"
 		},"Tag Triggers Filter")
 	;
 	std::string opener(1,b); opener.reserve(10);
