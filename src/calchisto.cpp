@@ -10,6 +10,7 @@
 #include <TRandom3.h>// used Gaussian, uniform each once
 //#include <execution>// need to link -ltbb in Makefile
 #include <TChain.h>
+#include <TF1.h>
 
 #include "csv.h"
 #include "json.hpp"
@@ -1635,7 +1636,12 @@ void calchisto(const channel ch,const dataSource ds){
 	("Transverse T mass " + temp_header).c_str(),
 	50,0,250},
 	"ttop_mas","nw_ttop_mas");
-	h_trans_T->Fit("Gaus");
+	//h_trans_T->Fit("Gaus"); Didn't work!
+	TF1 *f1 = new TF1("f1","gaus",0,250);
+	f1->SetParameters(h_trans_T->GetMaximum()
+			, h_trans_T->GetMean()
+			, h_trans_T->GetRMS() );
+	h_trans_T->Fit("f1");
 	h_trans_T->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_trans_T->GetYaxis()->SetTitle("Event");
 	h_trans_T->SetLineStyle(kSolid);
@@ -1645,7 +1651,12 @@ void calchisto(const channel ch,const dataSource ds){
 	("Transverse W mass " + temp_header).c_str(),
 	50,0,180},
 	"tw_lep_mas","nw_tw_lep_mas");
-	h_trans_w->Fit("Gaus");
+	//h_trans_w->Fit("Gaus"); Didn't work!
+        TF1 *f2 = new TF1("f2","gaus",0,180);
+        f2->SetParameters(h_trans_w->GetMaximum()
+                        , h_trans_w->GetMean()
+                        , h_trans_w->GetRMS() );
+        h_trans_w->Fit("f2");
 	h_trans_w->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_trans_w->GetYaxis()->SetTitle("Event");
 	h_trans_w->SetLineStyle(kSolid);
