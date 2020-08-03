@@ -263,21 +263,18 @@ auto roccorSF(
 		,const double    phi,const   int  Q
 		,const double gen_pt,const   int  nl
 	){
-//	if(0 < debug)std::cout<< "roccor SF"<<std::endl;
+	if(0 < debug)std::cout<< "roccor SF"<<std::endl;
 		double roc = 1.;
 		switch(ch){
 		case elnu:{break;}
 		case munu:{if(MC){
 			if(0. < gen_pt){
-				std::cout<<"rocco 1"<<std::endl;
 				roc = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
 			}else{
-				std::cout<<"rocco 2"<<std::endl;
 				auto u = gRandom->Rndm();
 				roc = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
 			}
 		}else{
-				std::cout<<"rocco 3"<<std::endl;
 				roc = rc. kScaleDT(Q,pt,eta,phi,0,0);
 		}break;}}// not MC, case munu, switch
 		if(0 < debug) std::cout << "roc " << roc << std::endl;
