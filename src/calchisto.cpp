@@ -1014,6 +1014,11 @@ inline auto Npl(
   // Blinding will allow us to know the sidebands which basically are responsible
   // for the QCD regions so by using the report for the filter and the count
   // all the Ns will be found..
+  // all Nqcd need to come from the loosend isolation
+  // loose isolation 20 GeV for absolute isolation
+  // 0.8 for relative isolation
+  // impact parameters |dxy| and |dz| loosened to 0.1, 0.5
+  // Nqcd_rmid = the qcd with GenPart_Statusflag = 0 (prompt)
 	return   (Nqcd_data - Nqcd_rmid)
 		  *(N_sig__MC/N_qcd__MC);
 }
