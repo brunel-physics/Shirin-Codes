@@ -100,7 +100,7 @@ inline auto ltriggers(channel ch){
 }
 inline auto xtriggers(channel ch){
 	return [=](
-	 const bool en// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
+	 const bool en// HLT_Ele28_eta2p1_WPTight_Gsf_HT150 //HLT_Ele28_WPTight_Gsf
 	,const bool jt// HLT_PFHT180
 	,const bool mu// HLT_IsoMu27
 ){

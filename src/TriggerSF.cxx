@@ -90,21 +90,27 @@ constexpr elSf
 
 inline auto Ptriggers(channel ch){
 	return [=](
-	 const bool el1// HLT_Ele32_WPTight_Gsf_L1DoubleEG
+	 const bool el1// HLT_Ele35_WPTight_Gsf
 	,const bool mu1// HLT_IsoMu27
-	,const bool mu2// HLT_IsoMu24_eta2p1
-	,const bool mu3// HLT_L1SingleMu25
+	//const bool mu3// HLT_L1SingleMu25 keeping just incase
 ){
 	switch(ch){
 	case elnu:return el1;
-	case munu:return (mu1 || mu2) && mu3;
+	case munu:return mu1;
 	}};
 }
-inline auto Ttriggers(const double twm){
-	bool twm_cut = false;
-	if(std::abs(twm - W_MASS) < W_MASS_CUT)twm_cut = true;
-	// keeping the mass within 20 GeV window.
-	return twm_cut;
+inline auto Ttriggers(channel ch){
+	return [=](
+	 const bool el2// HLT_Ele32_WPTight_Gsf_L1DoubleEG
+	,const bool mu1// HLT_IsoMu27
+	,const bool mu2// HLT_IsoMu24_eta2p1
+){	// TODO::HLT_IsoMu27_v OR HLT_IsoMu24_eta2p1_v Run A-D
+	// TODO::HLT_IsoMu27_v  Run E-F
+  	switch(ch){
+        case elnu:return el2;
+        case munu:return mu1;
+        }};
+
 }
 inline auto lep_sel(const channel ch){
 	return [=](
@@ -320,18 +326,17 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	TChain munuCMS("Events");
 	temp_footer = "/*.root" ;/* safety redefinition now saving us */
 	temp_header =
-		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD02Apr2020_Run";
+		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_Run";
 	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
 		elnuCMS.Add(temp_opener. c_str());
 	}
-	temp_header="/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD02Apr2020_Run";
-	for(std::string c:{"B","C","D","E"}){// guaranteed sequential
+	temp_header="/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_Run";
+	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
 		munuCMS.Add(temp_opener. c_str());
 	}
-	munuCMS.Add(
-	"/data/disk1/nanoAOD_2017/SingleMuon_NanoAOD02Apr2020_RunF/*.root");
+
 	ROOT::RDataFrame  elnudf(elnuCMS);
 	ROOT::RDataFrame  munudf(munuCMS);
 	const bool MC = tzq == ds;
@@ -401,15 +406,16 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	;
 	auto Ptrig = tight
 	.Filter(Ptriggers(ch),
+		{ "HLT_Ele35_WPTight_Gsf"
+		 ,"HLT_IsoMu27"
+		 //,"HLT_L1SingleMu25"
+		},"Probe Triggers Filter")
+	;
+	auto Ttrig = Ptrig
+	.Filter(Ttriggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
 		 ,"HLT_IsoMu24_eta2p1"
-		 ,"HLT_L1SingleMu25"
-		},"Probe Triggers Filter")
-	;
-	auto Ttrig = tight
-	.Filter(Ttriggers,
-		{ "tw_lep_mas"
 		},"Tag Triggers Filter")
 	;
 

@@ -99,23 +99,6 @@ constexpr muSf
 constexpr elSf
           elSfAll[]={Eff,Smr};
 */
-
-inline auto triggers(channel ch){
-	return [=](
-	 const bool el  // HLT_Ele32_WPTight_Gsf_L1DoubleEG
-	,const bool enu// HLT_Ele28_eta2p1_WPTight_Gsf_HT150
-	,const bool jt  // HLT_PFHT180
-	,const bool mu  // HLT_IsoMu27
-){
-	switch(ch){
-//	case elnu:return  el;
-//	case elnu:return  enu;
-//	case munu:return (mu && jt);
-//	case munu:return  mu;
-	case elnu:return  jt;
-	case munu:return  jt;
-	}};
-}
 inline auto lep_sel(const channel ch){
 	return [=](
 		 const  bools& isPFs
@@ -174,6 +157,20 @@ inline auto lep_tight_cut(const channel ch){
 		return result;
 	};
 }
+inline auto Triggers(channel ch){
+        return [=](
+         const bool el1// HLT_Ele35_WPTight_Gsf
+	,const bool el2// HLT_Ele32_WPTight_Gsf_L1DoubleEG
+        ,const bool mu1// HLT_IsoMu27
+
+        //const bool mu3// HLT_L1SingleMu25 keeping just incase
+){
+        switch(ch){
+        case elnu:return el1 && el2;
+        case munu:return mu1;
+        }};
+}
+
 template <typename T>
 constexpr auto fastPrincipalRangeReductor(const T diff_phi){
 	// This function just reduces input from [-2pi,+2pi] to [-pi,+pi]
@@ -1009,6 +1006,19 @@ inline auto pile(
 		<<dict[puW]<<" "<<dict[upW]<<" "<<dict[dnW]<<std::endl;
 	return dict;};
 }
+// Blinding process using chi-2 formula aims to find the most distance
+// masses from the nominal values of tWm and tTm, produces a sideband
+// the range is applied as a filter which blinds us to signal region
+inline auto Chi2(
+	 const double tWm
+	,const double tTm
+	,const double resW
+	,const double resT
+){
+	double chi2;
+	chi2 = std::pow((tWm - W_MASS)/resW,2)+std::pow((tTm-TOP_MASS)/resT,2);
+	return chi2;
+}
 // Simulation correction Scale Factors
 inline auto sf(
 	 const  dataSource    ds
@@ -1267,12 +1277,11 @@ void calchisto(const channel ch,const dataSource ds){
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
-/*	.Filter(triggers(ch),
-		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"//"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"
-		 ,"HLT_Ele28_eta2p1_WPTight_Gsf_HT150"//"HLT_PFMET120_PFMHT120_IDTight"
-		 ,"HLT_PFJet15"
+	.Filter(Triggers(ch),
+		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
+		 ,"HLT_Ele35_WPTight_Gsf"
 		 ,"HLT_IsoMu27"
-		},"Triggers Filter")*/
+		},"Triggers Filter")
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
@@ -1458,7 +1467,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-	.Define("mostSF" , "lepSF" /* ttbSF"*/)
+	.Define("mostSF" , "lepSF * ttbSF")
 	;
 	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
@@ -1608,6 +1617,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("Transverse T mass " + temp_header).c_str(),
 	50,0,250},
 	"ttop_mas","nw_ttop_mas");
+	h_trans_T->Fit("Gaus");
 	h_trans_T->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_trans_T->GetYaxis()->SetTitle("Event");
 	h_trans_T->SetLineStyle(kSolid);
@@ -1617,6 +1627,7 @@ void calchisto(const channel ch,const dataSource ds){
 	("Transverse W mass " + temp_header).c_str(),
 	50,0,180},
 	"tw_lep_mas","nw_tw_lep_mas");
+	h_trans_w->Fit("Gaus");
 	h_trans_w->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_trans_w->GetYaxis()->SetTitle("Event");
 	h_trans_w->SetLineStyle(kSolid);
