@@ -2,6 +2,7 @@
 // TODO: lepton trigger efficiency add to sf
 // TODO: Shape uncertainties
 // TODO: non prompt lepton corrections-> use RDF count after blinding and also filter report to know how many passed
+// TODO: loose isolation TBC by Duncan
 // TODO: Pile Up uncertainties (done: weight)
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
@@ -1019,8 +1020,8 @@ inline auto Npl(
   // 0.8 for relative isolation
   // impact parameters |dxy| and |dz| loosened to 0.1, 0.5
   // Nqcd_rmid = the qcd with GenPart_Statusflag = 0 (prompt)
-	return   (Nqcd_data - Nqcd_rmid)
-		  *(N_sig__MC/N_qcd__MC);
+	return    (Nqcd_data - Nqcd_rmid)
+		* (N_sig__MC / N_qcd__MC);
 }
 // Blinding process using chi-2 formula aims to find the most distance
 // masses from the nominal values of tWm and tTm, produces a sideband
