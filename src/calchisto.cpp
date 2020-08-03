@@ -1,10 +1,8 @@
-// TODO: Adding Triggers
-// TODO: lepton trigger efficiency
+
+// TODO: lepton trigger efficiency add to sf
 // TODO: Shape uncertainties
-// TODO: top pt reweighing -> fetch pt min and max from ttb
-// TODO: non prompt lepton corrections
+// TODO: non prompt lepton corrections-> use RDF count after blinding and also filter report to know how many passed
 // TODO: Pile Up uncertainties (done: weight)
-// TODO: MET unclustering correction
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <Math/Vector4D.h>
@@ -1006,6 +1004,19 @@ inline auto pile(
 		<<dict[puW]<<" "<<dict[upW]<<" "<<dict[dnW]<<std::endl;
 	return dict;};
 }
+// Non-prompt-lepton estimation
+inline auto Npl(
+	 const int Nqcd_data // Number of fake lepton in QCD region in data
+	,const int Nqcd_rmid // Number of real lepton + mis-id in MC
+	,const int N_sig__MC // Number of lepton in signal region MC
+	,const int N_qcd__MC // Number of lepton in  QCD region MC
+){// Need to use the Count in RDF to get these constants after blinding is done
+  // Blinding will allow us to know the sidebands which basically are responsible
+  // for the QCD regions so by using the report for the filter and the count
+  // all the Ns will be found..
+	return   (Nqcd_data - Nqcd_rmid)
+		  *(N_sig__MC/N_qcd__MC);
+}
 // Blinding process using chi-2 formula aims to find the most distance
 // masses from the nominal values of tWm and tTm, produces a sideband
 // the range is applied as a filter which blinds us to signal region
@@ -1014,9 +1025,10 @@ inline auto Chi2(
 	,const double tTm
 	,const double resW
 	,const double resT
-){
+){// All the values above will be constexpr in next push. 
 	double chi2;
-	chi2 = std::pow((tWm - W_MASS)/resW,2)+std::pow((tTm-TOP_MASS)/resT,2);
+	chi2 = std::pow((tWm - W_MASS)/resW,2)
+	      +std::pow((tTm-TOP_MASS)/resT,2);
 	return chi2;
 }
 // Simulation correction Scale Factors
