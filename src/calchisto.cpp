@@ -1098,7 +1098,8 @@ inline auto rep_const(const double sf,const doubles& iRVec){
 }
 template <typename T>
 auto finalScaling(
-	 const dataSource     ds
+	 const channel        ch
+	,const dataSource     ds
 	,const TH1D* const &PuWd
 	,const TH1D* const &PuUd
 	,const TH1D* const &PuDd
@@ -1503,7 +1504,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                ),{"lep__pt","lep_eta"})
 	.Define("mostSF" , "lepSF * ttbSF")
 	;
-	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,
+	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
 	;
 	// Copied to below, skip MC-only, ADD MET_sumEt!
@@ -1848,7 +1849,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                ),{"lep__pt","lep_eta"})
 	. Alias("mostSF" , "lepSF")
 	;
-	auto finalDF = finalScaling(ds,PuWd,PuUd,PuDd,// unused but send pile
+	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,// unused but send pile
 	     not_btag_eff )
 	;
 	// Copied from earlier, delete MC-only!
