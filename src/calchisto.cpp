@@ -83,6 +83,19 @@ namespace{
   constexpr double        TTBLV_W = 1.3791;
   constexpr double        TTZQQ_W =  .0237;
   constexpr double       ZZLLQQ_W =  .0485;
+// Blinding Values
+/*  constexpr float    ELNU_REC_M_T = 1.66326e+02;
+  constexpr float    MUNU_REC_M_T = 1.64981e+02;
+*/
+  constexpr float    ELNU_RES_M_T = 3.48167e+01;
+  constexpr float    MUNU_RES_M_T = 3.48135e+01;
+/*
+  constexpr float    ELNU_REC_M_W = 8.52993e+01;
+  constexpr float    MUNU_REC_M_W = 8.48404e+01;
+*/
+  constexpr float    ELNU_RES_M_W = 1.79322e+01;
+  constexpr float    MUNU_RES_M_W = 1.73722e+01;
+
 
 // This Pi is more accurate than binary256; good for eternity
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
@@ -157,7 +170,7 @@ inline auto lep_tight_cut(const channel ch){
 		return result;
 	};
 }
-inline auto Triggers(channel ch){
+inline auto Triggers(const channel ch){
         return [=](
          const bool el1// HLT_Ele35_WPTight_Gsf
 	,const bool el2// HLT_Ele32_WPTight_Gsf_L1DoubleEG
@@ -1024,16 +1037,20 @@ inline auto Npl(
 // Blinding process using chi-2 formula aims to find the most distance
 // masses from the nominal values of tWm and tTm, produces a sideband
 // the range is applied as a filter which blinds us to signal region
-inline auto Chi2(
+inline auto Chi2(const channel ch){
+	return [=](
 	 const double tWm
 	,const double tTm
-	,const double resW
-	,const double resT
-){// All the values above will be constexpr in next push. 
-	double chi2;
-	chi2 = std::pow((tWm - W_MASS)/resW,2)
-	      +std::pow((tTm-TOP_MASS)/resT,2);
-	return chi2;
+){// All the values above will be constexpr in next push.
+	float resW;
+	float resT;
+	switch(ch){
+		case elnu:{resW = ELNU_RES_M_W;resT = ELNU_RES_M_T;break;}
+		case munu:{resW = MUNU_RES_M_W;resT = MUNU_RES_M_T;break;}
+        }
+	float chi2 = std::pow((tWm -   W_MASS)/resW,2)
+	           + std::pow((tTm - TOP_MASS)/resT,2);
+	return chi2;};
 }
 // Simulation correction Scale Factors
 inline auto sf(
@@ -1089,6 +1106,7 @@ auto finalScaling(
 ){
 	return rdf
 	.Define("sf",sf(ds,PuWd,PuUd,PuDd),{"btag_w","mostSF","PV_npvs"})
+	.Define("chi2",Chi2(ch),{"tw_lep_mas","ttop_mas"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
@@ -1718,6 +1736,16 @@ void calchisto(const channel ch,const dataSource ds){
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("\\text{  tWm  GeV/}c^{2}");
 	h_tWmVsZmass->GetYaxis()->SetTitle("\\text{Z mass GeV/}c^{2}");
+
+        auto h_chi2 = finalDF.Histo1D({
+        ("chi2_" + temp_header).c_str(),
+        ("chi2 " + temp_header).c_str(),
+        50,-100,300},
+        "chi2");
+        h_chi2->GetXaxis()->SetTitle("chi2");
+        h_chi2->GetYaxis()->SetTitle("Event");
+        h_chi2->SetLineStyle(kSolid);
+
 	// No SetLineStyle here
 
 	// write histograms to a root file

@@ -63,13 +63,13 @@ enum channel     {elnu,munu};
 //constexpr double DELTA_PHI_ZMET = 2. ;
 
   constexpr double    ak4RconeBy2 =  .2;
-//constexpr double    ak8RconeBy2 =  .4;
-*/
-  constexpr double          TZQ_W =  .0128;/*/
+//constexpr double    ak8RconeBy2 =  .4;*/
+
+  constexpr double          TZQ_W =  .0128;/*
   constexpr double       WWLNQQ_W = 2.1740;
-  constexpr double       WZLNQQ_W =  .2335;*/
-/*  constexpr double        TTBLV_W = 1.3791;
-constexpr double        TTZQQ_W =  .0237;
+  constexpr double       WZLNQQ_W =  .2335;
+  constexpr double        TTBLV_W = 1.3791;
+  constexpr double        TTZQQ_W =  .0237;
   constexpr double       ZZLLQQ_W =  .0485;
 */
 // This Pi is more accurate than binary256; good for eternity
