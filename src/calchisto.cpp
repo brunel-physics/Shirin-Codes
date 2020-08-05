@@ -1741,7 +1741,7 @@ void calchisto(const channel ch,const dataSource ds){
         auto h_chi2 = finalDF.Histo1D({
         ("chi2_" + temp_header).c_str(),
         ("chi2 " + temp_header).c_str(),
-        50,-100,300},
+        50,-300,300},
         "chi2");
         h_chi2->GetXaxis()->SetTitle("chi2");
         h_chi2->GetYaxis()->SetTitle("Event");
@@ -1782,6 +1782,7 @@ void calchisto(const channel ch,const dataSource ds){
 	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
+        hf.WriteTObject(h_chi2     	 .GetPtr());hf.Flush();sync();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){

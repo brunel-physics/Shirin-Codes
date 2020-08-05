@@ -43,7 +43,7 @@ enum channel     {elnu,munu};
   constexpr double     Z_MASS     =  91.1876;
   constexpr double     Z_MASS_CUT =  20.    ;*/
   constexpr double     W_MASS     =  80.385 ;
-  constexpr double     W_MASS_CUT =  20.    ;/*
+  constexpr double     W_MASS_CUT =  35.    ;/*
   constexpr double   TOP_MASS     = 172.5   ;
 //constexpr double   TOP_MASS_CUT =  20.    ;
 
@@ -101,14 +101,17 @@ inline auto Ptriggers(channel ch){
 }
 inline auto Ttriggers(channel ch){
 	return [=](
-	 const bool el2// HLT_Ele32_WPTight_Gsf_L1DoubleEG
-	,const bool mu1// HLT_IsoMu27
-	,const bool mu2// HLT_IsoMu24_eta2p1
+	 const bool   el2// HLT_Ele32_WPTight_Gsf_L1DoubleEG
+	,const bool   mu1// HLT_IsoMu27
+	,const bool   mu2// HLT_IsoMu24_eta2p1
+	,const double tWm// transverse W mass
 ){	// TODO::HLT_IsoMu27_v OR HLT_IsoMu24_eta2p1_v Run A-D
 	// TODO::HLT_IsoMu27_v  Run E-F
+	bool mass = false;
+	if(std::abs(tWm - W_MASS) < W_MASS_CUT) mass = true;
   	switch(ch){
-        case elnu:return el2;
-        case munu:return mu1;
+        case elnu:return el2 && mass;
+        case munu:return mu1 && mass;
         }};
 
 }
@@ -416,6 +419,7 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
 		 ,"HLT_IsoMu24_eta2p1"
+		 ,"tw_lep_mas"
 		},"Tag Triggers Filter")
 	;
 
