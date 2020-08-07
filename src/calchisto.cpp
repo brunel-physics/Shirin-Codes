@@ -1,4 +1,3 @@
-
 // TODO: lepton trigger efficiency add to sf
 // TODO: Shape uncertainties
 // TODO: non prompt lepton corrections-> use RDF count after blinding and also filter report to know how many passed
@@ -55,7 +54,7 @@ namespace{
   constexpr double     Z_MASS     =  91.1876;
   constexpr double     Z_MASS_CUT =  20.    ;
   constexpr double     W_MASS     =  80.385 ;
-  constexpr double     W_MASS_CUT =  20.    ;
+  constexpr double     W_MASS_CUT =   0.    ;
   constexpr double   TOP_MASS     = 172.5   ;
 //constexpr double   TOP_MASS_CUT =  20.    ;
 
@@ -67,6 +66,7 @@ namespace{
 
   constexpr double   BJET_ETA_MAX = 2.4   ;
   constexpr double  BTAG_DISC_MIN =  .8838;
+  constexpr double DBTAG_DISC_MIN =  .4941; // DeepBTagCSV
   constexpr unsigned    BJETS_MIN = 1     ;
   constexpr unsigned    BJETS_MAX = 3     ;
 
@@ -423,7 +423,7 @@ auto metCorrection(
 // btag suPer set and btag suB set
 inline auto btagP(const doubles &eta){return abs(eta) < BJET_ETA_MAX;}
 inline auto btagB(const ints  &btagP,const floats &btags){
-	return   btagP && ( BTAG_DISC_MIN < btags );// all tJ length
+	return   btagP && ( DBTAG_DISC_MIN < btags );// all tJ length
 }
 inline auto	isBquark(   const ints &id , const ints &mask ){
 	return mask &&   (   5 ==  abs(  id ) );
@@ -456,15 +456,16 @@ auto btagCSVv2(const bool check_CSVv2){
 	       pt_Min , pt_Max,
 	       etaMin , etaMax,
 	       CSVmin , CSVmax;
-	io::CSVReader<11> thisCSVfile("aux/CSVv2_94XSF_V2_B_F.csv");
+	//io::CSVReader<11> thisCSVfile("aux/CSVv2_94XSF_V2_B_F.csv");
+	io::CSVReader<11> thisCSVfile("aux/DeepCSVv2_94XSF_V5_B_F.csv");
 	thisCSVfile.next_line();// we happen to not need the header line
 	// The following nests too much, so we do not indent
 	// Each blank line means nesting deeper
 	while(thisCSVfile.read_row(CSVv2,measureType,sysType,jetFlav,
 	      etaMin,etaMax,pt_Min,pt_Max,CSVmin,CSVmax,rawFormula)){
-
+	// CSVv2 column = Operating point
 	if(check_CSVv2){
-		b= BTAG_DISC_MIN <= CSVv2
+		b= DBTAG_DISC_MIN <= CSVv2
 		&& "mujets" == measureType && 0 == jetFlav;
 	}else{
 		b=   "incl" == measureType && 0 != jetFlav;
@@ -1107,7 +1108,7 @@ auto finalScaling(
 ){
 	return rdf
 	.Define("sf",sf(ds,PuWd,PuUd,PuDd),{"btag_w","mostSF","PV_npvs"})
-	.Define("chi2",Chi2(ch),{"tw_lep_mas","ttop_mas"})
+	.Define("chi2",Chi2(ch),{"lep_nu_invmass","ttop_mas"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
@@ -1312,11 +1313,11 @@ void calchisto(const channel ch,const dataSource ds){
 	// make test runs faster by restriction. Real run should not
 //	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
-	.Filter(Triggers(ch),
+	/*.Filter(Triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_Ele35_WPTight_Gsf"
 		 ,"HLT_IsoMu27"
-		},"Triggers Filter")
+		},"Triggers Filter")*/
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
@@ -1349,7 +1350,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("tight_jets_eta"   ,"rawJet_eta[tight_jets]")
 	.Define("tight_jets_phi"   ,"rawJet_phi[tight_jets]")
 	.Define("tight_jets_mas"   ,"rawJet_mas[tight_jets]")
-*/	.Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")// leave as floats
+*/	.Define("tJ_btagCSVv2"  ,"Jet_btagDeepB[tight_jets]")// leave as floats
 	;
 	// now we make the histogram names and titles
 	switch(ch){// laugh at muon-neutrino below

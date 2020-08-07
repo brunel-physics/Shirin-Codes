@@ -92,11 +92,12 @@ inline auto Ptriggers(channel ch){
 	return [=](
 	 const bool el1// HLT_Ele35_WPTight_Gsf
 	,const bool mu1// HLT_IsoMu27
+	,const bool mu2// HLT_IsoMu24_eta2p1
 	//const bool mu3// HLT_L1SingleMu25 keeping just incase
 ){
 	switch(ch){
 	case elnu:return el1;
-	case munu:return mu1;
+	case munu:return mu1 || mu2;
 	}};
 }
 inline auto Ttriggers(channel ch){
@@ -110,8 +111,8 @@ inline auto Ttriggers(channel ch){
 	bool mass = false;
 	if(std::abs(tWm - W_MASS) < W_MASS_CUT) mass = true;
   	switch(ch){
-        case elnu:return el2 && mass;
-        case munu:return mu1 && mass;
+        case elnu:return el2;
+        case munu:return mu1;
         }};
 
 }
@@ -411,7 +412,7 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	.Filter(Ptriggers(ch),
 		{ "HLT_Ele35_WPTight_Gsf"
 		 ,"HLT_IsoMu27"
-		 //,"HLT_L1SingleMu25"
+		 ,"HLT_IsoMu24_eta2p1"
 		},"Probe Triggers Filter")
 	;
 	auto Ttrig = Ptrig
