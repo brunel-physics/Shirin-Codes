@@ -1952,6 +1952,8 @@ void calchisto(const channel ch,const dataSource ds){
 	h_tWmVsZmass->GetYaxis()->SetTitle("\\text{Z mass GeV/}c^{2}");
 	// No SetLineStyle here
 
+	//Reporting the filter
+	finalDF.Report() ->Print();
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
