@@ -490,7 +490,7 @@ int main ( int argc , char *argv[] ){
 		return 3 ;
 	}
 	     if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
-	else if ( "dy " ==  dsN ){ d = dy  ;}
+	else if ( "dy"  ==  dsN ){ d = dy  ;}
 	else if ( "cms" ==  dsN ){ d = cms ;}
 	else { std::cout << "Error: data source " << dsN
 		<< " not recognised" << std::endl ;
