@@ -1,5 +1,6 @@
 //clang++ -Isrc -std=c++17 -march=native -pipe -Ofast -Wall -Wextra -Wpedantic -o build/tsf src/TriggerSF.cxx `root-config --libs` -lm
 
+// TODO :: find normalization factor for the DYJetsToLL
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <TRandom3.h>// used Gaussian, uniform each once
@@ -15,7 +16,7 @@ using   bools = ROOT::VecOps::RVec<bool>;
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
-enum dataSource  { tzq,cms };
+enum dataSource  { dy,cms };// DY : DYJetsToLL
 enum channel     {elnu,munu};
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM     = 1      ;
@@ -63,15 +64,16 @@ enum channel     {elnu,munu};
 //constexpr double DELTA_PHI_ZMET = 2. ;
 
   constexpr double    ak4RconeBy2 =  .2;
-//constexpr double    ak8RconeBy2 =  .4;*/
+//constexpr double    ak8RconeBy2 =  .4;
 
-  constexpr double          TZQ_W =  .0128;/*
+  constexpr double          TZQ_W =  .0128;
   constexpr double       WWLNQQ_W = 2.1740;
   constexpr double       WZLNQQ_W =  .2335;
   constexpr double        TTBLV_W = 1.3791;
   constexpr double        TTZQQ_W =  .0237;
   constexpr double       ZZLLQQ_W =  .0485;
 */
+  constexpr double      DYTOLL_W = 22.8750;
 // This Pi is more accurate than binary256; good for eternity
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
 template <typename T> constexpr T TPI = PI<T> * 2;
@@ -136,7 +138,7 @@ inline auto lep_sel(const channel ch){
 		}
 	};
 }
-inline auto lep_tight_cut(const channel ch){
+inline auto lep_tight_cut(const channel ch, const dataSource ds){
 	return [=](
 		 const   ints& mask
 		,const   ints& elids
@@ -144,19 +146,36 @@ inline auto lep_tight_cut(const channel ch){
 	){
 // TODO: In the case we want 1 loose lepton, comment the 4 NOTE lines below
 		bool result;
+		// For MC (DYJetsToLL) we need only one tight lepton
+                // to use the Single lepton trigger on, however,
+                // for data (cms single lepton) we choose a tight
+                // lepton and apply a veto lepton (same channel)
+		// i.e. single electron has , 1 tight e and 1 veto e
 		 if(false) ;
 		 else if(elnu==ch){
 			ints   temp = elids[mask];
-			result = temp.size() == 2;// Choosing 1 Tight Lepton
+			if(dy==ds){
+                        result = temp.size() == 1;// Choosing 1 Tight Lepton
+                        result = result && temp [0] >= EL_TIGHT_ID; // NOTE
+			}
+			else{
+			result = temp.size() == 2;// Choosing 2 Leptons
 			result = result && temp [0] >= EL_TIGHT_ID // NOTE
                                		&& temp [1] >= EL_LOOSE_ID // NOTE
 					&& temp [1] <  EL_TIGHT_ID;// NOTE
+			}
 		}else if(munu==ch){
 			floats temp = isos[mask];
+			if(dy==ds){
+                        result = temp.size() == 1;
+                        result = result && temp [0] <= MU_TIGHT_ISO;// NOTE
+			}
+			else{
 			result = temp.size() == 2;
 			result = result && temp [0] <= MU_TIGHT_ISO // NOTE
 			       		&& temp [1] <= MU_LOOSE_ISO // NOTE
 					&& temp [1] >  MU_TIGHT_ISO;// NOTE
+			}
 		}else{throw std::invalid_argument(
 			"Unimplemented ch (lep_tight_cut)");}
 		return result;
@@ -245,7 +264,7 @@ inline auto sf(
 	){
 		// TODO: trigger efficiency
 		double result  = 1;
-		if(MC) result *= TZQ_W * pile(PuWd,PuUd,PuDd)(npv)[puW];
+		if(MC) result *= DYTOLL_W * pile(PuWd,PuUd,PuDd)(npv)[puW];
 		return result;
 	};
 }
@@ -307,8 +326,8 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	std::string temp_header="/data/disk3/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
-	case tzq:{temp_opener=temp_header+"tZqlvqq"+temp_footer;break;}
-	case cms:{temp_opener=temp_header+"tZqlvqq"+temp_footer;break;}
+	case dy :{temp_opener=temp_header+"DYJetsToLL_M-50"+temp_footer;break;}
+	case cms:{temp_opener=temp_header+"DYJetsToLL_M-50"+temp_footer;break;}
 	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
@@ -330,10 +349,10 @@ void TriggerSF ( const channel ch , const dataSource ds){
 
 	ROOT::RDataFrame  elnudf(elnuCMS);
 	ROOT::RDataFrame  munudf(munuCMS);
-	const bool MC = tzq == ds;
+	const bool MC = dy == ds;
 	auto df = [&,ch,ds](){// Get correct data frame
 		switch(ds){
-			case tzq:{           return mc__df;break;}
+			case dy :{           return mc__df;break;}
 			case cms:{switch(ch){// MC is already false
 			          case elnu:{return elnudf;break;}
 			          case munu:{return munudf;break;}
@@ -379,7 +398,7 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	       ,temp_header+"dxy"
 	       ,temp_header+"dz"
 	       })
-	.Filter(lep_tight_cut(ch),{"loose_leps",
+	.Filter(lep_tight_cut(ch,ds),{"loose_leps",
 	        "Electron_cutBased",// edit function for  tight -> loose
 	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 tight lepton
 	.Define("lep__pt","static_cast<double>("+temp_header+  "pt[loose_leps][0])")
@@ -397,19 +416,19 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	;
 	auto trig = tight
 	.Filter(triggers(ch),
-		{ "HLT_Ele35_WPTight_Gsf_L1DoubleEG"
+		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
 		},"Triggers Filter")
 	;
 
 	std::string opener;
 	switch(ch){
-	case elnu:{opener += "_elnu_";break;}
-	case munu:{opener += "_munu_";break;}
+	case elnu:{opener += "_elnu_"       ;break;}
+	case munu:{opener += "_munu_"       ;break;}
 	}
 	switch(ds){
-	case  tzq:{opener += "tzq"   ;break;}
-	case  cms:{opener += "cms"   ;break;}
+	case  dy :{opener += "DYJetsToLL"   ;break;}
+	case  cms:{opener += "cms"          ;break;}
 	}
 	TFile tsf(("histo/tsf"+opener+".root").c_str(),"RECREATE");
 	auto origiPt = origi.Histo1D({
@@ -455,9 +474,9 @@ int main ( int argc , char *argv[] ){
 	}
 	if ( argc < 3 ) {
 		   std::cout
-		<< "Error: tsf needs channel and data source+L or C (for cross trigger)"
+		<< "Error: tsf needs channel and data source"
 		<< std::endl
-		<< "e.g.   tsf elnu tzqL"
+		<< "e.g.   tsf elnu DY"
 		<< std::endl
 		;
 		return 2 ;
@@ -471,7 +490,7 @@ int main ( int argc , char *argv[] ){
 		return 3 ;
 	}
 	     if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
-	else if ( "tzq" ==  dsN ){ d = tzq ;}
+	else if ( "dy " ==  dsN ){ d = dy  ;}
 	else if ( "cms" ==  dsN ){ d = cms ;}
 	else { std::cout << "Error: data source " << dsN
 		<< " not recognised" << std::endl ;
