@@ -41,9 +41,9 @@ enum channel     {elnu,munu};
   constexpr  float    MET_MU_PT   = 25.f;//40.f;
 
   constexpr double     Z_MASS     =  91.1876;
-  constexpr double     Z_MASS_CUT =  20.    ;*/
+  constexpr double     Z_MASS_CUT =  20.    ;
   constexpr double     W_MASS     =  80.385 ;
-  constexpr double     W_MASS_CUT =  35.    ;/*
+  constexpr double     W_MASS_CUT =  35.    ;
   constexpr double   TOP_MASS     = 172.5   ;
 //constexpr double   TOP_MASS_CUT =  20.    ;
 
@@ -88,33 +88,16 @@ constexpr elSf
           elSfAll[]={Eff,Smr};
 */
 
-inline auto Ptriggers(channel ch){
+inline auto triggers(channel ch){
 	return [=](
-	 const bool el1// HLT_Ele35_WPTight_Gsf
-	,const bool mu1// HLT_IsoMu27
-	,const bool mu2// HLT_IsoMu24_eta2p1
+	 const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG // TBC to: HLT_Ele32_WPTight_Gsf
+	,const bool mu// HLT_IsoMu27
 	//const bool mu3// HLT_L1SingleMu25 keeping just incase
 ){
 	switch(ch){
-	case elnu:return el1;
-	case munu:return mu1 || mu2;
+	case elnu:return el;
+	case munu:return mu;
 	}};
-}
-inline auto Ttriggers(channel ch){
-	return [=](
-	 const bool   el2// HLT_Ele32_WPTight_Gsf_L1DoubleEG
-	,const bool   mu1// HLT_IsoMu27
-	,const bool   mu2// HLT_IsoMu24_eta2p1
-	,const double tWm// transverse W mass
-){	// TODO::HLT_IsoMu27_v OR HLT_IsoMu24_eta2p1_v Run A-D
-	// TODO::HLT_IsoMu27_v  Run E-F
-	bool mass = false;
-	if(std::abs(tWm - W_MASS) < W_MASS_CUT) mass = true;
-  	switch(ch){
-        case elnu:return el2;
-        case munu:return mu1;
-        }};
-
 }
 inline auto lep_sel(const channel ch){
 	return [=](
@@ -164,12 +147,16 @@ inline auto lep_tight_cut(const channel ch){
 		 if(false) ;
 		 else if(elnu==ch){
 			ints   temp = elids[mask];
-			result = temp.size() == 1;// Choosing 1 Tight Lepton
-			result = result &&    temp [0] >= EL_TIGHT_ID ;// NOTE
+			result = temp.size() == 2;// Choosing 1 Tight Lepton
+			result = result && temp [0] >= EL_TIGHT_ID // NOTE
+                               		&& temp [1] >= EL_LOOSE_ID // NOTE
+					&& temp [1] <  EL_TIGHT_ID;// NOTE
 		}else if(munu==ch){
 			floats temp = isos[mask];
-			result = temp.size() == 1;
-			result = result &&    temp [0] <= MU_TIGHT_ISO;// NOTE
+			result = temp.size() == 2;
+			result = result && temp [0] <= MU_TIGHT_ISO // NOTE
+			       		&& temp [1] <= MU_LOOSE_ISO // NOTE
+					&& temp [1] >  MU_TIGHT_ISO;// NOTE
 		}else{throw std::invalid_argument(
 			"Unimplemented ch (lep_tight_cut)");}
 		return result;
@@ -279,7 +266,7 @@ auto runLBfilter(
 }
 
 }// namespace
-void TriggerSF ( const channel ch , const dataSource ds , const char b ){
+void TriggerSF ( const channel ch , const dataSource ds){
 	// Open LB file even if Monte Carlo will NOT use it
 	nlohmann::json JSONdict;
 	std::ifstream(// open this JSON file once as a stream
@@ -408,23 +395,14 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
 	.Define("sf",sf(MC,PuWd,PuUd,PuDd),{"PV_npvs"})
 	;
-	auto Ptrig = tight
-	.Filter(Ptriggers(ch),
-		{ "HLT_Ele35_WPTight_Gsf"
+	auto trig = tight
+	.Filter(triggers(ch),
+		{ "HLT_Ele35_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
-		 ,"HLT_IsoMu24_eta2p1"
-		},"Probe Triggers Filter")
-	;
-	auto Ttrig = Ptrig
-	.Filter(Ttriggers(ch),
-		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
-		 ,"HLT_IsoMu27"
-		 ,"HLT_IsoMu24_eta2p1"
-		 ,"tw_lep_mas"
-		},"Tag Triggers Filter")
+		},"Triggers Filter")
 	;
 
-	std::string opener(1,b); opener.reserve(10);
+	std::string opener;
 	switch(ch){
 	case elnu:{opener += "_elnu_";break;}
 	case munu:{opener += "_munu_";break;}
@@ -449,48 +427,25 @@ void TriggerSF ( const channel ch , const dataSource ds , const char b ){
 	tsf.WriteTObject(origiPt.GetPtr());tsf.Flush();sync();
 	tsf.WriteTObject(cleanPt.GetPtr());tsf.Flush();sync();
 	tsf.WriteTObject(tightPt.GetPtr());tsf.Flush();sync();
-	switch(b)
-	{case 'l':{
 	if(MC){
-	Ptrig.Report() ->Print();
-	auto  trigPt = Ptrig.Histo1D({
-	    "PtrigPt"           ,
+	trig.Report() ->Print();
+	auto  trigPt = trig.Histo1D({
+	    "trigPt"           ,
 	"Probe trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
 	}else{
-	auto   CMSdf = Ptrig
+	auto   CMSdf = trig
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 	       "LuminosityBlock filter")
 	;
 	CMSdf.Report() ->Print();
 	auto  trigPt = CMSdf.Histo1D({
-	    "PtrigPt"           ,
+	    "trigPt"           ,
 	"Probe trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
-	}break;
-	}case 'x':{
-	if(MC){
-	Ttrig.Report() ->Print();
-	auto  trigPt = Ttrig.Histo1D({
-	    "TtrigPt"           ,
-	" Tag trigger P_{T} " ,
-	50,0,400},"lep__pt"     ,"sf");
-	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
-	}else{
-	auto   CMSdf = Ttrig
-	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
-	       "LuminosityBlock filter")
-	;
-	CMSdf.Report() ->Print();
-	auto  trigPt = CMSdf.Histo1D({
-	    "TtrigPt"           ,
-	" Tag trigger P_{T} " ,
-	50,0,400},"lep__pt"     ,"sf");
-	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
-	}break;
-	}default:throw std::logic_error("Only L or C triggers please");}
+	}
 	std::cout << "TriggerSF completed successfully" << std::endl;
 }
 int main ( int argc , char *argv[] ){
@@ -507,7 +462,7 @@ int main ( int argc , char *argv[] ){
 		;
 		return 2 ;
 	}
-	channel c ; dataSource d ; char b ;
+	channel c ; dataSource d ;
 	     if ( const auto chN = std::string_view( argv[1] ) ; false ) ;
 	else if ( "elnu"  == chN ) c = elnu ;
 	else if ( "munu"  == chN ) c = munu ;
@@ -516,14 +471,12 @@ int main ( int argc , char *argv[] ){
 		return 3 ;
 	}
 	     if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
-	else if ( "tzqL" ==  dsN ){ d = tzq ; b = 'l' ; }
-	else if ( "tzqC" ==  dsN ){ d = tzq ; b = 'x' ; }
-	else if ( "cmsL" ==  dsN ){ d = cms ; b = 'l' ; }
-	else if ( "cmsC" ==  dsN ){ d = cms ; b = 'x' ; }
+	else if ( "tzq" ==  dsN ){ d = tzq ;}
+	else if ( "cms" ==  dsN ){ d = cms ;}
 	else { std::cout << "Error: data source " << dsN
 		<< " not recognised" << std::endl ;
 		return 4 ;
 	}
-		TriggerSF(c,d,b) ;
+		TriggerSF(c,d) ;
 		return 0 ;
 }
