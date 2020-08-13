@@ -313,7 +313,7 @@ auto runLBfilter(
 	&runLBdict
 	,const bool MC
 ){
-	return [&](const unsigned int run,const unsigned int LB){
+	return [&,MC](const unsigned int run,const unsigned int LB){
 		if(MC) return true;
 		auto search =  runLBdict.find(run);
 		if(  search == runLBdict.cend()) return false;// Not Found TODO: true?
