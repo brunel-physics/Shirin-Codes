@@ -386,7 +386,18 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	    " || Flag_eeBadScFilter"
 	       ,"Event Cleaning filter")
 	;
-	auto tight = clean
+	if(!MC){
+	auto lumclean = clean
+	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
+               "LuminosityBlock filter")
+      	;
+	}
+	else{
+	auto lumclean = clean
+	.Define("dummy", "Jet_pt * Jet_phi")
+	;
+	}
+	auto tight = lumclean
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
@@ -446,14 +457,14 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	tsf.WriteTObject(origiPt.GetPtr());tsf.Flush();sync();
 	tsf.WriteTObject(cleanPt.GetPtr());tsf.Flush();sync();
 	tsf.WriteTObject(tightPt.GetPtr());tsf.Flush();sync();
-	if(MC){
+	//if(MC){
 	trig.Report() ->Print();
 	auto  trigPt = trig.Histo1D({
 	    "trigPt"           ,
 	"Probe trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
-	}else{
+	/*}else{
 	auto   CMSdf = trig
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 	       "LuminosityBlock filter")
@@ -464,7 +475,7 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	"Probe trigger P_{T} " ,
 	50,0,400},"lep__pt"     ,"sf");
 	tsf.WriteTObject( trigPt.GetPtr());tsf.Flush();sync();
-	}
+	}*/
 	std::cout << "TriggerSF completed successfully" << std::endl;
 }
 int main ( int argc , char *argv[] ){
