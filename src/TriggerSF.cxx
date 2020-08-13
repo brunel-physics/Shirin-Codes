@@ -90,9 +90,6 @@ constexpr elSf
           elSfAll[]={Eff,Smr};
 */
 
-inline auto dummy(const float pt){
-	return pt>=0;
-}
 
 inline auto triggers(channel ch){
 	return [=](
@@ -393,28 +390,23 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	auto lumclean = [&,ds](){
 		switch (ds){
 			case dy :{auto  mc_clean = clean
-			          //.Alias("Jet_pt","j_pt");
-				  .Filter(dummy,{"Jet_pt"}
-				  ,"dummy filter 100% rate")
+			          .Alias("Jet_pt","j_pt")
 				  ;
 				  return   mc_clean;break;}
                         case cms:{auto cms_clean = clean
-			          //.Alias("Jet_pt","j_pt");
-				  .Filter(runLBfilter(runLBdict)
-				  ,{"run","luminosityBlock"}
-        			  ,"LuminosityBlock filter")
+			          .Alias("Jet_pt","j_pt")
 				  ;
 				  return  cms_clean;break;}
                         default :throw std::invalid_argument(
                                 "Unimplemented ds (rdf set)");
                 }
         }();
-	/*if(!MC){
-	lumclean = clean
+	if(!MC){
+	lumclean
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
 			   "LuminosityBlock filter")
 	;
-	}*/
+	}
 	auto tight = lumclean
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),{
