@@ -44,9 +44,7 @@ using strings = ROOT::VecOps::RVec<std::string>;
 namespace{
 enum dataSource  { dy,cms };// DY : DYJetsToLL
 enum channel     {elnu,munu};
-enum      PtEtaPhiM      {pt,eta,phi,m};
-constexpr PtEtaPhiM
-          PtEtaPhiMall[]={pt,eta,phi,m};
+
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM     = 1      ;
   constexpr  float EL__PT_MIN     = 35.f   ;
@@ -316,7 +314,6 @@ auto runLBfilter(
 	,const bool MC
 ){
 	return [&](const unsigned int run,const unsigned int LB){
-		bool dummy = true;
 		if(MC) return true;
 		auto search =  runLBdict.find(run);
 		if(  search == runLBdict.cend()) return false;// Not Found TODO: true?
@@ -453,11 +450,11 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	.Define("lep_mas","static_cast<doubles>("+temp_header+   "mass[loose_leps])")
 	.Define("lep_chg","static_cast<doubles>("+temp_header+ "charge[loose_leps])")
 	.Define("z_reco_leps"       , find_z_pair,
-	       { lep__pt,
-	         lep_eta,
-	         lep_phi,//easier to push back
-	         lep_mas,
-		 lep_chg})
+	       { "lep__pt",
+	         "lep_eta",
+	         "lep_phi",//easier to push back
+	         "lep_mas",
+		 "lep_chg"})
 	.Define(   "z_LV"         , LVpairAdd    ,
 	       {   "z_pair__pt"   ,
 	           "z_pair_eta"   ,
@@ -481,7 +478,7 @@ void TriggerSF ( const channel ch , const dataSource ds){
         "Electron_cutBased",// edit function for  tight -> loose
         "Muon_pfRelIso04_all",
          temp_header+"charge"},"lepton cut")// left with 1 tight lepton
-
+	;
 	std::string opener;
 	switch(ch){
 	case elnu:{opener += "_elnu_"       ;break;}
@@ -492,7 +489,7 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	case  cms:{opener += "cms"          ;break;}
 	}
 	TFile tsf(("histo/tsf"+opener+".root").c_str(),"RECREATE");
-	auto ProbeZmass = probe.Histo2D({
+	auto ProbeZmass = probe.Histo1D({
 	    "probeZmass"     ,
 	    "probe Z\\text{mass GeV/}c^{2}" ,
 	50,60,150},"z_mas","sf");
@@ -507,7 +504,7 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	    "tag Z\\text{mass GeV/}c^{2}"   ,
 	50,60,150},"z_mas","sf");
         TF1 *f2 = new TF1("f2","gaus",60,150);
-        f1->SetParameters(tagZmass->GetMaximum()
+        f2->SetParameters(tagZmass->GetMaximum()
                         , tagZmass->GetMean()
                         , tagZmass->GetRMS() );
         tagZmass->Fit("f2");
