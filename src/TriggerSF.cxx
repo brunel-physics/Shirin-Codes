@@ -29,6 +29,8 @@ You do this for data and for MC, you divide the efficiencies obtained and you ge
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <TRandom3.h>// used Gaussian, uniform each once
 #include <TChain.h>
+#include <TF1.h>
+#include <Math/Vector4D.h>
 
 #include "csv.h"
 #include "json.hpp"
@@ -42,6 +44,9 @@ using strings = ROOT::VecOps::RVec<std::string>;
 namespace{
 enum dataSource  { dy,cms };// DY : DYJetsToLL
 enum channel     {elnu,munu};
+enum      PtEtaPhiM      {pt,eta,phi,m};
+constexpr PtEtaPhiM
+          PtEtaPhiMall[]={pt,eta,phi,m};
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM     = 1      ;
   constexpr  float EL__PT_MIN     = 35.f   ;
@@ -63,9 +68,9 @@ enum channel     {elnu,munu};
 /*
 //constexpr  float    MET__PT_MIN = 40.f;
   constexpr  float    MET_EL_PT   = 20.f;//80.f;// TODO: Need new values
-  constexpr  float    MET_MU_PT   = 25.f;//40.f;
+  constexpr  float    MET_MU_PT   = 25.f;//40.f;*/
 
-  constexpr double     Z_MASS     =  91.1876;*/
+  constexpr double     Z_MASS     =  91.1876;
   constexpr double     Z_MASS_CUT =  40.    ;/*
   constexpr double     W_MASS     =  80.385 ;
   constexpr double     W_MASS_CUT =  35.    ;
@@ -235,7 +240,7 @@ auto find_z_pair(
 	size_t  lep_index_1 = std::numeric_limits<size_t>::max();
 	size_t  lep_index_2 = std::numeric_limits<size_t>::max();
 	const size_t  nleps = pts.size();
-	if(!all_equal(njets,etas.size(),phis.size(),ms.size(),ch.size()))
+	if(!all_equal(nleps,etas.size(),phis.size(),ms.size(),ch.size()))
 		throw std::logic_error(
 		"Collections must be the same size in Z-pair");
 	if(pts.size()==0)	throw std::logic_error(
@@ -243,7 +248,7 @@ auto find_z_pair(
 	ints z_pair(nleps, 0);// vector of zeroes
 	for(size_t   i=0; i < nleps-1 ;++i)
 	for(size_t j=i+1; j < nleps   ;++j)
-		if(ch[i] != ch[j]){// Must be opposite sign lepton
+	if(ch[i] != ch[j]){// Must be opposite sign lepton
 		ROOT::Math::PtEtaPhiMVector
 		lep1(pts[i],etas[i],phis[i],ms[i]),
 		lep2(pts[j],etas[j],phis[j],ms[j]);
@@ -252,7 +257,7 @@ auto find_z_pair(
 		   z_reco_mass = reco_mass;// found nearer pair to z mass
 		   lep_index_1 = i;
 		   lep_index_2 = j;
-		}}
+		}
 	}
 	z_pair[lep_index_1] = 1;
 	z_pair[lep_index_2] = 1;
@@ -260,7 +265,8 @@ auto find_z_pair(
 	return z_pair;
 }
 inline auto easy_mass_cut(const double theo,const double cut){
-               return [=](const double ours){return std::abs(ours-theo)<cut;}
+               return [=](const double ours){return std::abs(ours-theo)<cut;};
+}
 auto LVpairAdd(
 	 const doubles& pt__pair// Create LorentzV from 2 jets 4-mom
 	,const doubles& eta_pair
@@ -274,6 +280,20 @@ auto LVpairAdd(
 	v(pt__pair[0],eta_pair[0],phi_pair[0],mas_pair[0]),
 	p(pt__pair[1],eta_pair[1],phi_pair[1],mas_pair[1]);
 	return v+p;
+}
+inline auto pile(
+	 const TH1D* const &PuWd
+	,const TH1D* const &PuUd
+	,const TH1D* const &PuDd
+){
+	return[=](const int npv){
+	std::map<puSf,double> dict = {{puW,1.},{upW,1.},{dnW,1.}};
+	dict[puW] = PuWd->GetBinContent(PuWd->GetXaxis()->FindBin(npv));
+	dict[upW] = PuUd->GetBinContent(PuUd->GetXaxis()->FindBin(npv));
+	dict[dnW] = PuDd->GetBinContent(PuDd->GetXaxis()->FindBin(npv));
+	if(0<debug)std::cout<<"pile "<<npv<<" "
+		<<dict[puW]<<" "<<dict[upW]<<" "<<dict[dnW]<<std::endl;
+	return dict;};
 }
 inline auto sf(
 	 const bool MC
@@ -293,7 +313,7 @@ inline auto sf(
 auto runLBfilter(
 	const std::map<size_t,std::vector<std::pair<size_t,size_t>>>
 	&runLBdict
-	,const bool MC)
+	,const bool MC
 ){
 	return [&](const unsigned int run,const unsigned int LB){
 		bool dummy = true;
@@ -480,17 +500,17 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	f1->SetParameters(ProbeZmass->GetMaximum()
 			, ProbeZmass->GetMean()
 			, ProbeZmass->GetRMS() );
-	ProbeZmass->Fit("f1")
+	ProbeZmass->Fit("f1");
 
 	auto tagZmass  =  tag.Histo1D({
 	    "tagZmass"       ,
 	    "tag Z\\text{mass GeV/}c^{2}"   ,
 	50,60,150},"z_mas","sf");
         TF1 *f2 = new TF1("f2","gaus",60,150);
-        f1->SetParameters(taZmass->GetMaximum()
+        f1->SetParameters(tagZmass->GetMaximum()
                         , tagZmass->GetMean()
                         , tagZmass->GetRMS() );
-        tagZmass->Fit("f2")
+        tagZmass->Fit("f2");
 
 	tsf.WriteTObject(ProbeZmass.GetPtr());tsf.Flush();sync();
 	tsf.WriteTObject(  tagZmass.GetPtr());tsf.Flush();sync();
