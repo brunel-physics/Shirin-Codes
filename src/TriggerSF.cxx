@@ -185,18 +185,29 @@ inline auto lep_tight_cut(const channel ch){
 		 else if(elnu==ch){
 			ints   temp = elids[mask];
 			result = temp.size() == 2;// Choosing 2 Leptons
-			result = result && temp [0] >= EL_TIGHT_ID // NOTE
-                               		&& temp [1] >= EL_LOOSE_ID // NOTE
-					&& temp [1] <  EL_TIGHT_ID// NOTE
-					&& chmk [0] != chmk [1]
+			result = (result && temp [0] >= EL_TIGHT_ID // NOTE
+                               		 && temp [1] >= EL_LOOSE_ID // NOTE
+					 && temp [1] <  EL_TIGHT_ID// NOTE
+					 && chmk [0] != chmk [1])
+			      ||
+				 (result && temp [1] >= EL_TIGHT_ID // NOTE
+                                         && temp [0] >= EL_LOOSE_ID // NOTE
+                                         && temp [0] <  EL_TIGHT_ID// NOTE
+                                         && chmk [1] != chmk [0])
+
 					;
 		}else if(munu==ch){
 			floats temp = isos[mask];
 			result = temp.size() == 2;
-			result = result && temp [0] <= MU_TIGHT_ISO // NOTE
-			       		&& temp [1] <= MU_LOOSE_ISO // NOTE
-					&& temp [1] >  MU_TIGHT_ISO // NOTE
-					&& chmk [0] != chmk [1]
+			result = (result && temp [0] <= MU_TIGHT_ISO // NOTE
+			       	 	 && temp [1] <= MU_LOOSE_ISO // NOTE
+					 && temp [1] >  MU_TIGHT_ISO // NOTE
+					 && chmk [0] != chmk [1])
+			      ||
+				 (result && temp [1] <= MU_TIGHT_ISO // NOTE
+                                         && temp [0] <= MU_LOOSE_ISO // NOTE
+                                         && temp [0] >  MU_TIGHT_ISO // NOTE
+                                         && chmk [1] != chmk [0])
 					;
 		}else{throw std::invalid_argument(
 			"Unimplemented ch (lep_tight_cut)");}
