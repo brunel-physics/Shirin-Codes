@@ -214,6 +214,11 @@ inline auto lep_tight_cut(const channel ch){
 		return result;
 	};
 }
+inline auto lep_num(const doubles pt){
+	// Accepting only 2 or more leptons
+	return pt.size() >= 2;
+}
+
 template <typename T>
 constexpr auto fastPrincipalRangeReductor(const T diff_phi){
 	// This function just reduces input from [-2pi,+2pi] to [-pi,+pi]
@@ -273,6 +278,9 @@ auto find_z_pair(
 	//if(1<debug) std::cout<<"z pair"<<z_pair<<std::endl;
 	return z_pair;
 }
+inline auto z_num(const ints z){
+	return z.size() == 2;// refering to z_pair
+}
 inline auto easy_mass_cut(const double theo,const double cut){
                return [=](const double ours){return std::abs(ours-theo)<cut;};
 }
@@ -283,7 +291,7 @@ auto LVpairAdd(
 	,const doubles& mas_pair
 ){
 	//if(0<debug) std::cout<<"LVpairAdd"<<std::endl;
-	if(2 != pt__pair.size()) throw std::logic_error(
+	if(2 != pt__pair.size())throw std::logic_error(
 		"Not pair of Z (LVpairAdd)");
 	ROOT::Math::PtEtaPhiMVector
 	v(pt__pair[0],eta_pair[0],phi_pair[0],mas_pair[0]),
@@ -455,17 +463,23 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	       ,temp_header+"dxy"
 	       ,temp_header+"dz"
 	       })
-        .Define("lep__pt","static_cast<doubles>("+temp_header+     "pt[loose_leps])")
-        .Define("lep_eta","static_cast<doubles>("+temp_header+    "eta[loose_leps])")
-        .Define("lep_phi","static_cast<doubles>("+temp_header+    "phi[loose_leps])")
-	.Define("lep_mas","static_cast<doubles>("+temp_header+   "mass[loose_leps])")
-	.Define("lep_chg","static_cast<doubles>("+temp_header+ "charge[loose_leps])")
+        .Define("lep__pt","static_cast<ROOT::RVec<double>>("+temp_header+     "pt[loose_leps])")
+        .Define("lep_eta","static_cast<ROOT::RVec<double>>("+temp_header+    "eta[loose_leps])")
+        .Define("lep_phi","static_cast<ROOT::RVec<double>>("+temp_header+    "phi[loose_leps])")
+	.Define("lep_mas","static_cast<ROOT::RVec<double>>("+temp_header+   "mass[loose_leps])")
+	.Define("lep_chg","static_cast<ROOT::RVec<int>>   ("+temp_header+ "charge[loose_leps])")
+	.Filter(lep_num,{"lep__pt"},"lepton number cut, accepting 2 or more leptons")
 	.Define("z_reco_leps"       , find_z_pair,
 	       { "lep__pt",
 	         "lep_eta",
 	         "lep_phi",//easier to push back
 	         "lep_mas",
 		 "lep_chg"})
+	.Filter(z_num,{"z_reco_leps"},"z pairs should exist")
+	.Define(   "z_pair__pt"   ,   "lep__pt[z_reco_leps]")
+	.Define(   "z_pair_eta"   ,   "lep_eta[z_reco_leps]")
+	.Define(   "z_pair_phi"   ,   "lep_phi[z_reco_leps]")
+	.Define(   "z_pair_mas"   ,   "lep_mas[z_reco_leps]")
 	.Define(   "z_LV"         , LVpairAdd    ,
 	       {   "z_pair__pt"   ,
 	           "z_pair_eta"   ,

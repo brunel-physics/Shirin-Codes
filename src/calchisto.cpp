@@ -54,7 +54,7 @@ namespace{
   constexpr double     Z_MASS     =  91.1876;
   constexpr double     Z_MASS_CUT =  20.    ;
   constexpr double     W_MASS     =  80.385 ;
-  constexpr double     W_MASS_CUT =  20.    ;
+  constexpr double     W_MASS_CUT =  80.385 ;
   constexpr double   TOP_MASS     = 172.5   ;
 //constexpr double   TOP_MASS_CUT =  20.    ;
 
@@ -661,7 +661,7 @@ auto top_reconst(
 	ROOT::Math::PtEtaPhiMVector reco_top,
 	   RecoW(wpair__pt   ,wpair_eta   ,wpair_phi   ,wpair_mas   );
 	// The following if for stacks correctly
-	//if(std::abs(RecoW.M() - W_MASS) < W_MASS_CUT)
+	if(std::abs(RecoW.M() - W_MASS) < W_MASS_CUT)
 	for(size_t i=0; i < nbjets ;++i){
 	   ROOT::Math::PtEtaPhiMVector
 	   temp (bjets__pt[i],bjets_eta[i],bjets_phi[i],bjets_mas[i]);
