@@ -1,4 +1,4 @@
-//clang++ -Isrc -std=c++17 -march=native -pipe -Ofast -Wall -Wextra -Wpedantic -o build/tsf src/TriggerSF.cxx `root-config --libs` -lm
+//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/tsf src/TriggerSF.cxx `root-config --libs` -lm
 
 // TODO :: 1. How to make sure 1 lepton is tight and 1 lepton is loose for the tight_lep_cut
 // TODO :: 2.Compute the Ns from the reports
@@ -278,8 +278,11 @@ auto find_z_pair(
 	//if(1<debug) std::cout<<"z pair"<<z_pair<<std::endl;
 	return z_pair;
 }
-inline auto z_num(const ints z){
-	return z.size() == 2;// refering to z_pair
+inline auto z_num(const ints z_pair){
+	std::cout<<"in z_num"<<std::endl;
+	bool z_size = false;
+	if(z_pair.size() >= 2) z_size = true;
+	return z_size; //should never be zero
 }
 inline auto easy_mass_cut(const double theo,const double cut){
                return [=](const double ours){return std::abs(ours-theo)<cut;};
@@ -290,6 +293,7 @@ auto LVpairAdd(
 	,const doubles& phi_pair
 	,const doubles& mas_pair
 ){
+	std::cout<< pt__pair.size()<<std::endl;
 	//if(0<debug) std::cout<<"LVpairAdd"<<std::endl;
 	if(2 != pt__pair.size())throw std::logic_error(
 		"Not pair of Z (LVpairAdd)");
@@ -476,6 +480,8 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	         "lep_mas",
 		 "lep_chg"})
 	.Filter(z_num,{"z_reco_leps"},"z pairs should exist")
+	;
+	auto z_lep = offlep
 	.Define(   "z_pair__pt"   ,   "lep__pt[z_reco_leps]")
 	.Define(   "z_pair_eta"   ,   "lep_eta[z_reco_leps]")
 	.Define(   "z_pair_phi"   ,   "lep_phi[z_reco_leps]")
@@ -492,7 +498,7 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	// jets selection follows; lepton selected
 	.Define("sf",sf(MC,PuWd,PuUd,PuDd),{"PV_npvs"})
 	;
-	auto probe = offlep
+	auto probe = z_lep
 	.Filter(triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
