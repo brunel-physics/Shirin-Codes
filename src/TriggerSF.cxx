@@ -278,11 +278,15 @@ auto find_z_pair(
 	//if(1<debug) std::cout<<"z pair"<<z_pair<<std::endl;
 	return z_pair;
 }
+//template <typename T>
 inline auto z_num(const ints z_pair){
 	std::cout<<"in z_num"<<std::endl;
 	bool z_size = false;
 	if(z_pair.size() >= 2) z_size = true;
 	return z_size; //should never be zero
+}
+inline auto pt_pair(const doubles pt_pair){
+	return pt_pair.size() >=2;
 }
 inline auto easy_mass_cut(const double theo,const double cut){
                return [=](const double ours){return std::abs(ours-theo)<cut;};
@@ -450,6 +454,10 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	    " || Flag_ecalBadCalibFilter"// TODO: v2?
 	    " || Flag_eeBadScFilter"
 	       ,"Event Cleaning filter")
+        .Filter(triggers(ch),
+                { "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
+                 ,"HLT_IsoMu27"
+                },"Triggers Filter")
 	;
 	auto lumclean = clean
 	.Filter(runLBfilter(runLBdict,MC),{"run","luminosityBlock"},
@@ -479,13 +487,19 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	         "lep_phi",//easier to push back
 	         "lep_mas",
 		 "lep_chg"})
-	.Filter(z_num,{"z_reco_leps"},"z pairs should exist")
+        .Define(   "z_pair__pt"   ,   "lep__pt[z_reco_leps]")
+        .Define(   "z_pair_eta"   ,   "lep_eta[z_reco_leps]")
+        .Define(   "z_pair_phi"   ,   "lep_phi[z_reco_leps]")
+        .Define(   "z_pair_mas"   ,   "lep_mas[z_reco_leps]")
+	.Filter(z_num  ,{"z_reco_leps"},"z pairs should exist")
+	.Filter(pt_pair,{"z_pair__pt" },"z pairs should exist")
 	;
-	auto z_lep = offlep
-	.Define(   "z_pair__pt"   ,   "lep__pt[z_reco_leps]")
+	//auto z_lep = offlep
+	auto probe = offlep
+	/*.Define(   "z_pair__pt"   ,   "lep__pt[z_reco_leps]")
 	.Define(   "z_pair_eta"   ,   "lep_eta[z_reco_leps]")
 	.Define(   "z_pair_phi"   ,   "lep_phi[z_reco_leps]")
-	.Define(   "z_pair_mas"   ,   "lep_mas[z_reco_leps]")
+	.Define(   "z_pair_mas"   ,   "lep_mas[z_reco_leps]")*/
 	.Define(   "z_LV"         , LVpairAdd    ,
 	       {   "z_pair__pt"   ,
 	           "z_pair_eta"   ,
@@ -498,12 +512,12 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	// jets selection follows; lepton selected
 	.Define("sf",sf(MC,PuWd,PuUd,PuDd),{"PV_npvs"})
 	;
-	auto probe = z_lep
+	/*auto probe = z_lep
 	.Filter(triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
 		},"Triggers Filter")
-	;
+	;*/
 	auto  tag = probe
         .Filter(lep_tight_cut(ch),{"loose_leps",
         "Electron_cutBased",// edit function for  tight -> loose
