@@ -272,6 +272,10 @@ auto find_z_pair(
 		   lep_index_1 = i;
 		   lep_index_2 = j;
 		}
+		else{// Testing for: if both index are one at the same position
+		   lep_index_1 = 0;
+		   lep_index_2 = 0;
+		}
 	}
 	z_pair[lep_index_1] = 1;
 	z_pair[lep_index_2] = 1;
@@ -492,7 +496,7 @@ void TriggerSF ( const channel ch , const dataSource ds){
         .Define(   "z_pair_phi"   ,   "lep_phi[z_reco_leps]")
         .Define(   "z_pair_mas"   ,   "lep_mas[z_reco_leps]")
 	.Filter(z_num  ,{"z_reco_leps"},"z pairs should exist")
-	.Filter(pt_pair,{"z_pair__pt" },"z pairs should exist")
+	//.Filter(pt_pair,{"z_pair__pt" },"z pairs should exist")
 	;
 	//auto z_lep = offlep
 	auto probe = offlep
