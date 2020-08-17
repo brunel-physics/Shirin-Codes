@@ -423,7 +423,7 @@ auto metCorrection(
 // btag suPer set and btag suB set
 inline auto btagP(const doubles &eta){return abs(eta) < BJET_ETA_MAX;}
 inline auto btagB(const ints  &btagP,const floats &btags){
-	return   btagP && ( DBTAG_DISC_MIN < btags );// all tJ length
+	return   btagP && ( BTAG_DISC_MIN < btags );// all tJ length
 }
 inline auto	isBquark(   const ints &id , const ints &mask ){
 	return mask &&   (   5 ==  abs(  id ) );
@@ -456,8 +456,8 @@ auto btagCSVv2(const bool check_CSVv2){
 	       pt_Min , pt_Max,
 	       etaMin , etaMax,
 	       CSVmin , CSVmax;
-	//io::CSVReader<11> thisCSVfile("aux/CSVv2_94XSF_V2_B_F.csv");
-	io::CSVReader<11> thisCSVfile("aux/DeepCSV_94XSF_V5_B_F.csv");
+	io::CSVReader<11> thisCSVfile("aux/CSVv2_94XSF_V2_B_F.csv");
+	//io::CSVReader<11> thisCSVfile("aux/DeepCSV_94XSF_V5_B_F.csv");
 	thisCSVfile.next_line();// we happen to not need the header line
 	// The following nests too much, so we do not indent
 	// Each blank line means nesting deeper
@@ -465,7 +465,7 @@ auto btagCSVv2(const bool check_CSVv2){
 	      etaMin,etaMax,pt_Min,pt_Max,CSVmin,CSVmax,rawFormula)){
 	// CSVv2 column = Operating point
 	if(check_CSVv2){
-		b= DBTAG_DISC_MIN <= CSVv2
+		b= BTAG_DISC_MIN <= CSVv2
 		&& "mujets" == measureType && 0 == jetFlav;
 	}else{
 		b=   "incl" == measureType && 0 != jetFlav;
@@ -1350,7 +1350,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("tight_jets_eta"   ,"rawJet_eta[tight_jets]")
 	.Define("tight_jets_phi"   ,"rawJet_phi[tight_jets]")
 	.Define("tight_jets_mas"   ,"rawJet_mas[tight_jets]")
-*/	.Define("tJ_btagCSVv2"  ,"Jet_btagDeepB[tight_jets]")// leave as floats
+*/	.Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")//"Jet_btagDeepB[tight_jets]")// leave as floats
 	;
 	// now we make the histogram names and titles
 	switch(ch){// laugh at muon-neutrino below

@@ -259,6 +259,7 @@ auto find_z_pair(
 		"Collections must be the same size in Z-pair");
 	if(pts.size()==0)	throw std::logic_error(
 		"Collections must not be empty in Z-pair");
+	std::cout<<"size of pt in find zpair "<<pts.size()<<std::endl;
 	ints z_pair(nleps, 0);// vector of zeroes
 	for(size_t   i=0; i < nleps-1 ;++i)
 	for(size_t j=i+1; j < nleps   ;++j)
@@ -271,12 +272,21 @@ auto find_z_pair(
 		   z_reco_mass = reco_mass;// found nearer pair to z mass
 		   lep_index_1 = i;
 		   lep_index_2 = j;
+		   std::cout<<i<<" "<<j<<std::endl;
 		}
 		else{// Testing for: if both index are one at the same position
+		   std::cout<<"i am in else"<<std::endl;
 		   lep_index_1 = 0;
 		   lep_index_2 = 0;
+		   std::cout<<lep_index_1<<" "<<lep_index_2<<std::endl;
 		}
 	}
+        else{// Testing for: if both index are one at the same position
+                   std::cout<<"i am in ch else"<<std::endl;
+                   lep_index_1 = 0;
+                   lep_index_2 = 0;
+                   std::cout<<lep_index_1<<" "<<lep_index_2<<std::endl;
+        }
 	z_pair[lep_index_1] = 1;
 	z_pair[lep_index_2] = 1;
 	//if(1<debug) std::cout<<"z pair"<<z_pair<<std::endl;
@@ -286,7 +296,11 @@ auto find_z_pair(
 inline auto z_num(const ints z_pair){
 	std::cout<<"in z_num"<<std::endl;
 	bool z_size = false;
-	if(z_pair.size() >= 2) z_size = true;
+	if(z_pair.size() >= 2){
+	z_size = true;
+	std::cout<<"size of zpair "<<z_pair.size()
+		 <<"bool "<<z_size<<std::endl;
+	}
 	return z_size; //should never be zero
 }
 inline auto pt_pair(const doubles pt_pair){
