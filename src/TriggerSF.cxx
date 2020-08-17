@@ -497,7 +497,7 @@ void TriggerSF ( const channel ch , const dataSource ds){
         .Define(   "z_pair_eta"    ,   "lep_eta[z_reco_leps]")
         .Define(   "z_pair_phi"    ,   "lep_phi[z_reco_leps]")
         .Define(   "z_pair_mas"    ,   "lep_mas[z_reco_leps]")*/
-	.Filter("!Any(z_reco_leps)",/*{"z_reco_leps"},*/"z pairs should exist")
+	.Filter("Any(z_reco_leps)",/*{"z_reco_leps"},*/"z pairs should exist")
 	//.Filter(pt_pair,{"z_pair__pt" },"z pairs should exist")
 	;
 	//auto z_lep = offlep
