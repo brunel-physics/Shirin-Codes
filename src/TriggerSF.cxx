@@ -274,7 +274,7 @@ auto find_z_pair(
 		   lep_index_2 = j;
 		}
 	}
-	if(std::numeric max != lep_index_1){
+	if(std::numeric_limits<size_t>::max() != lep_index_1){
 	z_pair[lep_index_1] = 1;
 	z_pair[lep_index_2] = 1;
 	}
@@ -493,19 +493,19 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	         "lep_phi",//easier to push back
 	         "lep_mas",
 		 "lep_chg"})
-        .Define(   "z_pair__pt"   ,   "lep__pt[z_reco_leps]")
-        .Define(   "z_pair_eta"   ,   "lep_eta[z_reco_leps]")
-        .Define(   "z_pair_phi"   ,   "lep_phi[z_reco_leps]")
-        .Define(   "z_pair_mas"   ,   "lep_mas[z_reco_leps]")
-	.Filter(z_num  ,{"z_reco_leps"},"z pairs should exist")
+        /*.Define(   "z_pair__pt"    ,   "lep__pt[z_reco_leps]")
+        .Define(   "z_pair_eta"    ,   "lep_eta[z_reco_leps]")
+        .Define(   "z_pair_phi"    ,   "lep_phi[z_reco_leps]")
+        .Define(   "z_pair_mas"    ,   "lep_mas[z_reco_leps]")*/
+	.Filter("!Any(z_reco_leps)",/*{"z_reco_leps"},*/"z pairs should exist")
 	//.Filter(pt_pair,{"z_pair__pt" },"z pairs should exist")
 	;
 	//auto z_lep = offlep
 	auto probe = offlep
-	/*.Define(   "z_pair__pt"   ,   "lep__pt[z_reco_leps]")
+	.Define(   "z_pair__pt"   ,   "lep__pt[z_reco_leps]")
 	.Define(   "z_pair_eta"   ,   "lep_eta[z_reco_leps]")
 	.Define(   "z_pair_phi"   ,   "lep_phi[z_reco_leps]")
-	.Define(   "z_pair_mas"   ,   "lep_mas[z_reco_leps]")*/
+	.Define(   "z_pair_mas"   ,   "lep_mas[z_reco_leps]")
 	.Define(   "z_LV"         , LVpairAdd    ,
 	       {   "z_pair__pt"   ,
 	           "z_pair_eta"   ,
