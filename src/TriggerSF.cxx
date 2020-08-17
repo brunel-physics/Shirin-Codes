@@ -263,7 +263,7 @@ auto find_z_pair(
 	ints z_pair(nleps, 0);// vector of zeroes
 	for(size_t   i=0; i < nleps-1 ;++i)
 	for(size_t j=i+1; j < nleps   ;++j)
-	if(ch[i] != ch[j]){// Must be opposite sign lepton
+	if(ch[i] != ch[j]){// must not be the same charge
 		ROOT::Math::PtEtaPhiMVector
 		lep1(pts[i],etas[i],phis[i],ms[i]),
 		lep2(pts[j],etas[j],phis[j],ms[j]);
@@ -272,23 +272,12 @@ auto find_z_pair(
 		   z_reco_mass = reco_mass;// found nearer pair to z mass
 		   lep_index_1 = i;
 		   lep_index_2 = j;
-		   std::cout<<i<<" "<<j<<std::endl;
-		}
-		else{// Testing for: if both index are one at the same position
-		   std::cout<<"i am in else"<<std::endl;
-		   lep_index_1 = 0;
-		   lep_index_2 = 0;
-		   std::cout<<lep_index_1<<" "<<lep_index_2<<std::endl;
 		}
 	}
-        else{// Testing for: if both index are one at the same position
-                   std::cout<<"i am in ch else"<<std::endl;
-                   lep_index_1 = 0;
-                   lep_index_2 = 0;
-                   std::cout<<lep_index_1<<" "<<lep_index_2<<std::endl;
-        }
+	if(std::numeric max != lep_index_1){
 	z_pair[lep_index_1] = 1;
 	z_pair[lep_index_2] = 1;
+	}
 	//if(1<debug) std::cout<<"z pair"<<z_pair<<std::endl;
 	return z_pair;
 }
@@ -296,11 +285,10 @@ auto find_z_pair(
 inline auto z_num(const ints z_pair){
 	std::cout<<"in z_num"<<std::endl;
 	bool z_size = false;
-	if(z_pair.size() >= 2){
-	z_size = true;
-	std::cout<<"size of zpair "<<z_pair.size()
+	for(size_t i=0; i < z_pair.size(); i++)
+	if(z_pair[i] == 1)z_size = true;
+	std::cout<<"size of zpair "<<z_pair.size()<<" and z_pair"<<z_pair
 		 <<"bool "<<z_size<<std::endl;
-	}
 	return z_size; //should never be zero
 }
 inline auto pt_pair(const doubles pt_pair){
