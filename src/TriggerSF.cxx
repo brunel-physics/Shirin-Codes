@@ -259,7 +259,6 @@ auto find_z_pair(
 		"Collections must be the same size in Z-pair");
 	if(pts.size()==0)	throw std::logic_error(
 		"Collections must not be empty in Z-pair");
-	std::cout<<"size of pt in find zpair "<<pts.size()<<std::endl;
 	ints z_pair(nleps, 0);// vector of zeroes
 	for(size_t   i=0; i < nleps-1 ;++i)
 	for(size_t j=i+1; j < nleps   ;++j)
@@ -282,18 +281,6 @@ auto find_z_pair(
 	return z_pair;
 }
 //template <typename T>
-inline auto z_num(const ints z_pair){
-	std::cout<<"in z_num"<<std::endl;
-	bool z_size = false;
-	for(size_t i=0; i < z_pair.size(); i++)
-	if(z_pair[i] == 1)z_size = true;
-	std::cout<<"size of zpair "<<z_pair.size()<<" and z_pair"<<z_pair
-		 <<"bool "<<z_size<<std::endl;
-	return z_size; //should never be zero
-}
-inline auto pt_pair(const doubles pt_pair){
-	return pt_pair.size() >=2;
-}
 inline auto easy_mass_cut(const double theo,const double cut){
                return [=](const double ours){return std::abs(ours-theo)<cut;};
 }
@@ -303,7 +290,6 @@ auto LVpairAdd(
 	,const doubles& phi_pair
 	,const doubles& mas_pair
 ){
-	std::cout<< pt__pair.size()<<std::endl;
 	//if(0<debug) std::cout<<"LVpairAdd"<<std::endl;
 	if(2 != pt__pair.size())throw std::logic_error(
 		"Not pair of Z (LVpairAdd)");
@@ -493,14 +479,8 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	         "lep_phi",//easier to push back
 	         "lep_mas",
 		 "lep_chg"})
-        /*.Define(   "z_pair__pt"    ,   "lep__pt[z_reco_leps]")
-        .Define(   "z_pair_eta"    ,   "lep_eta[z_reco_leps]")
-        .Define(   "z_pair_phi"    ,   "lep_phi[z_reco_leps]")
-        .Define(   "z_pair_mas"    ,   "lep_mas[z_reco_leps]")*/
-	.Filter("Any(z_reco_leps)",/*{"z_reco_leps"},*/"z pairs should exist")
-	//.Filter(pt_pair,{"z_pair__pt" },"z pairs should exist")
+	.Filter("Any(z_reco_leps)","z pairs should exist")
 	;
-	//auto z_lep = offlep
 	auto probe = offlep
 	.Define(   "z_pair__pt"   ,   "lep__pt[z_reco_leps]")
 	.Define(   "z_pair_eta"   ,   "lep_eta[z_reco_leps]")
@@ -518,12 +498,6 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	// jets selection follows; lepton selected
 	.Define("sf",sf(MC,PuWd,PuUd,PuDd),{"PV_npvs"})
 	;
-	/*auto probe = z_lep
-	.Filter(triggers(ch),
-		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
-		 ,"HLT_IsoMu27"
-		},"Triggers Filter")
-	;*/
 	auto  tag = probe
         .Filter(lep_tight_cut(ch),{"loose_leps",
         "Electron_cutBased",// edit function for  tight -> loose
