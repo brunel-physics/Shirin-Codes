@@ -1,8 +1,6 @@
-// TODO: lepton trigger efficiency add to sf
+// TODO: ADD BLINDING BY JET MULTIPLICITY
 // TODO: Shape uncertainties
-// TODO: non prompt lepton corrections-> use RDF count after blinding and also filter report to know how many passed
-// TODO: loose isolation TBC by Duncan
-// TODO: Pile Up uncertainties (done: weight)
+// TODO: non prompt lepton corrections
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <Math/Vector4D.h>
@@ -96,6 +94,11 @@ namespace{
   constexpr float    ELNU_RES_M_W = 1.79322e+01;
   constexpr float    MUNU_RES_M_W = 1.73722e+01;
 
+// Method Explained in TriggerSF.cxx
+// FYI:: TRIG_SF_ELNU = (3772592/11448047)/(1646471/5348563)
+// FYI:: TRIG_SF_MUNU = (1564742/28076084)/( 488760/9554142)
+  constexpr float    TRIG_SF_ELNU = 1.070511816990938379014537410816376133957408282644307576982;
+  constexpr float    TRIG_SF_MUNU = 1.089437304676686344318303492342796025659913489719426417037;
 
 // This Pi is more accurate than binary256; good for eternity
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
@@ -423,7 +426,7 @@ auto metCorrection(
 // btag suPer set and btag suB set
 inline auto btagP(const doubles &eta){return abs(eta) < BJET_ETA_MAX;}
 inline auto btagB(const ints  &btagP,const floats &btags){
-	return   btagP && ( DBTAG_DISC_MIN < btags );// all tJ length
+	return   btagP && ( BTAG_DISC_MIN < btags );// all tJ length
 }
 inline auto	isBquark(   const ints &id , const ints &mask ){
 	return mask &&   (   5 ==  abs(  id ) );
@@ -456,8 +459,8 @@ auto btagCSVv2(const bool check_CSVv2){
 	       pt_Min , pt_Max,
 	       etaMin , etaMax,
 	       CSVmin , CSVmax;
-	//io::CSVReader<11> thisCSVfile("aux/CSVv2_94XSF_V2_B_F.csv");
-	io::CSVReader<11> thisCSVfile("aux/DeepCSV_94XSF_V5_B_F.csv");
+	io::CSVReader<11> thisCSVfile("aux/CSVv2_94XSF_V2_B_F.csv");
+	//io::CSVReader<11> thisCSVfile("aux/DeepCSV_94XSF_V5_B_F.csv");
 	thisCSVfile.next_line();// we happen to not need the header line
 	// The following nests too much, so we do not indent
 	// Each blank line means nesting deeper
@@ -465,7 +468,7 @@ auto btagCSVv2(const bool check_CSVv2){
 	      etaMin,etaMax,pt_Min,pt_Max,CSVmin,CSVmax,rawFormula)){
 	// CSVv2 column = Operating point
 	if(check_CSVv2){
-		b= DBTAG_DISC_MIN <= CSVv2
+		b= BTAG_DISC_MIN <= CSVv2
 		&& "mujets" == measureType && 0 == jetFlav;
 	}else{
 		b=   "incl" == measureType && 0 != jetFlav;
@@ -1056,6 +1059,7 @@ inline auto Chi2(const channel ch){
 // Simulation correction Scale Factors
 inline auto sf(
 	 const  dataSource    ds
+	,const  channel       ch
 	,const TH1D* const &PuWd
 	,const TH1D* const &PuUd
 	,const TH1D* const &PuDd
@@ -1080,6 +1084,10 @@ inline auto sf(
 			case cms:{result = 1.;MC=false;break;}// ignore btag wt
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (sf)");
+		}
+		switch(ch){
+			case elnu:{result *= TRIG_SF_ELNU;break;}
+			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
 		if(MC) result *= pile(PuWd,PuUd,PuDd)(npv)[puW];
 		if(result < 0)std::cout<<"pile lt 0"<<std::endl;
@@ -1107,7 +1115,7 @@ auto finalScaling(
 	,T &rdf
 ){
 	return rdf
-	.Define("sf",sf(ds,PuWd,PuUd,PuDd),{"btag_w","mostSF","PV_npvs"})
+	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd),{"btag_w","mostSF","PV_npvs"})
 	.Define("chi2",Chi2(ch),{"lep_nu_invmass","ttop_mas"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
@@ -1312,7 +1320,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(1000);// remember to enable MT when NOT range
-	auto init_selection = dfr// remove one letter to do all
+	auto init_selection = df// remove one letter to do all
 	/*.Filter(Triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_Ele35_WPTight_Gsf"
@@ -1350,7 +1358,7 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("tight_jets_eta"   ,"rawJet_eta[tight_jets]")
 	.Define("tight_jets_phi"   ,"rawJet_phi[tight_jets]")
 	.Define("tight_jets_mas"   ,"rawJet_mas[tight_jets]")
-*/	.Define("tJ_btagCSVv2"  ,/*"Jet_btagCSVV2[tight_jets]")*/"Jet_btagDeepB[tight_jets]")// leave as floats
+*/	.Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")//"Jet_btagDeepB[tight_jets]")// leave as floats
 	;
 	// now we make the histogram names and titles
 	switch(ch){// laugh at muon-neutrino below

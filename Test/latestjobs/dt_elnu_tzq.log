@@ -203,3 +203,33 @@
 009 (857.000.000) 08/20 08:31:40 Job was aborted by the user.
 	via condor_rm (by user eepgssg)
 ...
+006 (856.000.000) 08/20 11:25:47 Image size of job updated: 164556
+	114  -  MemoryUsage of job (MB)
+	115888  -  ResidentSetSize of job (KB)
+...
+006 (856.000.000) 08/20 22:37:04 Image size of job updated: 164556
+	117  -  MemoryUsage of job (MB)
+	118868  -  ResidentSetSize of job (KB)
+...
+006 (856.000.000) 08/21 02:42:08 Image size of job updated: 164556
+	126  -  MemoryUsage of job (MB)
+	128348  -  ResidentSetSize of job (KB)
+...
+006 (856.000.000) 08/21 08:54:26 Image size of job updated: 164556
+	129  -  MemoryUsage of job (MB)
+	131536  -  ResidentSetSize of job (KB)
+...
+004 (856.000.000) 08/21 11:32:07 Job was evicted.
+	(0) Job was not checkpointed.
+		Usr 1 02:13:21, Sys 0 01:12:15  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	0  -  Run Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :     1.02        1         1 
+	   Disk (KB)            :  1000        1000     97060 
+	   Memory (MB)          :   129           1       128 
+...
+009 (856.000.000) 08/21 11:32:07 Job was aborted by the user.
+	via condor_rm (by user eepgssg)
+...
