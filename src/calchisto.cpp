@@ -674,6 +674,17 @@ auto top_reconst(
 	}
 	return reco_top;
 }
+inline auto blinding(
+          const floats bjets
+         ,const floats tjets){// This is the jet multiplicity technique,
+        // suggested by Dr Duncan Leggat.
+        // We take the number of bjets and remaining tight jets based on
+        // the number of existing final jets. Therefore, we expect either
+        // 3 bjets at final state or , 1 bjet and two other jets.
+        return (bjets.size() == 3 && tjets.size() == 4) || // the fourth jet
+               (bjets.size() == 1 && tjets.size() == 4)  ; // is the recoiled jet
+        // from t-channel process
+}
 template <typename T>
 auto allReconstruction(T &rdf){
 	return rdf
@@ -752,6 +763,7 @@ auto allReconstruction(T &rdf){
 	.Define("ttop_phi","recoTtop.Phi()")
 	.Define("ttop_mas","recoTtop. M ()")
 	.Filter("ttop_mas > 1.","tTm tiny mass filter")
+	.Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
 	;
 }
 // Btagging for eff i and eff j
@@ -1052,16 +1064,6 @@ inline auto Chi2(const channel ch){
 	float chi2 = std::pow((tWm -   W_MASS)/resW,2)
 	           + std::pow((tTm - TOP_MASS)/resT,2);
 	return chi2;};
-}
-inline auto blinding(
-	  const floats bjets
-	 ,const floats tjets){// This is the jet multiplicity technique,
-	// suggested by Dr Duncan Leggat.
-	// We take the number of bjets and remaining tight jets based on
-	// the number of existing final jets. Therefore, we expect either
-	// 3 bjets at final state or , 1 bjet and two other jets.
-	return (bjets.size() == 3 && tjets.size() == 3) ||
-	       (bjets.size() == 1 && tjets.size() == 3)  ;
 }
 // Simulation correction Scale Factors
 inline auto sf(
@@ -1453,6 +1455,7 @@ void calchisto(const channel ch,const dataSource ds){
 	       {  "tJ_btagCSVv2","fin_jets__pt","fin_jets_eta","tJpF"})
 	.Define("sfj",btagCSVv2(false),//,btagDF),// ignore btag
 	       {  "tJ_btagCSVv2","fin_jets__pt","fin_jets_eta","tJpF"})
+        .Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
 	;
 	auto reco = allReconstruction(
 	     jecs_bjets )
@@ -1850,6 +1853,8 @@ void calchisto(const channel ch,const dataSource ds){
 	.Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
 	.Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
 	.Filter(jetCutter(BJETS_MIN,BJETS_MAX),{"btagB"},"b jet cut")
+        .Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
+
 	// TODO: Always check that the previous 3 lines are copies of earlier
 	;
 	auto reco = allReconstruction(
