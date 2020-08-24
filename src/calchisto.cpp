@@ -175,15 +175,12 @@ inline auto lep_tight_cut(const channel ch){
 }
 inline auto Triggers(const channel ch){
         return [=](
-         const bool el1// HLT_Ele35_WPTight_Gsf
-	,const bool el2// HLT_Ele32_WPTight_Gsf_L1DoubleEG
-        ,const bool mu1// HLT_IsoMu27
-
-        //const bool mu3// HLT_L1SingleMu25 keeping just incase
+	 const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG
+        ,const bool mu// HLT_IsoMu27
 ){
         switch(ch){
-        case elnu:return el1 && el2;
-        case munu:return mu1;
+        case elnu:return el;
+        case munu:return mu;
         }};
 }
 
@@ -1056,6 +1053,16 @@ inline auto Chi2(const channel ch){
 	           + std::pow((tTm - TOP_MASS)/resT,2);
 	return chi2;};
 }
+inline auto blinding(
+	  const floats bjets
+	 ,const floats tjets){// This is the jet multiplicity technique,
+	// suggested by Dr Duncan Leggat.
+	// We take the number of bjets and remaining tight jets based on
+	// the number of existing final jets. Therefore, we expect either
+	// 3 bjets at final state or , 1 bjet and two other jets.
+	return (bjets.size() == 3 && tjets.size() == 3) ||
+	       (bjets.size() == 1 && tjets.size() == 3)  ;
+}
 // Simulation correction Scale Factors
 inline auto sf(
 	 const  dataSource    ds
@@ -1321,11 +1328,10 @@ void calchisto(const channel ch,const dataSource ds){
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(1000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
-	/*.Filter(Triggers(ch),
+	.Filter(Triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
-		 ,"HLT_Ele35_WPTight_Gsf"
 		 ,"HLT_IsoMu27"
-		},"Triggers Filter")*/
+		},"Triggers Filter")
 	// lepton selection first
 	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
@@ -1747,7 +1753,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_tWmVsZmass->GetXaxis()->SetTitle("\\text{  tWm  GeV/}c^{2}");
 	h_tWmVsZmass->GetYaxis()->SetTitle("\\text{Z mass GeV/}c^{2}");
 
-        auto h_chi2 = finalDF.Histo1D({
+        /*auto h_chi2 = finalDF.Histo1D({
         ("chi2_" + temp_header).c_str(),
         ("chi2 " + temp_header).c_str(),
         50,-300,300},
@@ -1755,7 +1761,7 @@ void calchisto(const channel ch,const dataSource ds){
         h_chi2->GetXaxis()->SetTitle("chi2");
         h_chi2->GetYaxis()->SetTitle("Event");
         h_chi2->SetLineStyle(kSolid);
-
+	*/
 	// No SetLineStyle here
 
 	// write histograms to a root file
@@ -1791,7 +1797,7 @@ void calchisto(const channel ch,const dataSource ds){
 	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
-        hf.WriteTObject(h_chi2     	 .GetPtr());hf.Flush();sync();
+        //hf.WriteTObject(h_chi2     	 .GetPtr());hf.Flush();sync();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
