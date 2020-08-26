@@ -300,7 +300,7 @@ inline auto jetCutter(const unsigned jmin,const unsigned jmax){
 }
 inline auto lep_gpt(const channel ch){
 	return [=](
-		 const floats &pt
+		 const ints &pt
 		,const ints &mask
 		,const ints &eidx
 		,const ints &midx
@@ -331,8 +331,8 @@ inline auto find_lead_mask(const doubles& vals,const ints& mask){
 inline double transverse_w_mass(
 	 const double lep__pt
 	,const double lep_phi
-	,const double met__pt
-	,const double met_phi
+	,const  float met__pt
+	,const  float met_phi
 ){
 	return 2.
 		* std::abs (std::sin( delta_phi(lep_phi
@@ -478,10 +478,17 @@ void NPL(const channel ch,const dataSource ds){
 	       })
 	.Define("rawJet_eta","static_cast<ROOT::RVec<double>>(Jet_eta )")
 	.Define("rawJet_phi","static_cast<ROOT::RVec<double>>(Jet_phi )")
-        .Define("lep__pt","static_cast<ROOT::RVec<double>>("+temp_header+     "pt[loose_leps])")
-        .Define("lep_eta","static_cast<ROOT::RVec<double>>("+temp_header+    "eta[loose_leps])")
-        .Define("lep_phi","static_cast<ROOT::RVec<double>>("+temp_header+    "phi[loose_leps])")
-	.Define("lep_mas","static_cast<ROOT::RVec<double>>("+temp_header+   "mass[loose_leps])")
+        .Define("lep__pt","static_cast<double>("+temp_header+     "pt[loose_leps][0])")
+        .Define("lep_eta","static_cast<double>("+temp_header+    "eta[loose_leps][0])")
+        .Define("lep_phi","static_cast<double>("+temp_header+    "phi[loose_leps][0])")
+	.Define("lep_mas","static_cast<double>("+temp_header+   "mass[loose_leps][0])")
+        .Filter(lep_tight_cut(ch),{"loose_leps",
+                "Electron_cutBased",// edit function for  tight -> loose
+                "Muon_pfRelIso04_all"},"lepton cut")// left with 1 tight lepton
+        .Filter(not_tight_cut(ch),{"not_tight",
+                "Electron_cutBased",// edit function for  tight -> loose
+                "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
+
         .Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
                {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
         .Define("tight_jets"       ,tight_jet_id,
@@ -502,32 +509,28 @@ void NPL(const channel ch,const dataSource ds){
 	.Define("tw_lep_mas",transverse_w_mass,
 	       {"tw_lep__pt",
 	        "tw_lep_phi","MET_pt","MET_phi"})
-	.Filter(lep_tight_cut(ch),{"loose_leps",
-	        "Electron_cutBased",// edit function for  tight -> loose
-	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 tight lepton
-        .Filter(not_tight_cut(ch),{"not_tight",
-                "Electron_cutBased",// edit function for  tight -> loose
-                "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
 	;
 	auto QCD_lep = offlep
-        .Filter("All(30 < tw_lep_mas) & All(tw_lep_mas < 130)","Transverse W mass cut for QCD region,N_data")
-	//.Filter("All(MET_sumEt  < 40)","Sum ET < 40 GeV   cut for QCD region")
+        //.Filter("All(tw_lep_mas < 30)","Transverse W mass cut for QCD region , 30<")
+	.Filter("tw_lep_mas < 30 || tw_lep_mas > 130","Transverse W mass cut for QCD region,N_data")
+	//.Filter("MET_sumEt  < 40","Sum ET < 40 GeV   cut for QCD region")
 	;
 	auto sig_lep = offlep
-        .Filter("All(tw_lep_mas < 130) & All(tw_lep_mas > 30)","Transverse W mass cut for Signal, N_real-misid")
+        //.Filter("All(tw_lep_mas < 130)","Transverse W mass cut for Signal,         <130")
+	.Filter("tw_lep_mas < 130 || tw_lep_mas > 30","Transverse W mass cut for Signal, N_real-misid")
 	;
 	if(MC){
 	auto prompt_QCD_lep = QCD_lep //prompt for MC in QCD
-	.Define("lep_gsf",lep_gpt(ch),{"GenPart_StatusFlags","not_tight"
+	.Define("lep_gsf",lep_gpt(ch),{"GenPart_statusFlags","not_tight"
                                       ,"Electron_genPartIdx"
                                       ,    "Muon_genPartIdx"})
-	.Filter("All(lep_gsf == 0)","QCD PROMPT MC")
+	.Filter("lep_gsf == 0","QCD PROMPT MC")
 	;
         auto prompt_sig_lep = sig_lep //prompt for MC in sig
-        .Define("lep_gsf",lep_gpt(ch),{"GenPart_StatusFlags","not_tight"
+        .Define("lep_gsf",lep_gpt(ch),{"GenPart_statusFlags","not_tight"
                                       ,"Electron_genPartIdx"
                                       ,    "Muon_genPartIdx"})
-        .Filter("All(lep_gsf == 0)","Signal prompt MC")
+        .Filter("lep_gsf == 0","Signal prompt MC")
         ;
 	prompt_QCD_lep.Report() ->Print();
 	prompt_sig_lep.Report() ->Print();
