@@ -478,20 +478,21 @@ void NPL(const channel ch,const dataSource ds){
 	       })
 	.Define("rawJet_eta","static_cast<ROOT::RVec<double>>(Jet_eta )")
 	.Define("rawJet_phi","static_cast<ROOT::RVec<double>>(Jet_phi )")
-	.Define("tight_jets"       ,tight_jet_id,
-	{"jet_lep_min_dR"   ,"Jet_pt","Jet_eta","Jet_jetId"})
-	.Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")
         .Define("lep__pt","static_cast<ROOT::RVec<double>>("+temp_header+     "pt[loose_leps])")
         .Define("lep_eta","static_cast<ROOT::RVec<double>>("+temp_header+    "eta[loose_leps])")
         .Define("lep_phi","static_cast<ROOT::RVec<double>>("+temp_header+    "phi[loose_leps])")
 	.Define("lep_mas","static_cast<ROOT::RVec<double>>("+temp_header+   "mass[loose_leps])")
         .Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
                {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
+        .Define("tight_jets"       ,tight_jet_id,
+        {"jet_lep_min_dR"   ,"Jet_pt","Jet_eta","Jet_jetId"})
+        .Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")
 	.Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta  [tight_jets])")
 	.Define("fin_jets__pt","static_cast<ROOT::RVec<double>>(Jet_pt   [tight_jets])")
 	.Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
 	.Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
 	.Define( "lead_bjet"      , find_lead_mask,{"fin_jets__pt","btagB"})
+	.Define(      "bjet__pt"  ,"fin_jets__pt[lead_bjet]")// Leading bj
         .Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
         .Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
 	// now for transverse W; lepton done
@@ -509,11 +510,11 @@ void NPL(const channel ch,const dataSource ds){
                 "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
 	;
 	auto QCD_lep = offlep
-	.Filter("All(tw_lep_mas < 30 && tw_lep_mass > 130)","Transverse W mass cut for QCD region,N_data")
+        .Filter("All(30 < tw_lep_mas) & All(tw_lep_mas < 130)","Transverse W mass cut for QCD region,N_data")
 	//.Filter("All(MET_sumEt  < 40)","Sum ET < 40 GeV   cut for QCD region")
 	;
 	auto sig_lep = offlep
-	.Filter("All(tw_lep_mas > 30 && tw_lep_mass < 130)","Transverse W mass cut for Signal, real-misid")
+        .Filter("All(tw_lep_mas < 130) & All(tw_lep_mas > 30)","Transverse W mass cut for Signal, N_real-misid")
 	;
 	if(MC){
 	auto prompt_QCD_lep = QCD_lep //prompt for MC in QCD
