@@ -478,8 +478,6 @@ void NPL(const channel ch,const dataSource ds){
 	       })
 	.Define("rawJet_eta","static_cast<ROOT::RVec<double>>(Jet_eta )")
 	.Define("rawJet_phi","static_cast<ROOT::RVec<double>>(Jet_phi )")
-	.Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
-	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
 	.Define("tight_jets"       ,tight_jet_id,
 	{"jet_lep_min_dR"   ,"Jet_pt","Jet_eta","Jet_jetId"})
 	.Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")
@@ -487,6 +485,8 @@ void NPL(const channel ch,const dataSource ds){
         .Define("lep_eta","static_cast<ROOT::RVec<double>>("+temp_header+    "eta[loose_leps])")
         .Define("lep_phi","static_cast<ROOT::RVec<double>>("+temp_header+    "phi[loose_leps])")
 	.Define("lep_mas","static_cast<ROOT::RVec<double>>("+temp_header+   "mass[loose_leps])")
+        .Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
+               {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
 	.Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta  [tight_jets])")
 	.Define("fin_jets__pt","static_cast<ROOT::RVec<double>>(Jet_pt   [tight_jets])")
 	.Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
