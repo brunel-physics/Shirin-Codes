@@ -1,7 +1,0 @@
-Executable    = /bin/bash
-universe      = vanilla
-Output        = latestjobs/dt_elnu_tzq.out
-Error         = latestjobs/dt_elnu_tzq.err
-Log           = latestjobs/dt_elnu_tzq.log
-Arguments     = latestjobs/elnu_tzq.sh
-Queue
