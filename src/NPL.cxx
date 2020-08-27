@@ -210,10 +210,10 @@ inline auto not_tight_cut(const channel ch){
                  if(false) ;
                  else if(ch==elnu){
                         ints   temp = elids[mask];
-                        result = temp.size() == 1;// Choosing 1 Tight Lepton
+                        result = temp.size() >= 1;// Choosing 1 Tight Lepton
                 }else if(ch==munu){
                         floats temp = isos[mask];
-                        result = temp.size() == 1;
+                        result = temp.size() >= 1;
                 }else{throw std::invalid_argument(
                         "Unimplemented ch (not_tight_cut)");}
                 return result;
@@ -300,17 +300,17 @@ inline auto jetCutter(const unsigned jmin,const unsigned jmax){
 }
 inline auto lep_gpt(const channel ch){
 	return [=](
-		 const ints &pt
+		 const ints &gpsf
 		,const ints &mask
 		,const ints &eidx
 		,const ints &midx
 	){
-	int i;
+	ints i;
 	switch(ch){
-		case elnu:{i = eidx[mask][0];break;}
-		case munu:{i = midx[mask][0];break;}
+		case elnu:{i = eidx[mask];break;}
+		case munu:{i = midx[mask];break;}
 	}
-	if(-1!=i) return static_cast<double>(pt[i]); else return -1.;
+	return Any(0==Take(gpsf,i[-1!=i]));
 	};
 }
 inline auto find_lead_mask(const doubles& vals,const ints& mask){
@@ -368,6 +368,18 @@ inline auto blinding(
                (bjets.size() != 1 && tjets.size() <= JETS_MAX)  ; // is the recoiled jet
         // from t-channel process
 }
+inline auto unblinding(
+          const doubles bjets
+         ,const doubles tjets){// This is the jet multiplicity technique,
+        // suggested by Dr Duncan Leggat.
+        // We take the number of bjets and remaining tight jets based on
+        // the number of existing final jets. Therefore, we expect either
+        // 3 bjets at final state or , 1 bjet and two other jets.
+        return (bjets.size() == 3 && tjets.size() <= JETS_MAX) || // the fourth jet
+               (bjets.size() == 1 && tjets.size() <= JETS_MAX)  ; // is the recoiled jet
+        // from t-channel process
+}
+
 inline auto btagP(const doubles &eta){return abs(eta) < BJET_ETA_MAX;}
 inline auto btagB(const ints  &btagP,const floats &btags){
 	return   btagP && ( BTAG_DISC_MIN < btags );// all tJ length
@@ -488,7 +500,6 @@ void NPL(const channel ch,const dataSource ds){
         .Filter(not_tight_cut(ch),{"not_tight",
                 "Electron_cutBased",// edit function for  tight -> loose
                 "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
-
         .Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
                {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
         .Define("tight_jets"       ,tight_jet_id,
@@ -500,9 +511,7 @@ void NPL(const channel ch,const dataSource ds){
 	.Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
 	.Define( "lead_bjet"      , find_lead_mask,{"fin_jets__pt","btagB"})
 	.Define(      "bjet__pt"  ,"fin_jets__pt[lead_bjet]")// Leading bj
-        .Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
-        .Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
-	// now for transverse W; lepton done
+        // now for transverse W; lepton done
 	. Alias("tw_lep__pt","lep__pt")
 	. Alias("tw_lep_eta","lep_eta")
 	. Alias("tw_lep_phi","lep_phi")
@@ -511,26 +520,24 @@ void NPL(const channel ch,const dataSource ds){
 	        "tw_lep_phi","MET_pt","MET_phi"})
 	;
 	auto QCD_lep = offlep
-        //.Filter("All(tw_lep_mas < 30)","Transverse W mass cut for QCD region , 30<")
 	.Filter("tw_lep_mas < 30 || tw_lep_mas > 130","Transverse W mass cut for QCD region,N_data")
-	//.Filter("MET_sumEt  < 40","Sum ET < 40 GeV   cut for QCD region")
+	.Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
 	;
 	auto sig_lep = offlep
-        //.Filter("All(tw_lep_mas < 130)","Transverse W mass cut for Signal,         <130")
+	.Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
 	.Filter("tw_lep_mas < 130 || tw_lep_mas > 30","Transverse W mass cut for Signal, N_real-misid")
-	;
+        .Filter(unblinding,{"bjet__pt","fin_jets__pt"},"unblinding:jet multiplicity")
+	;// making sure signal region
 	if(MC){
 	auto prompt_QCD_lep = QCD_lep //prompt for MC in QCD
-	.Define("lep_gsf",lep_gpt(ch),{"GenPart_statusFlags","not_tight"
+	.Filter(lep_gpt(ch),{"GenPart_statusFlags","not_tight"
                                       ,"Electron_genPartIdx"
-                                      ,    "Muon_genPartIdx"})
-	.Filter("lep_gsf == 0","QCD PROMPT MC")
+                                      ,    "Muon_genPartIdx"},"QCD prompt MC")
 	;
         auto prompt_sig_lep = sig_lep //prompt for MC in sig
-        .Define("lep_gsf",lep_gpt(ch),{"GenPart_statusFlags","not_tight"
+        .Filter(lep_gpt(ch),{"GenPart_statusFlags","not_tight"
                                       ,"Electron_genPartIdx"
-                                      ,    "Muon_genPartIdx"})
-        .Filter("lep_gsf == 0","Signal prompt MC")
+                                      ,    "Muon_genPartIdx"},"Signal prompt MC")
         ;
 	prompt_QCD_lep.Report() ->Print();
 	prompt_sig_lep.Report() ->Print();
@@ -541,7 +548,7 @@ void NPL(const channel ch,const dataSource ds){
 	QCD_lep.Report() ->Print();
 	;
 	}
-
+	std::cout<<"NPL successfully finished"<<std::endl;
 } //void
 
 int main ( int argc , char *argv[] ){
@@ -573,7 +580,7 @@ int main ( int argc , char *argv[] ){
         else if (  "ww"  ==  dsN ){ d =  ww;}
         else if (  "wz"  ==  dsN ){ d =  wz;}
         else if (  "zz"  ==  dsN ){ d =  zz;}
-	else if ( "cms" ==  dsN  ){ d = cms;}
+	else if ( "cms" ==   dsN  ){d = cms;}
         else if ( "met"  ==  dsN ){ d = met;}
 	else { std::cout << "Error: data source " << dsN
 		<< " not recognised" << std::endl ;
