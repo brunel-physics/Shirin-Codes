@@ -145,7 +145,6 @@ inline auto lep_sel(const channel ch){
 inline auto not_tight(const channel ch){
         return [=](
                  const  bools& isPFs
-                ,const floats& pts
                 ,const floats& etas
                 ,const   ints& elids
                 ,const  bools& muids
@@ -157,22 +156,20 @@ inline auto not_tight(const channel ch){
                 switch(ch){
                         case elnu:return ( true
                                 &&     isPFs
-                                &&	 pts  >   EL__PT_MIN
-                                && ((abs_etas <   EL_ETA_MAX
-                                &&        dz  <=  ENDCAP_DZ__LOOSE
-                                &&        dxy <=  ENDCAP_DXY_LOOSE
-                                &&   abs_etas >   ENDCAP_ETA_MIN)
-                                ||  (abs_etas <   BARREL_ETA_MAX
-                                &&        dxy <=  BARREL_DXY_LOOSE
-                                &&        dz  <=  BARREL_DZ__LOOSE))
-                                &&	elids <=  EL_LOOSE_ID // Make it not tightable
+                                && ((abs_etas <  EL_ETA_MAX
+                                &&        dz  <  ENDCAP_DZ__TIGHT
+                                &&        dxy <  ENDCAP_DXY_TIGHT
+                                &&   abs_etas >  ENDCAP_ETA_MIN)
+                                ||  (abs_etas <  BARREL_ETA_MAX
+                                &&        dxy <  BARREL_DXY_TIGHT
+                                &&        dz  <  BARREL_DZ__TIGHT))
+                                &&	elids <  EL_TIGHT_ID // Make it not tightable
                         );
                         case munu:return ( true
                                 &&   muids
                                 &&   isPFs
-                                &&     pts  >  MU__PT_MIN
                                 && abs_etas <  MU_ETA_MAX
-                                &&     isos >= MU_LOOSE_ISO // Make it not tightable
+                                &&     isos >  MU_TIGHT_ISO // Make it not tightable
                         );
                         default  :throw std::invalid_argument(
                                 "Unimplemented ch (lep_sel)");
@@ -298,7 +295,7 @@ inline auto jetCutter(const unsigned jmin,const unsigned jmax){
 		return jmin <= nj && nj <= jmax;
 	};
 }
-inline auto lep_gpt(const channel ch){
+inline auto lep_gpsf(const channel ch){
 	return [=](
 		 const ints &gpsf
 		,const ints &mask
@@ -310,7 +307,14 @@ inline auto lep_gpt(const channel ch){
 		case elnu:{i = eidx[mask];break;}
 		case munu:{i = midx[mask];break;}
 	}
-	return Any(0==Take(gpsf,i[-1!=i]));
+	// GenPart_statusFlafs is stored as bits. it first should be sorted
+	// by The idx and then masked correctly (to the tight lepton or loose ones)
+	// The zero bit shows whether the particle is prompt or not. Thus we check
+	// whether the remainer of the gpsf % 2 is 1 or not.
+	// * the -1!=i is responsible for the indexcies which are not related to a
+	// lepton or jet level therefore could be taken out.
+	ints g = Take(gpsf,i[-1!=i]) % 2;
+	return Any(g == 1);
 	};
 }
 inline auto find_lead_mask(const doubles& vals,const ints& mask){
@@ -453,7 +457,7 @@ void NPL(const channel ch,const dataSource ds){
 			"Unimplemented ch (init)");
 	}
 	// make test runs faster by restriction. Real run should not
-//	auto dfr = df.Range(10000);// remember to enable MT when NOT range
+	auto dfr = df.Range(10000);// remember to enable MT when NOT range
 	auto origi = df// toggle one letter to do all
 	.Define("lep_pts","static_cast<ROOT::RVec<double>>("+temp_header+"pt)")
 	;
@@ -480,7 +484,6 @@ void NPL(const channel ch,const dataSource ds){
 	       })
 	.Define("not_tight",not_tight(ch),{
 		temp_header+"isPFcand"
-               ,temp_header+"pt"
                ,temp_header+"eta"
                ,"Electron_cutBased"
                ,"Muon_tightId"
@@ -504,6 +507,7 @@ void NPL(const channel ch,const dataSource ds){
                {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
         .Define("tight_jets"       ,tight_jet_id,
         {"jet_lep_min_dR"   ,"Jet_pt","Jet_eta","Jet_jetId"})
+	.Filter( jetCutter(JETS_MIN,JETS_MAX),{"tight_jets" },"Jet cut")
         .Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")
 	.Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta  [tight_jets])")
 	.Define("fin_jets__pt","static_cast<ROOT::RVec<double>>(Jet_pt   [tight_jets])")
@@ -520,22 +524,22 @@ void NPL(const channel ch,const dataSource ds){
 	        "tw_lep_phi","MET_pt","MET_phi"})
 	;
 	auto QCD_lep = offlep
-	.Filter("tw_lep_mas < 30 || tw_lep_mas > 130","Transverse W mass cut for QCD region,N_data")
+	//.Filter("tw_lep_mas < 30 || tw_lep_mas > 130","Transverse W mass cut for QCD region,N_data")
 	.Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
 	;
 	auto sig_lep = offlep
 	.Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
-	.Filter("tw_lep_mas < 130 || tw_lep_mas > 30","Transverse W mass cut for Signal, N_real-misid")
+	//.Filter("tw_lep_mas < 130 || tw_lep_mas > 30","Transverse W mass cut for Signal, N_real-misid")
         .Filter(unblinding,{"bjet__pt","fin_jets__pt"},"unblinding:jet multiplicity")
 	;// making sure signal region
 	if(MC){
 	auto prompt_QCD_lep = QCD_lep //prompt for MC in QCD
-	.Filter(lep_gpt(ch),{"GenPart_statusFlags","not_tight"
+	.Filter(lep_gpsf(ch),{"GenPart_statusFlags","not_tight"
                                       ,"Electron_genPartIdx"
                                       ,    "Muon_genPartIdx"},"QCD prompt MC")
 	;
         auto prompt_sig_lep = sig_lep //prompt for MC in sig
-        .Filter(lep_gpt(ch),{"GenPart_statusFlags","not_tight"
+        .Filter(lep_gpsf(ch),{"GenPart_statusFlags","not_tight"
                                       ,"Electron_genPartIdx"
                                       ,    "Muon_genPartIdx"},"Signal prompt MC")
         ;
