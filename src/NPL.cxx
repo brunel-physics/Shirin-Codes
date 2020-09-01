@@ -400,7 +400,7 @@ void NPL(const channel ch,const dataSource ds){
 		runLBdict.emplace(std::stoi(key),value);// key:string->size_t
 	// we now have one single copy of a wonderfully clean dictionary
 
-	std::string temp_header="/data/disk3/nanoAOD_2017/",
+	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
 	case tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}/**/
@@ -459,7 +459,7 @@ void NPL(const channel ch,const dataSource ds){
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(10000);// remember to enable MT when NOT range
 	auto origi = df// toggle one letter to do all
-	.Define("lep_pts","static_cast<ROOT::RVec<double>>("+temp_header+"pt)")
+	//.Define("lep_pts","static_cast<ROOT::RVec<double>>("+temp_header+"pt)")
 	;
 	auto lumclean = origi
 	.Filter(runLBfilter(runLBdict,MC),{"run","luminosityBlock"},
@@ -524,13 +524,13 @@ void NPL(const channel ch,const dataSource ds){
 	        "tw_lep_phi","MET_pt","MET_phi"})
 	;
 	auto QCD_lep = offlep
-	//.Filter("tw_lep_mas < 30 || tw_lep_mas > 130","Transverse W mass cut for QCD region,N_data")
+	.Filter("tw_lep_mas < 30 || tw_lep_mas > 130","Transverse W mass cut for QCD region,N_data")
 	.Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
 	;
 	auto sig_lep = offlep
 	.Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
-	//.Filter("tw_lep_mas < 130 || tw_lep_mas > 30","Transverse W mass cut for Signal, N_real-misid")
         .Filter(unblinding,{"bjet__pt","fin_jets__pt"},"unblinding:jet multiplicity")
+	.Filter("tw_lep_mas < 130 || tw_lep_mas > 30","Transverse W mass cut for Signal, N_real-misid")
 	;// making sure signal region
 	if(MC){
 	auto prompt_QCD_lep = QCD_lep //prompt for MC in QCD
