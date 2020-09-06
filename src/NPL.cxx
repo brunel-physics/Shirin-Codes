@@ -145,6 +145,7 @@ inline auto lep_sel(const channel ch){
 inline auto not_tight(const channel ch){
         return [=](
                  const  bools& isPFs
+                ,const floats& pts
                 ,const floats& etas
                 ,const   ints& elids
                 ,const  bools& muids
@@ -156,6 +157,7 @@ inline auto not_tight(const channel ch){
                 switch(ch){
                         case elnu:return ( true
                                 &&     isPFs
+                                &&	 pts  >  EL__PT_MIN
                                 && ((abs_etas <  EL_ETA_MAX
                                 &&        dz  <  ENDCAP_DZ__TIGHT
                                 &&        dxy <  ENDCAP_DXY_TIGHT
@@ -168,6 +170,7 @@ inline auto not_tight(const channel ch){
                         case munu:return ( true
                                 &&   muids
                                 &&   isPFs
+                                &&     pts  >  MU__PT_MIN
                                 && abs_etas <  MU_ETA_MAX
                                 &&     isos >  MU_TIGHT_ISO // Make it not tightable
                         );
@@ -207,10 +210,10 @@ inline auto not_tight_cut(const channel ch){
                  if(false) ;
                  else if(ch==elnu){
                         ints   temp = elids[mask];
-                        result = temp.size() >= 1;// Choosing 1 Tight Lepton
+                        result = temp.size() == 1;// Choosing 1 Tight Lepton
                 }else if(ch==munu){
                         floats temp = isos[mask];
-                        result = temp.size() >= 1;
+                        result = temp.size() == 1;
                 }else{throw std::invalid_argument(
                         "Unimplemented ch (not_tight_cut)");}
                 return result;
@@ -220,11 +223,10 @@ inline auto Triggers(const channel ch){
         return [=](
 	 const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG
         ,const bool mu// HLT_IsoMu27
-	,const bool ht// HLT_PFHT250
 ){
         switch(ch){
-        case elnu:return el && ht;
-        case munu:return mu && ht;
+        case elnu:return el;
+        case munu:return mu;
         }};
 }
 
@@ -313,7 +315,7 @@ inline auto lep_gpsf(const channel ch){
 	// whether the remainer of the gpsf % 2 is 1 or not.
 	// * the -1!=i is responsible for the indexcies which are not related to a
 	// lepton or jet level therefore could be taken out.
-	ints g = Take(gpsf,i[-1!=i]) % 2;
+	ints g = Take(gpsf,i[-1!=i]) & (1 << 0);
 	return Any(g == 1);
 	};
 }
@@ -470,7 +472,6 @@ void NPL(const channel ch,const dataSource ds){
 	.Filter(Triggers(ch),
 	{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 	 ,"HLT_IsoMu27"
-	 ,"HLT_PFHT250"
 	},"Triggers Filter")
 	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
@@ -484,6 +485,7 @@ void NPL(const channel ch,const dataSource ds){
 	       })
 	.Define("not_tight",not_tight(ch),{
 		temp_header+"isPFcand"
+               ,temp_header+"pt"
                ,temp_header+"eta"
                ,"Electron_cutBased"
                ,"Muon_tightId"

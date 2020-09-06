@@ -1,6 +1,4 @@
-// TODO: ADD BLINDING BY JET MULTIPLICITY: Make sure we have correct number of bjets and tight jets -> needs adjsuting filter->why all tight jets pass btag?
 // TODO: Shape uncertainties
-// TODO: non prompt lepton corrections
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <Math/Vector4D.h>
@@ -81,18 +79,25 @@ namespace{
   constexpr double        TTBLV_W = 1.3791;
   constexpr double        TTZQQ_W =  .0237;
   constexpr double       ZZLLQQ_W =  .0485;
-// Blinding Values
-/*  constexpr float    ELNU_REC_M_T = 1.66326e+02;
-  constexpr float    MUNU_REC_M_T = 1.64981e+02;
-*/
-  constexpr float    ELNU_RES_M_T = 3.48167e+01;
-  constexpr float    MUNU_RES_M_T = 3.48135e+01;
-/*
-  constexpr float    ELNU_REC_M_W = 8.52993e+01;
-  constexpr float    MUNU_REC_M_W = 8.48404e+01;
-*/
-  constexpr float    ELNU_RES_M_W = 1.79322e+01;
-  constexpr float    MUNU_RES_M_W = 1.73722e+01;
+// NPL Values: Results via via NPL.cxx
+  constexpr float    ELNU_NPL_TZQ =   64432.860;
+  constexpr float    MUNU_NPL_TZQ =   62365.600;
+
+  constexpr float    ELNU_NPL_TTB = -305757.626;
+  constexpr float    MUNU_NPL_TTB = -299179.268;
+
+  constexpr float    ELNU_NPL_TTZ =   23529.413;
+  constexpr float    MUNU_NPL_TTZ =   30916.858;
+
+  constexpr float    ELNU_NPL__WW =   49450.000;
+  constexpr float    MUNU_NPL__WW =   41319.000;
+
+  constexpr float    ELNU_NPL__WZ =   58809.000;
+  constexpr float    MUNU_NPL__WZ =   39179.000;
+
+  constexpr float    ELNU_NPL__ZZ =   17539.751;
+  constexpr float    MUNU_NPL__ZZ =   30741.959;
+
 
 // Method Explained in TriggerSF.cxx
 // FYI:: TRIG_SF_ELNU = (3772592/11448047)/(1646471/5348563)
@@ -881,7 +886,8 @@ auto top_pt_sf(const dataSource ds){
 		"Collections must be the same size (top_pt_reweigh)");
 	if(gId.empty()) throw std::logic_error(
 		"Collections must not be empty for (top_pt_reweigh)");
-	ints idxs = (6 == abs(gId) && 13 == flag);// 13 == lastCopy, 6 == top
+	ints idxs = (6 == abs(gId) && (flag & (1 << 13)));
+	// 13th lastCopy in bits, 6 == top
 	auto  pts =  pt[idxs];
 	pts = pts[0.<pts && pts < 500.];// TODO: new constexpr ptMin ptMax
 	double sf = 1.;
@@ -1048,24 +1054,6 @@ inline auto Npl(
 	return    (Nqcd_data - Nqcd_rmid)
 		* (N_sig__MC / N_qcd__MC);
 }
-// Blinding process using chi-2 formula aims to find the most distance
-// masses from the nominal values of tWm and tTm, produces a sideband
-// the range is applied as a filter which blinds us to signal region
-inline auto Chi2(const channel ch){
-	return [=](
-	 const double tWm
-	,const double tTm
-){// All the values above will be constexpr in next push.
-	float resW;
-	float resT;
-	switch(ch){
-		case elnu:{resW = ELNU_RES_M_W;resT = ELNU_RES_M_T;break;}
-		case munu:{resW = MUNU_RES_M_W;resT = MUNU_RES_M_T;break;}
-        }
-	float chi2 = std::pow((tWm -   W_MASS)/resW,2)
-	           + std::pow((tTm - TOP_MASS)/resT,2);
-	return chi2;};
-}
 // Simulation correction Scale Factors
 inline auto sf(
 	 const  dataSource    ds
@@ -1083,7 +1071,7 @@ inline auto sf(
 		// TODO: trigger efficiency
 		double result;
 		bool MC = true;
-		switch(ds){
+/*		switch(ds){
 			case tzq:{result =    TZQ_W;break;}
 			case  ww:{result = WWLNQQ_W;break;}
 			case  wz:{result = WZLNQQ_W;break;}
@@ -1099,13 +1087,37 @@ inline auto sf(
 			case elnu:{result *= TRIG_SF_ELNU;break;}
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
+*/
+		if(ch == elnu){
+		switch(ds){
+			case tzq:{result =    TZQ_W*TRIG_SF_ELNU*ELNU_NPL_TZQ;break;}
+			case  ww:{result = WWLNQQ_W*TRIG_SF_ELNU*ELNU_NPL__WW;break;}
+			case  wz:{result = WZLNQQ_W*TRIG_SF_ELNU*ELNU_NPL__WZ;break;}
+			case  zz:{result = ZZLLQQ_W*TRIG_SF_ELNU*ELNU_NPL__ZZ;break;}
+			case ttb:{result =  TTBLV_W*TRIG_SF_ELNU*ELNU_NPL_TTB;break;}
+			case ttz:{result =  TTZQQ_W*TRIG_SF_ELNU*ELNU_NPL_TTZ;break;}
+                        case cms:{result = 1.;MC=false;break;}// ignore wt
+		}}
+		else if(ch == munu){
+                switch(ds){
+                        case tzq:{result =    TZQ_W*TRIG_SF_MUNU*MUNU_NPL_TZQ;break;}
+                        case  ww:{result = WWLNQQ_W*TRIG_SF_MUNU*MUNU_NPL__WW;break;}
+                        case  wz:{result = WZLNQQ_W*TRIG_SF_MUNU*MUNU_NPL__WZ;break;}
+                        case  zz:{result = ZZLLQQ_W*TRIG_SF_MUNU*MUNU_NPL__ZZ;break;}
+                        case ttb:{result =  TTBLV_W*TRIG_SF_MUNU*MUNU_NPL_TTB;break;}
+                        case ttz:{result =  TTZQQ_W*TRIG_SF_MUNU*MUNU_NPL_TTZ;break;}
+                        case cms:{result = 1.;MC=false;break;}// ignore wt
+		}}
+		else{
+		       throw std::logic_error("Unimplemented ch (sf)");
+		}
 		if(MC) result *= pile(PuWd,PuUd,PuDd)(npv)[puW];
 		if(result < 0)std::cout<<"pile lt 0"<<std::endl;
 		if(5<debug)   std::cout<<"b_w "<< b
 		<<" few_SF " << result//<<std::endl;
 		<<" mostSF " << mostSF  <<std::endl;
 		result *=   b * mostSF;
-		if(result < 0)std::cout<<"final sf lt 0 "<<result<<std::endl;
+		//if(result < 0)std::cout<<"final sf lt 0 "<<result<<std::endl;
 		return 1.;//result;
 	};
 }
@@ -1126,7 +1138,6 @@ auto finalScaling(
 ){
 	return rdf
 	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd),{"btag_w","mostSF","PV_npvs"})
-	.Define("chi2",Chi2(ch),{"lep_nu_invmass","ttop_mas"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
@@ -1683,7 +1694,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_trans_w = finalDF.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
 	("Transverse W mass " + temp_header).c_str(),
-	50,0,180},
+	50,0,160},
 	"tw_lep_mas","nw_tw_lep_mas");
 	//h_trans_w->Fit("Gaus"); Didn't work!
         TF1 *f2 = new TF1("f2","gaus",0,180);
@@ -1698,7 +1709,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_Winvmas = finalDF.Histo1D({
 	("W_invariant_mass_" + temp_header).c_str(),
 	("W invariant mass " + temp_header).c_str(),
-	50,0,180},
+	50,0,160},
 	"lep_nu_invmass","nw_lep_nu_invmass");
 	h_Winvmas->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_Winvmas->GetYaxis()->SetTitle("Event");
@@ -1756,15 +1767,6 @@ void calchisto(const channel ch,const dataSource ds){
 	h_tWmVsZmass->GetXaxis()->SetTitle("\\text{  tWm  GeV/}c^{2}");
 	h_tWmVsZmass->GetYaxis()->SetTitle("\\text{Z mass GeV/}c^{2}");
 
-        /*auto h_chi2 = finalDF.Histo1D({
-        ("chi2_" + temp_header).c_str(),
-        ("chi2 " + temp_header).c_str(),
-        50,-300,300},
-        "chi2");
-        h_chi2->GetXaxis()->SetTitle("chi2");
-        h_chi2->GetYaxis()->SetTitle("Event");
-        h_chi2->SetLineStyle(kSolid);
-	*/
 	// No SetLineStyle here
 
 	// write histograms to a root file
@@ -1800,7 +1802,6 @@ void calchisto(const channel ch,const dataSource ds){
 	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
-        //hf.WriteTObject(h_chi2     	 .GetPtr());hf.Flush();sync();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
