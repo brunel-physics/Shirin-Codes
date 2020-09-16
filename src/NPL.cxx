@@ -113,6 +113,7 @@ enum      muSf      {Id_N,Id_Y,Id_A,Id_T,//  Id, Idsys, IdsysStat, IdsysSyst,
                      IsoN,IsoY,IsoA,IsoT};//Iso,Isosys,IsosysStat,IsosysSyst};
 
 inline auto lep_sel(const channel ch){
+        if(0<debug) std::cout<<"lep sel start"<<std::endl;
 	return [=](
 		 const  bools& isPFs
 		,const floats& pts
@@ -150,6 +151,7 @@ inline auto lep_sel(const channel ch){
 	};
 }
 inline auto not_tight(const channel ch){
+	if(0<debug) std::cout<<"not tight"<<std::endl;
         return [=](
                  const  bools& isPFs
                 ,const floats& pts
@@ -187,6 +189,7 @@ inline auto not_tight(const channel ch){
         };
 }
 inline auto lep_tight_cut(const channel ch){
+	if(0<debug) std::cout<<"lep tight cut"<<std::endl;
 	return [=](const   ints& mask
 		  ,const   ints& elids
 		  ,const floats& isos
@@ -208,6 +211,7 @@ inline auto lep_tight_cut(const channel ch){
 	};
 }
 inline auto not_tight_cut(const channel ch){
+        if(0<debug) std::cout<<"not tight cut"<<std::endl;
         return [=](const   ints& mask
                   ,const   ints& elids
                   ,const floats& isos
@@ -227,6 +231,7 @@ inline auto not_tight_cut(const channel ch){
         };
 }
 inline auto Triggers(const channel ch){
+        if(0<debug) std::cout<<"Triggers"<<std::endl;
         return [=](
 	 const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG
         ,const bool mu// HLT_IsoMu27
@@ -271,7 +276,7 @@ auto jet_lep_min_deltaR(
 	if(jet_phis.empty())
 		throw std::logic_error(
 		      "Collections must not be empty for (jet-lep dR)");
-	//if(0<debug) std::cout<<"jet_lep_min_dR"<<std::endl;
+	if(0<debug) std::cout<<"jet_lep_min_dR"<<std::endl;
 	doubles min_dRs; min_dRs.reserve(jet_etas.size());
 	std::transform(
 		jet_etas.cbegin(),
@@ -280,6 +285,7 @@ auto jet_lep_min_deltaR(
 		std::back_inserter(min_dRs),
 		[=](double jet_eta, double jet_phi){
 			return deltaR(jet_eta,jet_phi,lep_eta,lep_phi);});
+        if(0<debug) std::cout<<"jet lep min finish"<<std::endl;
 	return min_dRs;
 }
 inline auto tight_jet_id(
@@ -295,12 +301,13 @@ inline auto tight_jet_id(
 	&&     (      2      <= ids             );
 }
 inline auto jetCutter(const unsigned jmin,const unsigned jmax){
-	if(3<debug) std::cout<<"jet cut "<< jmin <<" "<< jmax <<std::endl;
+	if(3<debug) std::cout<<"jet cut "<<std::endl;
 	return[=](const ints& jetmask){
 		const auto nj = std:: count_if(
 			jetmask.cbegin(),
 			jetmask.  cend(),
 			[](int i){return i;});// 0 is false
+	        if(0<debug) std::cout<<"jet cut finish"<<std::endl;
 		return jmin <= nj && nj <= jmax;
 	};
 }
@@ -324,6 +331,7 @@ inline auto lep_gpsf(const channel ch){
 	// * the -1!=i is responsible for the indexcies which are not related to a
 	// lepton or jet level therefore could be taken out.
 	ints g = Take(gpsf,i[-1!=i]) & (1 << 0);
+        if(0<debug) std::cout<<"lep gpsf finish"<<std::endl;
 	return Any(g == 1);
 	};
 }
@@ -333,6 +341,7 @@ inline auto find_lead_mask(const doubles& vals,const ints& mask){
 		"Collections must be the same size in lead_mask");
 	if(mask.empty()) throw std::logic_error(
 		"Collections must not be empty in lead_mask");
+	if(0<debug) std::cout<<"lead mask"<<std::endl;
 	const auto      masked_vals = mask * vals;
 	ints  lead_mask(masked_vals.size());// vector of zeroes
 	const auto max_idx = static_cast<size_t>(std::distance(
@@ -340,6 +349,7 @@ inline auto find_lead_mask(const doubles& vals,const ints& mask){
 		max_element( masked_vals.cbegin(),
 		             masked_vals.  cend())));// Leading bjet == highest pt.
 	lead_mask[max_idx] = 1;
+        if(0<debug) std::cout<<"lead mask"<<std::endl;
 	return lead_mask;
 }
 inline double transverse_w_mass(
@@ -429,6 +439,7 @@ inline auto sf(const  dataSource ds,
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
 		result *=  mostSF;
+	        if(0<debug) std::cout<<"sf finish"<<std::endl;
 		return result;
 	};
 }
@@ -456,7 +467,7 @@ auto roccorSF(
 		}else{
 				roc = rc. kScaleDT(Q,pt,eta,phi,0,0);
 		}break;}}// not MC, case munu, switch
-		if(0 < debug) std::cout << "roc " << roc << std::endl;
+		if(0 < debug) std::cout << "roccor finish" << roc << std::endl;
 		return roc;
 	};
 }
@@ -491,6 +502,7 @@ auto elEffGiver(
 	if(5<debug)std::cout<<dict[Eff]<<" eff , smr "<<dict[Smr]<<std::endl;
 	// TODO: Eff == 0 cross check
 	if(FP_NORMAL != std::fpclassify(dict[Eff])) dict[Eff] = 1.;
+        if(0<debug) std::cout<<"elleffgiver finish"<<std::endl;
 	return dict;
 }
 auto muEffGiver(
@@ -540,7 +552,8 @@ auto muEffGiver(
 	dict[IsoT] = isoT->GetBinError  (PtBin,EtaBin);
 
 	if(5<debug)std::cout<<dict[IsoA]
-	           <<"\t:\t"<<dict[IsoT]<<std::endl;
+		           <<"\t:\t"<<dict[IsoT]<<std::endl;
+        if(0<debug) std::cout<<"mueffgiver finsih"<<std::endl;
 	return dict;
 }
 auto lepEffGiver(
@@ -586,6 +599,7 @@ auto lepEffGiver(
 		if(id  < 0 || iso < 0)std::cout<<std::endl;
 */		break;}
 	}
+        if(0<debug) std::cout<<"lepeffgiver finish"<<std::endl;
 	return id * iso * eff * smr;};
 }
 } // namespace
