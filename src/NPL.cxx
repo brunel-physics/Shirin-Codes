@@ -321,6 +321,7 @@ inline auto lep_gpsf(const channel ch){
 	){
 	ints i;
 	switch(ch){
+		if(0<debug) std::cout<<"lep gpsf in switch"<<std::endl;
 		case elnu:{i = eidx[mask];break;}
 		case munu:{i = midx[mask];break;}
 	}
@@ -330,6 +331,7 @@ inline auto lep_gpsf(const channel ch){
 	// whether the remainer of the gpsf % 2 is 1 or not.
 	// * the -1!=i is responsible for the indexcies which are not related to a
 	// lepton or jet level therefore could be taken out.
+	if(0<debug) std::cout<<"lep gpsf before Take"<<std::endl;
 	ints g = Take(gpsf,i[-1!=i]) & (1 << 0);
         if(0<debug) std::cout<<"lep gpsf finish"<<std::endl;
 	return Any(g == 1);
@@ -763,6 +765,9 @@ void NPL(const channel ch,const dataSource ds){
 	;
 	// QCD Region
 	auto QCD_lep = offlep // QCD region selection and filter
+	.Filter(not_tight_cut(ch),{"not_tight",
+                "Electron_cutBased",// edit function for  tight -> loose
+                "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
         .Define("lepB_pt","static_cast<double>("+temp_header+     "pt[not_tight][0])")
         .Define("lep_eta","static_cast<double>("+temp_header+    "eta[not_tight][0])")
   	.Define("lep_phi","static_cast<double>("+temp_header+    "phi[not_tight][0])")
@@ -780,9 +785,6 @@ void NPL(const channel ch,const dataSource ds){
                         ),{"lep__pt","lep_eta"})
         . Alias("mostSF" , "lepSF")
         .Define("sf",sf(ds,ch),{"mostSF"})
-        .Filter(not_tight_cut(ch),{"not_tight",
-                "Electron_cutBased",// edit function for  tight -> loose
-                "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
         .Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
                {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
         .Define("tight_jets" 	   ,tight_jet_id,
@@ -869,13 +871,14 @@ void NPL(const channel ch,const dataSource ds){
                                       ,"Electron_genPartIdx"
                                       ,    "Muon_genPartIdx"},"QCD prompt MC")
 	;
-	ROOT::RDF::SaveGraph(mc__df, "graph.dot");
+	std::cout<<"i have passed through QCD_lep"<<std::endl;
+	//ROOT::RDF::SaveGraph(mc__df, "graph.dot");
         auto prompt_sig_lep = sig_lep //prompt for MC in sig
         .Filter(lep_gpsf(ch),{"GenPart_statusFlags","loose_leps"
                                       ,"Electron_genPartIdx"
                                       ,    "Muon_genPartIdx"},"Signal prompt MC")
 	;
-	ROOT::RDF::SaveGraph(mc__df, "graph.dot");
+	//ROOT::RDF::SaveGraph(mc__df, "graph.dot");
 	auto h_prompt_QCD_lep = prompt_QCD_lep.Histo1D({
 	("QCD"        + temp_header).c_str(),
 	("QCD region" + temp_footer).c_str(),
