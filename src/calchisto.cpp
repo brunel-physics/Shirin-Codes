@@ -25,17 +25,21 @@ using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
   constexpr    int debug = 0;
-//constexpr    int EL_MAX_NUM     = 1      ;
-  constexpr  float EL__PT_MIN     = 35.f   ;
-  constexpr  float EL_ETA_MAX     = 2.5f   ;
-  constexpr    int EL_LOOSE_ID    = 1      ;
-  constexpr    int EL_TIGHT_ID    = 4      ;
-  constexpr  float ENDCAP_DZ      =  .2f   ;
-  constexpr  float ENDCAP_DXY     =  .1f   ;
-  constexpr  float ENDCAP_ETA_MIN = 1.5660f;
-  constexpr  float BARREL_ETA_MAX = 1.4442f;
-  constexpr  float BARREL_DXY     =  .05f  ;
-  constexpr  float BARREL_DZ      =  .10f  ;
+//constexpr    int EL_MAX_NUM      = 1       ;
+  constexpr  float EL__PT_MIN      = 35.f    ;
+  constexpr  float EL_ETA_MAX      = 2.5f    ;
+  constexpr    int EL_LOOSE_ID     = 1       ;
+  constexpr    int EL_TIGHT_ID     = 4       ;
+  constexpr  float ENDCAP_DZ__TIGHT=  .10f   ;
+  constexpr  float ENDCAP_DXY_TIGHT=  .02f   ;
+  constexpr  float ENDCAP_DZ__LOOSE=  .20f   ;
+  constexpr  float ENDCAP_DXY_LOOSE=  .02f   ;
+  constexpr  float ENDCAP_ETA_MIN  = 1.5660f ;
+  constexpr  float BARREL_ETA_MAX  = 1.4442f ;
+  constexpr  float BARREL_DXY_TIGHT=  .02f   ;
+  constexpr  float BARREL_DZ__TIGHT=  .10f   ;
+  constexpr  float BARREL_DXY_LOOSE=  .02f   ;
+  constexpr  float BARREL_DZ__LOOSE=  .20f   ;
 
 //constexpr    int   MU_MAX_NUM   = 1   ;
   constexpr  float   MU__PT_MIN   = 29.f;
@@ -80,24 +84,24 @@ namespace{
   constexpr double        TTZQQ_W =  .0237;
   constexpr double       ZZLLQQ_W =  .0485;
 // NPL Values: Results via via NPL.cxx
-  constexpr float    ELNU_NPL_TZQ =   64432.860;
-  constexpr float    MUNU_NPL_TZQ =   62365.600;
 
-  constexpr float    ELNU_NPL_TTB = -305757.626;
-  constexpr float    MUNU_NPL_TTB = -299179.268;
+  constexpr float    ELNU_NPL_TZQ = 1;//-0.003545717737482574436321263512114272899078549157186958488192219;
+  constexpr float    MUNU_NPL_TZQ = 1;//-0.003262781470633976452808899380139453576837622104494676600239210;
 
-  constexpr float    ELNU_NPL_TTZ =   23529.413;
-  constexpr float    MUNU_NPL_TTZ =   30916.858;
+  constexpr float    ELNU_NPL_TTB = 1;//-0.003276516926815217813333352824821632546150510462964136097032814;
+  constexpr float    MUNU_NPL_TTB = 1;//-0.003314871631944535586284454185455503087325811904337509071073597;
 
-  constexpr float    ELNU_NPL__WW =   49450.000;
-  constexpr float    MUNU_NPL__WW =   41319.000;
+  constexpr float    ELNU_NPL_TTZ = 1;//-0.002904557180663284873960746317199876292666698708478137238698159;
+  constexpr float    MUNU_NPL_TTZ = 1;//-0.004159537780143755393885485458381647142929340798978769921726125;
 
-  constexpr float    ELNU_NPL__WZ =   58809.000;
-  constexpr float    MUNU_NPL__WZ =   39179.000;
+  constexpr float    ELNU_NPL__WW = 1;//-0.000075438563777743932102171586639432230661640673983309960017667;
+  constexpr float    MUNU_NPL__WW = 1;//0.000027477525638097684995983981594772035939064050371984412726809;
 
-  constexpr float    ELNU_NPL__ZZ =   17539.751;
-  constexpr float    MUNU_NPL__ZZ =   30741.959;
+  constexpr float    ELNU_NPL__WZ = 1;//-0.000466498485332527053165800239250031479211761493873793671176910;
+  constexpr float    MUNU_NPL__WZ = 1;//-0.000073033643355069582638377324383242856739289227503176013633075;
 
+  constexpr float    ELNU_NPL__ZZ = 1;//-0.001169909000535408306276624408145294658175013424256338908021874;
+  constexpr float    MUNU_NPL__ZZ = 1;//-0.001397449624236171045505404409973110151479550937089000845664869;
 
 // Method Explained in TriggerSF.cxx
 // FYI:: TRIG_SF_ELNU = (3772592/11448047)/(1646471/5348563)
@@ -135,22 +139,22 @@ inline auto lep_sel(const channel ch){
 		switch(ch){
 			case elnu:return ( true
 				&&     isPFs
-				&&       pts  >  EL__PT_MIN
-				&& ((abs_etas <  EL_ETA_MAX
-				&&        dz  <  ENDCAP_DZ
-				&&        dxy <  ENDCAP_DXY
-				&&   abs_etas >  ENDCAP_ETA_MIN)
-				||  (abs_etas <  BARREL_ETA_MAX
-				&&        dxy <  BARREL_DXY
-				&&        dz  <  BARREL_DZ))
-				&&      elids >= EL_LOOSE_ID
+				&&       pts  >   EL__PT_MIN
+				&& ((abs_etas <   EL_ETA_MAX
+				&&        dz  <=  ENDCAP_DZ__TIGHT
+				&&        dxy <=  ENDCAP_DXY_TIGHT
+				&&   abs_etas >   ENDCAP_ETA_MIN)
+				||  (abs_etas <   BARREL_ETA_MAX
+				&&        dxy <=  BARREL_DXY_TIGHT
+				&&        dz  <=  BARREL_DZ__TIGHT))
+				&&      elids >=  EL_LOOSE_ID
 			);
 			case munu:return ( true
 				&&   muids
 				&&   isPFs
-				&&     pts  >  MU__PT_MIN
-				&& abs_etas <  MU_ETA_MAX
-				&&     isos <= MU_LOOSE_ISO
+				&&     pts  >     MU__PT_MIN
+				&& abs_etas <     MU_ETA_MAX
+				&&     isos <=    MU_LOOSE_ISO
 			);
 			default  :throw std::invalid_argument(
 				"Unimplemented ch (lep_sel)");
@@ -1118,7 +1122,7 @@ inline auto sf(
 		<<" mostSF " << mostSF  <<std::endl;
 		result *=   b * mostSF;
 		//if(result < 0)std::cout<<"final sf lt 0 "<<result<<std::endl;
-		return 1.;//result;
+		return result;//result;
 	};
 }
 inline auto rep_const(const double sf,const doubles& iRVec){
