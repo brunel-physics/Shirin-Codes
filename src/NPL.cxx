@@ -49,7 +49,7 @@ using    ints = ROOT::VecOps::RVec<int>;
 using   bools = ROOT::VecOps::RVec<bool>;
 using strings = ROOT::VecOps::RVec<std::string>;
 namespace{
-  constexpr    int debug = 10;
+  constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM      = 1       ;
   constexpr  float EL__PT_MIN      = 35.f    ;
   constexpr  float EL_ETA_MAX      = 2.5f    ;
@@ -809,12 +809,12 @@ void NPL(const channel ch,const dataSource ds){
 	;
 	// Signal Region
 	auto sig_lep = offlep // Signal region selection and filter
-        .Filter(lep_tight_cut(ch),{"loose_leps",
+	.Filter(lep_tight_cut(ch),{"loose_leps",
                 "Electron_cutBased",// edit function for  tight -> loose
-                "Muon_pfRelIso04_all"},"lepton cut")// left with 1 tight lepton
+                "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
         .Define("lepB_pt","static_cast<double>("+temp_header+     "pt[loose_leps][0])")
         .Define("lep_eta","static_cast<double>("+temp_header+    "eta[loose_leps][0])")
-        .Define("lep_phi","static_cast<double>("+temp_header+    "phi[loose_leps][0])")
+  	.Define("lep_phi","static_cast<double>("+temp_header+    "phi[loose_leps][0])")
         .Define("lep_mas","static_cast<double>("+temp_header+   "mass[loose_leps][0])")
 	.Define("lep___q",temp_header+"charge[loose_leps][0]")// int, only for RoccoR
         .Define("roccorSF", roccorSF(rc,ch,MC)// used in allReconstruction
@@ -852,6 +852,10 @@ void NPL(const channel ch,const dataSource ds){
         .Filter(unblinding,{"bjet__pt","fin_jets__pt"},"unblinding:jet multiplicity")
 	.Filter("tw_lep_mas < 130 || tw_lep_mas > 30","Transverse W mass cut for Signal, N_real-misid")
 	;// making sure signal region
+	switch(ch){
+		case elnu:{temp_header="elnu_";temp_footer="elnu_";break;}
+		case munu:{temp_header="munu_";temp_footer="munu_";break;}
+	}
 	switch(ds){
 	        case tzq:{temp_header+="tzq";temp_footer+="tZq";break;}
                 case  ww:{temp_header+="_ww";temp_footer+=" WW";break;}
@@ -871,31 +875,36 @@ void NPL(const channel ch,const dataSource ds){
                                       ,"Electron_genPartIdx"
                                       ,    "Muon_genPartIdx"},"QCD prompt MC")
 	;
-	std::cout<<"i have passed through QCD_lep"<<std::endl;
 	//ROOT::RDF::SaveGraph(mc__df, "graph.dot");
         auto prompt_sig_lep = sig_lep //prompt for MC in sig
         .Filter(lep_gpsf(ch),{"GenPart_statusFlags","loose_leps"
                                       ,"Electron_genPartIdx"
                                       ,    "Muon_genPartIdx"},"Signal prompt MC")
 	;
-	//ROOT::RDF::SaveGraph(mc__df, "graph.dot");
 	auto h_prompt_QCD_lep = prompt_QCD_lep.Histo1D({
-	("QCD"        + temp_header).c_str(),
-	("QCD region" + temp_footer).c_str(),
+	("prompt_QCD"        + temp_header).c_str(),
+	("ptompt QCD region" + temp_footer).c_str(),
 	50,0,1000},
 	"lep__pt","sf")
 	;
-	auto h_prompt_sig_lep = prompt_sig_lep.Histo1D();
-	sig_lep.Histo1D({
-	("Signal_N_realmisID" 	       + temp_header).c_str(),
+	auto h_prompt_sig_lep = prompt_sig_lep.Histo1D({
+	("prompt signal"     + temp_header).c_str(),
+        ("prompt signal"     + temp_footer).c_str(),
+        50,0,1000},
+        "lep__pt","sf")
+        ;
+        auto h_N_real_sig_lep = sig_lep.Histo1D({
+        ("Signal_N_realmisID"          + temp_header).c_str(),
         ("Signal region N_real missID" + temp_footer).c_str(),
         50,0,1000},
         "lep__pt","sf")
         ;// N_Real mis-ID for MC in signal region
+
 	TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
 	// MC only
 		hf.WriteTObject(h_prompt_QCD_lep                  .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_prompt_sig_lep                  .GetPtr());hf.Flush();sync();
+                hf.WriteTObject(h_N_real_sig_lep                  .GetPtr());hf.Flush();sync();
 	}
 	else{
 	// N_QCD_data
