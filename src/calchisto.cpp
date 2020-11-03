@@ -476,10 +476,11 @@ auto btagCSVv2(const bool check_CSVv2){
 	      etaMin,etaMax,pt_Min,pt_Max,CSVmin,CSVmax,rawFormula)){
 	// CSVv2 column = Operating point
 	if(check_CSVv2){
-		b= BTAG_DISC_MIN <= CSVv2
+		b= 1 == CSVv2 // 1 medium for b-tag jets
 		&& "mujets" == measureType && 0 == jetFlav;
 	}else{
-		b=   "incl" == measureType && 0 != jetFlav;
+		b= 0 == CSVv2 // 0 loose for non-btag jets
+		&& "incl" == measureType && 0 != jetFlav;
 	}
 	if(b && "central" ==  sysType ){
 

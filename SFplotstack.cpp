@@ -29,6 +29,7 @@ int SFplotstack(){
 		case  wz:{opener += "_wz";break;}
 		case  zz:{opener += "_zz";break;}
 		case ttz:{opener += "ttz";break;}
+		case ttb:{opener += "ttb";break;}
 		case met:{opener += "met";break;}
 		case cms:{opener += "cms";break;}
 	}
@@ -61,6 +62,7 @@ int SFplotstack(){
 		case  wz:{opener += "_wz";colour = 3;break;}// green
 		case  zz:{opener += "_zz";colour = 4;break;}// blue
 		case ttz:{opener += "ttz";colour = 5;break;}// yellow
+		case ttb:{opener += "ttb";colour = 7;break;}// cyan
 		case met:{opener += "met";colour = 9;break;}// violet
 		case cms:{opener += "cms";colour = 1;break;}// black
 	}

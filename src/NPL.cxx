@@ -5,25 +5,21 @@
 
 /* Methodology:
 // Non-prompt-lepton estimation
-inline auto Npl(
-         const int Nqcd_data // Number of fake lepton in QCD region in data
-        ,const int Nqcd_rmid // Number of real lepton + mis-id in MC
-        ,const int N_sig__MC // Number of lepton in signal region MC
-        ,const int N_qcd__MC // Number of lepton in  QCD region MC
-){// Need to use the Count in RDF to get these constants after blinding is done
-  // Blinding will allow us to know the sidebands which basically are responsible
-  // for the QCD regions so by using the report for the filter and the count
-  // all the Ns will be found..
+inline auto Npl
+         const int N_L!T_data  // Number of loose not tight lepton in QCD region (control region) in data
+        ,const int N_L!T_prompt// Number of loose not tight prompt lepton in QCD region of enriched QCD sample (ttb, ttz, wz, zz)
+        ,const int eff_TL      // Number of tight to loose lepton ratio in QCD enriched sample in QCD region
+){// produce three p_T vs eta histograms for the parameters above and save them as root files to be used in calchisto.cpp
+  // The QCD regions are the regions outside 40 GeV of the nominal W mass
   // all Nqcd need to come from the loosend isolation
-  // loose isolation 20 GeV for absolute isolation
+  // loose and tight criteria based on the isolation and identification cut,
   // 0.8 for relative isolation
   // impact parameters |dxy| and |dz| loosened to 0.1, 0.5
-  // Nqcd_rmid = the qcd with GenPart_Statusflag = 0 (prompt)
-        return    (Nqcd_data - Nqcd_rmid)
-                * (N_sig__MC / N_qcd__MC);
+  // N SR_fake = (eff_TL / 1 -eff_TL) . (N L!T data - N L!T prompt)
+  // this formula is implemented in the calchisto in the lepeffgiver
+  // where the associated lepton pt and eta will be chosen from the three histograms
+  // the by applying the formula the result for N_signalRegion_fake is found.
 }
-
-Therefore we need to compute the Nqcd_data which are the loose (excluding the tight criteria) leptons which are the remanant of the blinding procedure.
 */
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
@@ -385,31 +381,6 @@ auto runLBfilter(
 		else return false;
 	};
 }
-inline auto blinding(
-          const doubles bjets
-         ,const doubles tjets){// This is the jet multiplicity technique,
-        // suggested by Dr Duncan Leggat.
-        // We take the number of bjets and remaining tight jets based on
-        // the number of existing final jets. Therefore, we expect either
-        // 3 bjets at final state or , 1 bjet and two other jets.
-	if(0<debug) std::cout<<"blinding"<<std::endl;
-        return (bjets.size() != 3 && tjets.size() <= JETS_MAX) || // the fourth jet
-               (bjets.size() != 1 && tjets.size() <= JETS_MAX)  ; // is the recoiled jet
-        // from t-channel process
-}
-inline auto unblinding(
-          const doubles bjets
-         ,const doubles tjets){// This is the jet multiplicity technique,
-        // suggested by Dr Duncan Leggat.
-        // We take the number of bjets and remaining tight jets based on
-        // the number of existing final jets. Therefore, we expect either
-        // 3 bjets at final state or , 1 bjet and two other jets.
-	if(0<debug) std::cout<<"unblinding"<<std::endl;
-        return (bjets.size() == 3 && tjets.size() <= JETS_MAX) || // the fourth jet
-               (bjets.size() == 1 && tjets.size() <= JETS_MAX)  ; // is the recoiled jet
-        // from t-channel process
-}
-
 inline auto btagP(const doubles &eta){return abs(eta) < BJET_ETA_MAX;}
 inline auto btagB(const ints  &btagP,const floats &btags){
 	return   btagP && ( BTAG_DISC_MIN < btags );// all tJ length
@@ -672,17 +643,16 @@ void NPL(const channel ch,const dataSource ds){
 
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
+        TChain QCDofMC("Events"); // including the enriched QCD datasets of MC
+        QCDofMC.Add(/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root);/**/
+	QCDofMC.Add(/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root);/**/
+	QCDofMC.Add(/data/disk0/nanoAOD_2017/TTToSemileptonic/*.root);/**/
+	QCDofMC.Add(ttz_dir/*.root);/**/
+	ROOT::RDataFrame mc__df(QCDofMC); // QCD enriched MCs
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
-	case tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}/**/
-	case  ww:{temp_opener=temp_header+ "WWToLNuQQ"       +temp_footer;break;}
-	case  wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
-	case  zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
-	case ttb:{temp_opener=temp_header+ "TTToSemileptonic"+temp_footer;break;}
-	case ttz:{temp_opener=            "ttz_dir"          +temp_footer;break;}
-	case cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
+	case cms:{temp_opener=temp_header+ "ttZToQQ"         +temp_footer;break;}
 	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
-	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
 	// Open chains of exptData EVEN IF UNUSED
 	TChain elnuCMS("Events");
 	TChain munuCMS("Events");
@@ -698,7 +668,6 @@ void NPL(const channel ch,const dataSource ds){
 		temp_opener=temp_header+ c +temp_footer;
 		munuCMS.Add(temp_opener. c_str());
 	}
-
 	ROOT::RDataFrame  elnudf(elnuCMS);
 	ROOT::RDataFrame  munudf(munuCMS);
 	const bool MC = !(met == ds ||cms == ds);
@@ -763,8 +732,8 @@ void NPL(const channel ch,const dataSource ds){
 	.Define("rawJet_eta","static_cast<ROOT::RVec<double>>(Jet_eta )")
 	.Define("rawJet_phi","static_cast<ROOT::RVec<double>>(Jet_phi )")
 	;
-	// QCD Region
-	auto QCD_lep = offlep // QCD region selection and filter
+	// QCD Region loose
+	auto loose_lep = offlep // QCD region selection and filter
 	.Filter(not_tight_cut(ch),{"not_tight",
                 "Electron_cutBased",// edit function for  tight -> loose
                 "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
@@ -804,11 +773,10 @@ void NPL(const channel ch,const dataSource ds){
         .Define("tw_lep_mas",transverse_w_mass,
                {"tw_lep__pt",
                 "tw_lep_phi","MET_pt","MET_phi"})
-	.Filter("tw_lep_mas < 30 || tw_lep_mas > 130","Transverse W mass cut for QCD region,N_data")
-	.Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
+	.Filter("tw_lep_mas < 30 || tw_lep_mas > 130","Transverse W mass cut for loose QCD region,loose QCD")
 	;
-	// Signal Region
-	auto sig_lep = offlep // Signal region selection and filter
+	// QCD region tight
+	auto tight_lep = offlep // Signal region selection and filter
 	.Filter(lep_tight_cut(ch),{"loose_leps",
                 "Electron_cutBased",// edit function for  tight -> loose
                 "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
@@ -849,74 +817,66 @@ void NPL(const channel ch,const dataSource ds){
                {"tw_lep__pt",
                 "tw_lep_phi","MET_pt","MET_phi"})
 	.Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
-        .Filter(unblinding,{"bjet__pt","fin_jets__pt"},"unblinding:jet multiplicity")
-	.Filter("tw_lep_mas < 130 || tw_lep_mas > 30","Transverse W mass cut for Signal, N_real-misid")
+	.Filter("tw_lep_mas > 130 || tw_lep_mas < 30","Transverse W mass cut for tight QCD region, tight in QCD")
 	;// making sure signal region
 	switch(ch){
 		case elnu:{temp_header="elnu_";temp_footer="elnu_";break;}
 		case munu:{temp_header="munu_";temp_footer="munu_";break;}
 	}
 	switch(ds){
-	        case tzq:{temp_header+="tzq";temp_footer+="tZq";break;}
-                case  ww:{temp_header+="_ww";temp_footer+=" WW";break;}
-                case  wz:{temp_header+="_wz";temp_footer+=" WZ";break;}
-                case  zz:{temp_header+="_zz";temp_footer+=" ZZ";break;}
-                case ttb:{temp_header+="ttb";temp_footer+="ttb";break;}
-                case ttz:{temp_header+="ttz";temp_footer+="ttZ";break;}
-                case met:{temp_header+="met";temp_footer+="MET";break;}
+	        case  mc:{temp_header+="QCD enriched MC";temp_footer+="QCD enriched MC";break;}
                 case cms:{temp_header+="cms";temp_footer+="CMS";break;}
 //              default :throw std::invalid_argument(
 //                      "Unimplemented ds (hist titles)");
         }
 
 	if(MC){
-	auto prompt_QCD_lep = QCD_lep //prompt for MC in QCD
+	auto h_tight = tight_lep.Histo1D({ // histo for eff tight to loose , tight
+        ("tight_Lepton" + temp_header).c_str(),
+        ("tight Lepton" + temp_footer).c_str(),
+        50,0,1000},
+        "lep__pt","lep_eta")
+        ;
+        auto h_loose = loose_lep.Histo1D({ // histo for eff tight to loose , loose
+        ("loose_Lepton" + temp_header).c_str(),
+        ("loose Lepton" + temp_footer).c_str(),
+        50,0,1000},
+        "lep__pt","lep_eta")
+        ;
+        TH2D *
+	h_eff_TL_ratio = static_cast<TH2D*>(h_tight->Clone());
+        h_eff_TL_ratio->Divide(             h_loose.GetPtr());
+        h_eff_TL_ratio->Draw("COLZ");
+        h_eff_TL_ratio->SetNameTitle("Tight To Loose Efficiency", "Tight To Loose Efficiency")
+	;
+	auto prompt_loose_lep = loose_lep //prompt for MC in QCD
 	.Filter(lep_gpsf(ch),{"GenPart_statusFlags","not_tight"
                                       ,"Electron_genPartIdx"
-                                      ,    "Muon_genPartIdx"},"QCD prompt MC")
+                                      ,    "Muon_genPartIdx"},"loose not tight prompt MC")
 	;
-	//ROOT::RDF::SaveGraph(mc__df, "graph.dot");
-        auto prompt_sig_lep = sig_lep //prompt for MC in sig
-        .Filter(lep_gpsf(ch),{"GenPart_statusFlags","loose_leps"
-                                      ,"Electron_genPartIdx"
-                                      ,    "Muon_genPartIdx"},"Signal prompt MC")
-	;
-	auto h_prompt_QCD_lep = prompt_QCD_lep.Histo1D({
-	("prompt_QCD"        + temp_header).c_str(),
-	("ptompt QCD region" + temp_footer).c_str(),
+	auto h_prompt_loose_lep = prompt_loose_lep.Histo1D({// N_L!T prompt MC
+	("prompt_L!T"    + temp_header).c_str(),
+	("ptompt L!T MC" + temp_footer).c_str(),
 	50,0,1000},
-	"lep__pt","sf")
+	"lep__pt","lep_eta")
 	;
-	auto h_prompt_sig_lep = prompt_sig_lep.Histo1D({
-	("prompt signal"     + temp_header).c_str(),
-        ("prompt signal"     + temp_footer).c_str(),
-        50,0,1000},
-        "lep__pt","sf")
-        ;
-        auto h_N_real_sig_lep = sig_lep.Histo1D({
-        ("Signal_N_realmisID"          + temp_header).c_str(),
-        ("Signal region N_real missID" + temp_footer).c_str(),
-        50,0,1000},
-        "lep__pt","sf")
-        ;// N_Real mis-ID for MC in signal region
 
 	TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
 	// MC only
-		hf.WriteTObject(h_prompt_QCD_lep                  .GetPtr());hf.Flush();sync();
-		hf.WriteTObject(h_prompt_sig_lep                  .GetPtr());hf.Flush();sync();
-                hf.WriteTObject(h_N_real_sig_lep                  .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_prompt_loose_lep  .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_eff_TL_ratio      .GetPtr());hf.Flush();sync();
 	}
 	else{
-	// N_QCD_data
-	auto h_QCD_lep = QCD_lep.Histo1D({
-	("N_QCD_Data" + temp_header).c_str(),
-        ("N_QCD_Data" + temp_footer).c_str(),
+	// N_L!T_data
+        auto h_LT_data = loose_lep.Histo1D({
+        ("N_data_L!T" + temp_header).c_str(),
+        ("N data L!T" + temp_footer).c_str(),
         50,0,1000},
-        "lep__pt","sf")
-	;
+        "lep__pt","lep_eta")
+	; // L!T data
 	        TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
         // CMS only
-          	hf.WriteTObject(h_QCD_lep                         .GetPtr());hf.Flush();sync();
+          	hf.WriteTObject(h_LT_data           .GetPtr());hf.Flush();sync();
 
 	}
 	std::cout<<"NPL successfully finished"<<std::endl;
@@ -945,14 +905,8 @@ int main ( int argc , char *argv[] ){
 		return 3 ;
 	}
 	     if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
-	else if ( "tzq"  ==  dsN ){ d = tzq;}
-        else if ( "ttz"  ==  dsN ){ d = ttz;}
-        else if ( "ttb"  ==  dsN ){ d = ttb;}
-        else if (  "ww"  ==  dsN ){ d =  ww;}
-        else if (  "wz"  ==  dsN ){ d =  wz;}
-        else if (  "zz"  ==  dsN ){ d =  zz;}
-	else if ( "cms" ==   dsN  ){d = cms;}
-        else if ( "met"  ==  dsN ){ d = met;}
+	else if ( "mc"  ==   dsN  ){d  = mc;}
+        else if ( "cms" ==   dsN  ){d = cms;}
 	else { std::cout << "Error: data source " << dsN
 		<< " not recognised" << std::endl ;
 		return 4 ;
