@@ -29,11 +29,15 @@ inline auto Npl
 //#include <execution>// need to link -ltbb in Makefile
 #include <TChain.h>
 #include <TF1.h>
-#include "calchisto.hpp"
+//#include "calchisto.hpp"
 #include "csv.h"
 #include "json.hpp"
 #include "eval_complex.hpp"
 #include "roccor.Run2.v3/RoccoR.cc"
+
+enum dataSource  {tzq,ww,wz,zz,ttb,ttz,met,mc,cms};// mc : QCD enriched samples: ttz,ttb, zz,wz
+enum channel     {elnu,munu};
+
 /*
 #if !defined(__FMA__) && defined(__AVX2__)
     #define __FMA__ 1
@@ -45,6 +49,7 @@ using    ints = ROOT::VecOps::RVec<int>;
 using   bools = ROOT::VecOps::RVec<bool>;
 using strings = ROOT::VecOps::RVec<std::string>;
 namespace{
+
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM      = 1       ;
   constexpr  float EL__PT_MIN      = 35.f    ;
@@ -643,17 +648,20 @@ void NPL(const channel ch,const dataSource ds){
 
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
-        TChain QCDofMC("Events"); // including the enriched QCD datasets of MC
-        QCDofMC.Add(/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root);/**/
-	QCDofMC.Add(/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root);/**/
-	QCDofMC.Add(/data/disk0/nanoAOD_2017/TTToSemileptonic/*.root);/**/
-	QCDofMC.Add(ttz_dir/*.root);/**/
-	ROOT::RDataFrame mc__df(QCDofMC); // QCD enriched MCs
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
 	case cms:{temp_opener=temp_header+ "ttZToQQ"         +temp_footer;break;}
+	case  mc:{temp_opener=temp_header+ "ttZToQQ"         +temp_footer;break;}
 	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	// Open chains of exptData EVEN IF UNUSED
+	// QCD Enriched MCs file openning in chain
+        TChain QCDofMC("Events"); // including the enriched QCD datasets of MC
+        QCDofMC.Add("/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root");/**/
+        QCDofMC.Add("/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root");/**/
+        QCDofMC.Add("/data/disk0/nanoAOD_2017/TTToSemileptonic/*.root");/**/
+        QCDofMC.Add("ttz_dir/*.root");/**/
+  	ROOT::RDataFrame mc__df(QCDofMC); // QCD enriched MCs
+
 	TChain elnuCMS("Events");
 	TChain munuCMS("Events");
 	temp_footer = "/*.root" ;/* safety redefinition now saving us */
@@ -843,11 +851,11 @@ void NPL(const channel ch,const dataSource ds){
         50,0,1000},
         "lep__pt","lep_eta")
         ;
-        TH2D *
+        auto
 	h_eff_TL_ratio = static_cast<TH2D*>(h_tight->Clone());
         h_eff_TL_ratio->Divide(             h_loose.GetPtr());
         h_eff_TL_ratio->Draw("COLZ");
-        h_eff_TL_ratio->SetNameTitle("Tight To Loose Efficiency", "Tight To Loose Efficiency")
+        h_eff_TL_ratio->SetNameTitle("Tight To Loose Efficiency", "Tight To Loose Efficiency p_{T} (GeV/c) / PseudoRapidity #eta")
 	;
 	auto prompt_loose_lep = loose_lep //prompt for MC in QCD
 	.Filter(lep_gpsf(ch),{"GenPart_statusFlags","not_tight"
@@ -864,7 +872,7 @@ void NPL(const channel ch,const dataSource ds){
 	TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
 	// MC only
 		hf.WriteTObject(h_prompt_loose_lep  .GetPtr());hf.Flush();sync();
-		hf.WriteTObject(h_eff_TL_ratio      .GetPtr());hf.Flush();sync();
+		hf.WriteTObject(h_eff_TL_ratio               );hf.Flush();sync();
 	}
 	else{
 	// N_L!T_data
