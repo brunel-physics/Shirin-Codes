@@ -1275,6 +1275,37 @@ void calchisto(const channel ch,const dataSource ds){
 	tF ->Close();
 	tF	= nullptr; tHf = nullptr; tHd = nullptr; t1d = nullptr;
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
+	// NPL results
+        tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
+        tF ->GetObject("prompt_L!Telnu_QCD",tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+        const TH2D* const prompt_L!T_elnu_QCD = static_cast<TH2D*>(tHd);
+        tF ->Close();
+        tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
+        tF ->GetObject("Tight To Loose Efficiency",tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+        const TH2D* const TL_elnu_eff = static_cast<TH2D*>(tHd);
+        tF ->Close();
+        tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
+        tF ->GetObject("prompt_L!Tmunu_QCD",tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+        const TH2D* const prompt_L!T_elnu_QCD = static_cast<TH2D*>(tHd);
+        tF ->Close();
+        tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
+        tF ->GetObject("Tight To Loose Efficiency",tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+        const TH2D* const TL_munu_eff = static_cast<TH2D*>(tHd);
+        tF ->Close();
+        tF = TFile::Open("aux/NPL/NPL_elnu_cms.root");
+        tF ->GetObject("N_data_L!Telnu_cms",tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+        const TH2D* const N_elnu_data_L!T = static_cast<TH2D*>(tHd);
+        tF ->Close();
+	tF = TFile::Open("aux/NPL/NPL_munu_cms.root");
+        tF ->GetObject("N_data_L!Tmunu_cms",tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+        const TH2D* const N_munu_data_L!T = static_cast<TH2D*>(tHd);
+        tF ->Close();
 //	std::cout<<"Auxiliary files processed"       <<std::endl;
 
 	// Open data files even if unused

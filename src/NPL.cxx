@@ -407,7 +407,11 @@ inline auto sf(const  dataSource ds,
 			case  zz:{result = ZZLLQQ_W;break;}
 			case ttb:{result =  TTBLV_W;break;}
 			case ttz:{result =  TTZQQ_W;break;}
-			case met:// fall through to cms
+			case  mc:{result = WZLNQQ_W+
+					   ZZLLQQ_W+
+					    TTBLV_W+
+					    TTZQQ_W;break;}
+			case met:// fall through to cms and mc
 			case cms:{result = 1.;MC=false;break;}// ignore btag wt
 			default :throw std::invalid_argument(
 				"Unimplemented ds (sf)");
@@ -686,7 +690,8 @@ void NPL(const channel ch,const dataSource ds){
 			case  wz:
 			case  zz:
 			case ttb:
-			case ttz:{           return mc__df;break;}
+			case ttz:
+			case  mc:{           return mc__df;break;}
 			case cms :{switch(ch){// MC is already false
 			          case elnu:{return elnudf;break;}
 			          case munu:{return munudf;break;}
@@ -832,40 +837,42 @@ void NPL(const channel ch,const dataSource ds){
 		case munu:{temp_header="munu_";temp_footer="munu_";break;}
 	}
 	switch(ds){
-	        case  mc:{temp_header+="QCD enriched MC";temp_footer+="QCD enriched MC";break;}
+	        case  mc:{temp_header+="QCD";temp_footer+="QCD";break;}// QCD enriched sample
                 case cms:{temp_header+="cms";temp_footer+="CMS";break;}
 //              default :throw std::invalid_argument(
 //                      "Unimplemented ds (hist titles)");
         }
 
 	if(MC){
-	auto h_tight = tight_lep.Histo1D({ // histo for eff tight to loose , tight
-        ("tight_Lepton" + temp_header).c_str(),
-        ("tight Lepton" + temp_footer).c_str(),
-        50,0,1000},
+	auto h_tight = tight_lep.Histo2D({ // histo for eff tight to loose , tight
+        ("tight_Lepton_" + temp_header).c_str(),
+        ("tight Lepton " + temp_footer).c_str(),
+        50,0,1000,50,-3,3},
         "lep__pt","lep_eta")
         ;
-        auto h_loose = loose_lep.Histo1D({ // histo for eff tight to loose , loose
-        ("loose_Lepton" + temp_header).c_str(),
-        ("loose Lepton" + temp_footer).c_str(),
-        50,0,1000},
+        auto h_loose = loose_lep.Histo2D({ // histo for eff tight to loose , loose
+        ("loose_Lepton_" + temp_header).c_str(),
+        ("loose Lepton " + temp_footer).c_str(),
+        50,0,1000,50,-3,3},
         "lep__pt","lep_eta")
         ;
         auto
 	h_eff_TL_ratio = static_cast<TH2D*>(h_tight->Clone());
         h_eff_TL_ratio->Divide(             h_loose.GetPtr());
         h_eff_TL_ratio->Draw("COLZ");
-        h_eff_TL_ratio->SetNameTitle("Tight To Loose Efficiency", "Tight To Loose Efficiency p_{T} (GeV/c) / PseudoRapidity #eta")
+        h_eff_TL_ratio->SetNameTitle(
+	("TL_eff_" + temp_header).c_str(),
+ 	("TL_eff " + temp_header).c_str())
 	;
 	auto prompt_loose_lep = loose_lep //prompt for MC in QCD
 	.Filter(lep_gpsf(ch),{"GenPart_statusFlags","not_tight"
                                       ,"Electron_genPartIdx"
                                       ,    "Muon_genPartIdx"},"loose not tight prompt MC")
 	;
-	auto h_prompt_loose_lep = prompt_loose_lep.Histo1D({// N_L!T prompt MC
-	("prompt_L!T"    + temp_header).c_str(),
-	("ptompt L!T MC" + temp_footer).c_str(),
-	50,0,1000},
+	auto h_prompt_loose_lep = prompt_loose_lep.Histo2D({// N_L!T prompt MC
+	("prompt_LnT_"    + temp_header).c_str(),
+	("ptompt LnT MC " + temp_footer).c_str(),
+	50,0,1000,50,-3,3},
 	"lep__pt","lep_eta")
 	;
 
@@ -876,10 +883,10 @@ void NPL(const channel ch,const dataSource ds){
 	}
 	else{
 	// N_L!T_data
-        auto h_LT_data = loose_lep.Histo1D({
-        ("N_data_L!T" + temp_header).c_str(),
-        ("N data L!T" + temp_footer).c_str(),
-        50,0,1000},
+        auto h_LT_data = loose_lep.Histo2D({
+        ("N_data_LnT_" + temp_header).c_str(),
+        ("N data LnT " + temp_footer).c_str(),
+        50,0,1000,50,-3,3},
         "lep__pt","lep_eta")
 	; // L!T data
 	        TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
