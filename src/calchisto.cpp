@@ -910,6 +910,9 @@ auto elEffGiver(
 	,const TH2F* const &recoLowEt
 	,const TH2F* const &reco_pass
 	,const TH2F* const &tight_94x
+	,const TH2D* const &TL_eff_elnu_QCD
+	,const TH2D* const &prompt_LnT_elnu_QCD
+	,const TH2D* const &N_data_LnT_elnu_cms
 ){
 	std::map<elSf,double> dict = {{Eff,1.},{Smr,1.}};
 	// eff == electron    regression    corrections
@@ -929,6 +932,10 @@ auto elEffGiver(
 		EtaBin   = tight_94x->GetXaxis()-> FindBin(eta);
 		 PtBin   = tight_94x->GetYaxis()-> FindBin(pt );
 		dict[Smr]= tight_94x->GetBinContent(EtaBin,PtBin);
+	// NPL estimation
+		PtBin   = TL_eff_elnu_QCD ->GetXaxis()-> FindBin(pt );
+	       EtaBin   = TL_eff_elnu_QCD ->GetYaxis()-> FindBin(eta);
+	// To APPLY NPL formula : (eff/(1-eff))*(LnT_data - LnT_prompt)
 //	}
 	// TODO: GetBinError
 	if(5<debug)std::cout<<dict[Eff]<<" eff , smr "<<dict[Smr]<<std::endl;
@@ -1277,32 +1284,32 @@ void calchisto(const channel ch,const dataSource ds){
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
 	// NPL results
         tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
-        tF ->GetObject("prompt_L!Telnu_QCD",tHd);
+        tF ->GetObject("prompt_LnT_elnu_QCD",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
         const TH2D* const prompt_L!T_elnu_QCD = static_cast<TH2D*>(tHd);
         tF ->Close();
         tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
-        tF ->GetObject("Tight To Loose Efficiency",tHd);
+        tF ->GetObject("TL_eff_elnu_QCD",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
         const TH2D* const TL_elnu_eff = static_cast<TH2D*>(tHd);
         tF ->Close();
         tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
-        tF ->GetObject("prompt_L!Tmunu_QCD",tHd);
+        tF ->GetObject("prompt_LnT_munu_QCD",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
         const TH2D* const prompt_L!T_elnu_QCD = static_cast<TH2D*>(tHd);
         tF ->Close();
         tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
-        tF ->GetObject("Tight To Loose Efficiency",tHd);
+        tF ->GetObject("TL_eff_munu_QCD",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
         const TH2D* const TL_munu_eff = static_cast<TH2D*>(tHd);
         tF ->Close();
         tF = TFile::Open("aux/NPL/NPL_elnu_cms.root");
-        tF ->GetObject("N_data_L!Telnu_cms",tHd);
+        tF ->GetObject("N_data_LnT_elnu_cms",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
         const TH2D* const N_elnu_data_L!T = static_cast<TH2D*>(tHd);
         tF ->Close();
 	tF = TFile::Open("aux/NPL/NPL_munu_cms.root");
-        tF ->GetObject("N_data_L!Tmunu_cms",tHd);
+        tF ->GetObject("N_data_LnT_munu_cms",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
         const TH2D* const N_munu_data_L!T = static_cast<TH2D*>(tHd);
         tF ->Close();
