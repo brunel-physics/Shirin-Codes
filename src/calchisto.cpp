@@ -910,9 +910,6 @@ auto elEffGiver(
 	,const TH2F* const &recoLowEt
 	,const TH2F* const &reco_pass
 	,const TH2F* const &tight_94x
-	,const TH2D* const &TL_eff_elnu_QCD
-	,const TH2D* const &prompt_LnT_elnu_QCD
-	,const TH2D* const &N_data_LnT_elnu_cms
 ){
 	std::map<elSf,double> dict = {{Eff,1.},{Smr,1.}};
 	// eff == electron    regression    corrections
@@ -932,10 +929,6 @@ auto elEffGiver(
 		EtaBin   = tight_94x->GetXaxis()-> FindBin(eta);
 		 PtBin   = tight_94x->GetYaxis()-> FindBin(pt );
 		dict[Smr]= tight_94x->GetBinContent(EtaBin,PtBin);
-	// NPL estimation
-		PtBin   = TL_eff_elnu_QCD ->GetXaxis()-> FindBin(pt );
-	       EtaBin   = TL_eff_elnu_QCD ->GetYaxis()-> FindBin(eta);
-	// To APPLY NPL formula : (eff/(1-eff))*(LnT_data - LnT_prompt)
 //	}
 	// TODO: GetBinError
 	if(5<debug)std::cout<<dict[Eff]<<" eff , smr "<<dict[Smr]<<std::endl;
@@ -1052,21 +1045,49 @@ inline auto pile(
 }
 // Non-prompt-lepton estimation
 inline auto Npl(
-	 const int Nqcd_data // Number of fake lepton in QCD region in data
-	,const int Nqcd_rmid // Number of real lepton + mis-id in MC
-	,const int N_sig__MC // Number of lepton in signal region MC
-	,const int N_qcd__MC // Number of lepton in  QCD region MC
-){// Need to use the Count in RDF to get these constants after blinding is done
-  // Blinding will allow us to know the sidebands which basically are responsible
-  // for the QCD regions so by using the report for the filter and the count
-  // all the Ns will be found..
-  // all Nqcd need to come from the loosend isolation
-  // loose isolation 20 GeV for absolute isolation
-  // 0.8 for relative isolation
-  // impact parameters |dxy| and |dz| loosened to 0.1, 0.5
-  // Nqcd_rmid = the qcd with GenPart_Statusflag = 0 (prompt)
-	return    (Nqcd_data - Nqcd_rmid)
-		* (N_sig__MC / N_qcd__MC);
+	 const dataSource                    ds
+	,const    channel                    ch
+	,const TH2D* const     &TL_eff_elnu_QCD // Tight to loose efficiency elnu
+	,const TH2D* const     &TL_eff_munu_QCD // Tight to loose efficiency munu
+	,const TH2D* const &prompt_LnT_elnu_QCD // loose not tight QCD prompt
+	,const TH2D* const &prompt_LnT_munu_QCD // loose not tight QCD prompt
+	,const TH2D* const &N_data_LnT_elnu_cms // loose not tight from data
+	,const TH2D* const &N_data_LnT_munu_cms // loose not tight from data
+){// result taken from the NPL.cxx
+	int TLPtBin, TLEtaBin, cmsPtBin, cmsEtaBin, QCDPtBin, QCDEtaBin,
+	    TLeff, npl_QCD, npl_cms, npl;
+	return [=](const doubles  pt
+		  ,const doubles eta){
+	switch (ch){case elnu:{
+                		 TLPtBin  = TL_eff_elnu_QCD    ->GetXaxis()->FindBin(pt );
+               			TLEtaBin  = TL_eff_elnu_QCD    ->GetYaxis()->FindBin(eta);
+				cmsPtBin  = N_data_LnT_elnu_cms->GetXaxis()->FindBin(pt );
+			       cmsEtaBin  = N_data_LnT_elnu_cms->GetYaxis()->FindBin(eta);
+			        QCDPtBin  = prompt_LnT_elnu_qcd->GetXaxis()->FindBin(pt );
+			       QCDEtaBin  = prompt_LnT_elnu_qcd->GetYaxis()->FindBin(eta);
+
+			           TLeff  =  TL_eff_elnu_QCD    ->GetBinContent(TLPtBin ,TLEtaBin );
+				 npl_QCD  =  prompt_LnT_elnu_qcd->GetBinContent(QCDPtBin,QCDEtaBin);
+				 npl_cms  =  N_data_LNT_elnu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
+
+											      break;}
+		    case munu:{
+                                 TLPtBin  = TL_eff_munu_QCD    ->GetXaxis()->FindBin(pt );
+                                TLEtaBin  = TL_eff_munu_QCD    ->GetYaxis()->FindBin(eta);
+                                cmsPtBin  = N_data_LnT_munu_cms->GetXaxis()->FindBin(pt );
+                               cmsEtaBin  = N_data_LnT_munu_cms->GetYaxis()->FindBin(eta);
+                                QCDPtBin  = prompt_LnT_munu_qcd->GetXaxis()->FindBin(pt );
+                               QCDEtaBin  = prompt_LnT_munu_qcd->GetYaxis()->FindBin(eta);
+
+                                   TLeff  =  TL_eff_munu_QCD    ->GetBinContent(TLPtBin ,TLEtaBin );
+                                 npl_QCD  =  prompt_LnT_munu_qcd->GetBinContent(QCDPtBin,QCDEtaBin);
+                                 npl_cms  =  N_data_LnT_munu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
+
+                                                                                              break;}
+	}
+	// To APPLY NPL formula : (eff/(1-eff))*(LnT_data - LnT_prompt)
+	npl = (TLeff/(1 - TLeff)) * (npl_cms - npl_QCD);
+	return  npl  };
 }
 // Simulation correction Scale Factors
 inline auto sf(
