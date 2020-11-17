@@ -1044,9 +1044,8 @@ inline auto pile(
 	return dict;};
 }
 // Non-prompt-lepton estimation
-inline auto Npl(
-	 const dataSource                    ds
-	,const    channel                    ch
+inline auto npl(
+	 const    channel                    ch
 	,const TH2D* const     &TL_eff_elnu_QCD // Tight to loose efficiency elnu
 	,const TH2D* const     &TL_eff_munu_QCD // Tight to loose efficiency munu
 	,const TH2D* const &prompt_LnT_elnu_QCD // loose not tight QCD prompt
@@ -1055,39 +1054,42 @@ inline auto Npl(
 	,const TH2D* const &N_data_LnT_munu_cms // loose not tight from data
 ){// result taken from the NPL.cxx
 	int TLPtBin, TLEtaBin, cmsPtBin, cmsEtaBin, QCDPtBin, QCDEtaBin,
-	    TLeff, npl_QCD, npl_cms, npl;
-	return [=](const doubles  pt
-		  ,const doubles eta){
+	    TLeff, npl_QCD, npl_cms;
+	double npl;
+	return [&](const double  pt
+		  ,const double eta){
+	if(debug > 0)std::cout<<"NPL function"<<std::endl;
 	switch (ch){case elnu:{
-                		 TLPtBin  = TL_eff_elnu_QCD    ->GetXaxis()->FindBin(pt );
-               			TLEtaBin  = TL_eff_elnu_QCD    ->GetYaxis()->FindBin(eta);
-				cmsPtBin  = N_data_LnT_elnu_cms->GetXaxis()->FindBin(pt );
-			       cmsEtaBin  = N_data_LnT_elnu_cms->GetYaxis()->FindBin(eta);
-			        QCDPtBin  = prompt_LnT_elnu_qcd->GetXaxis()->FindBin(pt );
-			       QCDEtaBin  = prompt_LnT_elnu_qcd->GetYaxis()->FindBin(eta);
+                	 TLPtBin  = TL_eff_elnu_QCD    ->GetXaxis()-> FindBin(pt );
+               		 TLEtaBin  = TL_eff_elnu_QCD    ->GetYaxis()-> FindBin(eta);
+			 cmsPtBin  = N_data_LnT_elnu_cms->GetXaxis()-> FindBin(pt );
+			 cmsEtaBin  = N_data_LnT_elnu_cms->GetYaxis()-> FindBin(eta);
+			 QCDPtBin  = prompt_LnT_elnu_QCD->GetXaxis()-> FindBin(pt );
+			 QCDEtaBin  = prompt_LnT_elnu_QCD->GetYaxis()-> FindBin(eta);
 
-			           TLeff  =  TL_eff_elnu_QCD    ->GetBinContent(TLPtBin ,TLEtaBin );
-				 npl_QCD  =  prompt_LnT_elnu_qcd->GetBinContent(QCDPtBin,QCDEtaBin);
-				 npl_cms  =  N_data_LNT_elnu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
+			 TLeff  =  TL_eff_elnu_QCD    ->GetBinContent(TLPtBin ,TLEtaBin );
+			 npl_QCD  =  prompt_LnT_elnu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
+			 npl_cms  =  N_data_LnT_elnu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
 
-											      break;}
+									      break;}
 		    case munu:{
-                                 TLPtBin  = TL_eff_munu_QCD    ->GetXaxis()->FindBin(pt );
-                                TLEtaBin  = TL_eff_munu_QCD    ->GetYaxis()->FindBin(eta);
-                                cmsPtBin  = N_data_LnT_munu_cms->GetXaxis()->FindBin(pt );
-                               cmsEtaBin  = N_data_LnT_munu_cms->GetYaxis()->FindBin(eta);
-                                QCDPtBin  = prompt_LnT_munu_qcd->GetXaxis()->FindBin(pt );
-                               QCDEtaBin  = prompt_LnT_munu_qcd->GetYaxis()->FindBin(eta);
+                         TLPtBin  = TL_eff_munu_QCD    ->GetXaxis()->FindBin(pt );
+                         TLEtaBin  = TL_eff_munu_QCD    ->GetYaxis()->FindBin(eta);
+                         cmsPtBin  = N_data_LnT_munu_cms->GetXaxis()->FindBin(pt );
+                         cmsEtaBin  = N_data_LnT_munu_cms->GetYaxis()->FindBin(eta);
+                         QCDPtBin  = prompt_LnT_munu_QCD->GetXaxis()->FindBin(pt );
+                         QCDEtaBin  = prompt_LnT_munu_QCD->GetYaxis()->FindBin(eta);
 
-                                   TLeff  =  TL_eff_munu_QCD    ->GetBinContent(TLPtBin ,TLEtaBin );
-                                 npl_QCD  =  prompt_LnT_munu_qcd->GetBinContent(QCDPtBin,QCDEtaBin);
-                                 npl_cms  =  N_data_LnT_munu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
+                         TLeff  =  TL_eff_munu_QCD    ->GetBinContent(TLPtBin ,TLEtaBin );
+                         npl_QCD  =  prompt_LnT_munu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
+                         npl_cms  =  N_data_LnT_munu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
 
-                                                                                              break;}
+                                                                                 break;}
 	}
 	// To APPLY NPL formula : (eff/(1-eff))*(LnT_data - LnT_prompt)
 	npl = (TLeff/(1 - TLeff)) * (npl_cms - npl_QCD);
-	return  npl  };
+	if(debug > 0)std::cout<<"NPL result "<<npl<<std::endl;
+	return  npl;  };
 }
 // Simulation correction Scale Factors
 inline auto sf(
@@ -1101,12 +1103,13 @@ inline auto sf(
 	return [=](
 		 const double b
 		,const double mostSF
+		,const double npl
 		,const    int npv
 	){
 		// TODO: trigger efficiency
 		double result;
 		bool MC = true;
-/*		switch(ds){
+		switch(ds){
 			case tzq:{result =    TZQ_W;break;}
 			case  ww:{result = WWLNQQ_W;break;}
 			case  wz:{result = WZLNQQ_W;break;}
@@ -1122,31 +1125,9 @@ inline auto sf(
 			case elnu:{result *= TRIG_SF_ELNU;break;}
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
-*/
-		if(ch == elnu){
-		switch(ds){
-			case tzq:{result =    TZQ_W*TRIG_SF_ELNU*ELNU_NPL_TZQ;break;}
-			case  ww:{result = WWLNQQ_W*TRIG_SF_ELNU*ELNU_NPL__WW;break;}
-			case  wz:{result = WZLNQQ_W*TRIG_SF_ELNU*ELNU_NPL__WZ;break;}
-			case  zz:{result = ZZLLQQ_W*TRIG_SF_ELNU*ELNU_NPL__ZZ;break;}
-			case ttb:{result =  TTBLV_W*TRIG_SF_ELNU*ELNU_NPL_TTB;break;}
-			case ttz:{result =  TTZQQ_W*TRIG_SF_ELNU*ELNU_NPL_TTZ;break;}
-                        case cms:{result = 1.;MC=false;break;}// ignore wt
-		}}
-		else if(ch == munu){
-                switch(ds){
-                        case tzq:{result =    TZQ_W*TRIG_SF_MUNU*MUNU_NPL_TZQ;break;}
-                        case  ww:{result = WWLNQQ_W*TRIG_SF_MUNU*MUNU_NPL__WW;break;}
-                        case  wz:{result = WZLNQQ_W*TRIG_SF_MUNU*MUNU_NPL__WZ;break;}
-                        case  zz:{result = ZZLLQQ_W*TRIG_SF_MUNU*MUNU_NPL__ZZ;break;}
-                        case ttb:{result =  TTBLV_W*TRIG_SF_MUNU*MUNU_NPL_TTB;break;}
-                        case ttz:{result =  TTZQQ_W*TRIG_SF_MUNU*MUNU_NPL_TTZ;break;}
-                        case cms:{result = 1.;MC=false;break;}// ignore wt
-		}}
-		else{
-		       throw std::logic_error("Unimplemented ch (sf)");
-		}
-		if(MC) result *= pile(PuWd,PuUd,PuDd)(npv)[puW];
+
+		if( MC) result *= (npl * -1) * pile(PuWd,PuUd,PuDd)(npv)[puW];
+		if(!MC) result *=  npl;
 		if(result < 0)std::cout<<"pile lt 0"<<std::endl;
 		if(5<debug)   std::cout<<"b_w "<< b
 		<<" few_SF " << result//<<std::endl;
@@ -1172,7 +1153,7 @@ auto finalScaling(
 	,T &rdf
 ){
 	return rdf
-	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd),{"btag_w","mostSF","PV_npvs"})
+	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd),{"btag_w","mostSF","npl_est","PV_npvs"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
@@ -1307,7 +1288,7 @@ void calchisto(const channel ch,const dataSource ds){
         tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
         tF ->GetObject("prompt_LnT_elnu_QCD",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const prompt_L!T_elnu_QCD = static_cast<TH2D*>(tHd);
+        const TH2D* const prompt_LnT_elnu_QCD = static_cast<TH2D*>(tHd);
         tF ->Close();
         tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
         tF ->GetObject("TL_eff_elnu_QCD",tHd);
@@ -1317,7 +1298,7 @@ void calchisto(const channel ch,const dataSource ds){
         tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
         tF ->GetObject("prompt_LnT_munu_QCD",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const prompt_L!T_elnu_QCD = static_cast<TH2D*>(tHd);
+        const TH2D* const prompt_LnT_munu_QCD = static_cast<TH2D*>(tHd);
         tF ->Close();
         tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
         tF ->GetObject("TL_eff_munu_QCD",tHd);
@@ -1327,12 +1308,12 @@ void calchisto(const channel ch,const dataSource ds){
         tF = TFile::Open("aux/NPL/NPL_elnu_cms.root");
         tF ->GetObject("N_data_LnT_elnu_cms",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const N_elnu_data_L!T = static_cast<TH2D*>(tHd);
+        const TH2D* const N_elnu_data_LnT = static_cast<TH2D*>(tHd);
         tF ->Close();
 	tF = TFile::Open("aux/NPL/NPL_munu_cms.root");
         tF ->GetObject("N_data_LnT_munu_cms",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const N_munu_data_L!T = static_cast<TH2D*>(tHd);
+        const TH2D* const N_munu_data_LnT = static_cast<TH2D*>(tHd);
         tF ->Close();
 //	std::cout<<"Auxiliary files processed"       <<std::endl;
 
@@ -1597,6 +1578,14 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
+	.Define("npl_est",npl(ch // Non prompt lepton estimation
+			 , TL_eff_elnu_QCD
+			 , TL_eff_munu_QCD
+			 , prompt_LnT_elnu_QCD
+			 , prompt_LnT_munu_QCD
+			 , N_data_LnT_elnu_cms
+			 , N_data_LnT_elnu_cms
+			),{"lep__pt","lep_eta"})
 	.Define("mostSF" , "lepSF * ttbSF")
 	;
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,
@@ -1933,6 +1922,14 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
+        .Define("npl_est",npl(ch // Non prompt lepton estimation
+                         ,TL_eff_elnu_QCD
+                         ,TL_eff_munu_QCD
+                         ,prompt_LnT_elnu_QCD
+                         ,prompt_LnT_munu_QCD
+                         ,N_data_LnT_elnu_cms
+                         ,N_data_LnT_elnu_cms
+                        ),{"lep__pt","lep_eta"})
 	. Alias("mostSF" , "lepSF")
 	;
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,// unused but send pile
