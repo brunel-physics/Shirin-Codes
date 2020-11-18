@@ -1,4 +1,4 @@
-// TODO: Shape uncertainties
+// TODO: Shape uncertainties -> implement lhepdfWeight for central up and down based no the formula
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <Math/Vector4D.h>
@@ -1101,10 +1101,11 @@ inline auto sf(
 ){
 	if(0<debug) std::cout<<"scale factor "<<std::endl;
 	return [=](
-		 const double b
-		,const double mostSF
-		,const double npl
-		,const    int npv
+		 const double  b
+		,const double  mostSF
+		,const double  lhepdf // LHEPdfWeight 0 index (central value)
+		,const double  npl
+		,const    int  npv
 	){
 		// TODO: trigger efficiency
 		double result;
@@ -1132,7 +1133,7 @@ inline auto sf(
 		if(5<debug)   std::cout<<"b_w "<< b
 		<<" few_SF " << result//<<std::endl;
 		<<" mostSF " << mostSF  <<std::endl;
-		result *=   b * mostSF;
+		result *=   b * mostSF * lhepdf;
 		//if(result < 0)std::cout<<"final sf lt 0 "<<result<<std::endl;
 		return result;//result;
 	};
@@ -1153,7 +1154,7 @@ auto finalScaling(
 	,T &rdf
 ){
 	return rdf
-	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd),{"btag_w","mostSF","npl_est","PV_npvs"})
+	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd),{"btag_w","mostSF","LHEPdfWeight[0]","npl_est","PV_npvs"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
@@ -1387,8 +1388,8 @@ void calchisto(const channel ch,const dataSource ds){
 //			"Unimplemented ch (init)");
 	}
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(10000);// remember to enable MT when NOT range
-	auto init_selection = df// remove one letter to do all
+	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
+	auto init_selection = dfr// remove one letter to do all
 	.Filter(Triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
@@ -1917,6 +1918,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto not_btag_eff
 	   = reco
 	.Define("btag_w" , [](){return 1.;})
+	.Define("LHEPdfWeight", [](){return 1.;})
 	.Define("lepSF"  , lepEffGiver(ch,MC// not in reco because files
 	                 , recoLowEt,reco_pass,tight_94x
 	                 , id_N,id_Y,id_A,id_T
