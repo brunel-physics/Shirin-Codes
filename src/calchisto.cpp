@@ -83,27 +83,6 @@ namespace{
   constexpr double        TTBLV_W = 1.3791;
   constexpr double        TTZQQ_W =  .0237;
   constexpr double       ZZLLQQ_W =  .0485;
-// NPL Values: Results via via NPL.cxx, Method:
-// Using the tight and loose criteria for prompt leptons
-// and mis-identified lepton in the QCD and Signal region.
-
-  constexpr float    ELNU_NPL_TZQ =  8.412E6;
-  constexpr float    MUNU_NPL_TZQ =  2.780E7;
-
-  constexpr float    ELNU_NPL_TTB = -5.702E7;
-  constexpr float    MUNU_NPL_TTB = -1.317E8;
-
-  constexpr float    ELNU_NPL_TTZ =  3.995E6;
-  constexpr float    MUNU_NPL_TTZ =  1.162E7;
-
-  constexpr float    ELNU_NPL__WW =  9.709E6;
-  constexpr float    MUNU_NPL__WW =  4.069E7;
-
-  constexpr float    ELNU_NPL__WZ =  8.382E6;
-  constexpr float    MUNU_NPL__WZ =  3.440E7;
-
-  constexpr float    ELNU_NPL__ZZ =  1.581E6;
-  constexpr float    MUNU_NPL__ZZ =  3.585E6;
 
 // Method Explained in TriggerSF.cxx
 // FYI:: TRIG_SF_ELNU = (3772592/11448047)/(1646471/5348563)
@@ -1045,7 +1024,8 @@ inline auto pile(
 }
 // Non-prompt-lepton estimation
 inline auto npl(
-	 const    channel                    ch
+	 const       channel             ch
+	,const    dataSource		 ds
 	,const TH2D* const &TL_eff_elnu_QCD // Tight to loose efficiency elnu
 	,const TH2D* const &TL_eff_munu_QCD // Tight to loose efficiency munu
 	,const TH2D* const &pr_LnT_elnu_QCD // prompt loose not tight QCD prompt
@@ -1054,8 +1034,8 @@ inline auto npl(
 	,const TH2D* const &dt_LnT_munu_cms // data loose not tight from data
 ){// result taken from the NPL.cxx
 	int TLPtBin, TLEtaBin, cmsPtBin, cmsEtaBin, QCDPtBin, QCDEtaBin,
-	    TLeff, npl_QCD, npl_cms;
-	double npl;
+	    npl_QCD, npl_cms;
+	float TLeff, npl;
 	return [&](const double  pt
 		  ,const double eta){
 	if(debug > 0)std::cout<<"NPL function"<<std::endl;
@@ -1071,7 +1051,7 @@ inline auto npl(
 			 npl_QCD   =  pr_LnT_elnu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
 			 npl_cms   =  dt_LnT_elnu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
 
-									      break;}
+	        								   break;}
 		    case munu:{
                          TLPtBin   =  TL_eff_munu_QCD->GetXaxis()->FindBin(pt );
                          TLEtaBin  =  TL_eff_munu_QCD->GetYaxis()->FindBin(eta);
@@ -1084,10 +1064,25 @@ inline auto npl(
                          npl_QCD   =  pr_LnT_munu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
                          npl_cms   =  dt_LnT_munu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
 
-                                                                                 break;}
+                                                                                   break;}
 	}
+	std::cout<< TLeff <<"  " << 1 - TLeff <<" "<< npl_cms<< " "<< npl_QCD << " "<<std::endl;
+	if(TLeff < 0 || npl_cms < 0 || npl_QCD < 0)
+		std::cout<<"negative values from npl hists pt and eta r"
+			 <<pt <<" "
+			 <<eta<<" "<<std::endl;
 	// To APPLY NPL formula : (eff/(1-eff))*(LnT_data - LnT_prompt)
-	npl = (TLeff/(1 - TLeff)) * (npl_cms - npl_QCD);
+	if(0 < TLeff && TLeff < 1.){
+	if(cms == ds || met == ds)
+		npl = (TLeff/(1 - TLeff)) * (npl_cms);
+	else{
+		npl = (TLeff/(1 - TLeff)) * (npl_QCD * (-1));
+	}}
+	else{
+		std::cout<<"npl is 1"<<std::endl;
+		npl = 1.;
+	}
+	std::cout<<"NPL "<<npl<<std::endl;
 	if(debug > 0)std::cout<<"NPL result "<<npl<<std::endl;
 	return  npl;  };
 }
@@ -1103,8 +1098,8 @@ inline auto sf(
 	return [=](
 		 const double  b
 		,const double  mostSF
-		,const double  lhepdf // LHEPdfWeight 0 index (central value)
-		,const double  npl
+		,const float   npl
+		,const floats  lhepdf // LHEPdfWeight 0 index (central value)
 		,const    int  npv
 	){
 		// TODO: trigger efficiency
@@ -1127,13 +1122,13 @@ inline auto sf(
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
 
-		if( MC) result *= (npl * -1) * pile(PuWd,PuUd,PuDd)(npv)[puW];
-		if(!MC) result *=  npl;
+		if( MC) result *= npl * pile(PuWd,PuUd,PuDd)(npv)[puW];
+		if(!MC) result *= npl;
 		if(result < 0)std::cout<<"pile lt 0"<<std::endl;
 		if(5<debug)   std::cout<<"b_w "<< b
 		<<" few_SF " << result//<<std::endl;
 		<<" mostSF " << mostSF  <<std::endl;
-		result *=   b * mostSF * lhepdf;
+		result *=   b * mostSF * lhepdf[0];
 		//if(result < 0)std::cout<<"final sf lt 0 "<<result<<std::endl;
 		return result;//result;
 	};
@@ -1154,7 +1149,7 @@ auto finalScaling(
 	,T &rdf
 ){
 	return rdf
-	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd),{"btag_w","mostSF","LHEPdfWeight[0]","npl_est","PV_npvs"})
+	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd),{"btag_w","mostSF","npl_est","LHEPdfWeight","PV_npvs"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
@@ -1388,7 +1383,7 @@ void calchisto(const channel ch,const dataSource ds){
 //			"Unimplemented ch (init)");
 	}
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(1000000);// remember to enable MT when NOT range
+	auto dfr = df.Range(10000);// remember to enable MT when NOT range
 	auto init_selection = dfr// remove one letter to do all
 	.Filter(Triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
@@ -1579,7 +1574,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-	.Define("npl_est",npl(ch // Non prompt lepton estimation
+	.Define("npl_est", npl(ch, ds // Non prompt lepton estimation
 			 , TL_eff_elnu_QCD // Tight To Loose ratio
 			 , TL_eff_munu_QCD
 			 , pr_LnT_elnu_QCD // prompt loose not tight
@@ -1815,6 +1810,15 @@ void calchisto(const channel ch,const dataSource ds){
 	h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
 	h_z_daughters_Dph->SetLineStyle(kSolid);
 
+	auto h_npl = finalDF.Histo1D({
+        ("npl_" + temp_header).c_str(),
+        ("npl " + temp_header).c_str(),
+        500,-0.1,0.1},
+        "npl_est");
+        h_npl->GetXaxis()->SetTitle("NPL");
+        h_npl->GetYaxis()->SetTitle("Event");
+        h_npl->SetLineStyle(kSolid);
+
 	auto h_tWmVsZmass = finalDF.Histo2D({
 	("tWmVsZmass_" + temp_header).c_str(),
 	("tWmVsZmass " + temp_header).c_str(),
@@ -1827,7 +1831,7 @@ void calchisto(const channel ch,const dataSource ds){
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/test"+temp_header+".root").c_str(),"RECREATE");
 // MC only
 		hf.WriteTObject(h_sfi                  .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_sfj                  .GetPtr());hf.Flush();sync();
@@ -1857,6 +1861,7 @@ void calchisto(const channel ch,const dataSource ds){
 	hf.WriteTObject(  h_zw_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
+        hf.WriteTObject(h_npl            .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
@@ -1918,20 +1923,19 @@ void calchisto(const channel ch,const dataSource ds){
 	auto not_btag_eff
 	   = reco
 	.Define("btag_w" , [](){return 1.;})
-	.Define("LHEPdfWeight", [](){return 1.;})
+	.Define("LHEPdfWeight", [](){floats lhe(3, 1.); return lhe;})
 	.Define("lepSF"  , lepEffGiver(ch,MC// not in reco because files
 	                 , recoLowEt,reco_pass,tight_94x
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-        .Define("npl_est",npl(ch // Non prompt lepton estimation
+        .Define("npl_est",npl(ch, ds // Non prompt lepton estimation
                          , TL_eff_elnu_QCD // Tight To Loose ratio
                          , TL_eff_munu_QCD
                          , pr_LnT_elnu_QCD // prompt loose not tight
                          , pr_LnT_munu_QCD
                          , dt_LnT_elnu_cms // data loose not tight
                          , dt_LnT_munu_cms
-
                         ),{"lep__pt","lep_eta"})
 	. Alias("mostSF" , "lepSF")
 	;
@@ -2040,7 +2044,7 @@ void calchisto(const channel ch,const dataSource ds){
 	finalDF.Report() ->Print();
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/test"+temp_header+".root").c_str(),"RECREATE");
 	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();

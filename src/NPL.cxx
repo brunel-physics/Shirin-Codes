@@ -842,18 +842,23 @@ void NPL(const channel ch,const dataSource ds){
 //              default :throw std::invalid_argument(
 //                      "Unimplemented ds (hist titles)");
         }
+	// Bins definition -> this method lead to splitting bins which are more dense
+	// also groups the less dense bin together
+        const std::vector<double> ptBins
+        = {0.,20.,30.,40.,45.,50.,55.,60.,65.,75.,85.,100.,150.,500.};
+        const int ptBinsSize = ptBins.size() - 1;
 
 	if(MC){
 	auto h_tight = tight_lep.Histo2D({ // histo for eff tight to loose , tight
         ("tight_Lepton_" + temp_header).c_str(),
         ("tight Lepton " + temp_footer).c_str(),
-        50,0,1000,50,-3,3},
+        ptBinsSize,ptBins.data(),20,-2.5,2.5},
         "lep__pt","lep_eta")
         ;
         auto h_loose = loose_lep.Histo2D({ // histo for eff tight to loose , loose
         ("loose_Lepton_" + temp_header).c_str(),
         ("loose Lepton " + temp_footer).c_str(),
-        50,0,1000,50,-3,3},
+        ptBinsSize,ptBins.data(),20,-2.5,2.5},
         "lep__pt","lep_eta")
         ;
         auto
@@ -872,7 +877,7 @@ void NPL(const channel ch,const dataSource ds){
 	auto h_prompt_loose_lep = prompt_loose_lep.Histo2D({// N_L!T prompt MC
 	("prompt_LnT_"    + temp_header).c_str(),
 	("ptompt LnT MC " + temp_footer).c_str(),
-	50,0,1000,50,-3,3},
+	ptBinsSize,ptBins.data(),20,-2.5,2.5},
 	"lep__pt","lep_eta")
 	;
 
@@ -886,7 +891,7 @@ void NPL(const channel ch,const dataSource ds){
         auto h_LT_data = loose_lep.Histo2D({
         ("N_data_LnT_" + temp_header).c_str(),
         ("N data LnT " + temp_footer).c_str(),
-        50,0,1000,50,-3,3},
+        ptBinsSize,ptBins.data(),20,-2.5,2.5},
         "lep__pt","lep_eta")
 	; // L!T data
 	        TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
