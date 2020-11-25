@@ -1033,24 +1033,27 @@ inline auto npl(
 	,const TH2D* const &dt_LnT_elnu_cms // data loose not tight from data
 	,const TH2D* const &dt_LnT_munu_cms // data loose not tight from data
 ){// result taken from the NPL.cxx
+       return [&](const double  pt
+                 ,const double eta){
 	int TLPtBin, TLEtaBin, cmsPtBin, cmsEtaBin, QCDPtBin, QCDEtaBin,
 	    npl_QCD, npl_cms;
-	float TLeff, npl;
-	return [&](const double  pt
-		  ,const double eta){
+	float TLeff = 1., npl;
 	if(debug > 0)std::cout<<"NPL function"<<std::endl;
-	switch (ch){case elnu:{
+	std::cout<<"outside switch "<<std::endl;
+	switch(ch){
+		   case elnu:{
+			std::cout<<"inside case"<<std::endl;
                 	   TLPtBin =  TL_eff_elnu_QCD->GetXaxis()-> FindBin(pt );
                		  TLEtaBin =  TL_eff_elnu_QCD->GetYaxis()-> FindBin(eta);
 			  cmsPtBin =  dt_LnT_elnu_cms->GetXaxis()-> FindBin(pt );
 			 cmsEtaBin =  dt_LnT_elnu_cms->GetYaxis()-> FindBin(eta);
 			  QCDPtBin =  pr_LnT_elnu_QCD->GetXaxis()-> FindBin(pt );
 			 QCDEtaBin =  pr_LnT_elnu_QCD->GetYaxis()-> FindBin(eta);
-
-			 TLeff     =  TL_eff_elnu_QCD->GetBinContent(TLPtBin ,TLEtaBin );
+			 std::cout<<"i am gonna take TLeff"<<std::endl;
+			 TLeff     =  TL_eff_elnu_QCD->GetBinContent( TLPtBin, TLEtaBin);
+			 std::cout<<"TLeff from hist is "<<TLeff<<std::endl;
 			 npl_QCD   =  pr_LnT_elnu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
 			 npl_cms   =  dt_LnT_elnu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
-
 	        								   break;}
 		    case munu:{
                          TLPtBin   =  TL_eff_munu_QCD->GetXaxis()->FindBin(pt );
@@ -1063,16 +1066,15 @@ inline auto npl(
                          TLeff     =  TL_eff_munu_QCD->GetBinContent(TLPtBin ,TLEtaBin );
                          npl_QCD   =  pr_LnT_munu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
                          npl_cms   =  dt_LnT_munu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
-
                                                                                    break;}
-	}
+	}// case
 	std::cout<< TLeff <<"  " << 1 - TLeff <<" "<< npl_cms<< " "<< npl_QCD << " "<<std::endl;
 	if(TLeff < 0 || npl_cms < 0 || npl_QCD < 0)
 		std::cout<<"negative values from npl hists pt and eta r"
 			 <<pt <<" "
 			 <<eta<<" "<<std::endl;
 	// To APPLY NPL formula : (eff/(1-eff))*(LnT_data - LnT_prompt)
-	if(0 < TLeff && TLeff < 1.){
+	if(0. < TLeff && TLeff < 1.){
 	if(cms == ds || met == ds)
 		npl = (TLeff/(1 - TLeff)) * (npl_cms);
 	else{
@@ -1868,7 +1870,7 @@ void calchisto(const channel ch,const dataSource ds){
 	for(PtEtaPhiM k:PtEtaPhiMall){
 //		if( e == k ) continue;
 		std::string  kstring  = "_";
-		std::string  xAxisStr;
+		std::string  xAxisStr = " ";
 		double xmin,xmax;
 		switch(k){
 			case pt :{kstring += "_pt";xmin =  0;xmax = 200;
@@ -2061,7 +2063,7 @@ void calchisto(const channel ch,const dataSource ds){
 	for(PtEtaPhiM k:PtEtaPhiMall){
 //		if( e == k ) continue;
 		std::string  kstring  = "_";
-		std::string  xAxisStr;
+		std::string  xAxisStr = " ";
 		double xmin,xmax;
 		switch(k){
 			case pt :{kstring += "_pt";xmin =  0;xmax = 200;
