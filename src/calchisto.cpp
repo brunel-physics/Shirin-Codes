@@ -117,6 +117,7 @@ inline auto lep_sel(const channel ch){
 		,const floats& dz
 	){
 		const auto abs_etas = abs(etas);
+		std::cout<<"ch in lep sel is "<<ch<<std::endl;
 		switch(ch){
 			case elnu:return ( true
 				&&     isPFs
@@ -981,6 +982,7 @@ auto lepEffGiver(
 ){
 	return [=](const double pt,const double eta){
 	if(!MC) return 1.;
+	std::cout<<"ch is in lepeffgiver "<<ch<<std::endl;
 //	if(0 < debug)std::cout<< "lep eff giver"<<std::endl;
 	double id = 1., iso = 1., eff = 1., smr = 1.;
 	switch(ch){
@@ -1024,8 +1026,8 @@ inline auto pile(
 }
 // Non-prompt-lepton estimation
 inline auto npl(
-	 const       channel             ch
-	,const    dataSource		 ds
+         const channel        		 ch
+        ,const bool         		 MC
 	,const TH2D* const &TL_eff_elnu_QCD // Tight to loose efficiency elnu
 	,const TH2D* const &TL_eff_munu_QCD // Tight to loose efficiency munu
 	,const TH2D* const &pr_LnT_elnu_QCD // prompt loose not tight QCD prompt
@@ -1039,9 +1041,9 @@ inline auto npl(
 	    npl_QCD, npl_cms;
 	float TLeff = 1., npl;
 	if(debug > 0)std::cout<<"NPL function"<<std::endl;
-	std::cout<<"outside switch "<<std::endl;
-	switch(ch){
-		   case elnu:{
+	std::cout<<"outside switch ch is "<<ch<<std::endl;
+	switch(ch) {
+		   case elnu :{
 			std::cout<<"inside case"<<std::endl;
                 	   TLPtBin =  TL_eff_elnu_QCD->GetXaxis()-> FindBin(pt );
                		  TLEtaBin =  TL_eff_elnu_QCD->GetYaxis()-> FindBin(eta);
@@ -1055,7 +1057,7 @@ inline auto npl(
 			 npl_QCD   =  pr_LnT_elnu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
 			 npl_cms   =  dt_LnT_elnu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
 	        								   break;}
-		    case munu:{
+		   case munu :{
                          TLPtBin   =  TL_eff_munu_QCD->GetXaxis()->FindBin(pt );
                          TLEtaBin  =  TL_eff_munu_QCD->GetYaxis()->FindBin(eta);
                          cmsPtBin  =  dt_LnT_munu_cms->GetXaxis()->FindBin(pt );
@@ -1066,8 +1068,10 @@ inline auto npl(
                          TLeff     =  TL_eff_munu_QCD->GetBinContent(TLPtBin ,TLEtaBin );
                          npl_QCD   =  pr_LnT_munu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
                          npl_cms   =  dt_LnT_munu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
-                                                                                   break;}
-	}// case
+										   break;}
+                  default :throw std::invalid_argument(
+                          "Unimplemented ch (npl)");
+		}// case
 	std::cout<< TLeff <<"  " << 1 - TLeff <<" "<< npl_cms<< " "<< npl_QCD << " "<<std::endl;
 	if(TLeff < 0 || npl_cms < 0 || npl_QCD < 0)
 		std::cout<<"negative values from npl hists pt and eta r"
@@ -1075,12 +1079,12 @@ inline auto npl(
 			 <<eta<<" "<<std::endl;
 	// To APPLY NPL formula : (eff/(1-eff))*(LnT_data - LnT_prompt)
 	if(0. < TLeff && TLeff < 1.){
-	if(cms == ds || met == ds)
+
+	if(!MC){
 		npl = (TLeff/(1 - TLeff)) * (npl_cms);
-	else{
+	}else{
 		npl = (TLeff/(1 - TLeff)) * (npl_QCD * (-1));
-	}}
-	else{
+	}}else{
 		std::cout<<"npl is 1"<<std::endl;
 		npl = 1.;
 	}
@@ -1576,7 +1580,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-	.Define("npl_est", npl(ch, ds // Non prompt lepton estimation
+	.Define("npl_est", npl(ch,MC // Non prompt lepton estimation
 			 , TL_eff_elnu_QCD // Tight To Loose ratio
 			 , TL_eff_munu_QCD
 			 , pr_LnT_elnu_QCD // prompt loose not tight
@@ -1931,7 +1935,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-        .Define("npl_est",npl(ch, ds // Non prompt lepton estimation
+        .Define("npl_est",npl(ch,MC // Non prompt lepton estimation
                          , TL_eff_elnu_QCD // Tight To Loose ratio
                          , TL_eff_munu_QCD
                          , pr_LnT_elnu_QCD // prompt loose not tight
