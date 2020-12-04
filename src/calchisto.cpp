@@ -117,7 +117,6 @@ inline auto lep_sel(const channel ch){
 		,const floats& dz
 	){
 		const auto abs_etas = abs(etas);
-		std::cout<<"ch in lep sel is "<<ch<<std::endl;
 		switch(ch){
 			case elnu:return ( true
 				&&     isPFs
@@ -982,7 +981,6 @@ auto lepEffGiver(
 ){
 	return [=](const double pt,const double eta){
 	if(!MC) return 1.;
-	std::cout<<"ch is in lepeffgiver "<<ch<<std::endl;
 //	if(0 < debug)std::cout<< "lep eff giver"<<std::endl;
 	double id = 1., iso = 1., eff = 1., smr = 1.;
 	switch(ch){
@@ -1025,8 +1023,8 @@ inline auto pile(
 	return dict;};
 }
 // Non-prompt-lepton estimation
-inline auto npl(
-         const channel        		 ch
+auto npl(
+         const channel                   ch
         ,const bool         		 MC
 	,const TH2D* const &TL_eff_elnu_QCD // Tight to loose efficiency elnu
 	,const TH2D* const &TL_eff_munu_QCD // Tight to loose efficiency munu
@@ -1035,48 +1033,42 @@ inline auto npl(
 	,const TH2D* const &dt_LnT_elnu_cms // data loose not tight from data
 	,const TH2D* const &dt_LnT_munu_cms // data loose not tight from data
 ){// result taken from the NPL.cxx
-       return [&](const double  pt
+       return [=](const double  pt
                  ,const double eta){
 	int TLPtBin, TLEtaBin, cmsPtBin, cmsEtaBin, QCDPtBin, QCDEtaBin,
 	    npl_QCD, npl_cms;
 	float TLeff = 1., npl;
 	if(debug > 0)std::cout<<"NPL function"<<std::endl;
-	std::cout<<"outside switch ch is "<<ch<<std::endl;
-	switch(ch) {
-		   case elnu :{
-			std::cout<<"inside case"<<std::endl;
+
+	switch(ch){
+		   case elnu:{
                 	   TLPtBin =  TL_eff_elnu_QCD->GetXaxis()-> FindBin(pt );
                		  TLEtaBin =  TL_eff_elnu_QCD->GetYaxis()-> FindBin(eta);
 			  cmsPtBin =  dt_LnT_elnu_cms->GetXaxis()-> FindBin(pt );
 			 cmsEtaBin =  dt_LnT_elnu_cms->GetYaxis()-> FindBin(eta);
 			  QCDPtBin =  pr_LnT_elnu_QCD->GetXaxis()-> FindBin(pt );
 			 QCDEtaBin =  pr_LnT_elnu_QCD->GetYaxis()-> FindBin(eta);
-			 std::cout<<"i am gonna take TLeff"<<std::endl;
 			 TLeff     =  TL_eff_elnu_QCD->GetBinContent( TLPtBin, TLEtaBin);
-			 std::cout<<"TLeff from hist is "<<TLeff<<std::endl;
 			 npl_QCD   =  pr_LnT_elnu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
 			 npl_cms   =  dt_LnT_elnu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
 	        								   break;}
-		   case munu :{
-                         TLPtBin   =  TL_eff_munu_QCD->GetXaxis()->FindBin(pt );
+		   case munu:{
+                          TLPtBin  =  TL_eff_munu_QCD->GetXaxis()->FindBin(pt );
                          TLEtaBin  =  TL_eff_munu_QCD->GetYaxis()->FindBin(eta);
                          cmsPtBin  =  dt_LnT_munu_cms->GetXaxis()->FindBin(pt );
-                         cmsEtaBin =  dt_LnT_munu_cms->GetYaxis()->FindBin(eta);
+                        cmsEtaBin  =  dt_LnT_munu_cms->GetYaxis()->FindBin(eta);
                          QCDPtBin  =  pr_LnT_munu_QCD->GetXaxis()->FindBin(pt );
-                         QCDEtaBin =  pr_LnT_munu_QCD->GetYaxis()->FindBin(eta);
+                        QCDEtaBin  =  pr_LnT_munu_QCD->GetYaxis()->FindBin(eta);
 
-                         TLeff     =  TL_eff_munu_QCD->GetBinContent(TLPtBin ,TLEtaBin );
+                           TLeff   =  TL_eff_munu_QCD->GetBinContent(TLPtBin ,TLEtaBin );
                          npl_QCD   =  pr_LnT_munu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
                          npl_cms   =  dt_LnT_munu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
 										   break;}
                   default :throw std::invalid_argument(
                           "Unimplemented ch (npl)");
 		}// case
-	std::cout<< TLeff <<"  " << 1 - TLeff <<" "<< npl_cms<< " "<< npl_QCD << " "<<std::endl;
-	if(TLeff < 0 || npl_cms < 0 || npl_QCD < 0)
-		std::cout<<"negative values from npl hists pt and eta r"
-			 <<pt <<" "
-			 <<eta<<" "<<std::endl;
+	if(TLeff < 0 || npl_cms < 0 || npl_QCD < 0){
+	}
 	// To APPLY NPL formula : (eff/(1-eff))*(LnT_data - LnT_prompt)
 	if(0. < TLeff && TLeff < 1.){
 
@@ -1085,7 +1077,6 @@ inline auto npl(
 	}else{
 		npl = (TLeff/(1 - TLeff)) * (npl_QCD * (-1));
 	}}else{
-		std::cout<<"npl is 1"<<std::endl;
 		npl = 1.;
 	}
 	std::cout<<"NPL "<<npl<<std::endl;
@@ -1104,7 +1095,7 @@ inline auto sf(
 	return [=](
 		 const double  b
 		,const double  mostSF
-		,const float   npl
+		,const  float  npl
 		,const floats  lhepdf // LHEPdfWeight 0 index (central value)
 		,const    int  npv
 	){
@@ -1390,7 +1381,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(10000);// remember to enable MT when NOT range
-	auto init_selection = dfr// remove one letter to do all
+	auto init_selection = df// remove one letter to do all
 	.Filter(Triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
@@ -1580,7 +1571,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-	.Define("npl_est", npl(ch,MC // Non prompt lepton estimation
+	.Define("npl_est", npl(ch, MC // Non prompt lepton estimation
 			 , TL_eff_elnu_QCD // Tight To Loose ratio
 			 , TL_eff_munu_QCD
 			 , pr_LnT_elnu_QCD // prompt loose not tight
@@ -1837,7 +1828,7 @@ void calchisto(const channel ch,const dataSource ds){
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/test"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/NPL_calchisto_"+temp_header+".root").c_str(),"RECREATE");
 // MC only
 		hf.WriteTObject(h_sfi                  .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_sfj                  .GetPtr());hf.Flush();sync();
@@ -1935,7 +1926,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-        .Define("npl_est",npl(ch,MC // Non prompt lepton estimation
+        .Define("npl_est",npl(ch , MC // Non prompt lepton estimation
                          , TL_eff_elnu_QCD // Tight To Loose ratio
                          , TL_eff_munu_QCD
                          , pr_LnT_elnu_QCD // prompt loose not tight
