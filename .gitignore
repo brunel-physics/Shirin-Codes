@@ -42,3 +42,7 @@ compile_commands.json
 
 # Plist
 *.plist
+
+makefile
+src/csv.h
+src/roccor.Run2.v3/

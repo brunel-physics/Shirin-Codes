@@ -1,4 +1,4 @@
-// TODO: Shape uncertainties -> implement lhepdfWeight for central up and down based no the formula
+// TODO: Shape uncertainties -> implement lhepdfWeight for central up and down based on the formula
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <Math/Vector4D.h>
@@ -164,14 +164,14 @@ inline auto lep_tight_cut(const channel ch){
 	};
 }
 inline auto Triggers(const channel ch){
-        return [=](
-	 const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG
-        ,const bool mu// HLT_IsoMu27
-){
-        switch(ch){
-        case elnu:return el;
-        case munu:return mu;
-        }};
+	return [=](
+		 const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG
+		,const bool mu// HLT_IsoMu27
+	){
+		switch(ch){
+		case elnu:return el;
+		case munu:return mu;
+	}};
 }
 
 template <typename T>
@@ -341,12 +341,12 @@ constexpr auto ramp(const double Sjer){
 	else          return   0.;
 }
 auto delta_R_jet_smear(
-		 const floats &jpt ,const floats &jeta,const floats &jphi
-		,const   ints &jma  // jet gen match
-		,const floats &gpt ,const floats &geta,const floats &gphi
-//		,const   ints &mask,// mask is tight jets
-		,const float   rho
-	){
+	 const floats &jpt ,const floats &jeta,const floats &jphi
+	,const   ints &jma  // jet gen match
+	,const floats &gpt ,const floats &geta,const floats &gphi
+//	,const   ints &mask,// mask is tight jets
+	,const float   rho
+){
 	if(0<debug) std::cout<<"delta r jet smear"<<std::endl;
 	const size_t size = jpt.size();
 	doubles cjers; cjers.reserve(/*tJ_final_*/size);
@@ -541,7 +541,7 @@ auto lep_nu_invmass(
 	return (lep+neu).M();
 }
 inline auto easy_mass_cut(const double theo,const double cut){
-               return [=](const double ours){return std::abs(ours-theo)<cut;};
+	return [=](const double ours){return std::abs(ours-theo)<cut;};
 }
 constexpr auto abs_deltaphi(const double Zphi,const double Wphi)
 	{return std::abs(delta_phi(Zphi-Wphi));}
@@ -554,7 +554,7 @@ inline auto jet_deltaphi(const doubles& phis){
 	for(size_t   i=0; i < phis.size()-1 ;++i)          // empty.
 	for(size_t j=i+1; j < phis.size()   ;++j)
 		deltaphis.emplace_back(abs_deltaphi(phis[i],phis[j]));
-	return deltaphis;
+	return  deltaphis;
 }
 inline auto find_lead_mask(const doubles& vals,const ints& mask){
 	//if(0<debug) std::cout<<"lead mask"<<std::endl;
@@ -658,23 +658,23 @@ auto top_reconst(
 	   temp (bjets__pt[i],bjets_eta[i],bjets_phi[i],bjets_mas[i]);
 	   temp += RecoW;
 	   if(double reco_mass = temp.M();
-	     std::abs(TOP_MASS-reco_mass) < std::abs(TOP_MASS-cur_mass)){
-		    cur_mass = reco_mass;// found closer to top mass
-		   reco_top  = temp;
+	     std::abs(TOP_MASS - reco_mass) < std::abs(TOP_MASS-cur_mass)){
+		      cur_mass = reco_mass;// found closer to top mass
+		      reco_top = temp;
 	   }
 	}
 	return reco_top;
 }
 inline auto blinding(
-          const doubles bjets
-         ,const doubles tjets){// This is the jet multiplicity technique,
-        // suggested by Dr Duncan Leggat.
-        // We take the number of bjets and remaining tight jets based on
-        // the number of existing final jets. Therefore, we expect either
-        // 3 bjets at final state or , 1 bjet and two other jets.
-        return (bjets.size() != 3 && tjets.size() <= JETS_MAX) || // the fourth jet
-               (bjets.size() != 1 && tjets.size() <= JETS_MAX)  ; // is the recoiled jet
-        // from t-channel process
+	 const doubles bjets
+	,const doubles tjets){// This is the jet multiplicity technique,
+	// suggested by Dr Duncan Leggat.
+	// We take the number of bjets and remaining tight jets based on
+	// the number of existing final jets. Therefore, we expect either
+	// 3 bjets at final state or , 1 bjet and two other jets.
+	return (bjets.size() != 3 && tjets.size() <= JETS_MAX) || // the fourth jet
+	       (bjets.size() != 1 && tjets.size() <= JETS_MAX)  ; // is the recoiled jet
+	// from t-channel process
 }
 template <typename T>
 auto allReconstruction(T &rdf){
@@ -754,7 +754,7 @@ auto allReconstruction(T &rdf){
 	.Define("ttop_phi","recoTtop.Phi()")
 	.Define("ttop_mas","recoTtop. M ()")
 	.Filter("ttop_mas > 1.","tTm tiny mass filter")
-        .Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
+	.Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
 	.Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
 	;
 }
@@ -1024,8 +1024,8 @@ inline auto pile(
 }
 // Non-prompt-lepton estimation
 auto npl(
-         const channel                   ch
-        ,const bool         		 MC
+	 const channel                   ch
+	,const bool                      MC
 	,const TH2D* const &TL_eff_elnu_QCD // Tight to loose efficiency elnu
 	,const TH2D* const &TL_eff_munu_QCD // Tight to loose efficiency munu
 	,const TH2D* const &pr_LnT_elnu_QCD // prompt loose not tight QCD prompt
@@ -1033,55 +1033,52 @@ auto npl(
 	,const TH2D* const &dt_LnT_elnu_cms // data loose not tight from data
 	,const TH2D* const &dt_LnT_munu_cms // data loose not tight from data
 ){// result taken from the NPL.cxx
-       return [=](const double  pt
-                 ,const double eta){
-	int TLPtBin, TLEtaBin, cmsPtBin, cmsEtaBin, QCDPtBin, QCDEtaBin,
+	return [=](const double  pt
+	          ,const double eta){
+	int TLPt_Bin, TLEtaBin, cmsPt_Bin, cmsEtaBin, QCDPt_Bin, QCDEtaBin,
 	    npl_QCD, npl_cms;
 	float TLeff = 1., npl;
 	if(debug > 0)std::cout<<"NPL function"<<std::endl;
-
 	switch(ch){
-		   case elnu:{
-                	   TLPtBin =  TL_eff_elnu_QCD->GetXaxis()-> FindBin(pt );
-               		  TLEtaBin =  TL_eff_elnu_QCD->GetYaxis()-> FindBin(eta);
-			  cmsPtBin =  dt_LnT_elnu_cms->GetXaxis()-> FindBin(pt );
-			 cmsEtaBin =  dt_LnT_elnu_cms->GetYaxis()-> FindBin(eta);
-			  QCDPtBin =  pr_LnT_elnu_QCD->GetXaxis()-> FindBin(pt );
-			 QCDEtaBin =  pr_LnT_elnu_QCD->GetYaxis()-> FindBin(eta);
-			 TLeff     =  TL_eff_elnu_QCD->GetBinContent( TLPtBin, TLEtaBin);
-			 npl_QCD   =  pr_LnT_elnu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
-			 npl_cms   =  dt_LnT_elnu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
-	        								   break;}
-		   case munu:{
-                          TLPtBin  =  TL_eff_munu_QCD->GetXaxis()->FindBin(pt );
-                         TLEtaBin  =  TL_eff_munu_QCD->GetYaxis()->FindBin(eta);
-                         cmsPtBin  =  dt_LnT_munu_cms->GetXaxis()->FindBin(pt );
-                        cmsEtaBin  =  dt_LnT_munu_cms->GetYaxis()->FindBin(eta);
-                         QCDPtBin  =  pr_LnT_munu_QCD->GetXaxis()->FindBin(pt );
-                        QCDEtaBin  =  pr_LnT_munu_QCD->GetYaxis()->FindBin(eta);
-
-                           TLeff   =  TL_eff_munu_QCD->GetBinContent(TLPtBin ,TLEtaBin );
-                         npl_QCD   =  pr_LnT_munu_QCD->GetBinContent(QCDPtBin,QCDEtaBin);
-                         npl_cms   =  dt_LnT_munu_cms->GetBinContent(cmsPtBin,cmsEtaBin);
-										   break;}
-                  default :throw std::invalid_argument(
-                          "Unimplemented ch (npl)");
-		}// case
+	case elnu:{
+		 TLPt_Bin = TL_eff_elnu_QCD->GetXaxis()->FindBin(pt );
+		 TLEtaBin = TL_eff_elnu_QCD->GetYaxis()->FindBin(eta);
+		cmsPt_Bin = dt_LnT_elnu_cms->GetXaxis()->FindBin(pt );
+		cmsEtaBin = dt_LnT_elnu_cms->GetYaxis()->FindBin(eta);
+		QCDPt_Bin = pr_LnT_elnu_QCD->GetXaxis()->FindBin(pt );
+		QCDEtaBin = pr_LnT_elnu_QCD->GetYaxis()->FindBin(eta);
+		TLeff     = TL_eff_elnu_QCD->GetBinContent( TLPt_Bin, TLEtaBin);
+		npl_QCD   = pr_LnT_elnu_QCD->GetBinContent(QCDPt_Bin,QCDEtaBin);
+		npl_cms   = dt_LnT_elnu_cms->GetBinContent(cmsPt_Bin,cmsEtaBin);
+		break;}
+	case munu:{
+		 TLPt_Bin = TL_eff_munu_QCD->GetXaxis()->FindBin(pt );
+		 TLEtaBin = TL_eff_munu_QCD->GetYaxis()->FindBin(eta);
+		cmsPt_Bin = dt_LnT_munu_cms->GetXaxis()->FindBin(pt );
+		cmsEtaBin = dt_LnT_munu_cms->GetYaxis()->FindBin(eta);
+		QCDPt_Bin = pr_LnT_munu_QCD->GetXaxis()->FindBin(pt );
+		QCDEtaBin = pr_LnT_munu_QCD->GetYaxis()->FindBin(eta);
+		TLeff     = TL_eff_munu_QCD->GetBinContent( TLPt_Bin, TLEtaBin);
+		npl_QCD   = pr_LnT_munu_QCD->GetBinContent(QCDPt_Bin,QCDEtaBin);
+		npl_cms   = dt_LnT_munu_cms->GetBinContent(cmsPt_Bin,cmsEtaBin);
+		break;}
+	default :throw std::invalid_argument(
+		"Unimplemented ch (npl)");
+	}// case
 	if(TLeff < 0 || npl_cms < 0 || npl_QCD < 0){
 	}
 	// To APPLY NPL formula : (eff/(1-eff))*(LnT_data - LnT_prompt)
 	if(0. < TLeff && TLeff < 1.){
-
 	if(!MC){
-		npl = (TLeff/(1 - TLeff)) * (npl_cms);
-	}else{
-		npl = (TLeff/(1 - TLeff)) * (npl_QCD * (-1));
+		npl =  npl_cms * TLeff/(1 - TLeff);
+	} else{
+		npl = -npl_QCD * TLeff/(1 - TLeff);
 	}}else{
 		npl = 1.;
 	}
 	std::cout<<"NPL "<<npl<<std::endl;
-	if(debug > 0)std::cout<<"NPL result "<<npl<<std::endl;
-	return  npl;  };
+	if(debug > 0) std::cout << "NPL result " << npl << std::endl;
+	return  npl;};
 }
 // Simulation correction Scale Factors
 inline auto sf(
@@ -1118,7 +1115,6 @@ inline auto sf(
 			case elnu:{result *= TRIG_SF_ELNU;break;}
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
-
 		if( MC) result *= npl * pile(PuWd,PuUd,PuDd)(npv)[puW];
 		if(!MC) result *= npl;
 		if(result < 0)std::cout<<"pile lt 0"<<std::endl;
@@ -1146,7 +1142,8 @@ auto finalScaling(
 	,T &rdf
 ){
 	return rdf
-	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd),{"btag_w","mostSF","npl_est","LHEPdfWeight","PV_npvs"})
+	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd)
+	      ,{"btag_w","mostSF","npl_est","LHEPdfWeight","PV_npvs"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
@@ -1278,36 +1275,36 @@ void calchisto(const channel ch,const dataSource ds){
 	tF	= nullptr; tHf = nullptr; tHd = nullptr; t1d = nullptr;
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
 	// NPL results
-        tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
-        tF ->GetObject("prompt_LnT_elnu_QCD",tHd);
-        tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const pr_LnT_elnu_QCD = static_cast<TH2D*>(tHd);
-        tF ->Close();
-        tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
-        tF ->GetObject("TL_eff_elnu_QCD",tHd);
-        tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const TL_eff_elnu_QCD = static_cast<TH2D*>(tHd);
-        tF ->Close();
-        tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
-        tF ->GetObject("prompt_LnT_munu_QCD",tHd);
-        tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const pr_LnT_munu_QCD = static_cast<TH2D*>(tHd);
-        tF ->Close();
-        tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
-        tF ->GetObject("TL_eff_munu_QCD",tHd);
-        tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const TL_eff_munu_QCD = static_cast<TH2D*>(tHd);
-        tF ->Close();
-        tF = TFile::Open("aux/NPL/NPL_elnu_cms.root");
-        tF ->GetObject("N_data_LnT_elnu_cms",tHd);
-        tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const dt_LnT_elnu_cms = static_cast<TH2D*>(tHd);
-        tF ->Close();
+	tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
+	tF ->GetObject("prompt_LnT_elnu_QCD",tHd);
+	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	const TH2D* const pr_LnT_elnu_QCD = static_cast<TH2D*>(tHd);
+	tF ->Close();
+	tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
+	tF ->GetObject("TL_eff_elnu_QCD",tHd);
+	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	const TH2D* const TL_eff_elnu_QCD = static_cast<TH2D*>(tHd);
+	tF ->Close();
+	tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
+	tF ->GetObject("prompt_LnT_munu_QCD",tHd);
+	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	const TH2D* const pr_LnT_munu_QCD = static_cast<TH2D*>(tHd);
+	tF ->Close();
+	tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
+	tF ->GetObject("TL_eff_munu_QCD",tHd);
+	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	const TH2D* const TL_eff_munu_QCD = static_cast<TH2D*>(tHd);
+	tF ->Close();
+	tF = TFile::Open("aux/NPL/NPL_elnu_cms.root");
+	tF ->GetObject("N_data_LnT_elnu_cms",tHd);
+	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	const TH2D* const dt_LnT_elnu_cms = static_cast<TH2D*>(tHd);
+	tF ->Close();
 	tF = TFile::Open("aux/NPL/NPL_munu_cms.root");
-        tF ->GetObject("N_data_LnT_munu_cms",tHd);
-        tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const dt_LnT_munu_cms = static_cast<TH2D*>(tHd);
-        tF ->Close();
+	tF ->GetObject("N_data_LnT_munu_cms",tHd);
+	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	const TH2D* const dt_LnT_munu_cms = static_cast<TH2D*>(tHd);
+	tF ->Close();
 //	std::cout<<"Auxiliary files processed"       <<std::endl;
 
 	// Open data files even if unused
@@ -1745,11 +1742,11 @@ void calchisto(const channel ch,const dataSource ds){
 	50,0,160},
 	"tw_lep_mas","nw_tw_lep_mas");
 	//h_trans_w->Fit("Gaus"); Didn't work!
-        TF1 *f2 = new TF1("f2","gaus",0,180);
-        f2->SetParameters(h_trans_w->GetMaximum()
-                        , h_trans_w->GetMean()
-                        , h_trans_w->GetRMS() );
-        h_trans_w->Fit("f2");
+	TF1 *f2 = new TF1("f2","gaus",0,180);
+	f2->SetParameters(h_trans_w->GetMaximum()
+	                 ,h_trans_w->GetMean()
+	                 ,h_trans_w->GetRMS ()  );
+	h_trans_w->Fit("f2");
 	h_trans_w->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_trans_w->GetYaxis()->SetTitle("Event");
 	h_trans_w->SetLineStyle(kSolid);
@@ -1808,13 +1805,13 @@ void calchisto(const channel ch,const dataSource ds){
 	h_z_daughters_Dph->SetLineStyle(kSolid);
 
 	auto h_npl = finalDF.Histo1D({
-        ("npl_" + temp_header).c_str(),
-        ("npl " + temp_header).c_str(),
-        500,-0.1,0.1},
-        "npl_est");
-        h_npl->GetXaxis()->SetTitle("NPL");
-        h_npl->GetYaxis()->SetTitle("Event");
-        h_npl->SetLineStyle(kSolid);
+	("npl_" + temp_header).c_str(),
+	("npl " + temp_header).c_str(),
+	500,-0.1,0.1},
+	"npl_est");
+	h_npl->GetXaxis()->SetTitle("NPL");
+	h_npl->GetYaxis()->SetTitle("Event");
+	h_npl->SetLineStyle(kSolid);
 
 	auto h_tWmVsZmass = finalDF.Histo2D({
 	("tWmVsZmass_" + temp_header).c_str(),
@@ -1858,7 +1855,7 @@ void calchisto(const channel ch,const dataSource ds){
 	hf.WriteTObject(  h_zw_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
-        hf.WriteTObject(h_npl            .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_npl            .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
@@ -1926,14 +1923,14 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-        .Define("npl_est",npl(ch , MC // Non prompt lepton estimation
-                         , TL_eff_elnu_QCD // Tight To Loose ratio
-                         , TL_eff_munu_QCD
-                         , pr_LnT_elnu_QCD // prompt loose not tight
-                         , pr_LnT_munu_QCD
-                         , dt_LnT_elnu_cms // data loose not tight
-                         , dt_LnT_munu_cms
-                        ),{"lep__pt","lep_eta"})
+	.Define("npl_est",npl(ch , MC // Non prompt lepton estimation
+	                 , TL_eff_elnu_QCD // Tight To Loose ratio
+	                 , TL_eff_munu_QCD
+	                 , pr_LnT_elnu_QCD // prompt loose not tight
+	                 , pr_LnT_munu_QCD
+	                 , dt_LnT_elnu_cms // data loose not tight
+	                 , dt_LnT_munu_cms
+	                ),{"lep__pt","lep_eta"})
 	. Alias("mostSF" , "lepSF")
 	;
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,// unused but send pile
