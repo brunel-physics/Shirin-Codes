@@ -292,10 +292,10 @@ void TSFmuCMS ( const channel ch , const dataSource ds , const char b ){
 	temp_header="/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_Run";
 	switch(ds){
 	case muB:{temp_opener = temp_header+"B"+temp_footer;break;}
-        case muC:{temp_opener = temp_header+"C"+temp_footer;break;}
-        case muD:{temp_opener = temp_header+"D"+temp_footer;break;}
-        case muE:{temp_opener = temp_header+"E"+temp_footer;break;}
-        case muF:{temp_opener = temp_header+"F"+temp_footer;break;}
+	case muC:{temp_opener = temp_header+"C"+temp_footer;break;}
+	case muD:{temp_opener = temp_header+"D"+temp_footer;break;}
+	case muE:{temp_opener = temp_header+"E"+temp_footer;break;}
+	case muF:{temp_opener = temp_header+"F"+temp_footer;break;}
 	}
 	ROOT::RDataFrame  munuCMS_df("Events",temp_opener);
 
@@ -322,8 +322,8 @@ void TSFmuCMS ( const channel ch , const dataSource ds , const char b ){
 	.Define("lep_pts","static_cast<ROOT::RVec<double>>("+temp_header+"pt)")
 	;
 	auto clean = origi
-        .Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
-           "LuminosityBlock filter")
+	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
+	   "LuminosityBlock filter")
 	.Filter("Flag_goodVertices"
 	    " || Flag_globalSuperTightHalo2016Filter"
 	    " || Flag_HBHENoiseFilter"

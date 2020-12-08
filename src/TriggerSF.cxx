@@ -176,38 +176,38 @@ inline auto lep_tight_cut(const channel ch){
 // TODO: In the case we want 1 loose lepton, comment the 4 NOTE lines below
 		bool result;
 		// For MC (DYJetsToLL) we need only one tight lepton
-                // to use the Single lepton trigger on, however,
-                // for data (cms single lepton) we choose a tight
-                // lepton and apply a veto lepton (same channel)
+		// to use the Single lepton trigger on, however,
+		// for data (cms single lepton) we choose a tight
+		// lepton and apply a veto lepton (same channel)
 		// i.e. single electron has , 1 tight e and 1 veto e
-                ints   chmk   = chg[mask];
+		ints   chmk   = chg[mask];
 		if(false) ;
 		 else if(elnu==ch){
 			ints   temp = elids[mask];
 			result = temp.size() == 2;// Choosing 2 Leptons
 			result = (result && temp [0] >= EL_TIGHT_ID // NOTE
-                               		 && temp [1] >= EL_LOOSE_ID // NOTE
+					 && temp [1] >= EL_LOOSE_ID // NOTE
 					 && temp [1] <  EL_TIGHT_ID// NOTE
 					 && chmk [0] != chmk [1])
 			      ||
 				 (result && temp [1] >= EL_TIGHT_ID // NOTE
-                                         && temp [0] >= EL_LOOSE_ID // NOTE
-                                         && temp [0] <  EL_TIGHT_ID// NOTE
-                                         && chmk [1] != chmk [0])
+					 && temp [0] >= EL_LOOSE_ID // NOTE
+					 && temp [0] <  EL_TIGHT_ID// NOTE
+					 && chmk [1] != chmk [0])
 
 					;
 		}else if(munu==ch){
 			floats temp = isos[mask];
 			result = temp.size() == 2;
 			result = (result && temp [0] <= MU_TIGHT_ISO // NOTE
-			       	 	 && temp [1] <= MU_LOOSE_ISO // NOTE
+					 && temp [1] <= MU_LOOSE_ISO // NOTE
 					 && temp [1] >  MU_TIGHT_ISO // NOTE
 					 && chmk [0] != chmk [1])
 			      ||
 				 (result && temp [1] <= MU_TIGHT_ISO // NOTE
-                                         && temp [0] <= MU_LOOSE_ISO // NOTE
-                                         && temp [0] >  MU_TIGHT_ISO // NOTE
-                                         && chmk [1] != chmk [0])
+					 && temp [0] <= MU_LOOSE_ISO // NOTE
+					 && temp [0] >  MU_TIGHT_ISO // NOTE
+					 && chmk [1] != chmk [0])
 					;
 		}else{throw std::invalid_argument(
 			"Unimplemented ch (lep_tight_cut)");}
@@ -446,10 +446,10 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	    " || Flag_ecalBadCalibFilter"// TODO: v2?
 	    " || Flag_eeBadScFilter"
 	       ,"Event Cleaning filter")
-        .Filter(triggers(ch),
-                { "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
-                 ,"HLT_IsoMu27"
-                },"Triggers Filter")
+	.Filter(triggers(ch),
+	        { "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
+	         ,"HLT_IsoMu27"
+	        },"Triggers Filter")
 	;
 	auto lumclean = clean
 	.Filter(runLBfilter(runLBdict,MC),{"run","luminosityBlock"},
@@ -467,9 +467,9 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	       ,temp_header+"dxy"
 	       ,temp_header+"dz"
 	       })
-        .Define("lep__pt","static_cast<ROOT::RVec<double>>("+temp_header+     "pt[loose_leps])")
-        .Define("lep_eta","static_cast<ROOT::RVec<double>>("+temp_header+    "eta[loose_leps])")
-        .Define("lep_phi","static_cast<ROOT::RVec<double>>("+temp_header+    "phi[loose_leps])")
+	.Define("lep__pt","static_cast<ROOT::RVec<double>>("+temp_header+     "pt[loose_leps])")
+	.Define("lep_eta","static_cast<ROOT::RVec<double>>("+temp_header+    "eta[loose_leps])")
+	.Define("lep_phi","static_cast<ROOT::RVec<double>>("+temp_header+    "phi[loose_leps])")
 	.Define("lep_mas","static_cast<ROOT::RVec<double>>("+temp_header+   "mass[loose_leps])")
 	.Define("lep_chg","static_cast<ROOT::RVec<int>>   ("+temp_header+ "charge[loose_leps])")
 	.Filter(lep_num,{"lep__pt"},"lepton number cut, accepting 2 or more leptons")
@@ -499,10 +499,10 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	.Define("sf",sf(MC,PuWd,PuUd,PuDd),{"PV_npvs"})
 	;
 	auto  tag = probe
-        .Filter(lep_tight_cut(ch),{"loose_leps",
-        "Electron_cutBased",// edit function for  tight -> loose
-        "Muon_pfRelIso04_all",
-         temp_header+"charge"},"lepton cut")// left with 1 tight lepton
+	.Filter(lep_tight_cut(ch),{"loose_leps",
+	"Electron_cutBased",// edit function for  tight -> loose
+	"Muon_pfRelIso04_all",
+	 temp_header+"charge"},"lepton cut")// left with 1 tight lepton
 	;
 	std::string opener;
 	switch(ch){
@@ -528,11 +528,11 @@ void TriggerSF ( const channel ch , const dataSource ds){
 	    "tagZmass"       ,
 	    "tag Z\\text{mass GeV/}c^{2}"   ,
 	50,60,150},"z_mas","sf");
-        TF1 *f2 = new TF1("f2","gaus",60,150);
-        f2->SetParameters(tagZmass->GetMaximum()
-                        , tagZmass->GetMean()
-                        , tagZmass->GetRMS() );
-        tagZmass->Fit("f2");
+	TF1 *f2 = new TF1("f2","gaus",60,150);
+	f2->SetParameters(tagZmass->GetMaximum()
+	                , tagZmass->GetMean()
+	                , tagZmass->GetRMS() );
+	tagZmass->Fit("f2");
 
 	tsf.WriteTObject(ProbeZmass.GetPtr());tsf.Flush();sync();
 	tsf.WriteTObject(  tagZmass.GetPtr());tsf.Flush();sync();

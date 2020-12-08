@@ -6,9 +6,9 @@
 /* Methodology:
 // Non-prompt-lepton estimation
 inline auto Npl
-         const int N_L!T_data  // Number of loose not tight lepton in QCD region (control region) in data
-        ,const int N_L!T_prompt// Number of loose not tight prompt lepton in QCD region of enriched QCD sample (ttb, ttz, wz, zz)
-        ,const int eff_TL      // Number of tight to loose lepton ratio in QCD enriched sample in QCD region
+	const int N_L!T_data  // Number of loose not tight lepton in QCD region (control region) in data
+	,const int N_L!T_prompt// Number of loose not tight prompt lepton in QCD region of enriched QCD sample (ttb, ttz, wz, zz)
+	,const int eff_TL      // Number of tight to loose lepton ratio in QCD enriched sample in QCD region
 ){// produce three p_T vs eta histograms for the parameters above and save them as root files to be used in calchisto.cpp
   // The QCD regions are the regions outside 40 GeV of the nominal W mass
   // all Nqcd need to come from the loosend isolation
@@ -114,7 +114,7 @@ enum      muSf      {Id_N,Id_Y,Id_A,Id_T,//  Id, Idsys, IdsysStat, IdsysSyst,
                      IsoN,IsoY,IsoA,IsoT};//Iso,Isosys,IsosysStat,IsosysSyst};
 
 inline auto lep_sel(const channel ch){
-        if(0<debug) std::cout<<"lep sel start"<<std::endl;
+	if(0<debug) std::cout<<"lep sel start"<<std::endl;
 	return [=](
 		 const  bools& isPFs
 		,const floats& pts
@@ -153,41 +153,41 @@ inline auto lep_sel(const channel ch){
 }
 inline auto not_tight(const channel ch){
 	if(0<debug) std::cout<<"not tight"<<std::endl;
-        return [=](
-                 const  bools& isPFs
-                ,const floats& pts
-                ,const floats& etas
-                ,const   ints& elids
-                ,const  bools& muids
-                ,const floats& isos
-                ,const floats& dxy
-                ,const floats& dz
-        ){
-                const auto abs_etas = abs(etas);
-                switch(ch){
-                        case elnu:return ( true
-                                &&     isPFs
-                                &&	 pts  >  EL__PT_MIN
-                                && ((abs_etas <  EL_ETA_MAX
-                                &&        dz  <  ENDCAP_DZ__TIGHT
-                                &&        dxy <  ENDCAP_DXY_TIGHT
-                                &&   abs_etas >  ENDCAP_ETA_MIN)
-                                ||  (abs_etas <  BARREL_ETA_MAX
-                                &&        dxy <  BARREL_DXY_TIGHT
-                                &&        dz  <  BARREL_DZ__TIGHT))
-                                &&	elids <  EL_TIGHT_ID // Make it not tightable
-                        );
-                        case munu:return ( true
-                                &&   muids
-                                &&   isPFs
-                                &&     pts  >  MU__PT_MIN
-                                && abs_etas <  MU_ETA_MAX
-                                &&     isos >  MU_TIGHT_ISO // Make it not tightable
-                        );
-                        default  :throw std::invalid_argument(
-                                "Unimplemented ch (lep_sel)");
-                }
-        };
+	return [=](
+		 const  bools& isPFs
+		,const floats& pts
+		,const floats& etas
+		,const   ints& elids
+		,const  bools& muids
+		,const floats& isos
+		,const floats& dxy
+		,const floats& dz
+	){
+		const auto abs_etas = abs(etas);
+		switch(ch){
+			case elnu:return ( true
+				&&     isPFs
+				&&	 pts  >  EL__PT_MIN
+				&& ((abs_etas <  EL_ETA_MAX
+				&&        dz  <  ENDCAP_DZ__TIGHT
+				&&        dxy <  ENDCAP_DXY_TIGHT
+				&&   abs_etas >  ENDCAP_ETA_MIN)
+				||  (abs_etas <  BARREL_ETA_MAX
+				&&        dxy <  BARREL_DXY_TIGHT
+				&&        dz  <  BARREL_DZ__TIGHT))
+				&&	elids <  EL_TIGHT_ID // Make it not tightable
+			);
+			case munu:return ( true
+				&&   muids
+				&&   isPFs
+				&&     pts  >  MU__PT_MIN
+				&& abs_etas <  MU_ETA_MAX
+				&&     isos >  MU_TIGHT_ISO // Make it not tightable
+			);
+			default  :throw std::invalid_argument(
+				"Unimplemented ch (lep_sel)");
+		}
+	};
 }
 inline auto lep_tight_cut(const channel ch){
 	if(0<debug) std::cout<<"lep tight cut"<<std::endl;
@@ -212,35 +212,35 @@ inline auto lep_tight_cut(const channel ch){
 	};
 }
 inline auto not_tight_cut(const channel ch){
-        if(0<debug) std::cout<<"not tight cut"<<std::endl;
-        return [=](const   ints& mask
-                  ,const   ints& elids
-                  ,const floats& isos
-        ){
+	if(0<debug) std::cout<<"not tight cut"<<std::endl;
+	return [=](const   ints& mask
+		  ,const   ints& elids
+		  ,const floats& isos
+	){
 // TODO: In the case we want 1 loose lepton, comment the 4 NOTE lines below
-                bool result;
-                 if(false) ;
-                 else if(ch==elnu){
-                        ints   temp = elids[mask];
-                        result = temp.size() == 1;// Choosing 1 Tight Lepton
-                }else if(ch==munu){
-                        floats temp = isos[mask];
-                        result = temp.size() == 1;
-                }else{throw std::invalid_argument(
-                        "Unimplemented ch (not_tight_cut)");}
-                return result;
-        };
+		bool result;
+		 if(false) ;
+		 else if(ch==elnu){
+			ints   temp = elids[mask];
+			result = temp.size() == 1;// Choosing 1 Tight Lepton
+		}else if(ch==munu){
+			floats temp = isos[mask];
+			result = temp.size() == 1;
+		}else{throw std::invalid_argument(
+			"Unimplemented ch (not_tight_cut)");}
+		return result;
+	};
 }
 inline auto Triggers(const channel ch){
-        if(0<debug) std::cout<<"Triggers"<<std::endl;
-        return [=](
+	if(0<debug) std::cout<<"Triggers"<<std::endl;
+	return [=](
 	 const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG
-        ,const bool mu// HLT_IsoMu27
+	,const bool mu// HLT_IsoMu27
 ){
-        switch(ch){
-        case elnu:return el;
-        case munu:return mu;
-        }};
+	switch(ch){
+	case elnu:return el;
+	case munu:return mu;
+	}};
 }
 
 template <typename T>
@@ -286,7 +286,7 @@ auto jet_lep_min_deltaR(
 		std::back_inserter(min_dRs),
 		[=](double jet_eta, double jet_phi){
 			return deltaR(jet_eta,jet_phi,lep_eta,lep_phi);});
-        if(0<debug) std::cout<<"jet lep min finish"<<std::endl;
+	if(0<debug) std::cout<<"jet lep min finish"<<std::endl;
 	return min_dRs;
 }
 inline auto tight_jet_id(
@@ -308,7 +308,7 @@ inline auto jetCutter(const unsigned jmin,const unsigned jmax){
 			jetmask.cbegin(),
 			jetmask.  cend(),
 			[](int i){return i;});// 0 is false
-	        if(0<debug) std::cout<<"jet cut finish"<<std::endl;
+		if(0<debug) std::cout<<"jet cut finish"<<std::endl;
 		return jmin <= nj && nj <= jmax;
 	};
 }
@@ -334,7 +334,7 @@ inline auto lep_gpsf(const channel ch){
 	// lepton or jet level therefore could be taken out.
 	if(0<debug) std::cout<<"lep gpsf before Take"<<std::endl;
 	ints g = Take(gpsf,i[-1!=i]) & (1 << 0);
-        if(0<debug) std::cout<<"lep gpsf finish"<<std::endl;
+	if(0<debug) std::cout<<"lep gpsf finish"<<std::endl;
 	return Any(g == 1);
 	};
 }
@@ -352,7 +352,7 @@ inline auto find_lead_mask(const doubles& vals,const ints& mask){
 		max_element( masked_vals.cbegin(),
 		             masked_vals.  cend())));// Leading bjet == highest pt.
 	lead_mask[max_idx] = 1;
-        if(0<debug) std::cout<<"lead mask"<<std::endl;
+	if(0<debug) std::cout<<"lead mask"<<std::endl;
 	return lead_mask;
 }
 inline double transverse_w_mass(
@@ -391,7 +391,7 @@ inline auto btagB(const ints  &btagP,const floats &btags){
 	return   btagP && ( BTAG_DISC_MIN < btags );// all tJ length
 }
 inline auto sf(const  dataSource ds,
-	       const  channel    ch)
+               const  channel    ch)
 {
 	if(0<debug) std::cout<<"scale factor "<<std::endl;
 	return [=](
@@ -408,9 +408,9 @@ inline auto sf(const  dataSource ds,
 			case ttb:{result =  TTBLV_W;break;}
 			case ttz:{result =  TTZQQ_W;break;}
 			case  mc:{result = WZLNQQ_W+
-					   ZZLLQQ_W+
-					    TTBLV_W+
-					    TTZQQ_W;break;}
+			                   ZZLLQQ_W+
+			                   TTBLV_W+
+			                   TTZQQ_W;break;}
 			case met:// fall through to cms and mc
 			case cms:{result = 1.;MC=false;break;}// ignore btag wt
 			default :throw std::invalid_argument(
@@ -421,7 +421,7 @@ inline auto sf(const  dataSource ds,
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
 		result *=  mostSF;
-	        if(0<debug) std::cout<<"sf finish"<<std::endl;
+		if(0<debug) std::cout<<"sf finish"<<std::endl;
 		return result;
 	};
 }
@@ -484,7 +484,7 @@ auto elEffGiver(
 	if(5<debug)std::cout<<dict[Eff]<<" eff , smr "<<dict[Smr]<<std::endl;
 	// TODO: Eff == 0 cross check
 	if(FP_NORMAL != std::fpclassify(dict[Eff])) dict[Eff] = 1.;
-        if(0<debug) std::cout<<"elleffgiver finish"<<std::endl;
+	if(0<debug) std::cout<<"elleffgiver finish"<<std::endl;
 	return dict;
 }
 auto muEffGiver(
@@ -534,8 +534,8 @@ auto muEffGiver(
 	dict[IsoT] = isoT->GetBinError  (PtBin,EtaBin);
 
 	if(5<debug)std::cout<<dict[IsoA]
-		           <<"\t:\t"<<dict[IsoT]<<std::endl;
-        if(0<debug) std::cout<<"mueffgiver finsih"<<std::endl;
+	                    <<"\t:\t"<<dict[IsoT]<<std::endl;
+	if(0<debug)std::cout<<"mueffgiver finsih"<<std::endl;
 	return dict;
 }
 auto lepEffGiver(
@@ -581,7 +581,7 @@ auto lepEffGiver(
 		if(id  < 0 || iso < 0)std::cout<<std::endl;
 */		break;}
 	}
-        if(0<debug) std::cout<<"lepeffgiver finish"<<std::endl;
+	if(0<debug) std::cout<<"lepeffgiver finish"<<std::endl;
 	return id * iso * eff * smr;};
 }
 } // namespace
@@ -659,12 +659,12 @@ void NPL(const channel ch,const dataSource ds){
 	}
 	// Open chains of exptData EVEN IF UNUSED
 	// QCD Enriched MCs file openning in chain
-        TChain QCDofMC("Events"); // including the enriched QCD datasets of MC
-        QCDofMC.Add("/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root");/**/
-        QCDofMC.Add("/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root");/**/
-        QCDofMC.Add("/data/disk0/nanoAOD_2017/TTToSemileptonic/*.root");/**/
-        QCDofMC.Add("ttz_dir/*.root");/**/
-  	ROOT::RDataFrame mc__df(QCDofMC); // QCD enriched MCs
+	TChain QCDofMC("Events"); // including the enriched QCD datasets of MC
+	QCDofMC.Add("/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root");/**/
+	QCDofMC.Add("/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root");/**/
+	QCDofMC.Add("/data/disk0/nanoAOD_2017/TTToSemileptonic/*.root");/**/
+	QCDofMC.Add("ttz_dir/*.root");/**/
+	ROOT::RDataFrame mc__df(QCDofMC); // QCD enriched MCs
 
 	TChain elnuCMS("Events");
 	TChain munuCMS("Events");
@@ -733,14 +733,14 @@ void NPL(const channel ch,const dataSource ds){
 	       ,temp_header+"dz"
 	       })
 	.Define("not_tight",not_tight(ch),{
-		temp_header+"isPFcand"
-               ,temp_header+"pt"
-               ,temp_header+"eta"
-               ,"Electron_cutBased"
-               ,"Muon_tightId"
-               ,"Muon_pfRelIso04_all"
-               ,temp_header+"dxy"
-               ,temp_header+"dz"
+	        temp_header+"isPFcand"
+	       ,temp_header+"pt"
+	       ,temp_header+"eta"
+	       ,"Electron_cutBased"
+	       ,"Muon_tightId"
+	       ,"Muon_pfRelIso04_all"
+	       ,temp_header+"dxy"
+	       ,temp_header+"dz"
 	       })
 	.Define("rawJet_eta","static_cast<ROOT::RVec<double>>(Jet_eta )")
 	.Define("rawJet_phi","static_cast<ROOT::RVec<double>>(Jet_phi )")
@@ -748,87 +748,87 @@ void NPL(const channel ch,const dataSource ds){
 	// QCD Region loose
 	auto loose_lep = offlep // QCD region selection and filter
 	.Filter(not_tight_cut(ch),{"not_tight",
-                "Electron_cutBased",// edit function for  tight -> loose
-                "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
-        .Define("lepB_pt","static_cast<double>("+temp_header+     "pt[not_tight][0])")
-        .Define("lep_eta","static_cast<double>("+temp_header+    "eta[not_tight][0])")
-  	.Define("lep_phi","static_cast<double>("+temp_header+    "phi[not_tight][0])")
-        .Define("lep_mas","static_cast<double>("+temp_header+   "mass[not_tight][0])")
+	        "Electron_cutBased",// edit function for  tight -> loose
+	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
+	.Define("lepB_pt","static_cast<double>("+temp_header+     "pt[not_tight][0])")
+	.Define("lep_eta","static_cast<double>("+temp_header+    "eta[not_tight][0])")
+	.Define("lep_phi","static_cast<double>("+temp_header+    "phi[not_tight][0])")
+	.Define("lep_mas","static_cast<double>("+temp_header+   "mass[not_tight][0])")
 	.Define("lep___q",temp_header+"charge[not_tight][0]")// int, only for RoccoR
-        .Define("roccorSF", roccorSF(rc,ch,MC)// used in allReconstruction
-                          ,{"lepB_pt","lep_eta",
-                            "lep_phi","lep___q", // last 4 unused
-                            "lep_phi","lep___q"})// last 2 repeat is fine
-        .Define("lep__pt","lepB_pt * roccorSF")// only pt and mass scales
-        .Define("lepSF"  , lepEffGiver(ch,MC// not in reco because files
-                         , recoLowEt,reco_pass,tight_94x
-                         , id_N,id_Y,id_A,id_T
-                         , isoN,isoY,isoA,isoT
-                        ),{"lep__pt","lep_eta"})
-        . Alias("mostSF" , "lepSF")
-        .Define("sf",sf(ds,ch),{"mostSF"})
-        .Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
-               {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
-        .Define("tight_jets" 	   ,tight_jet_id,
-        {"jet_lep_min_dR"   ,"Jet_pt","Jet_eta","Jet_jetId"})
-        .Filter( jetCutter(JETS_MIN,JETS_MAX),{"tight_jets" },"Jet cut")
-        .Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")
-        .Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta  [tight_jets])")
-        .Define("fin_jets__pt","static_cast<ROOT::RVec<double>>(Jet_pt   [tight_jets])")
-        .Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
-        .Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
-        .Define( "lead_bjet"      , find_lead_mask,{"fin_jets__pt","btagB"})
-        .Define(      "bjet__pt"  ,"fin_jets__pt[lead_bjet]")// Leading bj
-        // now for transverse W; lepton done
-        . Alias("tw_lep__pt","lep__pt")
-        . Alias("tw_lep_eta","lep_eta")
-        . Alias("tw_lep_phi","lep_phi")
-        .Define("tw_lep_mas",transverse_w_mass,
-               {"tw_lep__pt",
-                "tw_lep_phi","MET_pt","MET_phi"})
+	.Define("roccorSF", roccorSF(rc,ch,MC)// used in allReconstruction
+	                  ,{"lepB_pt","lep_eta",
+	                    "lep_phi","lep___q", // last 4 unused
+	                    "lep_phi","lep___q"})// last 2 repeat is fine
+	.Define("lep__pt","lepB_pt * roccorSF")// only pt and mass scales
+	.Define("lepSF"  , lepEffGiver(ch,MC// not in reco because files
+	                 , recoLowEt,reco_pass,tight_94x
+	                 , id_N,id_Y,id_A,id_T
+	                 , isoN,isoY,isoA,isoT
+	                ),{"lep__pt","lep_eta"})
+	. Alias("mostSF" , "lepSF")
+	.Define("sf",sf(ds,ch),{"mostSF"})
+	.Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
+	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
+	.Define("tight_jets" 	   ,tight_jet_id,
+	{"jet_lep_min_dR"   ,"Jet_pt","Jet_eta","Jet_jetId"})
+	.Filter( jetCutter(JETS_MIN,JETS_MAX),{"tight_jets" },"Jet cut")
+	.Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")
+	.Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta  [tight_jets])")
+	.Define("fin_jets__pt","static_cast<ROOT::RVec<double>>(Jet_pt   [tight_jets])")
+	.Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
+	.Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
+	.Define( "lead_bjet"      , find_lead_mask,{"fin_jets__pt","btagB"})
+	.Define(      "bjet__pt"  ,"fin_jets__pt[lead_bjet]")// Leading bj
+	// now for transverse W; lepton done
+	. Alias("tw_lep__pt","lep__pt")
+	. Alias("tw_lep_eta","lep_eta")
+	. Alias("tw_lep_phi","lep_phi")
+	.Define("tw_lep_mas",transverse_w_mass,
+	       {"tw_lep__pt",
+	        "tw_lep_phi","MET_pt","MET_phi"})
 	.Filter("tw_lep_mas < 30 || tw_lep_mas > 130","Transverse W mass cut for loose QCD region,loose QCD")
 	;
 	// QCD region tight
 	auto tight_lep = offlep // Signal region selection and filter
 	.Filter(lep_tight_cut(ch),{"loose_leps",
-                "Electron_cutBased",// edit function for  tight -> loose
-                "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
-        .Define("lepB_pt","static_cast<double>("+temp_header+     "pt[loose_leps][0])")
-        .Define("lep_eta","static_cast<double>("+temp_header+    "eta[loose_leps][0])")
-  	.Define("lep_phi","static_cast<double>("+temp_header+    "phi[loose_leps][0])")
-        .Define("lep_mas","static_cast<double>("+temp_header+   "mass[loose_leps][0])")
+	        "Electron_cutBased",// edit function for  tight -> loose
+	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
+	.Define("lepB_pt","static_cast<double>("+temp_header+     "pt[loose_leps][0])")
+	.Define("lep_eta","static_cast<double>("+temp_header+    "eta[loose_leps][0])")
+	.Define("lep_phi","static_cast<double>("+temp_header+    "phi[loose_leps][0])")
+	.Define("lep_mas","static_cast<double>("+temp_header+   "mass[loose_leps][0])")
 	.Define("lep___q",temp_header+"charge[loose_leps][0]")// int, only for RoccoR
-        .Define("roccorSF", roccorSF(rc,ch,MC)// used in allReconstruction
-                          ,{"lepB_pt","lep_eta",
-                            "lep_phi","lep___q", // last 4 unused
-                            "lep_phi","lep___q"})// last 2 repeat is fine
-        .Define("lep__pt","lepB_pt * roccorSF")// only pt and mass scales
-        .Define("lepSF"  , lepEffGiver(ch,MC// not in reco because files
-                         , recoLowEt,reco_pass,tight_94x
-                         , id_N,id_Y,id_A,id_T
-                         , isoN,isoY,isoA,isoT
-                        ),{"lep__pt","lep_eta"})
-        . Alias("mostSF" , "lepSF")
-        .Define("sf",sf(ds,ch),{"mostSF"})
-        .Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
-               {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
-        .Define("tight_jets" 	   ,tight_jet_id,
-        {"jet_lep_min_dR"   ,"Jet_pt","Jet_eta","Jet_jetId"})
-        .Filter( jetCutter(JETS_MIN,JETS_MAX),{"tight_jets" },"Jet cut")
-        .Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")
-        .Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta  [tight_jets])")
-        .Define("fin_jets__pt","static_cast<ROOT::RVec<double>>(Jet_pt   [tight_jets])")
-        .Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
-        .Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
-        .Define( "lead_bjet"      , find_lead_mask,{"fin_jets__pt","btagB"})
-        .Define(      "bjet__pt"  ,"fin_jets__pt[lead_bjet]")// Leading bj
-        // now for transverse W; lepton done
-        . Alias("tw_lep__pt","lep__pt")
-        . Alias("tw_lep_eta","lep_eta")
-        . Alias("tw_lep_phi","lep_phi")
-        .Define("tw_lep_mas",transverse_w_mass,
-               {"tw_lep__pt",
-                "tw_lep_phi","MET_pt","MET_phi"})
+	.Define("roccorSF", roccorSF(rc,ch,MC)// used in allReconstruction
+	                  ,{"lepB_pt","lep_eta",
+	                    "lep_phi","lep___q", // last 4 unused
+	                    "lep_phi","lep___q"})// last 2 repeat is fine
+	.Define("lep__pt","lepB_pt * roccorSF")// only pt and mass scales
+	.Define("lepSF"  , lepEffGiver(ch,MC// not in reco because files
+	                 , recoLowEt,reco_pass,tight_94x
+	                 , id_N,id_Y,id_A,id_T
+	                 , isoN,isoY,isoA,isoT
+	                ),{"lep__pt","lep_eta"})
+	. Alias("mostSF" , "lepSF")
+	.Define("sf",sf(ds,ch),{"mostSF"})
+	.Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
+	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
+	.Define("tight_jets" 	   ,tight_jet_id,
+	{"jet_lep_min_dR"   ,"Jet_pt","Jet_eta","Jet_jetId"})
+	.Filter( jetCutter(JETS_MIN,JETS_MAX),{"tight_jets" },"Jet cut")
+	.Define("tJ_btagCSVv2"  ,"Jet_btagCSVV2[tight_jets]")
+	.Define("fin_jets_eta","static_cast<ROOT::RVec<double>>(Jet_eta  [tight_jets])")
+	.Define("fin_jets__pt","static_cast<ROOT::RVec<double>>(Jet_pt   [tight_jets])")
+	.Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
+	.Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
+	.Define( "lead_bjet"      , find_lead_mask,{"fin_jets__pt","btagB"})
+	.Define(      "bjet__pt"  ,"fin_jets__pt[lead_bjet]")// Leading bj
+	// now for transverse W; lepton done
+	. Alias("tw_lep__pt","lep__pt")
+	. Alias("tw_lep_eta","lep_eta")
+	. Alias("tw_lep_phi","lep_phi")
+	.Define("tw_lep_mas",transverse_w_mass,
+	       {"tw_lep__pt",
+	        "tw_lep_phi","MET_pt","MET_phi"})
 	.Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
 	.Filter("tw_lep_mas > 130 || tw_lep_mas < 30","Transverse W mass cut for tight QCD region, tight in QCD")
 	;// making sure signal region
@@ -837,42 +837,42 @@ void NPL(const channel ch,const dataSource ds){
 		case munu:{temp_header="munu_";temp_footer="munu_";break;}
 	}
 	switch(ds){
-	        case  mc:{temp_header+="QCD";temp_footer+="QCD";break;}// QCD enriched sample
-                case cms:{temp_header+="cms";temp_footer+="CMS";break;}
-//              default :throw std::invalid_argument(
-//                      "Unimplemented ds (hist titles)");
-        }
+		case  mc:{temp_header+="QCD";temp_footer+="QCD";break;}// QCD enriched sample
+		case cms:{temp_header+="cms";temp_footer+="CMS";break;}
+//		default :throw std::invalid_argument(
+//			"Unimplemented ds (hist titles)");
+	}
 	// Bins definition -> this method lead to splitting bins which are more dense
 	// also groups the less dense bin together
-        const std::vector<double> ptBins
-        = {0.,20.,30.,40.,45.,50.,55.,60.,65.,75.,85.,100.,150.,500.};
-        const int ptBinsSize = ptBins.size() - 1;
+	const std::vector<double> ptBins
+	= {0.,20.,30.,40.,45.,50.,55.,60.,65.,75.,85.,100.,150.,500.};
+	const int ptBinsSize = ptBins.size() - 1;
 
 	if(MC){
 	auto h_tight = tight_lep.Histo2D({ // histo for eff tight to loose , tight
-        ("tight_Lepton_" + temp_header).c_str(),
-        ("tight Lepton " + temp_footer).c_str(),
-        ptBinsSize,ptBins.data(),20,-2.5,2.5},
-        "lep__pt","lep_eta")
-        ;
-        auto h_loose = loose_lep.Histo2D({ // histo for eff tight to loose , loose
-        ("loose_Lepton_" + temp_header).c_str(),
-        ("loose Lepton " + temp_footer).c_str(),
-        ptBinsSize,ptBins.data(),20,-2.5,2.5},
-        "lep__pt","lep_eta")
-        ;
-        auto
+	("tight_Lepton_" + temp_header).c_str(),
+	("tight Lepton " + temp_footer).c_str(),
+	ptBinsSize,ptBins.data(),20,-2.5,2.5},
+	"lep__pt","lep_eta")
+	;
+	auto h_loose = loose_lep.Histo2D({ // histo for eff tight to loose , loose
+	("loose_Lepton_" + temp_header).c_str(),
+	("loose Lepton " + temp_footer).c_str(),
+	ptBinsSize,ptBins.data(),20,-2.5,2.5},
+	"lep__pt","lep_eta")
+	;
+	auto
 	h_eff_TL_ratio = static_cast<TH2D*>(h_tight->Clone());
-        h_eff_TL_ratio->Divide(             h_loose.GetPtr());
-        h_eff_TL_ratio->Draw("COLZ");
-        h_eff_TL_ratio->SetNameTitle(
+	h_eff_TL_ratio->Divide(             h_loose.GetPtr());
+	h_eff_TL_ratio->Draw("COLZ");
+	h_eff_TL_ratio->SetNameTitle(
 	("TL_eff_" + temp_header).c_str(),
- 	("TL_eff " + temp_header).c_str())
+	("TL_eff " + temp_header).c_str())
 	;
 	auto prompt_loose_lep = loose_lep //prompt for MC in QCD
 	.Filter(lep_gpsf(ch),{"GenPart_statusFlags","not_tight"
-                                      ,"Electron_genPartIdx"
-                                      ,    "Muon_genPartIdx"},"loose not tight prompt MC")
+	                              ,"Electron_genPartIdx"
+	                              ,    "Muon_genPartIdx"},"loose not tight prompt MC")
 	;
 	auto h_prompt_loose_lep = prompt_loose_lep.Histo2D({// N_L!T prompt MC
 	("prompt_LnT_"    + temp_header).c_str(),
@@ -883,20 +883,20 @@ void NPL(const channel ch,const dataSource ds){
 
 	TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
 	// MC only
-		hf.WriteTObject(h_prompt_loose_lep  .GetPtr());hf.Flush();sync();
-		hf.WriteTObject(h_eff_TL_ratio               );hf.Flush();sync();
+	hf.WriteTObject(h_prompt_loose_lep  .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_eff_TL_ratio               );hf.Flush();sync();
 	}
 	else{
 	// N_L!T_data
-        auto h_LT_data = loose_lep.Histo2D({
-        ("N_data_LnT_" + temp_header).c_str(),
-        ("N data LnT " + temp_footer).c_str(),
-        ptBinsSize,ptBins.data(),20,-2.5,2.5},
-        "lep__pt","lep_eta")
+	auto h_LT_data = loose_lep.Histo2D({
+	("N_data_LnT_" + temp_header).c_str(),
+	("N data LnT " + temp_footer).c_str(),
+	ptBinsSize,ptBins.data(),20,-2.5,2.5},
+	"lep__pt","lep_eta")
 	; // L!T data
-	        TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
-        // CMS only
-          	hf.WriteTObject(h_LT_data           .GetPtr());hf.Flush();sync();
+	TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
+	// CMS only
+	hf.WriteTObject(h_LT_data           .GetPtr());hf.Flush();sync();
 
 	}
 	std::cout<<"NPL successfully finished"<<std::endl;
@@ -926,7 +926,7 @@ int main ( int argc , char *argv[] ){
 	}
 	     if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
 	else if ( "mc"  ==   dsN  ){d  = mc;}
-        else if ( "cms" ==   dsN  ){d = cms;}
+	else if ( "cms" ==   dsN  ){d = cms;}
 	else { std::cout << "Error: data source " << dsN
 		<< " not recognised" << std::endl ;
 		return 4 ;
