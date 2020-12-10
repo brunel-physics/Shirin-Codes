@@ -6,7 +6,16 @@
 #include "src/tdrstyle.C"
 #include "src/calchisto.hpp"
 
-int plotstacks(){
+enum      Plots	 	 {"cmet_sEt","cmt__pt","cmet_dpx","cmet_dpy"
+                         ,"met_sEt" ,"met__pt","tTm","tWm","ev_w"
+                         ,"zmas","Z_W_Delta_Phi","Z_MET_Delta_Phi"
+                         ,"Z_pair_jets_Delta_Phi"};
+constexpr Plots
+          PlotsAll[]	={"cmet_sEt","cmt__pt","cmet_dpx","cmet_dpy"
+                         ,"met_sEt" ,"met__pt","tTm","tWm","ev_w"
+                         ,"zmas","Z_W_Delta_Phi","Z_MET_Delta_Phi"
+                         ,"Z_pair_jets_Delta_Phi"};
+int plotall(){
 	gROOT->SetBatch(kTRUE);// no open canvas window
 	setTDRStyle();
 	TFile     cf("plots/components.root","RECREATE");
@@ -35,7 +44,55 @@ int plotstacks(){
 	hFd[std::make_pair(ch,ds)]
 		= new TFile(("histo/" + opener + ".root").c_str());
 	}}// now we have a histogram file dictionary of all the files miahahaha
-	for(std::string particle:{"fin_jets","lep","bjet"}){
+	//for(std::string particle:{"fin_jets","lep","bjet"}){
+	/*for(std::string particle:{"cmet_sEt","cmt__pt","cmet_dpx","cmet_dpy"
+				 ,"met_sEt" ,"met__pt","tTm","tWm","ev_w"
+				 ,"zmas","Z_W_Delta_Phi","Z_MET_Delta_Phi"
+				 ,"Z_pair_jets_Delta_Phi"}){*/
+	for(Plots p: PlotsAll){
+	std::string   kstring = "_", tkstr = " ", xAxisStr;
+	switch (p){case		     cmet_sEt:{kstring += "cmet_sEt";
+                			       tkstr    = " Sum E_{t}";
+                                  	       xAxisStr = " Sum E_{t}/GeV"	       ;break;}
+		   case 	     cmet__pt:{kstring += "cmet__pt";
+               			  	       tkstr    = " p_{t}";
+                		  	       xAxisStr = " p_{t}/GeV"    	       ;break;}
+		   case 	     cmet_dpx:{kstring += "cmet_dpx";
+                		               tkstr    = " p_{x}";
+                		  	       xAxisStr = " p_{x}/GeV"    	       ;break;}
+		   case 	     cmet_dpy:{kstring += "cmet_dpy";
+                		  	       tkstr    = " p_{y}";
+                		  	       xAxisStr = " p_{y}/GeV"    	       ;break;}
+		   case 	      met_sEt:{kstring += "met_sEt";
+                		  	       tkstr    = " Sum E_{T}";
+                                  	       xAxisStr = " Sum E_{T}/GeV"	       ;break;}
+		   case 	      met__pt:{kstring += "met__pt";
+                		 	       tkstr    = " MET p_{T}";
+                		   	       xAxisStr = " MET p_{T}/GeV"	       ;break;}
+		   case     	   	  tTm:{kstring += "tTm";
+                                               tkstr    = " top m_{T}";
+                                               xAxisStr = " top \\text{m_{T} GeV/}c^{2}";break;}
+		   case     	          tWm:{kstring += "tWm";
+                                               tkstr    = " W m_{t}";
+                                               xAxisStr = " W \\text{m_{T} GeV/}c^{2}"  ;break;}
+		   case     	         ev_w:{kstring += "ev_w";
+                                               tkstr    = " event weight";
+                                               xAxisStr = " SFs"		       ;break;}
+		   case    	  	 zmas:{kstring += "zmas";
+                                               tkstr    = " Z mass";
+                                               xAxisStr = " Z \\text{mass GeV/}c^{2}"    ;break;}
+		   case   	 Z_W_Deltaphi:{kstring += "Z_W_Deltaphi";
+                                               tkstr    = " Z and W \delta #varphi";
+                                               xAxisStr = " Z and W \delta #varphi"    ;break;}
+		   case        Z_MET_DeltaPhi:{kstring += "Z_MET_Deltaphi";
+                                               tkstr    = " Z and MET \delta #varphi/rad";
+                                               xAxisStr = " Z and MET \delta #varphi/rad"    ;break;}
+		   case Z_pair_jets_Delta_Phi:{kstring += "Z_pair_jets_Delta_Phi";
+                                               tkstr    = " Z jet pairs \delta #varphi/rad";
+                                               xAxisStr = " Z jet pairs \delta #varphi/rad"    ;break;}
+	}// switch
+
+	}// for loop
 	for(PtEtaPhiM k:PtEtaPhiMall){
 	//if ( e == k ) continue;
 	std::string   kstring = "_", tkstr = " ", xAxisStr;

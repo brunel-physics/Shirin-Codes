@@ -1076,7 +1076,6 @@ auto npl(
 	}}else{
 		npl = 1.;
 	}
-	std::cout<<"NPL "<<npl<<std::endl;
 	if(debug > 0) std::cout << "NPL result " << npl << std::endl;
 	return  npl;};
 }
@@ -1115,8 +1114,8 @@ inline auto sf(
 			case elnu:{result *= TRIG_SF_ELNU;break;}
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
-		if( MC) result *= npl * pile(PuWd,PuUd,PuDd)(npv)[puW];
-		if(!MC) result *= npl;
+		if( MC) result *= /*npl * */ pile(PuWd,PuUd,PuDd)(npv)[puW];
+		//if(!MC) result *= npl;
 		if(result < 0)std::cout<<"pile lt 0"<<std::endl;
 		if(5<debug)   std::cout<<"b_w "<< b
 		<<" few_SF " << result//<<std::endl;
@@ -1377,7 +1376,7 @@ void calchisto(const channel ch,const dataSource ds){
 //			"Unimplemented ch (init)");
 	}
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(10000);// remember to enable MT when NOT range
+	auto dfr = df.Range(100000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
 	.Filter(Triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
@@ -1825,7 +1824,7 @@ void calchisto(const channel ch,const dataSource ds){
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/NPL_calchisto_"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
 // MC only
 		hf.WriteTObject(h_sfi                  .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_sfj                  .GetPtr());hf.Flush();sync();

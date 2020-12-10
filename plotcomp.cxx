@@ -28,7 +28,7 @@ int plotcomp(){
 		case  ww:{opener += "_ww";break;}
 		case  wz:{opener += "_wz";break;}
 		case  zz:{opener += "_zz";break;}
-		case ttb:{opener += "ttb";break;}
+                case ttb:{opener += "ttb";break;}
 		case ttz:{opener += "ttz";break;}
 		case met:{opener += "met";break;}
 		case cms:{opener += "cms";break;}
