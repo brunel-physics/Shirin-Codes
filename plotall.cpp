@@ -92,8 +92,8 @@ int plotall(){
                                                xAxisStr = " Z jet pairs \delta #varphi/rad"    ;break;}
 	}// switch
 
-	}// for loop
-	for(PtEtaPhiM k:PtEtaPhiMall){
+	//}// for loop
+	/*for(PtEtaPhiM k:PtEtaPhiMall){
 	//if ( e == k ) continue;
 	std::string   kstring = "_", tkstr = " ", xAxisStr;
 	switch(k){
@@ -113,18 +113,18 @@ int plotall(){
 	          tkstr   += "mass";
 	          xAxisStr = "\\text{mass GeV/}c^{2}";
 	          break;}
-	}
+	}*/
 	for(channel ch:channelAll){
 	std::string chN;
 	switch     (ch){
 		case elnu:  {chN ="elnu";break;}
 		case munu:  {chN ="munu";break;}
 	}
-	std::string                title = chN + " " + particle;
-	if("fin_jets" == particle) title = chN + " jets";
-	std::string  stname =(chN+"_"+particle + kstring).c_str() ;
+	std::string                title = chN + " " + p;
+	//if("fin_jets" == particle) title = chN + " jets";
+	std::string  stname =(chN+"_"+p).c_str() ;
 	canv.SetName(stname.c_str());canv.SetTitle(stname.c_str());
-	THStack stac(stname.c_str(),(title + tkstr).c_str());
+	THStack stac(stname.c_str(),(chN +" "+ tkstr).c_str());
 	for(dataSource ds:dataSourceAll){
 	std::string  opener  = chN + "_";
 	int colour;
@@ -156,7 +156,7 @@ int plotall(){
 //	canv .SaveAs(("plots/" + stname + ".pdf" ).c_str());
 	canv .Clear();// clear rather than delete, reusable!
 	// stac will auto clean up since it is not new-ed
-	}}}// channel, particle, component
+	}}// channel, p
 	for(auto &x : hFd){
 		x.second->Close(); x.second = nullptr;
 	}
