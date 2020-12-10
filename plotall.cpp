@@ -6,7 +6,7 @@
 #include "src/tdrstyle.C"
 #include "src/calchisto.hpp"
 
-enum      Plots	 	 {"cmet_sEt","cmt__pt","cmet_dpx","cmet_dpy"
+/*enum      Plots	 	 {"cmet_sEt","cmt__pt","cmet_dpx","cmet_dpy"
                          ,"met_sEt" ,"met__pt","tTm","tWm","ev_w"
                          ,"zmas","Z_W_Delta_Phi","Z_MET_Delta_Phi"
                          ,"Z_pair_jets_Delta_Phi"};
@@ -14,7 +14,7 @@ constexpr Plots
           PlotsAll[]	={"cmet_sEt","cmt__pt","cmet_dpx","cmet_dpy"
                          ,"met_sEt" ,"met__pt","tTm","tWm","ev_w"
                          ,"zmas","Z_W_Delta_Phi","Z_MET_Delta_Phi"
-                         ,"Z_pair_jets_Delta_Phi"};
+                         ,"Z_pair_jets_Delta_Phi"};*/
 int plotall(){
 	gROOT->SetBatch(kTRUE);// no open canvas window
 	setTDRStyle();
@@ -45,11 +45,10 @@ int plotall(){
 		= new TFile(("histo/" + opener + ".root").c_str());
 	}}// now we have a histogram file dictionary of all the files miahahaha
 	//for(std::string particle:{"fin_jets","lep","bjet"}){
-	/*for(std::string particle:{"cmet_sEt","cmt__pt","cmet_dpx","cmet_dpy"
+	for(std::string p:{"cmet_sEt","cmt__pt","cmet_dpx","cmet_dpy"
 				 ,"met_sEt" ,"met__pt","tTm","tWm","ev_w"
 				 ,"zmas","Z_W_Delta_Phi","Z_MET_Delta_Phi"
-				 ,"Z_pair_jets_Delta_Phi"}){*/
-	for(Plots p: PlotsAll){
+				 ,"Z_pair_jets_Delta_Phi"}){
 	std::string   kstring = "_", tkstr = " ", xAxisStr;
 	switch (p){case		     cmet_sEt:{kstring += "cmet_sEt";
                 			       tkstr    = " Sum E_{t}";
@@ -91,35 +90,12 @@ int plotall(){
                                                tkstr    = " Z jet pairs \delta #varphi/rad";
                                                xAxisStr = " Z jet pairs \delta #varphi/rad"    ;break;}
 	}// switch
-
-	//}// for loop
-	/*for(PtEtaPhiM k:PtEtaPhiMall){
-	//if ( e == k ) continue;
-	std::string   kstring = "_", tkstr = " ", xAxisStr;
-	switch(k){
-	case pt :{kstring += "_pt";
-	          tkstr    = " p_{T}";
-	          xAxisStr = " p_{T}/GeV";
-	          break;}
-	case eta:{kstring += "eta";
-	          tkstr   += "eta";
-	          xAxisStr = "PseudoRapidity #eta";
-	          break;}
-	case phi:{kstring += "phi";
-	          tkstr   += "phi";
-	          xAxisStr = "Azimuthal angle #varphi/rad";
-	          break;}
-	case  m :{kstring += "mas";
-	          tkstr   += "mass";
-	          xAxisStr = "\\text{mass GeV/}c^{2}";
-	          break;}
-	}*/
 	for(channel ch:channelAll){
 	std::string chN;
 	switch     (ch){
 		case elnu:  {chN ="elnu";break;}
 		case munu:  {chN ="munu";break;}
-	}
+	}// switch
 	std::string                title = chN + " " + p;
 	//if("fin_jets" == particle) title = chN + " jets";
 	std::string  stname =(chN+"_"+p).c_str() ;
@@ -138,7 +114,7 @@ int plotall(){
 		case met:{opener += "met";colour = 9;break;}// violet
 		case cms:{opener += "cms";colour = 1;break;}// black
 	}
-	std::string    hobjN = opener + "_" + particle + kstring ;
+	std::string    hobjN = opener + "_" + p + kstring ;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),hobj);
 	                              hobj->SetDirectory(nullptr);
 	if( cms == ds || met == ds )  hobj->SetLineColor( colour);
