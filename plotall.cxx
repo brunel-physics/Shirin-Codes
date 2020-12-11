@@ -1,3 +1,8 @@
+// TODO:: Change title name to be like e.g ev Jet pt -> v , greek nu
+// TODO:: legend should be only ds
+// TODO:: change the mass unit \\text{W m_{T} (GeV/}c^{2}) doesn't work!
+// TODO:: add more histograms for filtred mass and angles.
+
 #include <ROOT/RDataFrame.hxx>// big guns
 #include <TCanvas.h>
 #include <TLegend.h>
@@ -56,12 +61,12 @@ int plotall(){
 
 	for(size_t i=0; i < std::size(allNamesArray) ;++i){
 	for(channel ch:{elnu}){//channelAll){
-	std::string chN;
+	std::string chN,chf; // chf : channel title
 	switch     (ch){
-		case elnu:  {chN ="elnu";break;}
-		case munu:  {chN ="munu";break;}
+		case elnu:  {chN ="elnu";chf =  "e#nu"; break;}
+		case munu:  {chN ="munu";cht ="#mu#nu"; break;}
 	}// switch
-	std::string   title = allNamesArray[i][1] + chN;
+	std::string   title = allNamesArray[i][1] + chf;
 	std::string  stname = allNamesArray[i][0] + chN;
 	canv.SetName(stname.c_str());canv.SetTitle(stname.c_str());
 	THStack stac(stname.c_str(),title.c_str());

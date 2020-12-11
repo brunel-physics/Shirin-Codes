@@ -1,4 +1,8 @@
-// TODO: Shape uncertainties -> implement lhepdfWeight for central up and down based on the formula
+// TODO:: Shape uncertainties -> implement lhepdfWeight for up and down based on the formula
+// TODO:: change filter to include mass cuts accordingly and deltaphi cuts
+// TODO:: Aim is to watch top mass after W mass cut and Z mass cut separately and both mass cuts
+// TODO:: Aim is to watch Z mass cut after top and W mass cut separately and with both
+// TODO:: Aim is to watch W mass cut after Z mass cut.
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <Math/Vector4D.h>

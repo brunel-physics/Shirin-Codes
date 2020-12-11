@@ -38,19 +38,19 @@ int plotmc(){
 		= new TFile(("histo/Result/" + opener + ".root").c_str());
 	}}// now we have a histogram file dictionary of all the files miahahaha
 	for(std::string sf:
-	{"sfi","sfj","p_ej","p_sfej","p_sf_i","btag_w"}){
+	{"sfi","sfj","p_ej","p_sfej","p_sf_i","btag_w","cmet_sEt","cmet__pt","cmet_dpx","cmet_dpy"}){
 	std::string xAxisStr;
 	if(false);
-	else if(  "sfi"     == sf) xAxisStr = "sf_{i}";
-	else if(  "sfj"     == sf) xAxisStr = "sf_{j}";
-	else if("p_ej"      == sf) xAxisStr = "\\prod_{j} 1 -                e_{j}";
-	else if("p_sfej"    == sf) xAxisStr = "\\prod_{j} 1 - \\text{sf}_{j} e_{j}";
-	else if("p_sf_i"    == sf) xAxisStr = "\\prod_{i}     \\text{sf}_{i}      ";
-	else if("btag_w"    == sf) xAxisStr = "btag weight";
-	else if("cmet_sEt_" == sf) xAxisStr = "Sum E_{T} (GeV)";
-	else if("cmet__pt_" == sf) xAxisStr = "p_{T} (GeV/c)";
-	else if("cmet_dpx_" == sf) xAxisStr = "p_{x} (GeV/c)";
-	else if("cmet_dpy_" == sf) xAxisStr = "p_{y} (GeV/c)";
+	else if(  "sfi"    == sf) xAxisStr = "sf_{i}";
+	else if(  "sfj"    == sf) xAxisStr = "sf_{j}";
+	else if("p_ej"     == sf) xAxisStr = "\\prod_{j} 1 -                e_{j}";
+	else if("p_sfej"   == sf) xAxisStr = "\\prod_{j} 1 - \\text{sf}_{j} e_{j}";
+	else if("p_sf_i"   == sf) xAxisStr = "\\prod_{i}     \\text{sf}_{i}      ";
+	else if("btag_w"   == sf) xAxisStr = "btag weight";
+	else if("cmet_sEt" == sf) xAxisStr = "Sum E_{T} (GeV)";
+	else if("cmet__pt" == sf) xAxisStr = "p_{T} (GeV/c)";
+	else if("cmet_dpx" == sf) xAxisStr = "p_{x} (GeV/c)";
+	else if("cmet_dpy" == sf) xAxisStr = "p_{y} (GeV/c)";
 
 	for(channel ch:channelAll){
 	std::string chN;
