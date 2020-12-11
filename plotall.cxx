@@ -6,6 +6,7 @@
 #include <ROOT/RDataFrame.hxx>// big guns
 #include <TCanvas.h>
 #include <TLegend.h>
+#include "tdrstyle.C"
 #include <THStack.h>
 #include <iterator>// just for std::size
 
@@ -28,6 +29,17 @@ std::string allNamesArray[][3] = {// histogram id, histogram title, x axis strin
 	,{"Z_pair_jets_Delta_Phi_","Z pair jets #Delta#phi ","Z pair jets #Delta#phi (rad)"}
 	,{"ev_w_", "Event Weight ","Weight"}
 };
+
+TLegend leg= TLegend(0.8,0.6,0.95,0.9);
+leg.SetFillStyle(1001);
+leg.SetBorderSize(1);
+leg.SetFillColor(0);
+leg.SetLineColor(0);
+leg.SetShadowColor(0);
+leg.SetFillColor(kWhite);
+leg.SetTextSize(0.02);
+//gStyle->SetOptStat(0);
+
 
 int plotall(){
 	gROOT->SetBatch(kTRUE);// no open canvas window
@@ -61,12 +73,12 @@ int plotall(){
 
 	for(size_t i=0; i < std::size(allNamesArray) ;++i){
 	for(channel ch:{elnu}){//channelAll){
-	std::string chN,chf; // chf : channel title
+	std::string chN,chF,lgN; // chf : channel title
 	switch     (ch){
-		case elnu:  {chN ="elnu";chf =  "e#nu"; break;}
-		case munu:  {chN ="munu";cht ="#mu#nu"; break;}
+		case elnu:  {chN ="elnu";chF =  "e#nu"; break;}
+		case munu:  {chN ="munu";chF ="#mu#nu"; break;}
 	}// switch
-	std::string   title = allNamesArray[i][1] + chf;
+	std::string   title = allNamesArray[i][1] + chF;
 	std::string  stname = allNamesArray[i][0] + chN;
 	canv.SetName(stname.c_str());canv.SetTitle(stname.c_str());
 	THStack stac(stname.c_str(),title.c_str());
@@ -74,14 +86,14 @@ int plotall(){
 	std::string  opener  = chN + "_";
 	int colour;
 	switch  (ds){
-		case tzq:{opener += "tzq";colour = 6;break;}// magenta
-		case  ww:{opener += "_ww";colour = 2;break;}// red
-		case  wz:{opener += "_wz";colour = 3;break;}// green
-		case  zz:{opener += "_zz";colour = 4;break;}// blue
-		case ttz:{opener += "ttz";colour = 5;break;}// yellow
-		case ttb:{opener += "ttb";colour = 7;break;}// cyan
-		case met:{opener += "met";colour = 9;break;}// violet
-		case cms:{opener += "cms";colour = 1;break;}// black
+		case tzq:{opener += "tzq";lgN = "tZq";colour = 6;break;}// magenta
+		case  ww:{opener += "_ww";lgN =  "WW";colour = 2;break;}// red
+		case  wz:{opener += "_wz";lgN =  "WZ";colour = 3;break;}// green
+		case  zz:{opener += "_zz";lgN =  "ZZ";colour = 4;break;}// blue
+		case ttz:{opener += "ttz";lgN = "ttZ";colour = 5;break;}// yellow
+		case ttb:{opener += "ttb";lgN = "ttb";colour = 7;break;}// cyan
+		case met:{opener += "met";lgN = "MET";colour = 9;break;}// violet
+		case cms:{opener += "cms";lgN = "CMS";colour = 1;break;}// black
 	}
 	std::string    hobjN = allNamesArray[i][0] + opener;
 	std::cout<<"hobjN is "<< hobjN<<std::endl;
@@ -90,16 +102,19 @@ int plotall(){
 	if( cms == ds || met == ds )  hobj->SetLineColor( colour);
 	else                          hobj->SetFillColor( colour);
 	stac .Add(                    hobj);
+	leg  .AddEntry(hobj,lgN,"l");
 	}// dataSource
 	canv .cd();// pick me to draw?
 	stac .Draw("HIST");// must draw before set axes
 	stac .GetXaxis()->SetTitle(allNamesArray[i][2].c_str());
 	stac .GetYaxis()->SetTitle("Event");
-	canv .BuildLegend();
+	leg.Draw();
+	//canv .BuildLegend();
 	canv .Update();
 	cf   .WriteTObject(&canv);
 //	canv .SaveAs(("plots/" + stname + ".root").c_str());// slow
 //	canv .SaveAs(("plots/" + stname + ".pdf" ).c_str());
+	leg.Clear();
 	canv .Clear();// clear rather than delete, reusable!
 	// stac will auto clean up since it is not new-ed
 	}}// channel, p
@@ -111,3 +126,50 @@ int plotall(){
 	gROOT->SetBatch(kFALSE);// re-enable TBrowser
 	return 0;
 }
+
+/*
+Working legend
+
+
+ TLegend legend_= TLegend(0.8,0.6,0.95,0.9);
+ legend_.SetFillStyle(1001);
+ legend_.SetBorderSize(1);
+ legend_.SetFillColor(0);
+ legend_.SetLineColor(0);
+ legend_.SetShadowColor(0);
+ legend_.SetFillColor(kWhite);
+ legend_.SetTextSize(0.02);
+ gStyle->SetOptStat(0);
+
+
+ std :: map<string,string> IdLegend;
+
+ IdLegend["BNumHist"]="b quark";
+ IdLegend["BBarNumHist"]="b bar quark";
+for (const auto histId : HistPerCanvas){
+   TCanvas *tempcanvas = new TCanvas(histId.first.c_str(),histId.first.c_str(),200,10,700,500);
+   tempcanvas->cd();
+   int colour = 2;
+   float max = -1;
+   for (auto histo : HistPerCanvas[histId.first.c_str()]){
+     legend_.AddEntry(&IdHist[histo.c_str()],IdLegend[histo.c_str()].c_str(),"l");
+     if(colour == 10)
+       {// to get rid of the white colour graph in the plots
+         colour++;
+       }// to get rid of the white colour graph in the plots
+     IdHist[histo.c_str()].SetLineColor(colour);
+     colour++;
+     IdHist[histo.c_str()].Draw("same");
+     IdHist[histo.c_str()].GetXaxis()->SetTitle(histId.first.c_str());
+     IdHist[histo.c_str()].GetYaxis()->SetTitle("Number of events");
+     if (IdHist[histo.c_str()].GetMaximum() > max) max = IdHist[histo.c_str()].GetMaximum();
+   }
+   IdHist[HistPerCanvas[histId.first.c_str()][0].c_str()].SetMaximum(max*1.2);
+   legend_.Draw();
+   tempcanvas->SaveAs(("/scratch/eepgssg/plots/plots2017/tZq_lnu_Z_qq_4f/PtEtaECut/"+histId.first+".root").c_str());
+   tempcanvas->SaveAs(("/scratch/eepgssg/plots/plots2017/tZq_lnu_Z_qq_4f/PtEtaECut/"+histId.first+".png").c_str());
+   legend_.Clear();
+}
+
+*/
+
