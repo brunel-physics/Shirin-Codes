@@ -6,7 +6,6 @@
 #include <ROOT/RDataFrame.hxx>// big guns
 #include <TCanvas.h>
 #include <TLegend.h>
-#include "tdrstyle.C"
 #include <THStack.h>
 #include <iterator>// just for std::size
 
@@ -30,20 +29,20 @@ std::string allNamesArray[][3] = {// histogram id, histogram title, x axis strin
 	,{"ev_w_", "Event Weight ","Weight"}
 };
 
-TLegend leg= TLegend(0.8,0.6,0.95,0.9);
-leg.SetFillStyle(1001);
-leg.SetBorderSize(1);
-leg.SetFillColor(0);
-leg.SetLineColor(0);
-leg.SetShadowColor(0);
-leg.SetFillColor(kWhite);
-leg.SetTextSize(0.02);
+auto legS = new TLegend(0.8,0.6,0.95,0.9);
+legS.SetFillStyle(1001);
+//legS.SetBorderSize(1);
+//legS.SetFillColor(0);
+//legS.SetLineColor(0);
+//legS.SetShadowColor(0);
+//legS.SetFillColor(kWhite);
+//legS.SetTextSize(0.02);
 //gStyle->SetOptStat(0);
 
 
 int plotall(){
 	gROOT->SetBatch(kTRUE);// no open canvas window
-	setTDRStyle();
+	//setTDRStyle();
 	TFile     cf("plots/plotall.root","RECREATE");
 	TCanvas canv("name to reset","title to reset",10,10,900,900);
 	TH1D   *hobj;
@@ -102,19 +101,19 @@ int plotall(){
 	if( cms == ds || met == ds )  hobj->SetLineColor( colour);
 	else                          hobj->SetFillColor( colour);
 	stac .Add(                    hobj);
-	leg  .AddEntry(hobj,lgN,"l");
+	legS  ->AddEntry(hobj,lgN,"l");
 	}// dataSource
 	canv .cd();// pick me to draw?
 	stac .Draw("HIST");// must draw before set axes
 	stac .GetXaxis()->SetTitle(allNamesArray[i][2].c_str());
 	stac .GetYaxis()->SetTitle("Event");
-	leg.Draw();
+	legS ->Draw();
 	//canv .BuildLegend();
 	canv .Update();
 	cf   .WriteTObject(&canv);
 //	canv .SaveAs(("plots/" + stname + ".root").c_str());// slow
 //	canv .SaveAs(("plots/" + stname + ".pdf" ).c_str());
-	leg.Clear();
+	legS ->Clear();
 	canv .Clear();// clear rather than delete, reusable!
 	// stac will auto clean up since it is not new-ed
 	}}// channel, p
