@@ -58,7 +58,7 @@ namespace{
   constexpr double     Z_MASS     =  91.1876;
   constexpr double     Z_MASS_CUT =  20.    ;
   constexpr double     W_MASS     =  80.385 ;
-  constexpr double     W_MASS_CUT =  80.385 ;
+  constexpr double     W_MASS_CUT =  20.    ;
   constexpr double   TOP_MASS     = 172.5   ;
 //constexpr double   TOP_MASS_CUT =  20.    ;
 
@@ -656,7 +656,7 @@ auto top_reconst(
 	ROOT::Math::PtEtaPhiMVector reco_top,
 	   RecoW(wpair__pt   ,wpair_eta   ,wpair_phi   ,wpair_mas   );
 	// The following if for stacks correctly
-	if(std::abs(RecoW.M() - W_MASS) < W_MASS_CUT)
+	if(std::abs(RecoW.M() - W_MASS) < W_MASS)
 	for(size_t i=0; i < nbjets ;++i){
 	   ROOT::Math::PtEtaPhiMVector
 	   temp (bjets__pt[i],bjets_eta[i],bjets_phi[i],bjets_mas[i]);
@@ -1381,7 +1381,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(100000);// remember to enable MT when NOT range
-	auto init_selection = df// remove one letter to do all
+	auto init_selection = dfr// remove one letter to do all
 	.Filter(Triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
@@ -1584,6 +1584,20 @@ void calchisto(const channel ch,const dataSource ds){
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
 	;
+	auto finalDF_W // W mass cut for histograms
+	   = finalDF
+	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut");
+	auto finalDF_Z // Z mass cut for histograms
+	   = finalDF
+	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut");
+
+	auto finalDF_WZ // WZ mass cut for histograms
+	   = finalDF
+	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
+	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut");
+
+	finalDF_WZ.Report() ->Print(); // taking reports and stats of all filters
+
 	// Copied to below, skip MC-only, ADD MET_sumEt!
 	// Assuming temp_header and footer and all are set per (hist titles)!
 // MC only
@@ -1739,6 +1753,15 @@ void calchisto(const channel ch,const dataSource ds){
 	h_trans_T->GetYaxis()->SetTitle("Event");
 	h_trans_T->SetLineStyle(kSolid);
 
+	auto h_ttop_pt = finalDF.Histo1D({
+        ("ttop_pt_"+temp_header).c_str(),
+        ("Transverse top pt "+temp_header).c_str(),
+        50,0,300},
+	"ttop__pt","nw_ttop__pt");
+        h_ttop_pt->GetXaxis()->SetTitle("transverse top p_{T} (GeV/c)");
+        h_ttop_pt->GetYaxis()->SetTitle("Event");
+        h_ttop_pt->SetLineStyle(kSolid);
+
 	auto h_trans_w = finalDF.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
 	("Transverse W mass " + temp_header).c_str(),
@@ -1824,6 +1847,64 @@ void calchisto(const channel ch,const dataSource ds){
 	h_tWmVsZmass->GetXaxis()->SetTitle("\\text{  tWm  GeV/}c^{2}");
 	h_tWmVsZmass->GetYaxis()->SetTitle("\\text{Z mass GeV/}c^{2}");
 
+	// cut histograms
+
+	auto h_ttop_mas_w = finalDF_W.Histo1D({
+        ("ttop_mass_W_" + temp_header).c_str(),
+        ("Transverse top mass with W mass cut " + temp_header).c_str(),
+        50,0,250},
+        "ttop_mas","nw_ttop_mas");
+        h_ttop_mas_w->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
+        h_ttop_mas_w->GetYaxis()->SetTitle("Event");
+        h_ttop_mas_w->SetLineStyle(kSolid);
+
+        auto h_ttop_mas_z = finalDF_Z.Histo1D({
+        ("ttop_mass_Z_" + temp_header).c_str(),
+        ("Transverse top mass with Z mass cut " + temp_header).c_str(),
+        50,0,250},
+        "ttop_mas","nw_ttop_mas");
+        h_ttop_mas_z->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
+        h_ttop_mas_z->GetYaxis()->SetTitle("Event");
+        h_ttop_mas_z->SetLineStyle(kSolid);
+
+	auto h_ttop_mas_wz = finalDF_WZ.Histo1D({
+        ("ttop_mass_WZ_" + temp_header).c_str(),
+        ("Transverse top mass with W and Z mass cut " + temp_header).c_str(),
+        50,0,250},
+        "ttop_mas","nw_ttop_mas");
+        h_ttop_mas_wz->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
+        h_ttop_mas_wz->GetYaxis()->SetTitle("Event");
+        h_ttop_mas_wz->SetLineStyle(kSolid);
+
+	// pt plots
+        auto h_ttop_pt_w = finalDF_W.Histo1D({
+        ("ttop_pt_W_" + temp_header).c_str(),
+        ("Transverse top pt with W mass cut " + temp_header).c_str(),
+        50,0,250},
+        "ttop__pt","nw_ttop__pt");
+        h_ttop_pt_w->GetXaxis()->SetTitle("Transverse top p_{T} (GeV/c)");
+        h_ttop_pt_w->GetYaxis()->SetTitle("Event");
+        h_ttop_pt_w->SetLineStyle(kSolid);
+
+        auto h_ttop_pt_z = finalDF_Z.Histo1D({
+        ("ttop_pt_Z_" + temp_header).c_str(),
+        ("Transverse top pt with Z mass cut " + temp_header).c_str(),
+        50,0,250},
+        "ttop__pt","nw_ttop__pt");
+        h_ttop_pt_z->GetXaxis()->SetTitle("Transverse top p_{T} (GeV/c)");
+        h_ttop_pt_z->GetYaxis()->SetTitle("Event");
+        h_ttop_pt_z->SetLineStyle(kSolid);
+
+        auto h_ttop_pt_wz = finalDF_WZ.Histo1D({
+        ("ttop_pt_WZ_" + temp_header).c_str(),
+        ("Transverse top pt with W and Z mass cut " + temp_header).c_str(),
+        50,0,250},
+        "ttop__pt","nw_ttop__pt");
+        h_ttop_pt_wz->GetXaxis()->SetTitle("Transverse top p_{T} (GeV/c)");
+        h_ttop_pt_wz->GetYaxis()->SetTitle("Event");
+        h_ttop_pt_wz->SetLineStyle(kSolid);
+
+
 	// No SetLineStyle here
 
 	// write histograms to a root file
@@ -1850,6 +1931,7 @@ void calchisto(const channel ch,const dataSource ds){
 // end MC only;
 	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(h_ttop_pt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_Winvmas        .GetPtr());hf.Flush();sync();
@@ -1860,6 +1942,13 @@ void calchisto(const channel ch,const dataSource ds){
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_npl            .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
+        hf.WriteTObject(h_ttop_mas_w     .GetPtr());hf.Flush();sync();
+        hf.WriteTObject(h_ttop_mas_z     .GetPtr());hf.Flush();sync();
+        hf.WriteTObject(h_ttop_mas_wz    .GetPtr());hf.Flush();sync();
+        hf.WriteTObject(h_ttop_pt_w      .GetPtr());hf.Flush();sync();
+        hf.WriteTObject(h_ttop_pt_z      .GetPtr());hf.Flush();sync();
+        hf.WriteTObject(h_ttop_pt_wz     .GetPtr());hf.Flush();sync();
+
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
