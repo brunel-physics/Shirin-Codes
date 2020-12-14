@@ -39,7 +39,7 @@ int plotmc(){
 	}}// now we have a histogram file dictionary of all the files miahahaha
 	for(std::string sf:
 	{"sfi","sfj","p_ej","p_sfej","p_sf_i","btag_w","cmet_sEt","cmet__pt","cmet_dpx","cmet_dpy"}){
-	std::string xAxisStr;
+	std::string xAxisStr, staT; //staT = stack title
 	if(false);
 	else if(  "sfi"    == sf) xAxisStr = "sf_{i}";
 	else if(  "sfj"    == sf) xAxisStr = "sf_{j}";

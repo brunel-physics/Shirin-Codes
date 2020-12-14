@@ -1381,7 +1381,7 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	// make test runs faster by restriction. Real run should not
 	auto dfr = df.Range(100000);// remember to enable MT when NOT range
-	auto init_selection = dfr// remove one letter to do all
+	auto init_selection = df// remove one letter to do all
 	.Filter(Triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
@@ -2130,7 +2130,7 @@ void calchisto(const channel ch,const dataSource ds){
 	finalDF.Report() ->Print();
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/test"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/test_"+temp_header+".root").c_str(),"RECREATE");
 	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();
