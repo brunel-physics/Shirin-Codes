@@ -2,7 +2,8 @@
 #include <TCanvas.h>
 #include <TLegend.h>
 #include <THStack.h>
-
+#include <TROOT.h>
+#include <TStyle.h>
 #include "src/tdrstyle.C"
 #include "src/calchisto.hpp"
 
@@ -41,40 +42,42 @@ int plotmc(){
 	{"sfi","sfj","p_ej","p_sfej","p_sf_i","btag_w","cmet_sEt","cmet__pt","cmet_dpx","cmet_dpy"}){
 	std::string xAxisStr, staT; //staT = stack title
 	if(false);
-	else if(  "sfi"    == sf) xAxisStr = "sf_{i}";
-	else if(  "sfj"    == sf) xAxisStr = "sf_{j}";
-	else if("p_ej"     == sf) xAxisStr = "\\prod_{j} 1 -                e_{j}";
-	else if("p_sfej"   == sf) xAxisStr = "\\prod_{j} 1 - \\text{sf}_{j} e_{j}";
-	else if("p_sf_i"   == sf) xAxisStr = "\\prod_{i}     \\text{sf}_{i}      ";
-	else if("btag_w"   == sf) xAxisStr = "btag weight";
-	else if("cmet_sEt" == sf) xAxisStr = "Sum E_{T} (GeV)";
-	else if("cmet__pt" == sf) xAxisStr = "p_{T} (GeV/c)";
-	else if("cmet_dpx" == sf) xAxisStr = "p_{x} (GeV/c)";
-	else if("cmet_dpy" == sf) xAxisStr = "p_{y} (GeV/c)";
+	else if(  "sfi"    == sf) {staT = "btag SF_{i}";xAxisStr = "sf_{i}";}
+	else if(  "sfj"    == sf) {staT = "btag SF_{j}";xAxisStr = "sf_{j}";}
+	else if("p_ej"     == sf) {staT = "\\prod_{j} - e_{j}";xAxisStr = "\\prod_{j} 1 -                e_{j}";}
+	else if("p_sfej"   == sf) {staT = "\\prod_{j} 1 - \\text{sf}_{j} e_{j}";xAxisStr = "\\prod_{j} 1 - \\text{sf}_{j} e_{j}";}
+	else if("p_sf_i"   == sf) {staT = "\\prod_{i}     \\text{sf}_{i}";xAxisStr = "\\prod_{i}     \\text{sf}_{i}      ";}
+	else if("btag_w"   == sf) {staT = "btag weight";xAxisStr = "btag weight";}
+	else if("cmet_sEt" == sf) {staT = "corrected MET Sum E_{T}";xAxisStr = "Sum E_{T} (GeV)";}
+	else if("cmet__pt" == sf) {staT = "corrected MET p_{T}";xAxisStr = "p_{T} (GeV/c)";}
+	else if("cmet_dpx" == sf) {staT = "corrected dp_{x}";xAxisStr = "p_{x} (GeV/c)";}
+	else if("cmet_dpy" == sf) {staT = "corrected dp_{y}";xAxisStr = "p_{y} (GeV/c)";}
 
 	for(channel ch:channelAll){
-	std::string chN;
+	std::string chN,chF,lgN; // chF channel title,lgN legend name
 	switch     (ch){
-		case elnu:  {chN ="elnu";break;}
-		case munu:  {chN ="munu";break;}
+		case elnu:  {chN ="elnu";chF =  "#e#nu";break;}
+		case munu:  {chN ="munu";chF = "#mu#nu";break;}
 	}
-	std::string                title = sf + " " + chN;
+	std::string                title = staT + " " + chF;
 	std::string  stname =(sf + "_" + chN).c_str() ;
 	canv.SetName(stname.c_str());canv.SetTitle(stname.c_str());
 	THStack stac(stname.c_str(),title.c_str());
+	TLegend legS = TLegend(0.8,0.6,0.95,0.9);
+	gStyle->SetOptStat(0);
 	for(dataSource ds:dataSourceAll){
 	std::string  opener  = chN + "_";
 	if(cms == ds || met == ds)continue;// NOTE: Skip since NOT Monte Carlo
 	int colour;
 	switch  (ds){
-		case tzq:{opener += "tzq";colour = 6;break;}// magenta
-		case  ww:{opener += "_ww";colour = 2;break;}// red
-		case  wz:{opener += "_wz";colour = 3;break;}// green
-		case  zz:{opener += "_zz";colour = 4;break;}// blue
-		case ttb:{opener += "ttb";colour = 7;break;}// cyan
-		case ttz:{opener += "ttz";colour = 5;break;}// yellow
-		case met:{opener += "met";colour = 9;break;}// violet
-		case cms:{opener += "cms";colour = 1;break;}// black
+		case tzq:{opener += "tzq";lgN ="tzq";colour = 6;break;}// magenta
+		case  ww:{opener += "_ww";lgN = "WW";colour = 2;break;}// red
+		case  wz:{opener += "_wz";lgN = "WZ";colour = 3;break;}// green
+		case  zz:{opener += "_zz";lgN = "ZZ";colour = 4;break;}// blue
+		case ttb:{opener += "ttb";lgN ="ttb";colour = 7;break;}// cyan
+		case ttz:{opener += "ttz";lgN ="ttZ";colour = 5;break;}// yellow
+		case met:{opener += "met";lgN ="MET";colour = 9;break;}// violet
+		case cms:{opener += "cms";lgN ="CMS";colour = 1;break;}// black
 	}
 	std::string    hobjN = sf + "_" + opener ;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),hobj);
@@ -82,16 +85,20 @@ int plotmc(){
 	if( cms == ds || met == ds )  hobj->SetLineColor( colour);
 	else                          hobj->SetFillColor( colour);
 	stac .Add(                    hobj);
+	if( cms == ds || met == ds )legS .AddEntry(hobj,lgN.c_str(),"l");
+	else			    legS .AddEntry(hobj,lgN.c_str(),"f");
 	}// dataSource
 	canv .cd();// pick me to draw?
 	stac .Draw("HIST");// must draw before set axes
 	stac .GetXaxis()->SetTitle(xAxisStr.c_str());
 	stac .GetYaxis()->SetTitle("Event");
-	canv .BuildLegend();
+	legS.Draw();
+	//canv .BuildLegend();
 	canv .Update();
 	cf   .WriteTObject(&canv);
 //	canv .SaveAs(("plots/" + stname + ".root").c_str());// slow
 //	canv .SaveAs(("plots/" + stname + ".pdf" ).c_str());
+	legS.Clear();
 	canv .Clear();// clear rather than delete, reusable!
 	// stac will auto clean up since it is not new-ed
 	}}// channel, particle
