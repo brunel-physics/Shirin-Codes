@@ -1,8 +1,6 @@
+// TODO:: extend cmet to include MET and CMS (passing the same value), it is needed for them to be on the same  stack
 // TODO:: Shape uncertainties -> implement lhepdfWeight for up and down based on the formula
-// TODO:: change filter to include mass cuts accordingly and deltaphi cuts
-// TODO:: Aim is to watch top mass after W mass cut and Z mass cut separately and both mass cuts
-// TODO:: Aim is to watch Z mass cut after top and W mass cut separately and with both
-// TODO:: Aim is to watch W mass cut after Z mass cut.
+// TODO:: change filter to include deltaphi cuts
 
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 #include <Math/Vector4D.h>
@@ -1151,6 +1149,9 @@ auto finalScaling(
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
 	. Alias("nw_lep_mas"       ,"sf")
+        . Alias("nw_cmet__pt"      ,"sf")
+	. Alias("nw_cmet_phi"	   ,"sf")
+	. Alias("nw_cmet_sEt"	   ,"sf")
 	.Define("nw_fin_jets__pt"  ,rep_const,{"sf","fin_jets__pt"  })
 	.Define("nw_fin_jets_eta"  ,rep_const,{"sf","fin_jets_eta"  })
 	.Define("nw_fin_jets_phi"  ,rep_const,{"sf","fin_jets_phi"  })
@@ -1692,7 +1693,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_cmet_sEt = finalDF.Histo1D({
 	("cmet_sEt_"+temp_header).c_str(),
 	("cmet_sEt "+temp_header).c_str(),
-	100,0,600},"cmet_sEt");
+	100,0,600},"cmet_sEt","nw_cmet_sEt");
 	h_cmet_sEt->GetXaxis()->SetTitle("corrected MET Sum Et (GeV)");
 	h_cmet_sEt->GetYaxis()->SetTitle("Event");
 	h_cmet_sEt->SetLineStyle(kSolid);
@@ -1700,10 +1701,18 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_cmet__pt = finalDF.Histo1D({
 	("cmet__pt_"+temp_header).c_str(),
 	("cmet__pt "+temp_header).c_str(),
-	50,0,300},"cmet__pt");
+	50,0,300},"cmet__pt","nw_cmet__pt");
 	h_cmet__pt->GetXaxis()->SetTitle("corrected MET p_{T} (GeV/c)");
 	h_cmet__pt->GetYaxis()->SetTitle("Event");
 	h_cmet__pt->SetLineStyle(kSolid);
+
+        auto h_cmet_phi = finalDF.Histo1D({
+        ("cmet_phi_"+temp_header).c_str(),
+        ("cmet_phi "+temp_header).c_str(),
+        50,0,300},"cmet_phi","nw_cmet_phi");
+        h_cmet_phi->GetXaxis()->SetTitle("corrected MET #phi /rad");
+	h_cmet_phi->GetYaxis()->SetTitle("Event");
+        h_cmet_phi->SetLineStyle(kSolid);
 
 	auto h_cmet_dpx = finalDF.Histo1D({
 	("cmet_dpx_"+temp_header).c_str(),
@@ -1920,6 +1929,7 @@ void calchisto(const channel ch,const dataSource ds){
 		hf.WriteTObject(h_btag_w               .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet_sEt             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet__pt             .GetPtr());hf.Flush();sync();
+                hf.WriteTObject(h_cmet_phi             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet_dpx             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet_dpy             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();

@@ -60,10 +60,10 @@ int plotcomp(){
 //	case  e :throw std::logic_error("can't plot energy");
 	}
 	for(channel ch:channelAll){
-	std::string chN;
+	std::string chN, chF; //chF channel title
 	switch     (ch){
-		case elnu:  {chN ="elnu";break;}
-		case munu:  {chN ="munu";break;}
+		case elnu:  {chN ="elnu";chF =  "#e#nu";break;}
+		case munu:  {chN ="munu";chF = "#mu#nu";break;}
 	}
 	std::string                title = chN + " " + particle;
 	if("fin_jets" == particle) title = chN + " jets";

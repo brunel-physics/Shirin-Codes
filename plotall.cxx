@@ -97,8 +97,11 @@ int plotall(){
 	std::string    hobjN = allNamesArray[i][0] + opener;
 	hFd[std::make_pair(ch,ds)]->GetObject(	     hobjN.c_str(),hobj);
 	                              hobj->SetDirectory(	nullptr);
-	if( cms == ds || met == ds )  hobj->SetLineColor(	 colour);
-	else                          hobj->SetFillColor( 	 colour);
+	if( cms == ds || met == ds ) {//hobj->SetLineColor(	 colour);
+				      hobj->SetMarkerColor(	 kBlack); //kBlack
+   				      hobj->SetMarkerStyle(	     20);
+   				      hobj->SetMarkerSize(	    1.0);
+	}else                         hobj->SetFillColor( 	 colour);
 	stac .Add(                    hobj);
 	if( cms == ds || met == ds )legS .AddEntry(hobj,lgN.c_str(),"l");
 	else			    legS .AddEntry(hobj,lgN.c_str(),"f");
