@@ -741,6 +741,7 @@ auto allReconstruction(T &rdf){
 //	       { "zmet_Dph"},"Z met cut ")
 	.Define("z_pair_Dph",[](doubles p){return
 	                      abs_deltaphi(p[0],p[1]);},{"z_pair_phi"})
+	.Define("WZ_deltaR",deltaR,{"z_eta","z_phi","tw_lep_eta","tw_lep_phi"})
 	// reconstruct transverse top follows; z reconstructed
 	.Define("recoTtop",top_reconst,
 	       {"bjet__pt",
@@ -1162,10 +1163,11 @@ auto finalScaling(
 	.Define("nw_bjet_mas"      ,rep_const,{"sf","bjet_mas"      })
 	.Define("nw_jet_lep_min_dR",rep_const,{"sf","jet_lep_min_dR"})
 	.Define(  "nw_z_lep_min_dR",rep_const,{"sf",  "z_lep_min_dR"})
+	.Define("nw_WZ_deltaR"	   ,"sf")
 	. Alias( "nw_tw_lep_mas"   ,"sf")
 	. Alias(  "nw_z_mas"       ,"sf")
 	.Define("nw_fin_jets_Dph"  ,rep_const,{"sf","fin_jets_Dph"})
-	.Define(  "nw_z_pair_Dph"	,"sf")
+	.Define(  "nw_z_pair_Dph"  ,"sf")
 	. Alias(    "nw_zmet_Dph"  ,"sf")
 	. Alias(      "nw_zw_Dph"  ,"sf")
 	. Alias("nw_lep_nu_invmass","sf")
@@ -1690,6 +1692,24 @@ void calchisto(const channel ch,const dataSource ds){
 	h_btag_w->GetYaxis()->SetTitle("Event");
 	h_btag_w->SetLineStyle(kSolid);
 
+        auto h_mostSF = finalDF.Histo1D({
+        ("mostSF_"+temp_header).c_str(),
+        ("mostSF "+temp_header).c_str(),
+        5000,-1,1.3},"btag_w");
+        h_mostSF->GetXaxis()->SetTitle("most SF");
+        h_mostSF->GetYaxis()->SetTitle("Event");
+        h_mostSF->SetLineStyle(kSolid);
+
+        auto h_ttbSF = finalDF.Histo1D({
+        ("ttbSF_"+temp_header).c_str(),
+        ("ttbSF "+temp_header).c_str(),
+        5000,-1,1.3},"ttbSF");
+        h_btag_w->GetXaxis()->SetTitle("ttb SF");
+        h_btag_w->GetYaxis()->SetTitle("Event");
+        h_btag_w->SetLineStyle(kSolid);
+
+
+/*
 	auto h_cmet_sEt = finalDF.Histo1D({
 	("cmet_sEt_"+temp_header).c_str(),
 	("cmet_sEt "+temp_header).c_str(),
@@ -1777,7 +1797,7 @@ void calchisto(const channel ch,const dataSource ds){
 	50,0,160},
 	"tw_lep_mas","nw_tw_lep_mas");
 	//h_trans_w->Fit("Gaus"); Didn't work!
-	TF1 *f2 = new TF1("f2","gaus",0,180);
+	TF1 *f2 = new TF1("f2","gaus",0,160);
 	f2->SetParameters(h_trans_w->GetMaximum()
 	                 ,h_trans_w->GetMean()
 	                 ,h_trans_w->GetRMS ()  );
@@ -1794,7 +1814,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_Winvmas->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_Winvmas->GetYaxis()->SetTitle("Event");
 	h_Winvmas->SetLineStyle(kSolid);
-
+*/
 	auto h_ev_w = finalDF.Histo1D({
 	(   "ev_w_"     +temp_header).c_str(),
 	("Event weight "+temp_header).c_str(),
@@ -1802,7 +1822,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_ev_w->GetXaxis()->SetTitle("weight");
 	h_ev_w->GetYaxis()->SetTitle("Event" );
 	h_ev_w->SetLineStyle(kSolid);
-
+/*
 	auto h_z_mas = finalDF.Histo1D({
 	(        "zmas_"  + temp_header).c_str(),
 	("Recon. Z mass " + temp_header).c_str(),
@@ -1830,6 +1850,16 @@ void calchisto(const channel ch,const dataSource ds){
 	h_zmet_Dph->GetYaxis()->SetTitle("Event");
 	h_zmet_Dph->SetLineStyle(kSolid);
 
+        auto h_WZ_deltaR = finalDF.Histo1D({
+        ("WZ_DeltaR_"  + temp_header).c_str(),
+        ("W Z deltaR"  + temp_header).c_str(),
+        50,0,7},
+        "WZ_deltaR","nw_WZ_deltaR");
+        h_WZ_deltaR->GetXaxis()->SetTitle("Z & W #DeltaR");
+        h_WZ_deltaR->GetYaxis()->SetTitle("Event");
+        h_WZ_deltaR->SetLineStyle(kSolid);
+
+
 	auto h_z_daughters_Dph = finalDF.Histo1D({
 	("Z_pair_jets_Delta_Phi_" + temp_header).c_str(),
 	("Z pair jets Delta Phi " + temp_header).c_str(),
@@ -1838,7 +1868,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_z_daughters_Dph->GetXaxis()->SetTitle("Z pair jets #Delta#phi/rad");
 	h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
 	h_z_daughters_Dph->SetLineStyle(kSolid);
-
+*/
 	auto h_npl = finalDF.Histo1D({
 	("npl_" + temp_header).c_str(),
 	("npl " + temp_header).c_str(),
@@ -1848,7 +1878,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_npl->GetYaxis()->SetTitle("Event");
 	h_npl->SetLineStyle(kSolid);
 
-	auto h_tWmVsZmass = finalDF.Histo2D({
+/*	auto h_tWmVsZmass = finalDF.Histo2D({
 	("tWmVsZmass_" + temp_header).c_str(),
 	("tWmVsZmass " + temp_header).c_str(),
 	50,0,180,50,0,150},
@@ -1912,13 +1942,13 @@ void calchisto(const channel ch,const dataSource ds){
         h_ttop_pt_wz->GetXaxis()->SetTitle("Transverse top p_{T} (GeV/c)");
         h_ttop_pt_wz->GetYaxis()->SetTitle("Event");
         h_ttop_pt_wz->SetLineStyle(kSolid);
-
+*/
 
 	// No SetLineStyle here
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/SF_"+temp_header+".root").c_str(),"RECREATE");
 // MC only
 		hf.WriteTObject(h_sfi                  .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_sfj                  .GetPtr());hf.Flush();sync();
@@ -1927,38 +1957,44 @@ void calchisto(const channel ch,const dataSource ds){
 		hf.WriteTObject(h_p_sf_i               .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_p_sfej               .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_btag_w               .GetPtr());hf.Flush();sync();
-		hf.WriteTObject(h_cmet_sEt             .GetPtr());hf.Flush();sync();
+                hf.WriteTObject(h_mostSF               .GetPtr());hf.Flush();sync();
+                hf.WriteTObject(h_ttbSF                .GetPtr());hf.Flush();sync();
+/*		hf.WriteTObject(h_cmet_sEt             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet__pt             .GetPtr());hf.Flush();sync();
                 hf.WriteTObject(h_cmet_phi             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet_dpx             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet_dpy             .GetPtr());hf.Flush();sync();
-		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();
+
+*/		hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_no_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_is_btag_denom_PtVsEta.GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_no_btag_denom_PtVsEta.GetPtr());hf.Flush();sync();
 		hf.WriteTObject(is_btag_ratio)                   ;hf.Flush();sync();
 		hf.WriteTObject(no_btag_ratio)                   ;hf.Flush();sync();
 // end MC only;
-	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
+/*	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_ttop_pt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_Winvmas        .GetPtr());hf.Flush();sync();
+*/
 	hf.WriteTObject(h_ev_w           .GetPtr());hf.Flush();sync();
-	hf.WriteTObject(h_z_mas          .GetPtr());hf.Flush();sync();
+/*	hf.WriteTObject(h_z_mas          .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(  h_zw_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();sync();
+        hf.WriteTObject(h_WZ_deltaR      .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
+*/
 	hf.WriteTObject(h_npl            .GetPtr());hf.Flush();sync();
-	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
+/*	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
         hf.WriteTObject(h_ttop_mas_w     .GetPtr());hf.Flush();sync();
         hf.WriteTObject(h_ttop_mas_z     .GetPtr());hf.Flush();sync();
         hf.WriteTObject(h_ttop_mas_wz    .GetPtr());hf.Flush();sync();
         hf.WriteTObject(h_ttop_pt_w      .GetPtr());hf.Flush();sync();
         hf.WriteTObject(h_ttop_pt_z      .GetPtr());hf.Flush();sync();
         hf.WriteTObject(h_ttop_pt_wz     .GetPtr());hf.Flush();sync();
-
+*/
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -2040,7 +2076,7 @@ void calchisto(const channel ch,const dataSource ds){
 	;
 	// Copied from earlier, delete MC-only!
 	// Assuming temp_header and footer and all are set per (hist titles)!
-	auto h_met_sEt = finalDF.Histo1D({
+/*	auto h_met_sEt = finalDF.Histo1D({
 	("met_sEt_"+temp_header).c_str(),
 	("met_sEt "+temp_header).c_str(),
 	100,0,600},"MET_sumEt");
@@ -2068,7 +2104,7 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_trans_w = finalDF.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
 	("Transverse W mass " + temp_header).c_str(),
-	50,0,180},
+	50,0,160},
 	"tw_lep_mas","nw_tw_lep_mas");
 	h_trans_w->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_trans_w->GetYaxis()->SetTitle("Event");
@@ -2077,12 +2113,12 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_Winvmas = finalDF.Histo1D({
 	("W_invariant_mass_" + temp_header).c_str(),
 	("W invariant mass " + temp_header).c_str(),
-	50,0,180},
+	50,0,160},
 	"lep_nu_invmass","nw_lep_nu_invmass");
 	h_Winvmas->GetXaxis()->SetTitle("\\text{mass GeV/}c^{2}");
 	h_Winvmas->GetYaxis()->SetTitle("Event");
 	h_Winvmas->SetLineStyle(kSolid);
-
+*/
 	auto h_ev_w = finalDF.Histo1D({
 	(   "ev_w_"     +temp_header).c_str(),
 	("Event weight "+temp_header).c_str(),
@@ -2090,7 +2126,7 @@ void calchisto(const channel ch,const dataSource ds){
 	h_ev_w->GetXaxis()->SetTitle("weight");
 	h_ev_w->GetYaxis()->SetTitle("Event" );
 	h_ev_w->SetLineStyle(kSolid);
-
+/*
 	auto h_z_mas = finalDF.Histo1D({
 	(        "zmas_"  + temp_header).c_str(),
 	("Recon. Z mass " + temp_header).c_str(),
@@ -2130,28 +2166,31 @@ void calchisto(const channel ch,const dataSource ds){
 	auto h_tWmVsZmass = finalDF.Histo2D({
 	("tWmVsZmass_" + temp_header).c_str(),
 	("tWmVsZmass " + temp_header).c_str(),
-	50,0,180,50,0,150},
+	50,0,160,50,0,160},
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("\\text{  tWm  GeV/}c^{2}");
 	h_tWmVsZmass->GetYaxis()->SetTitle("\\text{Z mass GeV/}c^{2}");
 	// No SetLineStyle here
-
+*/
 	//Reporting the filter
 	finalDF.Report() ->Print();
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/test_"+temp_header+".root").c_str(),"RECREATE");
-	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
+	TFile hf(("histo/SF_"+temp_header+".root").c_str(),"RECREATE");
+/*	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_Winvmas        .GetPtr());hf.Flush();sync();
+*/
 	hf.WriteTObject(h_ev_w           .GetPtr());hf.Flush();sync();
+/*
 	hf.WriteTObject(h_z_mas          .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(  h_zw_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
+*/
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){

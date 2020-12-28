@@ -95,21 +95,25 @@ int plotall(){
 		case cms:{opener += "cms";lgN = "CMS";colour = 1;break;}// black
 	}
 	std::string    hobjN = allNamesArray[i][0] + opener;
-	hFd[std::make_pair(ch,ds)]->GetObject(	     hobjN.c_str(),hobj);
-	                              hobj->SetDirectory(	nullptr);
-	if( cms == ds || met == ds ) {//hobj->SetLineColor(	 colour);
-				      hobj->SetMarkerColor(	 kBlack); //kBlack
-   				      hobj->SetMarkerStyle(	     20);
-   				      hobj->SetMarkerSize(	    1.0);
-	}else                         hobj->SetFillColor( 	 colour);
-	stac .Add(                    hobj);
-	if( cms == ds || met == ds )legS .AddEntry(hobj,lgN.c_str(),"l");
-	else			    legS .AddEntry(hobj,lgN.c_str(),"f");
-	}// dataSource
+	hFd[std::make_pair(ch,ds)]->GetObject(	      hobjN.c_str(),hobj);
+	                              hobj->SetDirectory(	 nullptr);
+	if( cms == ds || met == ds ){ hobj->SetLineColor(	  colour);
+				      hobj->SetMarkerColor(	  colour);
+   				      hobj->SetMarkerStyle(	      20);
+   				      hobj->SetMarkerSize(	     1.0);
+			              stac.Add(              hobj,  "E1");
+				      legS.AddEntry(hobj,lgN.c_str(),"l");
+	}else{			      hobj->SetFillColor(         colour);
+				      stac.Add(		     hobj,"HIST");
+				      legS.AddEntry(hobj,lgN.c_str(),"f");
+	}}// else & dataSource
 	canv .cd();// pick me to draw?
-	stac .Draw("HIST");// must draw before set axes
+	for(dataSource ds:dataSourceAll){
+        if( cms != ds || met != ds)   stac.Draw(        "HIST");
+	else                          stac.Draw( "nostack,e1p");
 	stac .GetXaxis()->SetTitle(allNamesArray[i][2].c_str());
 	stac .GetYaxis()->SetTitle("Event");
+	}// datasource second
 	legS .Draw();
 	//canv .BuildLegend();
 	canv .Update();
