@@ -1118,6 +1118,8 @@ inline auto sf(
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
 		if( MC) result *= /*npl * */ pile(PuWd,PuUd,PuDd)(npv)[puW];
+		std::cout<<"pile up is "<<pile(PuWd,PuUd,PuDd)(npv)[puW]
+			 <<" lhepdf is "<<lhepdf[0]<<std::endl;
 		//if(!MC) result *= npl;
 		if(result < 0)std::cout<<"pile lt 0"<<std::endl;
 		if(5<debug)   std::cout<<"b_w "<< b
@@ -1948,7 +1950,7 @@ void calchisto(const channel ch,const dataSource ds){
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/SF_"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/test_SF_"+temp_header+".root").c_str(),"RECREATE");
 // MC only
 		hf.WriteTObject(h_sfi                  .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_sfj                  .GetPtr());hf.Flush();sync();
@@ -2176,7 +2178,7 @@ void calchisto(const channel ch,const dataSource ds){
 	finalDF.Report() ->Print();
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/SF_"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/test_SF_"+temp_header+".root").c_str(),"RECREATE");
 /*	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();

@@ -68,6 +68,7 @@ int plotall(){
 		case elnu:  {chN ="elnu";chF =  "e#nu"; break;}
 		case munu:  {chN ="munu";chF ="#mu#nu"; break;}
 	}// switch
+	float max = -1;
 	std::string   title = allNamesArray[i][1] + chF;
 	std::string  stname = allNamesArray[i][0] + chN;
 	canv.SetName(stname.c_str());canv.SetTitle(stname.c_str());
@@ -84,36 +85,40 @@ int plotall(){
 	for(dataSource ds:dataSourceAll){
 	std::string  opener  = chN + "_";
 	int colour;
+	//float max = -1;
 	switch  (ds){
-		case tzq:{opener += "tzq";lgN = "tZq";colour = 6;break;}// magenta
-		case  ww:{opener += "_ww";lgN = "WW ";colour = 2;break;}// red
-		case  wz:{opener += "_wz";lgN = "WZ ";colour = 3;break;}// green
-		case  zz:{opener += "_zz";lgN = "ZZ ";colour = 4;break;}// blue
-		case ttz:{opener += "ttz";lgN = "ttZ";colour = 5;break;}// yellow
-		case ttb:{opener += "ttb";lgN = "ttb";colour = 7;break;}// cyan
-		case met:{opener += "met";lgN = "MET";colour = 9;break;}// violet
-		case cms:{opener += "cms";lgN = "CMS";colour = 1;break;}// black
+		case tzq:{opener += "tzq";lgN = "tZq ";colour = 6;break;}// magenta
+		case  ww:{opener += "_ww";lgN = "WW  ";colour = 2;break;}// red
+		case  wz:{opener += "_wz";lgN = "WZ  ";colour = 3;break;}// green
+		case  zz:{opener += "_zz";lgN = "ZZ  ";colour = 4;break;}// blue
+		case ttz:{opener += "ttz";lgN = "ttZ ";colour = 5;break;}// yellow
+		case ttb:{opener += "ttb";lgN = "ttb ";colour = 7;break;}// cyan
+		case met:{opener += "met";lgN = "MET ";colour = 9;break;}// violet
+		case cms:{opener += "cms";lgN = "data";colour = 1;break;}// black
 	}
 	std::string    hobjN = allNamesArray[i][0] + opener;
-	hFd[std::make_pair(ch,ds)]->GetObject(	      hobjN.c_str(),hobj);
-	                              hobj->SetDirectory(	 nullptr);
-	if( cms == ds || met == ds ){ hobj->SetLineColor(	  colour);
-				      hobj->SetMarkerColor(	  colour);
-   				      hobj->SetMarkerStyle(	      20);
-   				      hobj->SetMarkerSize(	     1.0);
-			              stac.Add(              hobj,  "E1");
-				      legS.AddEntry(hobj,lgN.c_str(),"l");
-	}else{			      hobj->SetFillColor(         colour);
-				      stac.Add(		     hobj,"HIST");
-				      legS.AddEntry(hobj,lgN.c_str(),"f");
+	hFd[std::make_pair(ch,ds)]->GetObject(	      hobjN.c_str(),  hobj);
+	                             	   hobj->SetDirectory(	   nullptr);
+	if(hobj->GetMaximum() > max) max= hobj->GetMaximum(	   	  );
+	if( cms == ds || met == ds ){ 		   if(met == ds)   continue;
+				      hobj->SetLineColor(	    colour);
+				      hobj->SetMarkerColor(	    colour);
+   				      hobj->SetMarkerStyle(	        20);
+   				      hobj->SetMarkerSize(	       1.0);
+			              stac.Add(              hobj,    "E0");
+				      legS.AddEntry(hobj,lgN.c_str(),"lep");
+	}else{			      hobj->SetFillColor(           colour);
+				      stac.Add(		       hobj,"HIST");
+				      legS.AddEntry(hobj,lgN.c_str(),  "f");
 	}}// else & dataSource
 	canv .cd();// pick me to draw?
 	for(dataSource ds:dataSourceAll){
-        if( cms != ds || met != ds)   stac.Draw(        "HIST");
-	else                          stac.Draw( "nostack,e1p");
+        if( cms != ds || met != ds)   stac.Draw(                  "HIST C");
+	else			      stac.Draw(                 "nostack");//"e x0, same");
 	stac .GetXaxis()->SetTitle(allNamesArray[i][2].c_str());
 	stac .GetYaxis()->SetTitle("Event");
 	}// datasource second
+	stac .SetMaximum(max*1.2);
 	legS .Draw();
 	//canv .BuildLegend();
 	canv .Update();

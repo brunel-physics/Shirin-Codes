@@ -5,9 +5,9 @@ enum      channel      {elnu,munu};
 constexpr channel
           channelAll[]={elnu,munu};
 
-enum      dataSource      {zz,ttz,tzq,ww,wz,met,ttb,cms};
+enum      dataSource      {zz,tzq,ttz,ww,wz,met,ttb,cms};
 constexpr dataSource
-          dataSourceAll[]={zz,ttz,tzq,ww,wz,met,ttb,cms};
+          dataSourceAll[]={zz,tzq,ttz,ww,wz,met,ttb,cms};
 
 
 enum      PtEtaPhiM      {pt,eta,phi,m};
