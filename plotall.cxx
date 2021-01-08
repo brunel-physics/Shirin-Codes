@@ -73,6 +73,7 @@ int plotall(){
 	std::string  stname = allNamesArray[i][0] + chN;
 	canv.SetName(stname.c_str());canv.SetTitle(stname.c_str());
 	THStack stac(stname.c_str(),title.c_str());
+	THStack stad(stname.c_str(),title.c_str());//testing stack for data
 	TLegend legS = TLegend(0.8,0.6,0.95,0.9);
 	//legS.SetFillStyle(1001);
 	//legS.SetBorderSize(1);
@@ -98,23 +99,25 @@ int plotall(){
 	}
 	std::string    hobjN = allNamesArray[i][0] + opener;
 	hFd[std::make_pair(ch,ds)]->GetObject(	      hobjN.c_str(),  hobj);
-	                             	   hobj->SetDirectory(	   nullptr);
+	                             	  hobj->SetDirectory(	   nullptr);
 	if(hobj->GetMaximum() > max) max= hobj->GetMaximum(	   	  );
 	if( cms == ds || met == ds ){ 		   if(met == ds)   continue;
 				      hobj->SetLineColor(	    colour);
 				      hobj->SetMarkerColor(	    colour);
    				      hobj->SetMarkerStyle(	        20);
    				      hobj->SetMarkerSize(	       1.0);
-			              stac.Add(              hobj,    "E0");
+			              //stac.Add(              hobj,    "E0");
 				      legS.AddEntry(hobj,lgN.c_str(),"lep");
 	}else{			      hobj->SetFillColor(           colour);
-				      stac.Add(		       hobj,"HIST");
+				      stac.Add(		              hobj);
 				      legS.AddEntry(hobj,lgN.c_str(),  "f");
 	}}// else & dataSource
 	canv .cd();// pick me to draw?
 	for(dataSource ds:dataSourceAll){
-        if( cms != ds || met != ds)   stac.Draw(                  "HIST C");
-	else			      stac.Draw(                 "nostack");//"e x0, same");
+        //if( cms != ds || met != ds)  stac.Draw(              	   "histe");
+	//else			     hobj->Draw(                    "SAME");//"e x0, same");
+        if( cms == ds || met == ds)   hobj->Draw(                    "SAME");
+        else                          stac. Draw(                   "histe");//"e x0, same");
 	stac .GetXaxis()->SetTitle(allNamesArray[i][2].c_str());
 	stac .GetYaxis()->SetTitle("Event");
 	}// datasource second
