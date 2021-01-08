@@ -68,25 +68,25 @@ int plotall(){
 		case elnu:  {chN ="elnu";chF =  "e#nu"; break;}
 		case munu:  {chN ="munu";chF ="#mu#nu"; break;}
 	}// switch
-	float max = -1;
+	double max = -1;
 	std::string   title = allNamesArray[i][1] + chF;
 	std::string  stname = allNamesArray[i][0] + chN;
 	canv.SetName(stname.c_str());canv.SetTitle(stname.c_str());
 	THStack stac(stname.c_str(),title.c_str());
-	THStack stad(stname.c_str(),title.c_str());//testing stack for data
+//	THStack stad(stname.c_str(),title.c_str());//testing stack for data
 	TLegend legS = TLegend(0.8,0.6,0.95,0.9);
-	//legS.SetFillStyle(1001);
-	//legS.SetBorderSize(1);
-	//legS.SetFillColor(0);
-	//legS.SetLineColor(0);
-	//legS.SetShadowColor(0);
-	//legS.SetFillColor(kWhite);
-	//legS.SetTextSize(0.02);
+//	legS.SetFillStyle(1001);
+//	legS.SetBorderSize(1);
+//	legS.SetFillColor(0);
+//	legS.SetLineColor(0);
+//	legS.SetShadowColor(0);
+//	legS.SetFillColor(kWhite);
+//	legS.SetTextSize(0.02);
 	gStyle->SetOptStat(0);
 	for(dataSource ds:dataSourceAll){
+	if( met == ds ) continue;
 	std::string  opener  = chN + "_";
 	int colour;
-	//float max = -1;
 	switch  (ds){
 		case tzq:{opener += "tzq";lgN = "tZq ";colour = 6;break;}// magenta
 		case  ww:{opener += "_ww";lgN = "WW  ";colour = 2;break;}// red
@@ -97,33 +97,31 @@ int plotall(){
 		case met:{opener += "met";lgN = "MET ";colour = 9;break;}// violet
 		case cms:{opener += "cms";lgN = "data";colour = 1;break;}// black
 	}
-	std::string    hobjN = allNamesArray[i][0] + opener;
-	hFd[std::make_pair(ch,ds)]->GetObject(	      hobjN.c_str(),  hobj);
-	                             	  hobj->SetDirectory(	   nullptr);
-	if(hobj->GetMaximum() > max) max= hobj->GetMaximum(	   	  );
-	if( cms == ds || met == ds ){ 		   if(met == ds)   continue;
-				      hobj->SetLineColor(	    colour);
-				      hobj->SetMarkerColor(	    colour);
-   				      hobj->SetMarkerStyle(	        20);
-   				      hobj->SetMarkerSize(	       1.0);
-			              //stac.Add(              hobj,    "E0");
-				      legS.AddEntry(hobj,lgN.c_str(),"lep");
-	}else{			      hobj->SetFillColor(           colour);
-				      stac.Add(		              hobj);
-				      legS.AddEntry(hobj,lgN.c_str(),  "f");
+	std::string hobjN = allNamesArray[i][0] + opener;
+	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),        hobj);
+	                                      hobj->SetDirectory(nullptr);
+	if(hobj->GetMaximum() > max) max =    hobj->GetMaximum(         );
+	// note that MET is already skipped above
+	// WARNING: We require CMS to be the last thing in dataSourceAll !
+	if( cms != ds ){
+		hobj->SetFillColor(colour);
+		stac .Add(hobj);
+		legS .AddEntry(hobj,lgN.c_str(),"f");
+	}else{// CMS is last, so we plot at this time!
+//		canv .cd();// pick me to draw?
+		stac .Draw("hist");// TODO: histe
+		stac .GetXaxis()->SetTitle(allNamesArray[i][2].c_str());
+		stac .GetYaxis()->SetTitle("Event");
+		stac .SetMaximum(max*1.2);// now plot is set, plot CMS on it
+		hobj->SetLineColor(  colour);
+		hobj->SetMarkerColor(colour);
+		hobj->SetMarkerStyle(20);
+		hobj->SetMarkerSize(1.0);
+		legS .AddEntry(hobj,lgN.c_str(),"lep");
+		hobj->Draw("same");
+		legS .Draw();
 	}}// else & dataSource
-	canv .cd();// pick me to draw?
-	for(dataSource ds:dataSourceAll){
-        //if( cms != ds || met != ds)  stac.Draw(              	   "histe");
-	//else			     hobj->Draw(                    "SAME");//"e x0, same");
-        if( cms == ds || met == ds)   hobj->Draw(                    "SAME");
-        else                          stac. Draw(                   "histe");//"e x0, same");
-	stac .GetXaxis()->SetTitle(allNamesArray[i][2].c_str());
-	stac .GetYaxis()->SetTitle("Event");
-	}// datasource second
-	stac .SetMaximum(max*1.2);
-	legS .Draw();
-	//canv .BuildLegend();
+//	canv .BuildLegend();
 	canv .Update();
 	cf   .WriteTObject(&canv);
 //	canv .SaveAs(("plots/" + stname + ".root").c_str());// slow
