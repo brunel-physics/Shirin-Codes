@@ -83,6 +83,27 @@ int plotall(){
 //	legS.SetFillColor(kWhite);
 //	legS.SetTextSize(0.02);
 	gStyle->SetOptStat(0);
+	int W = 800, H = 600, H_ref = 600; W_ref = 800;
+	// references for T, B, L, R
+	float T = 0.08 * H_ref, B = 0.12 * H_ref,
+	      L = 0.12 * W_ref, R = 0.04 * W_ref;
+	TPad *pad = new TPad("pad", "pad", 0.01, 0.01, 0.99, 0.3275);
+	pad->SetTopMargin(0);
+	pad->SetFillColor(0);
+	pad->SetBorderMode(0);
+	pad->SetFrameFillStyle(0);
+	pad->SetFrameBorderMode(0);
+	pad->SetLeftMargin(L / W);
+	pad->SetRightMargin(R / W);
+	pad->SetTopMargin(T / H);
+	pad->SetBottomMargin(B / H * 2.1);
+	pad->SetTickx(0);
+	pad->SetTicky(0);
+	pad->SetGridy(1);
+	pad->Draw();
+	pad->cd();
+	TH1D * rp;
+
 	for(dataSource ds:dataSourceAll){
 	if( met == ds ) continue;
 	std::string  opener  = chN + "_";
@@ -120,7 +141,10 @@ int plotall(){
 		legS .AddEntry(hobj,lgN.c_str(),"lep");
 		hobj->Draw("same");
 		legS .Draw();
+		rp = (TH1D*)(hobj->Clone());
 	}}// else & dataSource
+        rp->Divide((TH1D*)stac->GetStack()->Last());
+
 //	canv .BuildLegend();
 	canv .Update();
 	cf   .WriteTObject(&canv);
