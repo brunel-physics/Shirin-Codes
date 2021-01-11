@@ -83,11 +83,25 @@ int plotall(){
 //	legS.SetFillColor(kWhite);
 //	legS.SetTextSize(0.02);
 	gStyle->SetOptStat(0);
-	int W = 800, H = 600, H_ref = 600; W_ref = 800;
+	int W = 800, H = 600, H_ref = 600, W_ref = 800;
 	// references for T, B, L, R
 	float T = 0.08 * H_ref, B = 0.12 * H_ref,
 	      L = 0.12 * W_ref, R = 0.04 * W_ref;
-	TPad *pad = new TPad("pad", "pad", 0.01, 0.01, 0.99, 0.3275);
+	TPad *pads = new TPad("pad","pad",0.01, 0.315, 0.99, 0.99);//pads = pad stack
+	pads->SetTopMargin(0);
+	pads->SetFillColor(0);
+	pads->SetBorderMode(0);
+	pads->SetFrameFillStyle(0);
+	pads->SetFrameBorderMode(0);
+	pads->SetLeftMargin(L / W);
+	pads->SetRightMargin(R / W);
+	pads->SetTopMargin(T / H);
+	pads->SetBottomMargin(B / H * 0.3);
+	pads->SetTickx(0);
+	pads->SetTicky(0);
+	pads->Draw();
+	pads->cd();
+/*	TPad *pad = new TPad("pad", "pad", 0.01, 0.01, 0.99, 0.3275);
 	pad->SetTopMargin(0);
 	pad->SetFillColor(0);
 	pad->SetBorderMode(0);
@@ -101,7 +115,7 @@ int plotall(){
 	pad->SetTicky(0);
 	pad->SetGridy(1);
 	pad->Draw();
-	pad->cd();
+	pad->cd();*/
 	TH1D * rp;
 
 	for(dataSource ds:dataSourceAll){
@@ -143,8 +157,23 @@ int plotall(){
 		legS .Draw();
 		rp = (TH1D*)(hobj->Clone());
 	}}// else & dataSource
-        rp->Divide((TH1D*)stac->GetStack()->Last());
-
+        rp->Divide((TH1D*)stac.GetStack()->Last());
+        TPad *padr = new TPad("pad", "pad", 0.01, 0.01, 0.99, 0.3275);// padr = pad ratio
+        padr->SetTopMargin(0);
+        padr->SetFillColor(0);
+        padr->SetBorderMode(0);
+        padr->SetFrameFillStyle(0);
+        padr->SetFrameBorderMode(0);
+        padr->SetLeftMargin(L / W);
+        padr->SetRightMargin(R / W);
+        padr->SetTopMargin(T / H);
+        padr->SetBottomMargin(B / H * 2.1);
+        padr->SetTickx(0);
+        padr->SetTicky(0);
+        padr->SetGridy(1);
+        padr->Draw();
+        padr->cd();
+	rp->Draw();
 //	canv .BuildLegend();
 	canv .Update();
 	cf   .WriteTObject(&canv);
