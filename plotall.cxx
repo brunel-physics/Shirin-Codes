@@ -171,6 +171,7 @@ int plotall(){
         padr->SetTickx(0);
         padr->SetTicky(0);
         padr->SetGridy(1);
+	canv.cd();
         padr->Draw();
         padr->cd();
 	rp->Draw();
