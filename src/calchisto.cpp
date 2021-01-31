@@ -79,13 +79,15 @@ namespace{
   constexpr double    ak4RconeBy2 =  .2;
 //constexpr double    ak8RconeBy2 =  .4;
 
-  constexpr double          TZQ_W =  .00128;
-  constexpr double       WWLNQQ_W =  .21740;
-  constexpr double       WZLNQQ_W =  .02335;
-  constexpr double        TTBLV_W =  .13791;
-  constexpr double        TTZQQ_W =  .00237;
-  constexpr double       ZZLLQQ_W =  .00485;
-
+  constexpr double          TZQ_W =   .00128;
+  constexpr double       WWLNQQ_W =   .21740;
+  constexpr double       WZLNQQ_W =   .02335;
+  constexpr double        TTBLV_W =   .13791;
+  constexpr double        TZQQ1_W =   .02826;
+  constexpr double        TZQQ2_W =   .00237;
+  constexpr double       ZZLLQQ_W =   .00485;
+  constexpr double	    WJT_W = 73.26469;
+  constexpr double          ZJT_W =  2.89992;
 // Method Explained in TriggerSF.cxx
 // FYI:: TRIG_SF_ELNU = (3772592/11448047)/(1646471/5348563)
 // FYI:: TRIG_SF_MUNU = (1564742/28076084)/( 488760/9554142)
@@ -1106,8 +1108,11 @@ inline auto sf(
 			case  ww:{result = WWLNQQ_W;break;}
 			case  wz:{result = WZLNQQ_W;break;}
 			case  zz:{result = ZZLLQQ_W;break;}
+			case zjt:{result =    ZJT_W;break;}
+			case wjt:{result =    WJT_W;break;}
 			case ttb:{result =  TTBLV_W;break;}
-			case ttz:{result =  TTZQQ_W;break;}
+			case tz1:{result =  TZQQ1_W;break;}
+			case tz2:{result =  TZQQ2_W;break;}
 			case met:// fall through to cms
 			case cms:{result = 1.;MC=false;break;}// ignore btag wt
 //			default :throw std::invalid_argument(
@@ -1327,8 +1332,11 @@ void calchisto(const channel ch,const dataSource ds){
 	case  ww:{temp_opener=temp_header+ "WWToLNuQQ"       +temp_footer;break;}
 	case  wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
-	case ttb:{temp_opener=temp_header+ "TTToSemileptonic"+temp_footer;break;}
-	case ttz:{temp_opener=            "ttz_dir"          +temp_footer;break;}
+	case wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
+	case zjt:{temp_opener=temp_header+"DYJetsToQQ"       +temp_footer;break;}// not downloaded yet
+	case ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
+	case tz1:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
+	case tz2:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
 	case met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
 	case cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
@@ -1366,7 +1374,10 @@ void calchisto(const channel ch,const dataSource ds){
 			case  wz:
 			case  zz:
 			case ttb:
-			case ttz:{           return mc__df;break;}
+			case wjt:
+			case zjt:
+			case tz1:
+			case tz2:{           return mc__df;break;}
 			case met:{           return bothdf;break;}
 			case cms:{switch(ch){// MC is already false
 			          case elnu:{return elnudf;break;}
@@ -1440,8 +1451,11 @@ void calchisto(const channel ch,const dataSource ds){
 		case  ww:{temp_header+="_ww";temp_footer+=" WW";break;}
 		case  wz:{temp_header+="_wz";temp_footer+=" WZ";break;}
 		case  zz:{temp_header+="_zz";temp_footer+=" ZZ";break;}
+		case zjt:{temp_header+="zjt";temp_footer+="Zjt";break;}
+		case wjt:{temp_header+="wjt";temp_footer+="Wjt";break;}
 		case ttb:{temp_header+="ttb";temp_footer+="ttb";break;}
-		case ttz:{temp_header+="ttz";temp_footer+="ttZ";break;}
+                case tz1:{temp_header+="ttz";temp_footer+="ttZ";break;}
+		case tz2:{temp_header+="ttz";temp_footer+="ttZ";break;}
 		case met:{temp_header+="met";temp_footer+="MET";break;}
 		case cms:{temp_header+="cms";temp_footer+="CMS";break;}
 //		default :throw std::invalid_argument(

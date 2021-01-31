@@ -70,36 +70,91 @@ int plotcomp(){
 	std::string  stname =(chN+"_"+particle + kstring).c_str() ;
 	canv.SetName(stname.c_str());canv.SetTitle(stname.c_str());
 	THStack stac(stname.c_str(),(title + tkstr).c_str());
+	TLegend legS = TLegend(0.8,0.6,0.95,0.9);
+	gStyle->SetOptStat(0);
+	int W = 800, H = 600, H_ref = 600, W_ref = 800;
+	// references for T, B, L, R
+	float T = 0.08 * H_ref, B = 0.12 * H_ref,
+	      L = 0.12 * W_ref, R = 0.04 * W_ref;
+	double max = -1;
+	TPad *pads = new TPad("pad","pad",0.01, 0.315, 0.99, 0.99);//pads = pad stack
+	pads->SetTopMargin(0);
+	pads->SetFillColor(0);
+	pads->SetBorderMode(0);
+	pads->SetFrameFillStyle(0);
+	pads->SetFrameBorderMode(0);
+	pads->SetLeftMargin(L / W);
+	pads->SetRightMargin(R / W);
+	pads->SetTopMargin(T / H);
+	pads->SetBottomMargin(B / H * 0.3);
+	pads->SetTickx(0);
+	pads->SetTicky(0);
+	pads->Draw();
+	pads->cd();
+	TH1D * rp;
 	for(dataSource ds:dataSourceAll){
 //	if (ttb == ds || met == ds || cms == ds)continue;
 	std::string  opener  = chN + "_";
+	std::string  lgN;
 	int colour;
 	switch  (ds){
-		case tzq:{opener += "tzq";colour = 6;break;}// magenta
-		case  ww:{opener += "_ww";colour = 2;break;}// red
-		case  wz:{opener += "_wz";colour = 3;break;}// green
-		case  zz:{opener += "_zz";colour = 4;break;}// blue
-		case ttb:{opener += "ttb";colour = 7;break;}// cyan
-		case ttz:{opener += "ttz";colour = 5;break;}// yellow
-		case met:{opener += "met";colour = 9;break;}// violet
-		case cms:{opener += "cms";colour = 1;break;}// black
+		case tzq:{opener += "tzq";lgN = "tZq ";colour = 6;break;}// magenta
+		case  ww:{opener += "_ww";lgN = "WW  ";colour = 2;break;}// red
+		case  wz:{opener += "_wz";lgN = "WZ  ";colour = 3;break;}// green
+		case  zz:{opener += "_zz";lgN = "ZZ  ";colour = 4;break;}// blue
+		case ttb:{opener += "ttb";lgN = "ttb ";colour = 7;break;}// cyan
+		case ttz:{opener += "ttz";lgN = "ttZ ";colour = 5;break;}// yellow
+		case met:{opener += "met";lgN = "MET ";colour = 9;break;}// violet
+		case cms:{opener += "cms";lgN = "data";colour = 1;break;}// black
 	}
 	std::string    hobjN = opener + "_" + particle + kstring ;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),hobj);
+	if(hobj->GetMaximum() > max)  max =   hobj->GetMaximum( );
 	                              hobj->SetDirectory(nullptr);
-	if( cms == ds || met == ds )  hobj->SetLineColor( colour);
-	else                          hobj->SetFillColor( colour);
-	stac .Add(                    hobj);
+	if( cms == ds || met == ds ){ if(met == ds) 	 continue;
+				      stac .Draw("hist");
+		                      stac .SetMaximum(max*1.2);// now plot is set, plot CMS on it
+		                      hobj->SetLineColor(  colour);
+		                      hobj->SetMarkerColor(colour);
+		                      hobj->SetMarkerStyle(20);
+		                      hobj->SetMarkerSize(1.0);
+		                      legS .AddEntry(hobj,lgN.c_str(),"lep");
+		                      hobj->Draw("same");
+		                      legS .Draw();
+		                      rp = (TH1D*)(hobj->Clone());
+	}else{                        hobj->SetFillColor( colour);
+		                      stac .Add(hobj            );
+		                      legS .AddEntry(hobj,lgN.c_str(),"f");
+	}// else
 	}// dataSource
 	canv .cd();// pick me to draw?
-	stac .Draw("HIST");// must draw before set axes
+	//stac .Draw("HIST");// must draw before set axes
 	stac .GetXaxis()->SetTitle(xAxisStr.c_str());
 	stac .GetYaxis()->SetTitle("Event");
-	canv .BuildLegend();
+        rp->Divide((TH1D*)stac.GetStack()->Last());
+        TPad *padr = new TPad("pad", "pad", 0.01, 0.01, 0.99, 0.3275);// padr = pad ratio
+        padr->SetTopMargin(0);
+        padr->SetFillColor(0);
+        padr->SetBorderMode(0);
+        padr->SetFrameFillStyle(0);
+        padr->SetFrameBorderMode(0);
+        padr->SetLeftMargin(L / W);
+        padr->SetRightMargin(R / W);
+        padr->SetTopMargin(T / H);
+        padr->SetBottomMargin(B / H * 2.1);
+        padr->SetTickx(0);
+        padr->SetTicky(0);
+        padr->SetGridy(1);
+	canv.cd();
+        padr->Draw();
+        padr->cd();
+	rp->Draw();
+	//canv .BuildLegend();
 	canv .Update();
 	cf   .WriteTObject(&canv);
 //	canv .SaveAs(("plots/" + stname + ".root").c_str());// slow
 //	canv .SaveAs(("plots/" + stname + ".pdf" ).c_str());
+	legS .Clear();
 	canv .Clear();// clear rather than delete, reusable!
 	// stac will auto clean up since it is not new-ed
 	}}}// channel, particle, component
