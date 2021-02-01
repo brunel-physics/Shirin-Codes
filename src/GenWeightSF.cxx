@@ -15,6 +15,7 @@ using    ints = ROOT::VecOps::RVec<int>;
 using   bools = ROOT::VecOps::RVec<bool>;
 using strings = ROOT::VecOps::RVec<std::string>;
 
+void GenWeightSF(const channel ch,const dataSource ds){
 
 	// Open data files even if unused
 	// then automatically choose which one to read from
@@ -97,3 +98,42 @@ using strings = ROOT::VecOps::RVec<std::string>;
 	.Filter("genWeight >= 0", "genPosCount")
 	;
 	genWpos.Report() ->Print();
+}
+int main ( int argc , char *argv[] ){
+        if ( argc < 2 ) {
+                std::cout << "Error: no command provided" << std::endl ;
+                return 1 ;
+        }
+	if ( argc < 3 ) {
+                   std::cout
+                << "Error: GenWeightSF needs channel and data source"
+                << std::endl
+                << "e.g.   GenWeight elnu DY"
+                << std::endl
+                ;
+                return 2 ;
+        }
+	channel c ; dataSource d ;
+             if ( const auto chN = std::string_view( argv[1] ) ; false ) ;
+        else if ( "elnu"  == chN ) c = elnu ;
+        else if ( "munu"  == chN ) c = munu ;
+        else { std::cout << "Error: channel " << chN
+                << " not recognised" << std::endl ;
+                return 3 ;
+        }
+             if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
+        else if ( "tzq" ==  dsN ){ d = tzq  ;}
+        else if ( "ttb" ==  dsN ){ d = ttb  ;}
+        else if ( "tz1" ==  dsN ){ d = tz1  ;}
+        else if ( "tz2" ==  dsN ){ d = tz2  ;}
+        else if ( "ww"  ==  dsN ){ d = ww   ;}
+        else if ( "wz"  ==  dsN ){ d = wz   ;}
+        else if ( "zz"  ==  dsN ){ d = zz   ;}
+        else if ( "cms" ==  dsN ){ d = cms  ;}
+        else { std::cout << "Error: data source " << dsN
+                << " not recognised" << std::endl ;
+                return 4 ;
+        }
+                GenWeightSF(c,d) ;
+                return 0 ;
+}

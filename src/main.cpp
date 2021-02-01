@@ -40,7 +40,8 @@ int main(int argc,char* argv[]){
 		else if( "wz"   == dsN){ds =  wz;}
 		else if( "zz"   == dsN){ds =  zz;}
 		else if("ttb"   == dsN){ds = ttb;}
-		else if("ttz"   == dsN){ds = ttz;}
+		else if("tz1"   == dsN){ds = tz1;}
+		else if("tz2"   == dsN){ds = tz2;}
 		else if("met"   == dsN){ds = met;}
 		else if("cms"   == dsN){ds = cms;}
 		else{std::cout << "Error: data source " << dsN

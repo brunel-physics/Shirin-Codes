@@ -83,11 +83,33 @@ namespace{
   constexpr double       WWLNQQ_W =   .21740;
   constexpr double       WZLNQQ_W =   .02335;
   constexpr double        TTBLV_W =   .13791;
-  constexpr double        TZQQ1_W =   .02826;
-  constexpr double        TZQQ2_W =   .00237;
+  constexpr double        TZQQ1_W =   .02826;// ttz
+  constexpr double        TZQQ2_W =   .00237;// ttz
   constexpr double       ZZLLQQ_W =   .00485;
   constexpr double	    WJT_W = 73.26469;
   constexpr double          ZJT_W =  2.89992;
+
+  constexpr int        TZQ_POSG_W =  1;
+  constexpr int        TZQ_NEGG_W =  1;
+  constexpr int         WW_POSG_W =  1;
+  constexpr int         WW_NEGG_W =  1;
+  constexpr int         WZ_POSG_W =  1;
+  constexpr int         WZ_NEGG_W =  1;
+  constexpr int        TTB_POSG_W =  1;
+  constexpr int        TTB_NEGG_W =  1;
+  constexpr int       TTZ1_POSG_W =  1;
+  constexpr int       TTZ1_NEGG_W =  1;
+  constexpr int       TTZ2_POSG_W =  1;
+  constexpr int       TTZ2_NEGG_W =  1;
+  constexpr int         ZZ_POSG_W =  1;
+  constexpr int         ZZ_NEGG_W =  1;
+  constexpr int        WJT_POSG_W =  1;
+  constexpr int        WJT_NEGG_W =  1;
+  constexpr int        ZJT_POSG_W =  1;
+  constexpr int        ZJT_NEGG_W =  1;
+
+
+
 // Method Explained in TriggerSF.cxx
 // FYI:: TRIG_SF_ELNU = (3772592/11448047)/(1646471/5348563)
 // FYI:: TRIG_SF_MUNU = (1564742/28076084)/( 488760/9554142)
@@ -1084,6 +1106,27 @@ auto npl(
 	if(debug > 0) std::cout << "NPL result " << npl << std::endl;
 	return  npl;};
 }
+auto genWSF(const dataSource  ds){
+  	if(0<debug) std::cout<<"genWSF"<<std::endl;
+        return [=](
+		const float genw){
+	if(ds == cms)return 1;
+	int posgen, neggen;
+	auto w = 0;
+	switch(ds){
+                case tzq:{posgen = TZQ_POSG_W;neggen = TZQ_NEGG_W;break;}
+                case  ww:{posgen =  WW_POSG_W;neggen =  WW_NEGG_W;break;}
+                case  wz:{posgen =  WZ_POSG_W;neggen =  WZ_NEGG_W;break;}
+                case  zz:{posgen =  ZZ_POSG_W;neggen =  ZZ_NEGG_W;break;}
+                case zjt:{posgen = ZJT_POSG_W;neggen = ZJT_NEGG_W;break;}
+                case wjt:{posgen = WJT_POSG_W;neggen = WJT_NEGG_W;break;}
+                case ttb:{posgen = TTB_POSG_W;neggen = TTB_NEGG_W;break;}
+                case tz1:{posgen =TTZ1_POSG_W;neggen =TTZ1_NEGG_W;break;}
+                case tz2:{posgen =TTZ2_POSG_W;neggen =TTZ1_NEGG_W;break;}
+	}
+	w =abs(genw)/genw * (posgen-neggen)/(posgen+neggen);
+	return w;};
+}
 // Simulation correction Scale Factors
 inline auto sf(
 	 const  dataSource    ds
@@ -1099,6 +1142,7 @@ inline auto sf(
 		,const  float  npl
 		,const floats  lhepdf // LHEPdfWeight 0 index (central value)
 		,const    int  npv
+		,const  float  genw
 	){
 		// TODO: trigger efficiency
 		double result;
@@ -1130,7 +1174,7 @@ inline auto sf(
 		if(5<debug)   std::cout<<"b_w "<< b
 		<<" few_SF " << result//<<std::endl;
 		<<" mostSF " << mostSF  <<std::endl;
-		result *=   b * mostSF * lhepdf[0];
+		result *=   b * mostSF * lhepdf[0] *genw;
 		//if(result < 0)std::cout<<"final sf lt 0 "<<result<<std::endl;
 		return result;//result;
 	};
@@ -1152,7 +1196,7 @@ auto finalScaling(
 ){
 	return rdf
 	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd)
-	      ,{"btag_w","mostSF","npl_est","LHEPdfWeight","PV_npvs"})
+	      ,{"btag_w","mostSF","npl_est","LHEPdfWeight","PV_npvs","genW"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
@@ -1526,6 +1570,7 @@ void calchisto(const channel ch,const dataSource ds){
 	       {  "tJ_btagCSVv2","fin_jets__pt","fin_jets_eta","tJpF"})
 	.Define("sfj",btagCSVv2(false),//,btagDF),// ignore btag
 	       {  "tJ_btagCSVv2","fin_jets__pt","fin_jets_eta","tJpF"})
+	.Define("genW",genWSF(ds),{"genWeight"})
 	;
 	auto reco = allReconstruction(
 	     jecs_bjets )
@@ -2085,6 +2130,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , dt_LnT_elnu_cms // data loose not tight
 	                 , dt_LnT_munu_cms
 	                ),{"lep__pt","lep_eta"})
+	.Define("genW",genWSF(ds),{"lep_eta"})
 	. Alias("mostSF" , "lepSF")
 	;
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,// unused but send pile
