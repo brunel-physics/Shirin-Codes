@@ -1110,9 +1110,10 @@ auto genWSF(const dataSource  ds){
   	if(0<debug) std::cout<<"genWSF"<<std::endl;
         return [=](
 		const float genw){
-	if(ds == cms)return 1;
-	int posgen, neggen;
-	auto w = 0;
+	if(ds == cms)return 1.0;
+	else{
+	int   posgen, neggen;
+	double w = 0.;
 	switch(ds){
                 case tzq:{posgen = TZQ_POSG_W;neggen = TZQ_NEGG_W;break;}
                 case  ww:{posgen =  WW_POSG_W;neggen =  WW_NEGG_W;break;}
@@ -1125,7 +1126,8 @@ auto genWSF(const dataSource  ds){
                 case tz2:{posgen =TTZ2_POSG_W;neggen =TTZ1_NEGG_W;break;}
 	}
 	w =abs(genw)/genw * (posgen-neggen)/(posgen+neggen);
-	return w;};
+        if(0<debug) std::cout<<"genWSF, genW "<<genw<<std::endl;
+	return w;}};
 }
 // Simulation correction Scale Factors
 inline auto sf(
@@ -1142,7 +1144,7 @@ inline auto sf(
 		,const  float  npl
 		,const floats  lhepdf // LHEPdfWeight 0 index (central value)
 		,const    int  npv
-		,const  float  genw
+		,const double  genw
 	){
 		// TODO: trigger efficiency
 		double result;
