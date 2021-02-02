@@ -2123,7 +2123,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , dt_LnT_elnu_cms // data loose not tight
 	                 , dt_LnT_munu_cms
 	                ),{"lep__pt","lep_eta"})
-	.Define("genW",genWSF(ds),{"lepSF"})
+	.Define("genW",genWSF(ds),{"MET_pt"})
 	. Alias("mostSF" , "lepSF")
 	;
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,// unused but send pile
