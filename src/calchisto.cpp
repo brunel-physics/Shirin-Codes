@@ -89,24 +89,15 @@ namespace{
   constexpr double	    WJT_W = 73.26469;
   constexpr double          ZJT_W =  2.89992;
 
-  constexpr int        TZQ_POSG_W =  3094796;
-  constexpr int        TZQ_NEGG_W =  1821852;
-  constexpr int         WW_POSG_W =  8768702;
-  constexpr int         WW_NEGG_W =    16658;
-  constexpr int         WZ_POSG_W = 15216736;
-  constexpr int         WZ_NEGG_W =  3869637;
-  constexpr int        TTB_POSG_W =109569608;
-  constexpr int        TTB_NEGG_W =   445136;
-  constexpr int       TTZ1_POSG_W =   553143;
-  constexpr int       TTZ1_NEGG_W =   196857;
-  constexpr int       TTZ2_POSG_W =  6592909;
-  constexpr int       TTZ2_NEGG_W =  2347091;
-  constexpr int         ZZ_POSG_W = 22616741;
-  constexpr int         ZZ_NEGG_W =  4994931;
-  constexpr int        WJT_POSG_W = 29994785;
-  constexpr int        WJT_NEGG_W =    13465;
-  constexpr int        ZJT_POSG_W = 22616741;
-  constexpr int        ZJT_NEGG_W =  4994931;
+  constexpr double      TZQ_GEN_W =  0.25890;
+  constexpr double       WW_GEN_W =  0.99621;
+  constexpr double       WZ_GEN_W =  0.59451;
+  constexpr double      TTB_GEN_W =  0.99191;
+  constexpr double     TTZ1_GEN_W =  0.47505;
+  constexpr double     TTZ2_GEN_W =  0.47492;
+  constexpr double       ZZ_GEN_W =  0.99880;
+  constexpr double      WJT_GEN_W =  0.99103;
+  constexpr double      ZJT_GEN_W =  0.99881;
 
 
 
@@ -1112,20 +1103,20 @@ auto genWSF(const dataSource  ds){
 		const float genw){
 	if(ds == cms)return 1.0;
 	else{
-	int   posgen, neggen;
-	double w = 0.;
+	double frac;
+	double w ;
 	switch(ds){
-                case tzq:{posgen = TZQ_POSG_W;neggen = TZQ_NEGG_W;break;}
-                case  ww:{posgen =  WW_POSG_W;neggen =  WW_NEGG_W;break;}
-                case  wz:{posgen =  WZ_POSG_W;neggen =  WZ_NEGG_W;break;}
-                case  zz:{posgen =  ZZ_POSG_W;neggen =  ZZ_NEGG_W;break;}
-                case zjt:{posgen = ZJT_POSG_W;neggen = ZJT_NEGG_W;break;}
-                case wjt:{posgen = WJT_POSG_W;neggen = WJT_NEGG_W;break;}
-                case ttb:{posgen = TTB_POSG_W;neggen = TTB_NEGG_W;break;}
-                case tz1:{posgen =TTZ1_POSG_W;neggen =TTZ1_NEGG_W;break;}
-                case tz2:{posgen =TTZ2_POSG_W;neggen =TTZ1_NEGG_W;break;}
+                case tzq:{frac = TZQ_GEN_W;break;}
+                case  ww:{frac =  WW_GEN_W;break;}
+                case  wz:{frac =  WZ_GEN_W;break;}
+                case  zz:{frac =  ZZ_GEN_W;break;}
+                case zjt:{frac = ZJT_GEN_W;break;}
+                case wjt:{frac = WJT_GEN_W;break;}
+                case ttb:{frac = TTB_GEN_W;break;}
+                case tz1:{frac =TTZ1_GEN_W;break;}
+                case tz2:{frac =TTZ2_GEN_W;break;}
 	}
-	w =abs(genw)/genw * (posgen-neggen)/(posgen+neggen);
+	w = std::copysign(frac,genw);
         if(0<debug) std::cout<<"genWSF, genW "<<genw<<std::endl;
 	return w;}};
 }
@@ -1169,8 +1160,8 @@ inline auto sf(
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
 		if( MC) result *= /*npl * */ pile(PuWd,PuUd,PuDd)(npv)[puW];
-		std::cout<<"pile up is "<<pile(PuWd,PuUd,PuDd)(npv)[puW]
-			 <<" lhepdf is "<<lhepdf[0]<<std::endl;
+		//std::cout<<"pile up is "<<pile(PuWd,PuUd,PuDd)(npv)[puW]
+		//	 <<" lhepdf is "<<lhepdf[0]<<std::endl;
 		//if(!MC) result *= npl;
 		if(result < 0)std::cout<<"pile lt 0"<<std::endl;
 		if(5<debug)   std::cout<<"b_w "<< b
@@ -2132,7 +2123,7 @@ void calchisto(const channel ch,const dataSource ds){
 	                 , dt_LnT_elnu_cms // data loose not tight
 	                 , dt_LnT_munu_cms
 	                ),{"lep__pt","lep_eta"})
-	.Define("genW",genWSF(ds),{"lep_eta"})
+	.Define("genW",genWSF(ds),{"lepSF"})
 	. Alias("mostSF" , "lepSF")
 	;
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,// unused but send pile
