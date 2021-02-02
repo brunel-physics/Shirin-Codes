@@ -30,7 +30,7 @@ void GenWeightSF(const channel ch,const dataSource ds){
 	case  wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
 	case wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
-	case zjt:{temp_opener=temp_header+"DYJetsToQQ"       +temp_footer;break;}// not downloaded yet
+	case zjt:{temp_opener="/data/disk3/nanoAOD_2017/DYToQQ"+temp_footer;break;}// not downloaded yet
 	case ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
 	case tz1:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
 	case tz2:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
@@ -126,6 +126,8 @@ int main ( int argc , char *argv[] ){
         else if ( "ttb" ==  dsN ){ d = ttb  ;}
         else if ( "tz1" ==  dsN ){ d = tz1  ;}
         else if ( "tz2" ==  dsN ){ d = tz2  ;}
+        else if ( "zjt" ==  dsN ){ d = zjt  ;}
+        else if ( "wjt" ==  dsN ){ d = wjt  ;}
         else if ( "ww"  ==  dsN ){ d = ww   ;}
         else if ( "wz"  ==  dsN ){ d = wz   ;}
         else if ( "zz"  ==  dsN ){ d = zz   ;}

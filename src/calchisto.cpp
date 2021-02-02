@@ -89,24 +89,24 @@ namespace{
   constexpr double	    WJT_W = 73.26469;
   constexpr double          ZJT_W =  2.89992;
 
-  constexpr int        TZQ_POSG_W =  1;
-  constexpr int        TZQ_NEGG_W =  1;
-  constexpr int         WW_POSG_W =  1;
-  constexpr int         WW_NEGG_W =  1;
-  constexpr int         WZ_POSG_W =  1;
-  constexpr int         WZ_NEGG_W =  1;
-  constexpr int        TTB_POSG_W =  1;
-  constexpr int        TTB_NEGG_W =  1;
-  constexpr int       TTZ1_POSG_W =  1;
-  constexpr int       TTZ1_NEGG_W =  1;
-  constexpr int       TTZ2_POSG_W =  1;
-  constexpr int       TTZ2_NEGG_W =  1;
-  constexpr int         ZZ_POSG_W =  1;
-  constexpr int         ZZ_NEGG_W =  1;
-  constexpr int        WJT_POSG_W =  1;
-  constexpr int        WJT_NEGG_W =  1;
-  constexpr int        ZJT_POSG_W =  1;
-  constexpr int        ZJT_NEGG_W =  1;
+  constexpr int        TZQ_POSG_W =  3094796;
+  constexpr int        TZQ_NEGG_W =  1821852;
+  constexpr int         WW_POSG_W =  8768702;
+  constexpr int         WW_NEGG_W =    16658;
+  constexpr int         WZ_POSG_W = 15216736;
+  constexpr int         WZ_NEGG_W =  3869637;
+  constexpr int        TTB_POSG_W =109569608;
+  constexpr int        TTB_NEGG_W =   445136;
+  constexpr int       TTZ1_POSG_W =   553143;
+  constexpr int       TTZ1_NEGG_W =   196857;
+  constexpr int       TTZ2_POSG_W =  6592909;
+  constexpr int       TTZ2_NEGG_W =  2347091;
+  constexpr int         ZZ_POSG_W = 22616741;
+  constexpr int         ZZ_NEGG_W =  4994931;
+  constexpr int        WJT_POSG_W = 29994785;
+  constexpr int        WJT_NEGG_W =    13465;
+  constexpr int        ZJT_POSG_W = 22616741;
+  constexpr int        ZJT_NEGG_W =  4994931;
 
 
 
