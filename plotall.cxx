@@ -52,8 +52,11 @@ int plotall(){
 		case  ww:{opener += "_ww";break;}
 		case  wz:{opener += "_wz";break;}
 		case  zz:{opener += "_zz";break;}
-		case ttz:{opener += "ttz";break;}
+		case tz1:{opener += "ttz";break;}
+                case tz2:{opener += "ttz";break;}
 		case ttb:{opener += "ttb";break;}
+                case zjt:{opener += "zjt";break;}
+                case wjt:{opener += "wjt";break;}
 		case met:{opener += "met";break;}
 		case cms:{opener += "cms";break;}
 	}
@@ -123,14 +126,17 @@ int plotall(){
 	std::string  opener  = chN + "_";
 	int colour;
 	switch  (ds){
-		case tzq:{opener += "tzq";lgN = "tZq ";colour = 6;break;}// magenta
-		case  ww:{opener += "_ww";lgN = "WW  ";colour = 2;break;}// red
-		case  wz:{opener += "_wz";lgN = "WZ  ";colour = 3;break;}// green
-		case  zz:{opener += "_zz";lgN = "ZZ  ";colour = 4;break;}// blue
-		case ttz:{opener += "ttz";lgN = "ttZ ";colour = 5;break;}// yellow
-		case ttb:{opener += "ttb";lgN = "ttb ";colour = 7;break;}// cyan
-		case met:{opener += "met";lgN = "MET ";colour = 9;break;}// violet
-		case cms:{opener += "cms";lgN = "data";colour = 1;break;}// black
+		case tzq:{opener += "tzq";lgN = "tZq "  ;colour =  6;break;}// magenta
+		case  ww:{opener += "_ww";lgN = "WW  "  ;colour =  2;break;}// red
+		case  wz:{opener += "_wz";lgN = "WZ  "  ;colour =  3;break;}// green
+		case  zz:{opener += "_zz";lgN = "ZZ  "  ;colour =  4;break;}// blue
+		case tz1:{opener += "ttz";lgN = "ttZ "  ;colour =  5;break;}// yellow
+                case tz2:{opener += "ttz";lgN = "ttZ "  ;colour =  5;break;}// yellow
+		case ttb:{opener += "ttb";lgN = "ttb "  ;colour =  7;break;}// cyan
+                case zjt:{opener += "zjt";lgN = "zjt "  ;colour = 28;break;}//
+                case wjt:{opener += "wjt";lgN = "W+jet" ;colour = 46;break;}//
+		case met:{opener += "met";lgN = "MET "  ;colour =  9;break;}// violet
+		case cms:{opener += "cms";lgN = "data"  ;colour =  1;break;}// black
 	}
 	std::string hobjN = allNamesArray[i][0] + opener;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),        hobj);
@@ -139,6 +145,7 @@ int plotall(){
 	// note that MET is already skipped above
 	// WARNING: We require CMS to be the last thing in dataSourceAll !
 	if( cms != ds ){
+                if(zjt == ds)continue;
 		hobj->SetFillColor(colour);
 		stac .Add(hobj);
 		legS .AddEntry(hobj,lgN.c_str(),"f");

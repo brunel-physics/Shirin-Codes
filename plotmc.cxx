@@ -31,12 +31,15 @@ int plotmc(){
 		case  wz:{opener += "_wz";break;}
 		case  zz:{opener += "_zz";break;}
 		case ttb:{opener += "ttb";break;}
-		case ttz:{opener += "ttz";break;}
+		case tz1:{opener += "ttz";break;}
+                case tz2:{opener += "ttz";break;}
+                case wjt:{opener += "wjt";break;}
+		case zjt:{opener += "zjt";break;}
 		case met:{opener += "met";break;}
 		case cms:{opener += "cms";break;}
 	}
 	hFd[std::make_pair(ch,ds)]
-		= new TFile(("histo/Result/" + opener + ".root").c_str());
+		= new TFile(("histo/" + opener + ".root").c_str());
 	}}// now we have a histogram file dictionary of all the files miahahaha
 	for(std::string sf:
 	{"sfi","sfj","p_ej","p_sfej","p_sf_i","btag_w","cmet_sEt","cmet__pt","cmet_dpx","cmet_dpy"}){
@@ -70,23 +73,28 @@ int plotmc(){
 	if(cms == ds || met == ds)continue;// NOTE: Skip since NOT Monte Carlo
 	int colour;
 	switch  (ds){
-		case tzq:{opener += "tzq";lgN ="tzq";colour = 6;break;}// magenta
-		case  ww:{opener += "_ww";lgN = "WW";colour = 2;break;}// red
-		case  wz:{opener += "_wz";lgN = "WZ";colour = 3;break;}// green
-		case  zz:{opener += "_zz";lgN = "ZZ";colour = 4;break;}// blue
-		case ttb:{opener += "ttb";lgN ="ttb";colour = 7;break;}// cyan
-		case ttz:{opener += "ttz";lgN ="ttZ";colour = 5;break;}// yellow
-		case met:{opener += "met";lgN ="MET";colour = 9;break;}// violet
-		case cms:{opener += "cms";lgN ="CMS";colour = 1;break;}// black
+		case tzq:{opener += "tzq";lgN ="tzq"   ;colour = 6 ;break;}// magenta
+		case  ww:{opener += "_ww";lgN = "WW"   ;colour = 2 ;break;}// red
+		case  wz:{opener += "_wz";lgN = "WZ"   ;colour = 3 ;break;}// green
+		case  zz:{opener += "_zz";lgN = "ZZ"   ;colour = 4 ;break;}// blue
+		case ttb:{opener += "ttb";lgN ="ttb"   ;colour = 7 ;break;}// cyan
+		case tz1:{opener += "ttz";lgN ="ttZ"   ;colour = 5 ;break;}// yellow
+                case tz2:{opener += "ttz";lgN ="ttZ"   ;colour = 5 ;break;}// yellow
+                case wjt:{opener += "wjt";lgN ="W+jets";colour = 46;break;}//
+		case zjt:{opener += "zjt";lgN ="Z+jets";colour = 28;break;}//
+		case met:{opener += "met";lgN ="MET"   ;colour = 9 ;break;}// violet
+		case cms:{opener += "cms";lgN ="CMS"   ;colour = 1 ;break;}// black
 	}
 	std::string    hobjN = sf + "_" + opener ;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),hobj);
 	                              hobj->SetDirectory(nullptr);
 	if( cms == ds || met == ds )  hobj->SetLineColor( colour);
-	else                          hobj->SetFillColor( colour);
+	else                          if(ds == zjt)continue;
+				      hobj->SetFillColor( colour);
 	stac .Add(                    hobj);
 	if( cms == ds || met == ds )legS .AddEntry(hobj,lgN.c_str(),"l");
-	else			    legS .AddEntry(hobj,lgN.c_str(),"f");
+	else			    if(ds == zjt)continue;
+				    legS .AddEntry(hobj,lgN.c_str(),"f");
 	}// dataSource
 	canv .cd();// pick me to draw?
 	stac .Draw("HIST");// must draw before set axes

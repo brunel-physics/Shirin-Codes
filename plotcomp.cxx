@@ -29,7 +29,10 @@ int plotcomp(){
 		case  wz:{opener += "_wz";break;}
 		case  zz:{opener += "_zz";break;}
                 case ttb:{opener += "ttb";break;}
-		case ttz:{opener += "ttz";break;}
+		case tz1:{opener += "ttz";break;}
+                case tz2:{opener += "ttz";break;}
+                case wjt:{opener += "wjt";break;}
+                case zjt:{opener += "zjt";break;}
 		case met:{opener += "met";break;}
 		case cms:{opener += "cms";break;}
 	}
@@ -98,19 +101,22 @@ int plotcomp(){
 	std::string  lgN;
 	int colour;
 	switch  (ds){
-		case tzq:{opener += "tzq";lgN = "tZq ";colour = 6;break;}// magenta
-		case  ww:{opener += "_ww";lgN = "WW  ";colour = 2;break;}// red
-		case  wz:{opener += "_wz";lgN = "WZ  ";colour = 3;break;}// green
-		case  zz:{opener += "_zz";lgN = "ZZ  ";colour = 4;break;}// blue
-		case ttb:{opener += "ttb";lgN = "ttb ";colour = 7;break;}// cyan
-		case ttz:{opener += "ttz";lgN = "ttZ ";colour = 5;break;}// yellow
-		case met:{opener += "met";lgN = "MET ";colour = 9;break;}// violet
-		case cms:{opener += "cms";lgN = "data";colour = 1;break;}// black
+		case tzq:{opener += "tzq";lgN = "tZq "  ;colour = 6;break;}// magenta
+		case  ww:{opener += "_ww";lgN = "WW  "  ;colour = 2;break;}// red
+		case  wz:{opener += "_wz";lgN = "WZ  "  ;colour = 3;break;}// green
+		case  zz:{opener += "_zz";lgN = "ZZ  "  ;colour = 4;break;}// blue
+		case ttb:{opener += "ttb";lgN = "ttb "  ;colour = 7;break;}// cyan
+		case tz1:{opener += "tz1";lgN = "ttZ "  ;colour = 5;break;}// yellow
+                case tz2:{opener += "tz2";lgN = "ttZ "  ;colour = 5;break;}// yellow
+                case wjt:{opener += "wjt";lgN = "W+jets";colour =46;break;}//
+                case zjt:{opener += "zjt";lgN = "Z+jets";colour =28;break;}//
+		case met:{opener += "met";lgN = "MET "  ;colour = 9;break;}// violet
+		case cms:{opener += "cms";lgN = "data"  ;colour = 1;break;}// black
 	}
 	std::string    hobjN = opener + "_" + particle + kstring ;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),hobj);
-	if(hobj->GetMaximum() > max)  max =   hobj->GetMaximum( );
 	                              hobj->SetDirectory(nullptr);
+        if(hobj->GetMaximum() > max)  max =   hobj->GetMaximum( );
 	if( cms == ds || met == ds ){ if(met == ds) 	 continue;
 				      stac .Draw("hist");
 		                      stac .SetMaximum(max*1.2);// now plot is set, plot CMS on it
@@ -122,7 +128,8 @@ int plotcomp(){
 		                      hobj->Draw("same");
 		                      legS .Draw();
 		                      rp = (TH1D*)(hobj->Clone());
-	}else{                        hobj->SetFillColor( colour);
+	}else{                        if(ds == zjt)continue;
+				      hobj->SetFillColor( colour);
 		                      stac .Add(hobj            );
 		                      legS .AddEntry(hobj,lgN.c_str(),"f");
 	}// else
