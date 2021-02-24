@@ -25,17 +25,23 @@ void GenWeightSF(const channel ch,const dataSource ds){
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
-	case tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}/**/
-	case  ww:{temp_opener=temp_header+ "WWToLNuQQ"       +temp_footer;break;}
-	case  wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
-	case  zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
-	case wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
-	case zjt:{temp_opener="/data/disk3/nanoAOD_2017/DYToQQ"+temp_footer;break;}// not downloaded yet
-	case ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
-	case tz1:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
-	case tz2:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
-	case met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
-	case cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
+	case  tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}/**/
+	case   ww:{temp_opener=temp_header+ "WWToLNuQQ"       +temp_footer;break;}
+	case   wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
+	case   zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
+	case  wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
+	case  zjt:{temp_opener="/data/disk3/nanoAOD_2017/DYToQQ"+temp_footer;break;}// not downloaded yet
+	case  ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
+	case  tz1:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
+	case  tz2:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
+        case  ttl:{temp_opener="/data/disk1/nanoAOD_2017_new/TT_2l2nu_nanoAODv5"+temp_footer;break;}
+        case  ttj:{temp_opener=temp_header+"TTToHadronic"     +temp_footer;break;}
+        case   st:{temp_opener="/data/disk1/nanoAOD_2017_new/ST_tchannel_top_nanoAODv5"+temp_footer;break;}
+        case  stb:{temp_opener="/data/disk1/nanoAOD_2017_new/ST_tchannel_antitop_nanoAODv5"+temp_footer;break;}
+        case  stw:{temp_opener=temp_header+"ST_tW"            +temp_footer;break;}
+        case stbw:{temp_opener=temp_header+"ST_tbarW"         +temp_footer;break;}
+	case  met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
+	case  cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
@@ -66,17 +72,23 @@ void GenWeightSF(const channel ch,const dataSource ds){
         const bool MC = !(met == ds || cms == ds);
         auto df = [&,ch,ds](){// Get correct data frame
                 switch(ds){
-                        case tzq:
-                        case  ww:// fall through!
-                        case  wz:
-                        case  zz:
-                        case ttb:
-                        case wjt:
-                        case zjt:
-                        case tz1:
-                        case tz2:{           return mc__df;break;}
-                        case met:{           return bothdf;break;}
-                        case cms:{switch(ch){// MC is already false
+                        case  tzq:
+                        case   ww:// fall through!
+                        case   wz:
+                        case   zz:
+                        case  ttb:
+			case  ttj:
+			case  ttl:
+                        case  wjt:
+                        case  zjt:
+                        case  tz1:
+                        case  tz2:
+			case   st:
+			case  stb:
+			case  stw:
+			case stbw:{           return mc__df;break;}
+                        case  met:{           return bothdf;break;}
+                        case  cms:{switch(ch){// MC is already false
                                   case elnu:{return elnudf;break;}
                                   case munu:{return munudf;break;}
                                   default  :throw std::invalid_argument(
@@ -122,16 +134,22 @@ int main ( int argc , char *argv[] ){
                 return 3 ;
         }
              if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
-        else if ( "tzq" ==  dsN ){ d = tzq  ;}
-        else if ( "ttb" ==  dsN ){ d = ttb  ;}
-        else if ( "tz1" ==  dsN ){ d = tz1  ;}
-        else if ( "tz2" ==  dsN ){ d = tz2  ;}
-        else if ( "zjt" ==  dsN ){ d = zjt  ;}
-        else if ( "wjt" ==  dsN ){ d = wjt  ;}
-        else if ( "ww"  ==  dsN ){ d = ww   ;}
-        else if ( "wz"  ==  dsN ){ d = wz   ;}
-        else if ( "zz"  ==  dsN ){ d = zz   ;}
-        else if ( "cms" ==  dsN ){ d = cms  ;}
+        else if ( "tzq"  ==  dsN ){ d = tzq   ;}
+        else if ( "ttb"  ==  dsN ){ d = ttb   ;}
+        else if ( "ttl"  ==  dsN ){ d = ttl   ;}
+        else if ( "ttj"  ==  dsN ){ d = ttj   ;}
+        else if ( "tz1"  ==  dsN ){ d = tz1   ;}
+        else if ( "tz2"  ==  dsN ){ d = tz2   ;}
+        else if ( "zjt"  ==  dsN ){ d = zjt   ;}
+        else if ( "wjt"  ==  dsN ){ d = wjt   ;}
+        else if ( "ww"   ==  dsN ){ d = ww    ;}
+        else if ( "wz"   ==  dsN ){ d = wz    ;}
+        else if ( "zz"   ==  dsN ){ d = zz    ;}
+        else if ( "st"   ==  dsN ){ d = st    ;}
+        else if ( "stb"  ==  dsN ){ d = stb   ;}
+        else if ( "stw"  ==  dsN ){ d = stw   ;}
+        else if ( "stbw" ==  dsN ){ d = stbw  ;}
+        else if ( "cms"  ==  dsN ){ d = cms   ;}
         else { std::cout << "Error: data source " << dsN
                 << " not recognised" << std::endl ;
                 return 4 ;

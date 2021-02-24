@@ -88,6 +88,12 @@ namespace{
   constexpr double       ZZLLQQ_W =   .00485;
   constexpr double	    WJT_W = 73.26469;
   constexpr double          ZJT_W =  2.89992;
+  constexpr double           ST_W =   .03837;
+  constexpr double          STB_W =   .04433;
+  constexpr double        TTBLL_W =   .05303;
+  constexpr double        TTBJJ_W =   .12066;
+  constexpr double          STW_W =   .18247;
+  constexpr double         STBW_W =   .18750;
 
   constexpr double      TZQ_GEN_W =  0.25890;
   constexpr double       WW_GEN_W =  0.99621;
@@ -98,6 +104,12 @@ namespace{
   constexpr double       ZZ_GEN_W =  0.99880;
   constexpr double      WJT_GEN_W =  0.99103;
   constexpr double      ZJT_GEN_W =  0.99881;
+  constexpr double       ST_GEN_W =  1.00000;
+  constexpr double      STB_GEN_W =  1.00000;
+  constexpr double      TTL_GEN_W =  0.99190;
+  constexpr double      TTJ_GEN_W =  0.99193;
+  constexpr double      STW_GEN_W =  0.99234;
+  constexpr double     STBW_GEN_W =  0.99235;
 
 
 
@@ -515,7 +527,7 @@ auto btagCSVv2(const bool check_CSVv2){
 		results[j] = ev.eval(const_cast<char*>(
 		             formulae[j].c_str())).real();
 	}
-	if(0<debug)std::cout<<"btagCSVv2 exiting"<<std::endl;
+	if(0<debug)std::cout<<"btagCSVv2 exiting, results "<<results<<std::endl;
 	return results;};
 }
 inline auto met_pt_cut(const channel ch){
@@ -824,6 +836,7 @@ inline auto NoEffBTaggedProduct(const doubles& NoEffBTagged){
 //	        1.,std::multiplies<>()
 //	);
 	double  result = product(values);
+	if(result == 0) result = 0.00001;
 	if(5<debug)  std::cout<<"    NoEffBTaggedProduct "<<result<<std::endl;
 	return  result;
 }
@@ -861,6 +874,7 @@ inline auto Sfj_NoEffBTaggedProduct(const doubles &NoEffBTagged,const doubles &s
 		[](double x,double y){return 1. - x*y;}
 	);
 */
+	if(result == 0) result = 0.00001;
 	if(5<debug)  std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
@@ -1106,15 +1120,21 @@ auto genWSF(const dataSource  ds){
 	double frac;
 	double w ;
 	switch(ds){
-                case tzq:{frac = TZQ_GEN_W;break;}
-                case  ww:{frac =  WW_GEN_W;break;}
-                case  wz:{frac =  WZ_GEN_W;break;}
-                case  zz:{frac =  ZZ_GEN_W;break;}
-                case zjt:{frac = ZJT_GEN_W;break;}
-                case wjt:{frac = WJT_GEN_W;break;}
-                case ttb:{frac = TTB_GEN_W;break;}
-                case tz1:{frac =TTZ1_GEN_W;break;}
-                case tz2:{frac =TTZ2_GEN_W;break;}
+                case  tzq:{frac = TZQ_GEN_W;break;}
+                case   ww:{frac =  WW_GEN_W;break;}
+                case   wz:{frac =  WZ_GEN_W;break;}
+                case   zz:{frac =  ZZ_GEN_W;break;}
+		case   st:{frac =  ST_GEN_W;break;}
+		case  stb:{frac = STB_GEN_W;break;}
+		case  stw:{frac = STW_GEN_W;break;}
+		case stbw:{frac =STBW_GEN_W;break;}
+		case  ttl:{frac = TTL_GEN_W;break;}
+		case  ttj:{frac = TTJ_GEN_W;break;}
+                case  zjt:{frac = ZJT_GEN_W;break;}
+                case  wjt:{frac = WJT_GEN_W;break;}
+                case  ttb:{frac = TTB_GEN_W;break;}
+                case  tz1:{frac =TTZ1_GEN_W;break;}
+                case  tz2:{frac =TTZ2_GEN_W;break;}
 	}
 	w = std::copysign(frac,genw);
         if(0<debug) std::cout<<"genWSF, genW "<<genw<<std::endl;
@@ -1141,17 +1161,23 @@ inline auto sf(
 		double result;
 		bool MC = true;
 		switch(ds){
-			case tzq:{result =    TZQ_W;break;}
-			case  ww:{result = WWLNQQ_W;break;}
-			case  wz:{result = WZLNQQ_W;break;}
-			case  zz:{result = ZZLLQQ_W;break;}
-			case zjt:{result =    ZJT_W;break;}
-			case wjt:{result =    WJT_W;break;}
-			case ttb:{result =  TTBLV_W;break;}
-			case tz1:{result =  TZQQ1_W;break;}
-			case tz2:{result =  TZQQ2_W;break;}
-			case met:// fall through to cms
-			case cms:{result = 1.;MC=false;break;}// ignore btag wt
+			case  tzq:{result =    TZQ_W;break;}
+			case   ww:{result = WWLNQQ_W;break;}
+			case   wz:{result = WZLNQQ_W;break;}
+			case   zz:{result = ZZLLQQ_W;break;}
+			case  zjt:{result =    ZJT_W;break;}
+			case  wjt:{result =    WJT_W;break;}
+			case   st:{result =     ST_W;break;}
+			case  stb:{result =    STB_W;break;}
+			case  stw:{result =    STW_W;break;}
+			case stbw:{result =   STBW_W;break;}
+			case  ttb:{result =  TTBLV_W;break;}
+			case  ttl:{result =  TTBLL_W;break;}
+			case  ttj:{result =  TTBJJ_W;break;}
+			case  tz1:{result =  TZQQ1_W;break;}
+			case  tz2:{result =  TZQQ2_W;break;}
+			case  met:// fall through to cms
+			case  cms:{result = 1.;MC=false;break;}// ignore btag wt
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (sf)");
 		}
@@ -1163,12 +1189,22 @@ inline auto sf(
 		//std::cout<<"pile up is "<<pile(PuWd,PuUd,PuDd)(npv)[puW]
 		//	 <<" lhepdf is "<<lhepdf[0]<<std::endl;
 		//if(!MC) result *= npl;
-		if(result < 0)std::cout<<"pile lt 0"<<std::endl;
-		if(5<debug)   std::cout<<"b_w "<< b
-		<<" few_SF " << result//<<std::endl;
-		<<" mostSF " << mostSF  <<std::endl;
+		//if(result < 0)std::cout<<"pile lt 0"<<std::endl;
+		if(5<debug)
+		std::cout<<"b_w "<< b
+		<<" few_SF " << result// <<std::endl;
+		<<" mostSF " << mostSF
+		<<" lhePDF " << lhepdf[0]
+		<<" genW   " << genw     <<std::endl;
 		result *=   b * mostSF * lhepdf[0] *genw;
-		//if(result < 0)std::cout<<"final sf lt 0 "<<result<<std::endl;
+
+		if(result < 0)std::cout<<"final sf lt 0 "<<result
+                <<" b_w "    << b
+                <<" few_SF " << result// <<std::endl;
+                <<" mostSF " << mostSF
+                <<" lhePDF " << lhepdf[0]
+                <<" genW   " << genw     <<std::endl;
+
 		return result;//result;
 	};
 }
@@ -1372,6 +1408,12 @@ void calchisto(const channel ch,const dataSource ds){
 	case wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
 	case zjt:{temp_opener="/data/disk3/nanoAOD_2017/DYToQQ"+temp_footer;break;}// not downloaded yet
 	case ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
+        case  ttl:{temp_opener="/data/disk1/nanoAOD_2017_new/TT_2l2nu_nanoAODv5"+temp_footer;break;}
+        case  ttj:{temp_opener=temp_header+"TTToHadronic"     +temp_footer;break;}
+        case   st:{temp_opener="/data/disk1/nanoAOD_2017_new/ST_tchannel_top_nanoAODv5"+temp_footer;break;}
+        case  stb:{temp_opener="/data/disk1/nanoAOD_2017_new/ST_tchannel_antitop_nanoAODv5"+temp_footer;break;}
+        case  stw:{temp_opener=temp_header+"ST_tW"            +temp_footer;break;}
+        case stbw:{temp_opener=temp_header+"ST_tbarW"         +temp_footer;break;}
 	case tz1:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
 	case tz2:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
 	case met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
@@ -1406,17 +1448,23 @@ void calchisto(const channel ch,const dataSource ds){
 	const bool MC = !(met == ds || cms == ds);
 	auto df = [&,ch,ds](){// Get correct data frame
 		switch(ds){
-			case tzq:
-			case  ww:// fall through!
-			case  wz:
-			case  zz:
-			case ttb:
-			case wjt:
-			case zjt:
-			case tz1:
-			case tz2:{           return mc__df;break;}
-			case met:{           return bothdf;break;}
-			case cms:{switch(ch){// MC is already false
+			case  tzq:
+			case   ww:// fall through!
+			case   wz:
+			case   zz:
+			case   st:
+			case  stb:
+			case  stw:
+			case stbw:
+			case  ttb:
+			case  ttl:
+			case  ttj:
+			case  wjt:
+			case  zjt:
+			case  tz1:
+			case  tz2:{           return mc__df;break;}
+			case  met:{           return bothdf;break;}
+			case  cms:{switch(ch){// MC is already false
 			          case elnu:{return elnudf;break;}
 			          case munu:{return munudf;break;}
 			          default  :throw std::invalid_argument(
@@ -1484,17 +1532,23 @@ void calchisto(const channel ch,const dataSource ds){
 	}
 	temp_footer = "pt vs eta in " + temp_footer + " channel for ";
 	switch(ds){
-		case tzq:{temp_header+="tzq";temp_footer+="tZq";break;}
-		case  ww:{temp_header+="_ww";temp_footer+=" WW";break;}
-		case  wz:{temp_header+="_wz";temp_footer+=" WZ";break;}
-		case  zz:{temp_header+="_zz";temp_footer+=" ZZ";break;}
-		case zjt:{temp_header+="zjt";temp_footer+="Zjt";break;}
-		case wjt:{temp_header+="wjt";temp_footer+="Wjt";break;}
-		case ttb:{temp_header+="ttb";temp_footer+="ttb";break;}
-                case tz1:{temp_header+="ttz";temp_footer+="ttZ";break;}
-		case tz2:{temp_header+="ttz";temp_footer+="ttZ";break;}
-		case met:{temp_header+="met";temp_footer+="MET";break;}
-		case cms:{temp_header+="cms";temp_footer+="CMS";break;}
+		case  tzq:{temp_header+= "tzq";temp_footer+="tZq" ;break;}
+		case   ww:{temp_header+= "_ww";temp_footer+=" WW" ;break;}
+		case   wz:{temp_header+= "_wz";temp_footer+=" WZ" ;break;}
+		case   zz:{temp_header+= "_zz";temp_footer+=" ZZ" ;break;}
+		case   st:{temp_header+= "_st";temp_footer+=" ST" ;break;}
+		case  stb:{temp_header+= "stb";temp_footer+="STB" ;break;}
+		case  stw:{temp_header+= "stw";temp_footer+="STW" ;break;}
+		case stbw:{temp_header+="stbw";temp_footer+="STBW";break;}
+		case  zjt:{temp_header+= "zjt";temp_footer+="Zjt" ;break;}
+		case  wjt:{temp_header+= "wjt";temp_footer+="Wjt" ;break;}
+		case  ttb:{temp_header+= "ttb";temp_footer+="ttb" ;break;}
+                case  ttl:{temp_header+= "ttl";temp_footer+="ttl" ;break;}
+                case  ttj:{temp_header+= "ttj";temp_footer+="ttj" ;break;}
+                case  tz1:{temp_header+= "ttz";temp_footer+="ttZ" ;break;}
+		case  tz2:{temp_header+= "ttz";temp_footer+="ttZ" ;break;}
+		case  met:{temp_header+= "met";temp_footer+="MET" ;break;}
+		case  cms:{temp_header+= "cms";temp_footer+="CMS" ;break;}
 //		default :throw std::invalid_argument(
 //			"Unimplemented ds (hist titles)");
 	}

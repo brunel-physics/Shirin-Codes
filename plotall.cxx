@@ -39,7 +39,8 @@ int plotall(){
 	TH1D   *hobj;
 	// now we open ALL the files
 	std::map<std::pair<channel,dataSource>,TFile*> hFd;
-	for(channel ch:{elnu}){//channelAll){//for(channel ch:channelAll){
+	for(channel ch:{elnu}){//channelAll){
+	//for(channel ch:channelAll){
 	std::string chN;
 	switch     (ch){
 		case elnu:  {chN ="elnu_";break;}

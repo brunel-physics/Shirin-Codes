@@ -35,17 +35,23 @@ int main(int argc,char* argv[]){
 		     return 3;
 		}
 		     if(const auto dsN = std::string_view(argv[3]);
-		        "tzq"   == dsN){ds = tzq;}
-		else if( "ww"   == dsN){ds =  ww;}
-		else if( "wz"   == dsN){ds =  wz;}
-		else if( "zz"   == dsN){ds =  zz;}
-		else if("ttb"   == dsN){ds = ttb;}
-		else if("tz1"   == dsN){ds = tz1;}
-		else if("tz2"   == dsN){ds = tz2;}
-		else if("met"   == dsN){ds = met;}
-		else if("cms"   == dsN){ds = cms;}
-                else if("zjt"   == dsN){ds = zjt;}
-                else if("wjt"   == dsN){ds = wjt;}
+		         "tzq"   == dsN){ds =  tzq;}
+		else if(  "ww"   == dsN){ds =   ww;}
+		else if(  "wz"   == dsN){ds =   wz;}
+		else if(  "zz"   == dsN){ds =   zz;}
+                else if(  "st"   == dsN){ds =   st;}
+                else if( "stb"   == dsN){ds =  stb;}
+                else if( "stw"   == dsN){ds =  stw;}
+                else if("stbw"   == dsN){ds = stbw;}
+		else if( "ttb"   == dsN){ds =  ttb;}
+                else if( "ttl"   == dsN){ds =  ttl;}
+                else if( "ttj"   == dsN){ds =  ttj;}
+		else if( "tz1"   == dsN){ds =  tz1;}
+		else if( "tz2"   == dsN){ds =  tz2;}
+		else if( "met"   == dsN){ds =  met;}
+		else if( "cms"   == dsN){ds =  cms;}
+                else if( "zjt"   == dsN){ds =  zjt;}
+                else if( "wjt"   == dsN){ds =  wjt;}
 		else{std::cout << "Error: data source " << dsN
 		               << " not recognised    " << std::endl;
 		     return 4;}
