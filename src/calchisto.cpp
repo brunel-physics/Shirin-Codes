@@ -898,7 +898,7 @@ auto top_pt_sf(const dataSource ds){
 	// only for the ttbar sample.
 	// Top pt reweighing is computed using MC truth and applied as weight across
 	// the analysis for the ttbar sample.
-	if(ttb != ds) return 1.;
+	if(ttb != ds || ttj != ds || ttl != ds) return 1.;
 	if(0<debug)std::cout<<"top pt sf"<<std::endl;
 	if(!all_equal(gId.size(),pt.size())) throw std::logic_error(
 		"Collections must be the same size (top_pt_reweigh)");
