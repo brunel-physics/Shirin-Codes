@@ -836,7 +836,7 @@ inline auto NoEffBTaggedProduct(const doubles& NoEffBTagged){
 //	        1.,std::multiplies<>()
 //	);
 	double  result = product(values);
-	if(result == 0) result = 0.00001;
+	if(result == 0) result = 1;
 	if(5<debug)  std::cout<<"    NoEffBTaggedProduct "<<result<<std::endl;
 	return  result;
 }
@@ -874,7 +874,7 @@ inline auto Sfj_NoEffBTaggedProduct(const doubles &NoEffBTagged,const doubles &s
 		[](double x,double y){return 1. - x*y;}
 	);
 */
-	if(result == 0) result = 0.00001;
+	if(result == 0) result = 1e-10;
 	if(5<debug)  std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
@@ -1190,17 +1190,19 @@ inline auto sf(
 		//	 <<" lhepdf is "<<lhepdf[0]<<std::endl;
 		//if(!MC) result *= npl;
 		//if(result < 0)std::cout<<"pile lt 0"<<std::endl;
-		if(5<debug)
+		//if(5<debug)
+		if(debug > 5)
 		std::cout<<"b_w "<< b
 		<<" few_SF " << result// <<std::endl;
 		<<" mostSF " << mostSF
 		<<" lhePDF " << lhepdf[0]
 		<<" genW   " << genw     <<std::endl;
-		result *=   b * mostSF * lhepdf[0] *genw;
 
-		if(result < 0)std::cout<<"final sf lt 0 "<<result
+		result *=   b * mostSF * lhepdf[0] *genw;
+// only for debugging purpose of munu wjt ->
+		if(result < 0)std::cout
+		<<"final sf is "<<result
                 <<" b_w "    << b
-                <<" few_SF " << result// <<std::endl;
                 <<" mostSF " << mostSF
                 <<" lhePDF " << lhepdf[0]
                 <<" genW   " << genw     <<std::endl;
