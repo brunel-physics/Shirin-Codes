@@ -1159,6 +1159,7 @@ inline auto sf(
 	){
 		// TODO: trigger efficiency
 		double result;
+		double b_w = 1.;
 		bool MC = true;
 		switch(ds){
 			case  tzq:{result =    TZQ_W;break;}
@@ -1186,6 +1187,7 @@ inline auto sf(
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
 		if( MC) result *= /*npl * */ pile(PuWd,PuUd,PuDd)(npv)[puW];
+                if(FP_NORMAL == std::fpclassify(b)) b_w = b;// if btag_w != nan
 		//std::cout<<"pile up is "<<pile(PuWd,PuUd,PuDd)(npv)[puW]
 		//	 <<" lhepdf is "<<lhepdf[0]<<std::endl;
 		//if(!MC) result *= npl;
@@ -1198,7 +1200,7 @@ inline auto sf(
 		<<" lhePDF " << lhepdf[0]
 		<<" genW   " << genw     <<std::endl;
 
-		result *=   b * mostSF * lhepdf[0] *genw;
+		result *=  b_w * mostSF * lhepdf[0] *genw;
 // only for debugging purpose of munu wjt ->
 		if(result < 0)std::cout
 		<<"final sf is "<<result
