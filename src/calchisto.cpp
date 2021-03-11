@@ -836,7 +836,6 @@ inline auto NoEffBTaggedProduct(const doubles& NoEffBTagged){
 //	        1.,std::multiplies<>()
 //	);
 	double  result = product(values);
-	if(result == 0) result = 1;
 	if(5<debug)  std::cout<<"    NoEffBTaggedProduct "<<result<<std::endl;
 	return  result;
 }
@@ -874,7 +873,6 @@ inline auto Sfj_NoEffBTaggedProduct(const doubles &NoEffBTagged,const doubles &s
 		[](double x,double y){return 1. - x*y;}
 	);
 */
-	if(result == 0) result = 1e-10;
 	if(5<debug)  std::cout<<"Sfj_EffNoBTaggedProduct "<<result<<std::endl;
 	return result;
 }
