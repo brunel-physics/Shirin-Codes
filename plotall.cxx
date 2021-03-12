@@ -134,21 +134,21 @@ int plotall(){
 	std::string  opener  = chN + "_";
 	int colour;
 	switch  (ds){
-		case  tzq:{opener += "tzq" ;lgN = "tZq"           ;colour =  6;break;}// magenta
-		case   ww:{opener += "_ww" ;lgN = "WW "           ;colour =  2;break;}// red
-		case   wz:{opener += "_wz" ;lgN = "WZ "           ;colour =  3;break;}// green
-		case   zz:{opener += "_zz" ;lgN = "ZZ "           ;colour =  4;break;}// blue
+		case  tzq:{opener += "tzq" ;lgN = "tZq"           ;colour =  6 ;break;}// magenta
+		case   ww:{opener += "_ww" ;lgN = "WW "           ;colour =  2 ;break;}// red
+		case   wz:{opener += "_wz" ;lgN = "WZ "           ;colour =  3 ;break;}// green
+		case   zz:{opener += "_zz" ;lgN = "ZZ "           ;colour =  4 ;break;}// blue
                 case   st:{opener += "_st" ;lgN = "Single T"      ;colour =  95;break;}//
                 case  stb:{opener += "stb" ;lgN = "Single #bar{T}";colour =  85;break;}//
-		case  tz1:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5;break;}// yellow
-                case  tz2:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5;break;}// yellow
-		case  ttb:{opener += "ttb" ;lgN = "t#bar{t}"      ;colour =  7;break;}// cyan
-                case  ttl:{opener += "ttl" ;lgN = "t#bar{t}"      ;colour =  7;break;}// cyan
-                case  ttj:{opener += "ttj" ;lgN = "t#bar{b}"      ;colour =  7;break;}// cyan
+		case  tz1:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5 ;break;}// yellow
+                case  tz2:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5 ;break;}// yellow
+		case  ttb:{opener += "ttb" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
+                case  ttl:{opener += "ttl" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
+                case  ttj:{opener += "ttj" ;lgN = "t#bar{b}"      ;colour =  7 ;break;}// cyan
                 case  zjt:{opener += "zjt" ;lgN = "Z+Jets"        ;colour =  28;break;}//
                 case  wjt:{opener += "wjt" ;lgN = "W+Jets"        ;colour =  46;break;}//
-		case  met:{opener += "met" ;lgN = "MET"           ;colour =  9;break;}// violet
-		case  cms:{opener += "cms" ;lgN = "data"          ;colour =  1;break;}// black
+		case  met:{opener += "met" ;lgN = "MET"           ;colour =  9 ;break;}// violet
+		case  cms:{opener += "cms" ;lgN = "data"          ;colour =  1 ;break;}// black
                 case  stw:{opener += "stw" ;lgN = "tW"            ;colour =  75;break;}//
                 case stbw:{opener += "stbw";lgN = "#bar{t}W "     ;colour =  65;break;}//
 
