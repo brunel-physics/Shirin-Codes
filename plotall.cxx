@@ -24,6 +24,7 @@ std::string allNamesArray[][3] = {// histogram id, histogram title, x axis strin
 	,{"W_invariant_mass_","W invariant mass ","W\\ m_{ }\\ (\\text{GeV/}c^{2})"}
 	,{     "tWm_","Transverse W mass ","W\\ m_{T}\\ (\\text{GeV/}c^{2})"}
 	,{     "tTm_","Transverse T mass ","T\\ m_{T}\\ (\\text{GeV/}c^{2})"}
+	//,{ "ttop_pt_","Transverse T p_{t}","T\\ p_{T}\\ (Gev)"}
 	,{    "zmas_",    "Recon. Z mass ","Z\\ m_{ }\\ (\\text{GeV/}c^{2})"}
 	,{        "Z_W_Delta_Phi_",      "Z  W  #Delta#phi ",    "Z &  W  #Delta#phi (rad)"}
 	,{      "Z_MET_Delta_Phi_",      "Z MET #Delta#phi ",    "Z & MET #Delta#phi (rad)"}
@@ -49,23 +50,22 @@ int plotall(){
 	for(dataSource ds:dataSourceAll){
 	std::string  opener  =  chN ;
 	switch  (ds){
-		case  tzq:{opener += "tzq";break;}
-		case   ww:{opener += "_ww";break;}
-		case   wz:{opener += "_wz";break;}
-		case   zz:{opener += "_zz";break;}
-		case   st:{opener += "_st";break;}
-                case  stb:{opener += "stb";break;}
-		case  tz1:{opener += "ttz";break;}
-                case  tz2:{opener += "ttz";break;}
-		case  ttb:{opener += "ttb";break;}
-                case  ttl:{opener += "ttl";break;}
-                case  ttj:{opener += "ttj";break;}
-                case  zjt:{opener += "zjt";break;}
-                case  wjt:{opener += "wjt";break;}
-		case  met:{opener += "met";break;}
-		case  cms:{opener += "cms";break;}
-                case  stw:{opener += "stw";break;}
-                case stbw:{opener += "ttb";break;}
+		case  tzq:{opener +=  "tzq";break;}
+		case   ww:{opener +=  "_ww";break;}
+		case   wz:{opener +=  "_wz";break;}
+		case   zz:{opener +=  "_zz";break;}
+		case   st:{opener +=  "_st";break;}
+                case  stb:{opener +=  "stb";break;}
+		case  tz1:{opener +=  "ttz";break;}
+                case  tz2:{opener +=  "ttz";break;}
+		case  ttb:{opener +=  "ttb";break;}
+                case  ttl:{opener +=  "ttl";break;}
+                case  ttj:{opener +=  "ttj";break;}
+                case  wjt:{opener +=  "wjt";break;}
+		case  met:{opener +=  "met";break;}
+		case  cms:{opener +=  "cms";break;}
+                case  stw:{opener +=  "stw";break;}
+                case stbw:{opener += "stbw";break;}
 
 	}
 	hFd[std::make_pair(ch,ds)]
@@ -130,7 +130,7 @@ int plotall(){
 	TH1D * rp;
 
 	for(dataSource ds:dataSourceAll){
-	if( met == ds ) continue;
+	if(met == ds) continue;
 	std::string  opener  = chN + "_";
 	int colour;
 	switch  (ds){
@@ -145,7 +145,6 @@ int plotall(){
 		case  ttb:{opener += "ttb" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
                 case  ttl:{opener += "ttl" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
                 case  ttj:{opener += "ttj" ;lgN = "t#bar{b}"      ;colour =  7 ;break;}// cyan
-                case  zjt:{opener += "zjt" ;lgN = "Z+Jets"        ;colour =  28;break;}//
                 case  wjt:{opener += "wjt" ;lgN = "W+Jets"        ;colour =  46;break;}//
 		case  met:{opener += "met" ;lgN = "MET"           ;colour =  9 ;break;}// violet
 		case  cms:{opener += "cms" ;lgN = "data"          ;colour =  1 ;break;}// black
@@ -155,12 +154,12 @@ int plotall(){
 	}
 	std::string hobjN = allNamesArray[i][0] + opener;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),        hobj);
+	//std::cout<< "ds and ch "<<ds<< " "<<ch<<std::endl;
 	                                      hobj->SetDirectory(nullptr);
 	if(hobj->GetMaximum() > max) max =    hobj->GetMaximum(         );
 	// note that MET is already skipped above
 	// WARNING: We require CMS to be the last thing in dataSourceAll !
 	if( cms != ds ){
-                if(zjt == ds)continue;
 		hobj->SetFillColor(colour);
 		stac .Add(hobj);
 		legS .AddEntry(hobj,lgN.c_str(),"f");

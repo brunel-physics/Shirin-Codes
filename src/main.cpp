@@ -50,7 +50,6 @@ int main(int argc,char* argv[]){
 		else if( "tz2"   == dsN){ds =  tz2;}
 		else if( "met"   == dsN){ds =  met;}
 		else if( "cms"   == dsN){ds =  cms;}
-                else if( "zjt"   == dsN){ds =  zjt;}
                 else if( "wjt"   == dsN){ds =  wjt;}
 		else{std::cout << "Error: data source " << dsN
 		               << " not recognised    " << std::endl;

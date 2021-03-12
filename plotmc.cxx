@@ -34,7 +34,6 @@ int plotmc(){
 		case tz1:{opener += "ttz";break;}
                 case tz2:{opener += "ttz";break;}
                 case wjt:{opener += "wjt";break;}
-		case zjt:{opener += "zjt";break;}
 		case met:{opener += "met";break;}
 		case cms:{opener += "cms";break;}
 	}
@@ -81,7 +80,6 @@ int plotmc(){
 		case tz1:{opener += "ttz";lgN ="ttZ"   ;colour = 5 ;break;}// yellow
                 case tz2:{opener += "ttz";lgN ="ttZ"   ;colour = 5 ;break;}// yellow
                 case wjt:{opener += "wjt";lgN ="W+jets";colour = 46;break;}//
-		case zjt:{opener += "zjt";lgN ="Z+jets";colour = 28;break;}//
 		case met:{opener += "met";lgN ="MET"   ;colour = 9 ;break;}// violet
 		case cms:{opener += "cms";lgN ="CMS"   ;colour = 1 ;break;}// black
 	}

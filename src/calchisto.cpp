@@ -87,7 +87,6 @@ namespace{
   constexpr double        TZQQ2_W =   .00237;// ttz
   constexpr double       ZZLLQQ_W =   .00485;
   constexpr double	    WJT_W = 73.26469;
-  constexpr double          ZJT_W =  2.89992;
   constexpr double           ST_W =   .03837;
   constexpr double          STB_W =   .04433;
   constexpr double        TTBLL_W =   .05303;
@@ -103,7 +102,6 @@ namespace{
   constexpr double     TTZ2_GEN_W =  0.47492;
   constexpr double       ZZ_GEN_W =  0.99880;
   constexpr double      WJT_GEN_W =  0.99103;
-  constexpr double      ZJT_GEN_W =  0.99881;
   constexpr double       ST_GEN_W =  1.00000;
   constexpr double      STB_GEN_W =  1.00000;
   constexpr double      TTL_GEN_W =  0.99190;
@@ -1128,7 +1126,6 @@ auto genWSF(const dataSource  ds){
 		case stbw:{frac =STBW_GEN_W;break;}
 		case  ttl:{frac = TTL_GEN_W;break;}
 		case  ttj:{frac = TTJ_GEN_W;break;}
-                case  zjt:{frac = ZJT_GEN_W;break;}
                 case  wjt:{frac = WJT_GEN_W;break;}
                 case  ttb:{frac = TTB_GEN_W;break;}
                 case  tz1:{frac =TTZ1_GEN_W;break;}
@@ -1164,7 +1161,6 @@ inline auto sf(
 			case   ww:{result = WWLNQQ_W;break;}
 			case   wz:{result = WZLNQQ_W;break;}
 			case   zz:{result = ZZLLQQ_W;break;}
-			case  zjt:{result =    ZJT_W;break;}
 			case  wjt:{result =    WJT_W;break;}
 			case   st:{result =     ST_W;break;}
 			case  stb:{result =    STB_W;break;}
@@ -1408,7 +1404,6 @@ void calchisto(const channel ch,const dataSource ds){
 	case  wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
 	case  zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
 	case wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
-	case zjt:{temp_opener="/data/disk3/nanoAOD_2017/DYToQQ"+temp_footer;break;}// not downloaded yet
 	case ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
         case  ttl:{temp_opener="/data/disk1/nanoAOD_2017_new/TT_2l2nu_nanoAODv5"+temp_footer;break;}
         case  ttj:{temp_opener=temp_header+"TTToHadronic"     +temp_footer;break;}
@@ -1462,7 +1457,6 @@ void calchisto(const channel ch,const dataSource ds){
 			case  ttl:
 			case  ttj:
 			case  wjt:
-			case  zjt:
 			case  tz1:
 			case  tz2:{           return mc__df;break;}
 			case  met:{           return bothdf;break;}
@@ -1542,7 +1536,6 @@ void calchisto(const channel ch,const dataSource ds){
 		case  stb:{temp_header+= "stb";temp_footer+="STB" ;break;}
 		case  stw:{temp_header+= "stw";temp_footer+="STW" ;break;}
 		case stbw:{temp_header+="stbw";temp_footer+="STBW";break;}
-		case  zjt:{temp_header+= "zjt";temp_footer+="Zjt" ;break;}
 		case  wjt:{temp_header+= "wjt";temp_footer+="Wjt" ;break;}
 		case  ttb:{temp_header+= "ttb";temp_footer+="ttb" ;break;}
                 case  ttl:{temp_header+= "ttl";temp_footer+="ttl" ;break;}
