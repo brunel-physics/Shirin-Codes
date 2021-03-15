@@ -43,6 +43,8 @@ int main(int argc,char* argv[]){
                 else if( "stb"   == dsN){ds =  stb;}
                 else if( "stw"   == dsN){ds =  stw;}
                 else if("stbw"   == dsN){ds = stbw;}
+                else if("wjqq"   == dsN){ds = wjqq;}
+                else if("wzll"   == dsN){ds = wzll;}
 		else if( "ttb"   == dsN){ds =  ttb;}
                 else if( "ttl"   == dsN){ds =  ttl;}
                 else if( "ttj"   == dsN){ds =  ttj;}

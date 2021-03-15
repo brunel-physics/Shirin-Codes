@@ -93,6 +93,8 @@ namespace{
   constexpr double        TTBJJ_W =   .12066;
   constexpr double          STW_W =   .18247;
   constexpr double         STBW_W =   .18750;
+  constexpr double         WJQQ_W =   .17827;
+  constexpr double         WZLL_W =   .00844;
 
   constexpr double      TZQ_GEN_W =  0.25890;
   constexpr double       WW_GEN_W =  0.99621;
@@ -108,6 +110,8 @@ namespace{
   constexpr double      TTJ_GEN_W =  0.99193;
   constexpr double      STW_GEN_W =  0.99234;
   constexpr double     STBW_GEN_W =  0.99235;
+  constexpr double     WZLL_GEN_W =  0.60420;
+  constexpr double     WJQQ_GEN_W =  0.99345;
 
 
 
@@ -1124,6 +1128,8 @@ auto genWSF(const dataSource  ds){
 		case  stb:{frac = STB_GEN_W;break;}
 		case  stw:{frac = STW_GEN_W;break;}
 		case stbw:{frac =STBW_GEN_W;break;}
+		case wjqq:{frac =WJQQ_GEN_W;break;}
+		case wzll:{frac =WZLL_GEN_W;break;}
 		case  ttl:{frac = TTL_GEN_W;break;}
 		case  ttj:{frac = TTJ_GEN_W;break;}
                 case  wjt:{frac = WJT_GEN_W;break;}
@@ -1166,6 +1172,8 @@ inline auto sf(
 			case  stb:{result =    STB_W;break;}
 			case  stw:{result =    STW_W;break;}
 			case stbw:{result =   STBW_W;break;}
+			case wjqq:{result =   WJQQ_W;break;}
+			case wzll:{result =   WZLL_W;break;}
 			case  ttb:{result =  TTBLV_W;break;}
 			case  ttl:{result =  TTBLL_W;break;}
 			case  ttj:{result =  TTBJJ_W;break;}
@@ -1399,22 +1407,24 @@ void calchisto(const channel ch,const dataSource ds){
 	std::string temp_header="/data/disk0/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
-	case tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}/**/
-	case  ww:{temp_opener=temp_header+ "WWToLNuQQ"       +temp_footer;break;}
-	case  wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
-	case  zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
-	case wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
-	case ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
+	case  tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}/**/
+	case   ww:{temp_opener=temp_header+ "WWToLNuQQ"       +temp_footer;break;}
+	case   wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
+	case   zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
+	case  wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
+	case  ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
         case  ttl:{temp_opener="/data/disk1/nanoAOD_2017_new/TT_2l2nu_nanoAODv5"+temp_footer;break;}
         case  ttj:{temp_opener=temp_header+"TTToHadronic"     +temp_footer;break;}
         case   st:{temp_opener="/data/disk1/nanoAOD_2017_new/ST_tchannel_top_nanoAODv5"+temp_footer;break;}
         case  stb:{temp_opener="/data/disk1/nanoAOD_2017_new/ST_tchannel_antitop_nanoAODv5"+temp_footer;break;}
         case  stw:{temp_opener=temp_header+"ST_tW"            +temp_footer;break;}
         case stbw:{temp_opener=temp_header+"ST_tbarW"         +temp_footer;break;}
-	case tz1:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
-	case tz2:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
-	case met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
-	case cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
+        case wzll:{temp_opener=temp_header+"WZTo2L2Q"         +temp_footer;break;}
+        case wjqq:{temp_opener=temp_header+"WPlusJetsToQQ"    +temp_footer;break;}
+	case  tz1:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
+	case  tz2:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
+	case  met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
+	case  cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
@@ -1453,6 +1463,8 @@ void calchisto(const channel ch,const dataSource ds){
 			case  stb:
 			case  stw:
 			case stbw:
+			case wjqq:
+			case wzll:
 			case  ttb:
 			case  ttl:
 			case  ttj:
@@ -1536,6 +1548,8 @@ void calchisto(const channel ch,const dataSource ds){
 		case  stb:{temp_header+= "stb";temp_footer+="STB" ;break;}
 		case  stw:{temp_header+= "stw";temp_footer+="STW" ;break;}
 		case stbw:{temp_header+="stbw";temp_footer+="STBW";break;}
+		case wjqq:{temp_header+="wjqq";temp_footer+="wjqq";break;}
+		case wzll:{temp_header+="wzll";temp_footer+="WZLL";break;}
 		case  wjt:{temp_header+= "wjt";temp_footer+="Wjt" ;break;}
 		case  ttb:{temp_header+= "ttb";temp_footer+="ttb" ;break;}
                 case  ttl:{temp_header+= "ttl";temp_footer+="ttl" ;break;}
