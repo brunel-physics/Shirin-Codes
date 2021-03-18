@@ -40,6 +40,8 @@ int plotcomp(){
 		case  cms:{opener += "cms" ;break;}
                 case  stw:{opener += "stw" ;break;}
                 case stbw:{opener += "stbw";break;}
+		case wjqq:{opener += "wjqq";break;}
+		case wzll:{opener += "wzll";break;}
 	}
 	hFd[std::make_pair(ch,ds)]
 		= new TFile(("histo/" + opener + ".root").c_str());
@@ -122,6 +124,9 @@ int plotcomp(){
 		case  cms:{opener += "cms" ;lgN = "data"          ;colour =  1 ;break;}// black
                 case  stw:{opener += "stw" ;lgN = "tW"            ;colour =  75;break;}//
                 case stbw:{opener += "stbw";lgN = "#bar{t}W "     ;colour =  65;break;}//
+                case wjqq:{opener += "wjqq";lgN = "W+ Jets QQ "   ;colour =  55;break;}//
+                case wzll:{opener += "wzll";lgN = "WZ LLQQ"       ;colour =  35;break;}//
+
 	}
 	std::string    hobjN = opener + "_" + particle + kstring ;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),hobj);
