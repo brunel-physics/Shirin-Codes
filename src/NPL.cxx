@@ -7,7 +7,7 @@
 // Non-prompt-lepton estimation
 inline auto Npl
 	const int N_L!T_data  // Number of loose not tight lepton in QCD region (control region) in data
-	,const int N_L!T_prompt// Number of loose not tight prompt lepton in QCD region of enriched QCD sample (ttb, ttz, wz, zz)
+	,const int N_L!T_prompt// Number of loose not tight prompt lepton in QCD region of enriched QCD sample (ttb,ttl,ttj,tz1,tz2,wz,zz,st,stb,stw,stbw)
 	,const int eff_TL      // Number of tight to loose lepton ratio in QCD enriched sample in QCD region
 ){// produce three p_T vs eta histograms for the parameters above and save them as root files to be used in calchisto.cpp
   // The QCD regions are the regions outside 40 GeV of the nominal W mass
@@ -35,7 +35,7 @@ inline auto Npl
 #include "eval_complex.hpp"
 #include "roccor.Run2.v3/RoccoR.cc"
 
-enum dataSource  {tzq,ww,wz,zz,ttb,ttz,met,mc,cms};// mc : QCD enriched samples: ttz,ttb, zz,wz
+enum dataSource  {tzq,ww,wz,zz,ttb,ttj,ttl,tz1,tz2,st,stb,wjt,stw,stbw,wjqq,wzll,met,mc,cms};// mc : QCD enriched samples: tzq,tz1,tz2,ttb,ttl,ttj,st,stb,stw,stbw,zz,wz,ww
 enum channel     {elnu,munu};
 
 /*
@@ -96,12 +96,22 @@ namespace{
   constexpr unsigned    BJETS_MIN = 1     ;
   constexpr unsigned    BJETS_MAX = 3     ;
 
-  constexpr double          TZQ_W =  .0128;
-  constexpr double       WWLNQQ_W = 2.1740;
-  constexpr double       WZLNQQ_W =  .2335;
-  constexpr double        TTBLV_W = 1.3791;
-  constexpr double        TTZQQ_W =  .0237;
-  constexpr double       ZZLLQQ_W =  .0485;
+  constexpr double          TZQ_W =   .00128;
+  constexpr double       WWLNQQ_W =   .21740;
+  constexpr double       WZLNQQ_W =   .02335;
+  constexpr double        TTBLV_W =   .13791;
+  constexpr double        TZQQ1_W =   .02826;// ttz
+  constexpr double        TZQQ2_W =   .00237;// ttz
+  constexpr double       ZZLLQQ_W =   .00485;
+  constexpr double	    WJT_W = 73.26469;
+  constexpr double           ST_W =   .03837;
+  constexpr double          STB_W =   .04433;
+  constexpr double        TTBLL_W =   .05303;
+  constexpr double        TTBJJ_W =   .12066;
+  constexpr double          STW_W =   .18247;
+  constexpr double         STBW_W =   .18750;
+  constexpr double         WJQQ_W =   .17827;
+  constexpr double         WZLL_W =   .00844;
 
   constexpr float    TRIG_SF_ELNU = 1.070511816990938379014537410816376133957408282644307576982;
   constexpr float    TRIG_SF_MUNU = 1.089437304676686344318303492342796025659913489719426417037;
@@ -401,16 +411,35 @@ inline auto sf(const  dataSource ds,
 		double result;
 		bool MC = true;
 		switch(ds){
-			case tzq:{result =    TZQ_W;break;}
-			case  ww:{result = WWLNQQ_W;break;}
-			case  wz:{result = WZLNQQ_W;break;}
-			case  zz:{result = ZZLLQQ_W;break;}
-			case ttb:{result =  TTBLV_W;break;}
-			case ttz:{result =  TTZQQ_W;break;}
+			case  tzq:{result =    TZQ_W;break;}
+			case   ww:{result = WWLNQQ_W;break;}
+			case   wz:{result = WZLNQQ_W;break;}
+			case   zz:{result = ZZLLQQ_W;break;}
+			case  wjt:{result =    WJT_W;break;}
+			case   st:{result =     ST_W;break;}
+			case  stb:{result =    STB_W;break;}
+			case  stw:{result =    STW_W;break;}
+			case stbw:{result =   STBW_W;break;}
+			case wjqq:{result =   WJQQ_W;break;}
+			case wzll:{result =   WZLL_W;break;}
+			case  ttb:{result =  TTBLV_W;break;}
+			case  ttl:{result =  TTBLL_W;break;}
+			case  ttj:{result =  TTBJJ_W;break;}
+			case  tz1:{result =  TZQQ1_W;break;}
+			case  tz2:{result =  TZQQ2_W;break;}
 			case  mc:{result = WZLNQQ_W+
 			                   ZZLLQQ_W+
-			                   TTBLV_W+
-			                   TTZQQ_W;break;}
+			                    TTBLV_W+
+					    TTBLL_W+
+					    TTBJJ_W+
+			                    TZQQ1_W+
+					    TZQQ2_W+
+					      WJT_W+
+					       ST_W+
+					      STB_W+
+					      STW_W+
+					     STBW_W+
+					     WJQQ_W ;break;}
 			case met:// fall through to cms and mc
 			case cms:{result = 1.;MC=false;break;}// ignore btag wt
 			default :throw std::invalid_argument(
@@ -658,12 +687,27 @@ void NPL(const channel ch,const dataSource ds){
 	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	// Open chains of exptData EVEN IF UNUSED
+	std::string temp_header0 = "/data/disk0/nanoAOD_2017/",
+		    temp_header1 = "/data/disk1/nanoAOD_2017_new/",
+		    temp_header3 = "/data/disk3/nanoAOD_2017/";
 	// QCD Enriched MCs file openning in chain
 	TChain QCDofMC("Events"); // including the enriched QCD datasets of MC
-	QCDofMC.Add("/data/disk0/nanoAOD_2017/WZTo1L1Nu2Q/*.root");/**/
-	QCDofMC.Add("/data/disk0/nanoAOD_2017/ZZTo2L2Q/*.root");/**/
-	QCDofMC.Add("/data/disk0/nanoAOD_2017/TTToSemileptonic/*.root");/**/
-	QCDofMC.Add("ttz_dir/*.root");/**/
+	QCDofMC.Add((temp_header3+ "tZqlvqq"                      +temp_footer).c_str());
+	QCDofMC.Add((temp_header0+ "WWToLNuQQ"                    +temp_footer).c_str());
+	QCDofMC.Add((temp_header0+ "WZTo1L1Nu2Q"                  +temp_footer).c_str());
+	QCDofMC.Add((temp_header0+ "ZZTo2L2Q"                     +temp_footer).c_str());
+	QCDofMC.Add((temp_header3+ "WPlusJets_NanoAODv5"          +temp_footer).c_str());
+	QCDofMC.Add((temp_header0+ "TTToSemileptonic"             +temp_footer).c_str());
+	QCDofMC.Add((temp_header1+ "TT_2l2nu_nanoAODv5"           +temp_footer).c_str());
+	QCDofMC.Add((temp_header0+ "TTToHadronic"                 +temp_footer).c_str());
+	QCDofMC.Add((temp_header1+ "ST_tchannel_top_nanoAODv5"    +temp_footer).c_str());
+	QCDofMC.Add((temp_header1+ "ST_tchannel_antitop_nanoAODv5"+temp_footer).c_str());
+	QCDofMC.Add((temp_header0+ "ST_tW"                        +temp_footer).c_str());
+	QCDofMC.Add((temp_header0+ "ST_tbarW"                     +temp_footer).c_str());
+	QCDofMC.Add((temp_header0+ "WZTo2L2Q"                     +temp_footer).c_str());
+	QCDofMC.Add((temp_header0+ "WPlusJetsToQQ"                +temp_footer).c_str());
+	QCDofMC.Add((temp_header0+ "ttZToQQ"                      +temp_footer).c_str());
+	QCDofMC.Add((temp_header0+ "ttZToQQ_ext"                  +temp_footer).c_str());
 	ROOT::RDataFrame mc__df(QCDofMC); // QCD enriched MCs
 
 	TChain elnuCMS("Events");
@@ -690,7 +734,8 @@ void NPL(const channel ch,const dataSource ds){
 			case  wz:
 			case  zz:
 			case ttb:
-			case ttz:
+			case tz1:
+			case tz2:
 			case  mc:{           return mc__df;break;}
 			case cms :{switch(ch){// MC is already false
 			          case elnu:{return elnudf;break;}
