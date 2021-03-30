@@ -185,14 +185,17 @@ inline auto not_tight(const channel ch){
 				||  (abs_etas <  BARREL_ETA_MAX
 				&&        dxy <  BARREL_DXY_TIGHT
 				&&        dz  <  BARREL_DZ__TIGHT))
-				&&	elids <  EL_TIGHT_ID // Make it not tightable
+				//&&	elids <  EL_TIGHT_ID // Make it not tightable
+                                &&	elids >=  EL_LOOSE_ID
+
 			);
 			case munu:return ( true
 				&&   muids
 				&&   isPFs
 				&&     pts  >  MU__PT_MIN
 				&& abs_etas <  MU_ETA_MAX
-				&&     isos >  MU_TIGHT_ISO // Make it not tightable
+				//&&     isos >  MU_TIGHT_ISO // Make it not tightable
+                                &&     isos <=    MU_LOOSE_ISO
 			);
 			default  :throw std::invalid_argument(
 				"Unimplemented ch (lep_sel)");
@@ -777,7 +780,7 @@ void NPL(const channel ch,const dataSource ds){
 	       ,temp_header+"dxy"
 	       ,temp_header+"dz"
 	       })
-	.Define("not_tight",not_tight(ch),{
+	.Define("not_tight",lep_sel(ch),{//not_tight(ch),{
 	        temp_header+"isPFcand"
 	       ,temp_header+"pt"
 	       ,temp_header+"eta"
@@ -921,7 +924,7 @@ void NPL(const channel ch,const dataSource ds){
 	;
 	auto h_prompt_loose_lep = prompt_loose_lep.Histo2D({// N_L!T prompt MC
 	("prompt_LnT_"    + temp_header).c_str(),
-	("ptompt LnT MC " + temp_footer).c_str(),
+	("prompt LnT MC " + temp_footer).c_str(),
 	ptBinsSize,ptBins.data(),20,-2.5,2.5},
 	"lep__pt","lep_eta")
 	;

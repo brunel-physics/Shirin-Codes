@@ -2,8 +2,7 @@
 // This code is designed to run stand alone and not part of the eta, furtheremore only MC datasets will be considered for running
 
 // Compiler:
-//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/npl_run src/NPL_run.cxx `root-config --libs` -lm
-
+//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/npl_run src/NPL_run.cxx build/eval_complex.o `root-config --libs` -lm
 
 
 // TODO:: extend cmet to include MET and CMS (passing the same value), it is needed for them to be on the same  stack
@@ -1163,18 +1162,21 @@ auto npl(
 	default :throw std::invalid_argument(
 		"Unimplemented ch (npl)");
 	}// case
-	if(TLeff < 0 || npl_cms < 0 || npl_QCD < 0){
-	}
 	// To APPLY NPL formula : (eff/(1-eff))*(LnT_data - LnT_prompt)
 	if(0. < TLeff && TLeff < 1.){
-	if(!MC){
+	/*if(!MC){
 		npl =  npl_cms * TLeff/(1 - TLeff);
 	} else{
 		npl = -npl_QCD * TLeff/(1 - TLeff);
 	}}else{
 		npl = 1.;
+	}*/
+	// Data-driven method means that the the MC
+	// should take into account the data result
+	npl = TLeff/(1 - TLeff) * (npl_cms - npl_QCD);
 	}
-	if(debug > 0) std::cout << "NPL result " << npl << std::endl;
+	else{npl = 1;}
+	/*if(debug > 0)*/ std::cout << "NPL result " << npl << std::endl;
 	return  npl;};
 }
 auto genWSF(const dataSource  ds){
@@ -1254,7 +1256,7 @@ inline auto sf(
 			case elnu:{result *= TRIG_SF_ELNU;break;}
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
-		if( MC) result *= /*npl * */ pile(PuWd,PuUd,PuDd)(npv)[puW];
+		if( MC) result *= npl * pile(PuWd,PuUd,PuDd)(npv)[puW];
                 if(FP_NORMAL == std::fpclassify(b)) b_w = b;// if btag_w != nan
 		//std::cout<<"pile up is "<<pile(PuWd,PuUd,PuDd)(npv)[puW]
 		//	 <<" lhepdf is "<<lhepdf[0]<<std::endl;
@@ -1620,8 +1622,8 @@ void NPL_run(const channel ch,const dataSource ds){
 		case  ttb:{temp_header+= "ttb";temp_footer+="ttb" ;break;}
                 case  ttl:{temp_header+= "ttl";temp_footer+="ttl" ;break;}
                 case  ttj:{temp_header+= "ttj";temp_footer+="ttj" ;break;}
-                case  tz1:{temp_header+= "ttz";temp_footer+="ttZ" ;break;}
-		case  tz2:{temp_header+= "ttz";temp_footer+="ttZ" ;break;}
+                case  tz1:{temp_header+= "tz1";temp_footer+="tz1" ;break;}
+		case  tz2:{temp_header+= "tz2";temp_footer+="tz2" ;break;}
 		case  met:{temp_header+= "met";temp_footer+="MET" ;break;}
 		case  cms:{temp_header+= "cms";temp_footer+="CMS" ;break;}
 //		default :throw std::invalid_argument(
@@ -2131,7 +2133,7 @@ void NPL_run(const channel ch,const dataSource ds){
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/NPL_run"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/NPL_run_"+temp_header+".root").c_str(),"RECREATE");
 // MC only
 		hf.WriteTObject(h_sfi                  .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_sfj                  .GetPtr());hf.Flush();sync();
@@ -2360,7 +2362,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	finalDF.Report() ->Print();
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/NPL_run"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/NPL_run_"+temp_header+".root").c_str(),"RECREATE");
 	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();

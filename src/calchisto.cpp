@@ -1554,8 +1554,8 @@ void calchisto(const channel ch,const dataSource ds){
 		case  ttb:{temp_header+= "ttb";temp_footer+="ttb" ;break;}
                 case  ttl:{temp_header+= "ttl";temp_footer+="ttl" ;break;}
                 case  ttj:{temp_header+= "ttj";temp_footer+="ttj" ;break;}
-                case  tz1:{temp_header+= "ttz";temp_footer+="ttZ" ;break;}
-		case  tz2:{temp_header+= "ttz";temp_footer+="ttZ" ;break;}
+                case  tz1:{temp_header+= "tz1";temp_footer+="tz1" ;break;}
+		case  tz2:{temp_header+= "tz2";temp_footer+="tz2" ;break;}
 		case  met:{temp_header+= "met";temp_footer+="MET" ;break;}
 		case  cms:{temp_header+= "cms";temp_footer+="CMS" ;break;}
 //		default :throw std::invalid_argument(
