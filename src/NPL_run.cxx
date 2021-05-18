@@ -1435,36 +1435,70 @@ void NPL_run(const channel ch,const dataSource ds){
 	tF	= nullptr; tHf = nullptr; tHd = nullptr; t1d = nullptr;
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
 	// NPL results
-	tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
-	tF ->GetObject("prompt_LnT_elnu_QCD",tHd);
+	// NEED To Split them accordinly:
+        std:: string NPLc, NPLds;
+        switch (ch){
+                 case elnu:{NPLc = "_elnu";break;}
+                 case munu:{NPLc = "_munu";break;}
+                default  :throw std::invalid_argument(
+                        "Unimplemented ch (NPL file reading)");
+        }
+        switch (ds){
+                case  tzq:{NPLds =  "_tzq";break;}
+                case   ww:{NPLds =   "_ww";break;}
+                case   wz:{NPLds =   "_wz";break;}
+                case   zz:{NPLds =   "_zz";break;}
+                case   st:{NPLds =   "_st";break;}
+                case  stb:{NPLds =  "_stb";break;}
+                case  stw:{NPLds =  "_stw";break;}
+                case stbw:{NPLds = "_stbw";break;}
+                case wjqq:{NPLds = "_wjqq";break;}
+                case wzll:{NPLds = "_wzll";break;}
+                case  ttb:{NPLds =  "_ttb";break;}
+                case  ttl:{NPLds =  "_ttl";break;}
+                case  ttj:{NPLds =  "_ttj";break;}
+                case  wjt:{NPLds =  "_wjt";break;}
+                case  tz1:{NPLds =  "_tz1";break;}
+                case  tz2:{NPLds =  "_tz2";break;}
+                case  met:{NPLds =  "_met";break;}
+                case  cms:{NPLds =  "_cms";break;}
+                default :throw std::invalid_argument(
+                        "Unimplemented ds (NPL file reading)");
+        }
+        if(!(ds == cms || ds == met)){
+	// TODO: add switches for channels here? could do after lunch
+        tF = TFile::Open(("aux/NPL/NPL"+ NPLc + NPLds +".root").c_str());
+        tF ->GetObject(("prompt_LnT"   + NPLc + NPLds).c_str(),tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+	switch (ch){
+		case elnu:{
+			const TH2D* const pr_LnT_elnu_QCD = static_cast<TH2D*>(tHd);break;}
+		case munu:{
+			const TH2D* const pr_LnT_munu_QCD = static_cast<TH2D*>(tHd);break;}
+	}
+        tF ->Close();
+        tF = TFile::Open(("aux/NPL/NPL"+ NPLc + NPLds +".root").c_str());
+        tF ->GetObject(("TL_eff"       + NPLc + NPLds).c_str(),tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+	switch (ch){
+		case elnu:{
+        		const TH2D* const TL_eff_elnu_QCD = static_cast<TH2D*>(tHd);break;}
+		case munu:{
+        		const TH2D* const TL_eff_munu_QCD = static_cast<TH2D*>(tHd);break;}
+	}
+        tF ->Close();
+        }else{// ds : cms || met
+	tF = TFile::Open(("aux/NPL/NPL"+ NPLc + NPLds +".root").c_str());
+	tF ->GetObject(("N_data_LnT"   + NPLc + NPLds).c_str(),tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_QCD = static_cast<TH2D*>(tHd);
+	switch (ch){
+		case elnu:{
+			const TH2D* const dt_LnT_elnu_cms = static_cast<TH2D*>(tHd);break;}
+		case munu:{
+        		const TH2D* const dt_LnT_munu_cms = static_cast<TH2D*>(tHd);break;}
+	}
 	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
-	tF ->GetObject("TL_eff_elnu_QCD",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const TL_eff_elnu_QCD = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
-	tF ->GetObject("prompt_LnT_munu_QCD",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_QCD = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
-	tF ->GetObject("TL_eff_munu_QCD",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const TL_eff_munu_QCD = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_cms.root");
-	tF ->GetObject("N_data_LnT_elnu_cms",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const dt_LnT_elnu_cms = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_cms.root");
-	tF ->GetObject("N_data_LnT_munu_cms",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const dt_LnT_munu_cms = static_cast<TH2D*>(tHd);
-	tF ->Close();
+	}// NPL file reading is done
 //	std::cout<<"Auxiliary files processed"       <<std::endl;
 
 	// Open data files even if unused

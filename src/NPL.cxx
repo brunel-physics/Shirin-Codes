@@ -3,6 +3,11 @@
 // Compiler:
 //clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/npl src/NPL.cxx `root-config --libs` -lm
 
+// TODO: SPLIT the data entries for all the MCs
+// TODO: APPLY all SFs for luminosity and etc accordingly.
+// TODO: SAVE them based on ds_ch
+
+
 /* Methodology:
 // Non-prompt-lepton estimation
 inline auto Npl
@@ -35,7 +40,7 @@ inline auto Npl
 #include "eval_complex.hpp"
 #include "roccor.Run2.v3/RoccoR.cc"
 
-enum dataSource  {tzq,ww,wz,zz,ttb,ttj,ttl,tz1,tz2,st,stb,wjt,stw,stbw,wjqq,wzll,met,mc,cms};// mc : QCD enriched samples: tzq,tz1,tz2,ttb,ttl,ttj,st,stb,stw,stbw,zz,wz,ww
+enum dataSource  {tzq,ww,wz,zz,ttb,ttj,ttl,tz1,tz2,st,stb,wjt,stw,stbw,wjqq,wzll,cms};
 enum channel     {elnu,munu};
 
 /*
@@ -112,6 +117,23 @@ namespace{
   constexpr double         STBW_W =   .18750;
   constexpr double         WJQQ_W =   .17827;
   constexpr double         WZLL_W =   .00844;
+
+  constexpr double      TZQ_GEN_W =  0.25890;
+  constexpr double       WW_GEN_W =  0.99621;
+  constexpr double       WZ_GEN_W =  0.59451;
+  constexpr double      TTB_GEN_W =  0.99191;
+  constexpr double     TTZ1_GEN_W =  0.47505;
+  constexpr double     TTZ2_GEN_W =  0.47492;
+  constexpr double       ZZ_GEN_W =  0.99880;
+  constexpr double      WJT_GEN_W =  0.99103;
+  constexpr double       ST_GEN_W =  1.00000;
+  constexpr double      STB_GEN_W =  1.00000;
+  constexpr double      TTL_GEN_W =  0.99190;
+  constexpr double      TTJ_GEN_W =  0.99193;
+  constexpr double      STW_GEN_W =  0.99234;
+  constexpr double     STBW_GEN_W =  0.99235;
+  constexpr double     WZLL_GEN_W =  0.60420;
+  constexpr double     WJQQ_GEN_W =  0.99345;
 
   constexpr float    TRIG_SF_ELNU = 1.070511816990938379014537410816376133957408282644307576982;
   constexpr float    TRIG_SF_MUNU = 1.089437304676686344318303492342796025659913489719426417037;
@@ -426,12 +448,43 @@ inline auto btagP(const doubles &eta){return abs(eta) < BJET_ETA_MAX;}
 inline auto btagB(const ints  &btagP,const floats &btags){
 	return   btagP && ( BTAG_DISC_MIN < btags );// all tJ length
 }
+auto genWSF(const dataSource  ds){
+  	if(0<debug) std::cout<<"genWSF"<<std::endl;
+        return [=](
+		const float genw){
+	if(ds == cms)return 1.0;
+	else{
+	double frac;
+	double w ;
+	switch(ds){
+                case  tzq:{frac = TZQ_GEN_W;break;}
+                case   ww:{frac =  WW_GEN_W;break;}
+                case   wz:{frac =  WZ_GEN_W;break;}
+                case   zz:{frac =  ZZ_GEN_W;break;}
+		case   st:{frac =  ST_GEN_W;break;}
+		case  stb:{frac = STB_GEN_W;break;}
+		case  stw:{frac = STW_GEN_W;break;}
+		case stbw:{frac =STBW_GEN_W;break;}
+		case wjqq:{frac =WJQQ_GEN_W;break;}
+		case wzll:{frac =WZLL_GEN_W;break;}
+		case  ttl:{frac = TTL_GEN_W;break;}
+		case  ttj:{frac = TTJ_GEN_W;break;}
+                case  wjt:{frac = WJT_GEN_W;break;}
+                case  ttb:{frac = TTB_GEN_W;break;}
+                case  tz1:{frac =TTZ1_GEN_W;break;}
+                case  tz2:{frac =TTZ2_GEN_W;break;}
+	}
+	w = std::copysign(frac,genw);
+        if(0<debug) std::cout<<"genWSF, genW "<<genw<<std::endl;
+	return w;}};
+}
 inline auto sf(const  dataSource ds,
                const  channel    ch)
 {
 	if(0<debug) std::cout<<"scale factor "<<std::endl;
 	return [=](
 		 const double mostSF
+		,const double genw
 	){
 		// TODO: trigger efficiency
 		double result;
@@ -453,21 +506,7 @@ inline auto sf(const  dataSource ds,
 			case  ttj:{result =  TTBJJ_W;break;}
 			case  tz1:{result =  TZQQ1_W;break;}
 			case  tz2:{result =  TZQQ2_W;break;}
-			case  mc:{result = WZLNQQ_W+
-			                   ZZLLQQ_W+
-			                    TTBLV_W+
-					    TTBLL_W+
-					    TTBJJ_W+
-			                    TZQQ1_W+
-					    TZQQ2_W+
-					      WJT_W+
-					       ST_W+
-					      STB_W+
-					      STW_W+
-					     STBW_W+
-					     WJQQ_W ;break;}
-			case met:// fall through to cms and mc
-			case cms:{result = 1.;MC=false;break;}// ignore btag wt
+			case  cms:{result = 1.;MC=false;break;}// ignore btag wt
 			default :throw std::invalid_argument(
 				"Unimplemented ds (sf)");
 		}
@@ -475,7 +514,7 @@ inline auto sf(const  dataSource ds,
 			case elnu:{result *= TRIG_SF_ELNU;break;}
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
-		result *=  mostSF;
+		result *=  mostSF * genw;
 		if(0<debug) std::cout<<"sf finish"<<std::endl;
 		return result;
 	};
@@ -705,19 +744,33 @@ void NPL(const channel ch,const dataSource ds){
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
 	// All require files for lepton SF are read
 
-	std::string temp_header="/data/disk0/nanoAOD_2017/",
-	temp_opener,temp_footer="/*.root";/**/
-	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
-	case cms:{temp_opener=temp_header+ "ttZToQQ"         +temp_footer;break;}
-	case  mc:{temp_opener=temp_header+ "ttZToQQ"         +temp_footer;break;}
+        std::string temp_header0 = "/data/disk0/nanoAOD_2017/",
+                    temp_header1 = "/data/disk1/nanoAOD_2017_new/",
+                    temp_header3 = "/data/disk3/nanoAOD_2017/",
+		    temp_header, temp_opener, temp_footer="/*.root";/**/
+	switch(ds){// CMS must do some OPENABLE file ; reject later
+	case  tzq:{temp_opener=temp_header3+ "tZqlvqq"                      +temp_footer;break;}
+	case   ww:{temp_opener=temp_header0+ "WWToLNuQQ"                    +temp_footer;break;}
+	case   wz:{temp_opener=temp_header0+ "WZTo1L1Nu2Q"                  +temp_footer;break;}
+	case   zz:{temp_opener=temp_header0+ "ZZTo2L2Q"                     +temp_footer;break;}
+	case  wjt:{temp_opener=temp_header3+ "WPlusJets_NanoAODv5"          +temp_footer;break;}
+	case  ttb:{temp_opener=temp_header0+ "TTToSemileptonic"             +temp_footer;break;}
+	case  ttl:{temp_opener=temp_header1+ "TT_2l2nu_nanoAODv5"           +temp_footer;break;}
+	case  ttj:{temp_opener=temp_header0+ "TTToHadronic"                 +temp_footer;break;}
+	case   st:{temp_opener=temp_header1+ "ST_tchannel_top_nanoAODv5"    +temp_footer;break;}
+	case  stb:{temp_opener=temp_header1+ "ST_tchannel_antitop_nanoAODv5"+temp_footer;break;}
+	case  stw:{temp_opener=temp_header0+ "ST_tW"                        +temp_footer;break;}
+	case stbw:{temp_opener=temp_header0+ "ST_tbarW"                     +temp_footer;break;}
+	case wzll:{temp_opener=temp_header0+ "WZTo2L2Q"                     +temp_footer;break;}
+	case wjqq:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
+	case  tz1:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
+	case  tz2:{temp_opener=temp_header0+ "ttZToQQ_ext"                  +temp_footer;break;}
+	case  cms:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
 	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	// Open chains of exptData EVEN IF UNUSED
-	std::string temp_header0 = "/data/disk0/nanoAOD_2017/",
-		    temp_header1 = "/data/disk1/nanoAOD_2017_new/",
-		    temp_header3 = "/data/disk3/nanoAOD_2017/";
 	// QCD Enriched MCs file openning in chain
-	TChain QCDofMC("Events"); // including the enriched QCD datasets of MC
+	/*TChain QCDofMC("Events"); // including the enriched QCD datasets of MC
 	QCDofMC.Add((temp_header3+ "tZqlvqq"                      +temp_footer).c_str());
 	QCDofMC.Add((temp_header0+ "WWToLNuQQ"                    +temp_footer).c_str());
 	QCDofMC.Add((temp_header0+ "WZTo1L1Nu2Q"                  +temp_footer).c_str());
@@ -734,8 +787,8 @@ void NPL(const channel ch,const dataSource ds){
 	QCDofMC.Add((temp_header0+ "WPlusJetsToQQ"                +temp_footer).c_str());
 	QCDofMC.Add((temp_header0+ "ttZToQQ"                      +temp_footer).c_str());
 	QCDofMC.Add((temp_header0+ "ttZToQQ_ext"                  +temp_footer).c_str());
-	ROOT::RDataFrame mc__df(QCDofMC); // QCD enriched MCs
-
+	ROOT::RDataFrame mc__df(QCDofMC);  QCD enriched MCs */
+	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
 	TChain elnuCMS("Events");
 	TChain munuCMS("Events");
 	temp_footer = "/*.root" ;/* safety redefinition now saving us */
@@ -752,18 +805,26 @@ void NPL(const channel ch,const dataSource ds){
 	}
 	ROOT::RDataFrame  elnudf(elnuCMS);
 	ROOT::RDataFrame  munudf(munuCMS);
-	const bool MC = !(met == ds ||cms == ds);
+	const bool MC = !(cms == ds);
 	auto df = [&,ch,ds](){// Get correct data frame
 		switch(ds){
-			case tzq:
-			case  ww:// fall through!
-			case  wz:
-			case  zz:
-			case ttb:
-			case tz1:
-			case tz2:
-			case  mc:{           return mc__df;break;}
-			case cms :{switch(ch){// MC is already false
+			case  tzq:
+			case   ww:// fall through!
+			case   wz:
+			case   zz:
+			case  wjt:
+			case  ttb:
+			case  ttl:
+			case  ttj:
+			case   st:
+			case  stb:
+			case  stw:
+			case stbw:
+			case wzll:
+			case wjqq:
+			case  tz1:
+			case  tz2:{           return mc__df;break;}
+			case  cms:{switch(ch){// MC is already false
 			          case elnu:{return elnudf;break;}
 			          case munu:{return munudf;break;}
 			          default  :throw std::invalid_argument(
@@ -827,7 +888,8 @@ void NPL(const channel ch,const dataSource ds){
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
 	. Alias("mostSF" , "lepSF")
-	.Define("sf",sf(ds,ch),{"mostSF"})
+	.Define("genW",genWSF(ds),{"genWeight"})
+	.Define("sf",sf(ds,ch),{"mostSF","genW"})
 	.Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
 	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
 	.Define("tight_jets" 	   ,tight_jet_id,
@@ -941,8 +1003,23 @@ void NPL(const channel ch,const dataSource ds){
 		case munu:{temp_header="munu_";temp_footer="munu_";break;}
 	}
 	switch(ds){
-		case  mc:{temp_header+="QCD";temp_footer+="QCD";break;}// QCD enriched sample
-		case cms:{temp_header+="cms";temp_footer+="CMS";break;}
+		case  tzq:{temp_header+= "tzq";temp_footer+="tZq" ;break;}
+		case   ww:{temp_header+=  "ww";temp_footer+=" WW" ;break;}
+		case   wz:{temp_header+=  "wz";temp_footer+=" WZ" ;break;}
+		case   zz:{temp_header+=  "zz";temp_footer+=" ZZ" ;break;}
+		case   st:{temp_header+=  "st";temp_footer+=" ST" ;break;}
+		case  stb:{temp_header+= "stb";temp_footer+="STB" ;break;}
+		case  stw:{temp_header+= "stw";temp_footer+="STW" ;break;}
+		case stbw:{temp_header+="stbw";temp_footer+="STBW";break;}
+		case wjqq:{temp_header+="wjqq";temp_footer+="wjqq";break;}
+		case wzll:{temp_header+="wzll";temp_footer+="WZLL";break;}
+		case  wjt:{temp_header+= "wjt";temp_footer+="Wjt" ;break;}
+		case  ttb:{temp_header+= "ttb";temp_footer+="ttb" ;break;}
+                case  ttl:{temp_header+= "ttl";temp_footer+="ttl" ;break;}
+                case  ttj:{temp_header+= "ttj";temp_footer+="ttj" ;break;}
+                case  tz1:{temp_header+= "tz1";temp_footer+="tz1" ;break;}
+		case  tz2:{temp_header+= "tz2";temp_footer+="tz2" ;break;}
+		case  cms:{temp_header+= "cms";temp_footer+="CMS" ;break;}
 //		default :throw std::invalid_argument(
 //			"Unimplemented ds (hist titles)");
 	}
@@ -1029,8 +1106,23 @@ int main ( int argc , char *argv[] ){
 		return 3 ;
 	}
 	     if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
-	else if ( "mc"  ==   dsN  ){d  = mc;}
-	else if ( "cms" ==   dsN  ){d = cms;}
+        else if ( "tzq"  ==  dsN ){ d = tzq   ;}
+        else if ( "ttb"  ==  dsN ){ d = ttb   ;}
+        else if ( "ttl"  ==  dsN ){ d = ttl   ;}
+        else if ( "ttj"  ==  dsN ){ d = ttj   ;}
+        else if ( "tz1"  ==  dsN ){ d = tz1   ;}
+        else if ( "tz2"  ==  dsN ){ d = tz2   ;}
+        else if ( "wjt"  ==  dsN ){ d = wjt   ;}
+        else if ( "ww"   ==  dsN ){ d = ww    ;}
+        else if ( "wz"   ==  dsN ){ d = wz    ;}
+        else if ( "zz"   ==  dsN ){ d = zz    ;}
+        else if ( "st"   ==  dsN ){ d = st    ;}
+        else if ( "stb"  ==  dsN ){ d = stb   ;}
+        else if ( "stw"  ==  dsN ){ d = stw   ;}
+        else if ( "stbw" ==  dsN ){ d = stbw  ;}
+        else if ( "wzll" ==  dsN ){ d = wzll  ;}
+        else if ( "wjqq" ==  dsN ){ d = wjqq  ;}
+	else if ( "cms"  ==  dsN ){d  = cms   ;}
 	else { std::cout << "Error: data source " << dsN
 		<< " not recognised" << std::endl ;
 		return 4 ;
