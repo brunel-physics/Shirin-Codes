@@ -484,7 +484,6 @@ inline auto sf(const  dataSource ds,
 	if(0<debug) std::cout<<"scale factor "<<std::endl;
 	return [=](
 		 const double mostSF
-		,const double genw
 	){
 		// TODO: trigger efficiency
 		double result;
@@ -514,7 +513,7 @@ inline auto sf(const  dataSource ds,
 			case elnu:{result *= TRIG_SF_ELNU;break;}
 			case munu:{result *= TRIG_SF_MUNU;break;}
 		}
-		result *=  mostSF * genw;
+		result *=  mostSF;
 		if(0<debug) std::cout<<"sf finish"<<std::endl;
 		return result;
 	};
@@ -872,11 +871,11 @@ void NPL(const channel ch,const dataSource ds){
 	.Filter(not_tight_cut(ch),{"loose_leps",
 	        "Electron_cutBased",// edit function for  tight -> loose
 	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 not_tight lepton
-	.Define("lepB_pt","static_cast<double>("+temp_header+     "pt[not_tight][0])")
-	.Define("lep_eta","static_cast<double>("+temp_header+    "eta[not_tight][0])")
-	.Define("lep_phi","static_cast<double>("+temp_header+    "phi[not_tight][0])")
-	.Define("lep_mas","static_cast<double>("+temp_header+   "mass[not_tight][0])")
-	.Define("lep___q",temp_header+"charge[not_tight][0]")// int, only for RoccoR
+	.Define("lepB_pt","static_cast<double>("+temp_header+     "pt[loose_leps][0])")
+	.Define("lep_eta","static_cast<double>("+temp_header+    "eta[loose_leps][0])")
+	.Define("lep_phi","static_cast<double>("+temp_header+    "phi[loose_leps][0])")
+	.Define("lep_mas","static_cast<double>("+temp_header+   "mass[loose_leps][0])")
+	.Define("lep___q",temp_header+"charge[loose_leps][0]")// int, only for RoccoR
 	.Define("roccorSF", roccorSF(rc,ch,MC)// used in allReconstruction
 	                  ,{"lepB_pt","lep_eta",
 	                    "lep_phi","lep___q", // last 4 unused
@@ -888,8 +887,7 @@ void NPL(const channel ch,const dataSource ds){
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
 	. Alias("mostSF" , "lepSF")
-	.Define("genW",genWSF(ds),{"genWeight"})
-	.Define("sf",sf(ds,ch),{"mostSF","genW"})
+	.Define("sf",sf(ds,ch),{"mostSF"})
 	.Define("jet_lep_min_dR"   ,jet_lep_min_deltaR,// later reused with doubles
 	       {"rawJet_eta","rawJet_phi","lep_eta","lep_phi"})// gcc fail template
 	.Define("tight_jets" 	   ,tight_jet_id,
@@ -955,6 +953,7 @@ void NPL(const channel ch,const dataSource ds){
 	.Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
 	.Filter("tw_lep_mas > 100 || tw_lep_mas < 60","Transverse W mass cut for tight QCD region, tight in QCD")
 	;// loose not tight lepton in signal region
+
 	auto loose_not_tight_lep = offlep // Signal region selection and filter
 	.Filter(loose_not_tight_cut(ch),{"loose_leps",
 	        "Electron_cutBased",// edit function for  tight -> loose
@@ -1051,7 +1050,7 @@ void NPL(const channel ch,const dataSource ds){
 	("TL_eff " + temp_header).c_str())
 	;
 	auto prompt_loose_lep = loose_not_tight_lep //prompt for MC in signal
-	.Filter(lep_gpsf(ch),{"GenPart_statusFlags","not_tight"
+	.Filter(lep_gpsf(ch),{"GenPart_statusFlags","loose_leps"
 	                              ,"Electron_genPartIdx"
 	                              ,    "Muon_genPartIdx"},"loose not tight prompt MC")
 	;
