@@ -21,6 +21,7 @@
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
 #include "roccor.Run2.v3/RoccoR.cc"
+#include "Addhists.cxx"
 /*
 #if !defined(__FMA__) && defined(__AVX2__)
     #define __FMA__ 1
@@ -1436,169 +1437,17 @@ void NPL_run(const channel ch,const dataSource ds){
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
 	// NPL results
 	// NEED To Split them accordinly:
-        tF = TFile::Open("aux/NPL/NPL_elnu_tzq.root");
-	tF ->GetObject("prompt_LnT_elnu_tzq",tHd);
+        tF = TFile::Open("histo/NPL_elnu.root");
+	tF ->GetObject("prompt_LnT_elnu",tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_tzq = static_cast<TH2D*>(tHd);
+	const TH2D* const pr_LnT_elnu = static_cast<TH2D*>(tHd);
 	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_ww.root");
-	tF ->GetObject("prompt_LnT_elnu_ww",tHd);
+	tF = TFile::Open("histo/NPL_munu.root");
+	tF ->GetObject("prompt_LnT_munu",tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_ww = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_wz.root");
-	tF ->GetObject("prompt_LnT_elnu_wz",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_wz = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_zz.root");
-	tF ->GetObject("prompt_LnT_elnu_zz",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_zz = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_st.root");
-	tF ->GetObject("prompt_LnT_elnu_st",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_st = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_stb.root");
-	tF ->GetObject("prompt_LnT_elnu_stb",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_stb = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_stw.root");
-	tF ->GetObject("prompt_LnT_elnu_stw",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_stw = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_stbw.root");
-	tF ->GetObject("prompt_LnT_elnu_stbw",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_stbw = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_wjqq.root");
-	tF ->GetObject("prompt_LnT_elnu_wjqq",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_wjqq = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_wzll.root");
-	tF ->GetObject("prompt_LnT_elnu_wzll",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_wzll = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_ttb.root");
-	tF ->GetObject("prompt_LnT_elnu_ttb",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_ttb = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_ttl.root");
-	tF ->GetObject("prompt_LnT_elnu_ttl",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_ttl = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_ttj.root");
-	tF ->GetObject("prompt_LnT_elnu_ttj",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_ttj = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_wjt.root");
-	tF ->GetObject("prompt_LnT_elnu_wjt",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_wjt = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_tz1.root");
-	tF ->GetObject("prompt_LnT_elnu_tz1",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_tz1 = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu_tz2.root");
-	tF ->GetObject("prompt_LnT_elnu_tz2",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu_tz2 = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_tzq.root");
-	tF ->GetObject("prompt_LnT_munu_tzq",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_tzq = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_ww.root");
-	tF ->GetObject("prompt_LnT_munu_ww",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_ww = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_wz.root");
-	tF ->GetObject("prompt_LnT_munu_wz",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_wz = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_zz.root");
-	tF ->GetObject("prompt_LnT_munu_zz",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_zz = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_st.root");
-	tF ->GetObject("prompt_LnT_munu_st",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_st = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_stb.root");
-	tF ->GetObject("prompt_LnT_munu_stb",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_stb = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_stw.root");
-	tF ->GetObject("prompt_LnT_munu_stw",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_stw = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_stbw.root");
-	tF ->GetObject("prompt_LnT_munu_stbw",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_stbw = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_wjqq.root");
-	tF ->GetObject("prompt_LnT_munu_wjqq",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_wjqq = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_wzll.root");
-	tF ->GetObject("prompt_LnT_munu_wzll",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_wzll = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_ttb.root");
-	tF ->GetObject("prompt_LnT_munu_ttb",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_ttb = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_ttl.root");
-	tF ->GetObject("prompt_LnT_munu_ttl",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_ttl = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_ttj.root");
-	tF ->GetObject("prompt_LnT_munu_ttj",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_ttj = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_wjt.root");
-	tF ->GetObject("prompt_LnT_munu_wjt",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_wjt = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_tz1.root");
-	tF ->GetObject("prompt_LnT_munu_tz1",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_tz1 = static_cast<TH2D*>(tHd);
-	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu_tz2.root");
-	tF ->GetObject("prompt_LnT_munu_tz2",tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_munu_tz2 = static_cast<TH2D*>(tHd);
-	tF ->Close();
-
-	tF = TFile::Open(("aux/NPL/NPL"+ NPLc + NPLds +".root").c_str());
-        tF ->GetObject(("TL_eff"       + NPLc + NPLds).c_str(),tHd);
+	tf ->Close();
+	tF = TFile::Open(("histo/NPL_elnu.root").c_str());
+        tF ->GetObject(("TL_eff_elnu").c_str(),tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
 	switch (ch){
 		case elnu:{
