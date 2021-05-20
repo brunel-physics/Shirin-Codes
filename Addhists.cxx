@@ -48,23 +48,29 @@ TFile *tF; // We need as many Tfs as ds so maybe also temporary file?
 	   // can we open one file then next add to each other
 	   // save as new close old ones, open next one to add the already saved one
 	   // itirate till finish?
-TH2F  *tHf; TH2D *tHdpr, *tHdln, *tHdcm; // similar to tF
+//TH2D *tHdpr, *tHdln, *tHdcm; // similar to tF
+TH2D Tpr, Tln, Tcm;
 for(dataSource ds:dataSourceAll){// to go through all ds get the files open
 	tF = TFile::Open(("aux/NPL/NPL"+ NPLc + NPLds +".root").c_str());
 if(!(ds == cms || ds == met)){
 
-	tF ->GetObject(("prompt_LnT"   + NPLc + NPLds).c_str(),tHdpr);
+	tF ->GetObject(("prompt_LnT"   + NPLc + NPLds).c_str(),Tpr);
 	tHdpr->SetDirectory(nullptr);// make it stay even if file closed
-	tF ->GetObject(("TL_eff"       + NPLc + NPLds).c_str(),tHdln);
+	tF ->GetObject(("TL_eff"       + NPLc + NPLds).c_str(),Tln);
 	tHdln->SetDirectory(nullptr);// make it stay even if file closed
 	// need to declare the th and also keep the files open so hists can be added
 	// save as new file and close.
-	const TH2D* const ("pr_LnT"+NPLc+NPLds).c_str() = static_cast<TH2D*>(tHdpr);
-        const TH2D* const ("TL_eff"+NPLc+NPLds).c_str() = static_cast<TH2D*>(tHdln);
+	Tpr.Add();
+	Tln.Add();
+	tF ->Close();
 }else{
-	tF ->GetObject(("N_data_LnT"   + NPLc + NPLds).c_str(),tHd);
+	tF ->GetObject(("N_data_LnT"   + NPLc + NPLds).c_str(),Tcm);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	tF ->Close();
 }}// for and if
-
-}
+	TFile hf(("histo/NPL_"+NPLc+".root").c_str(),"RECREATE");
+	hf.WriteTObject(Tpr            .GetPtr());hf.Flush();sync();
+	hf.WriteTObject(Tln                     );hf.Flush();sync();
+	hf.WriteTObject(Tcm .GetPtr());hf.Flush();sync();
+} // void
 // need a main to write
