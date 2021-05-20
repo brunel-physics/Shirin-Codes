@@ -21,7 +21,6 @@
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
 #include "roccor.Run2.v3/RoccoR.cc"
-#include "Addhists.cxx"
 /*
 #if !defined(__FMA__) && defined(__AVX2__)
     #define __FMA__ 1
@@ -1438,36 +1437,36 @@ void NPL_run(const channel ch,const dataSource ds){
 	// NPL results
 	// NEED To Split them accordinly:
         tF = TFile::Open("histo/NPL_elnu.root");
-	tF ->GetObject("prompt_LnT_elnu",tHd);
+	tF ->GetObject("prompt_LnT",tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	const TH2D* const pr_LnT_elnu = static_cast<TH2D*>(tHd);
+	const TH2D* const pr_LnT_elnu_QCD = static_cast<TH2D*>(tHd);
 	tF ->Close();
 	tF = TFile::Open("histo/NPL_munu.root");
-	tF ->GetObject("prompt_LnT_munu",tHd);
+	tF ->GetObject("prompt_LnT",tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	tf ->Close();
-	tF = TFile::Open(("histo/NPL_elnu.root").c_str());
-        tF ->GetObject(("TL_eff_elnu").c_str(),tHd);
-        tHd->SetDirectory(nullptr);// make it stay even if file closed
-	switch (ch){
-		case elnu:{
-        		const TH2D* const TL_eff_elnu_QCD = static_cast<TH2D*>(tHd);break;}
-		case munu:{
-        		const TH2D* const TL_eff_munu_QCD = static_cast<TH2D*>(tHd);break;}
-	}
-        tF ->Close();
-        }else{// ds : cms || met
-	tF = TFile::Open(("aux/NPL/NPL"+ NPLc + NPLds +".root").c_str());
-	tF ->GetObject(("N_data_LnT"   + NPLc + NPLds).c_str(),tHd);
-	tHd->SetDirectory(nullptr);// make it stay even if file closed
-	switch (ch){
-		case elnu:{
-			const TH2D* const dt_LnT_elnu_cms = static_cast<TH2D*>(tHd);break;}
-		case munu:{
-        		const TH2D* const dt_LnT_munu_cms = static_cast<TH2D*>(tHd);break;}
-	}
+        const TH2D* const pr_LnT_munu_QCD = static_cast<TH2D*>(tHd);
 	tF ->Close();
-	}// NPL file reading is done
+	tF = TFile::Open("histo/NPL_elnu.root");
+        tF ->GetObject("TL_eff_QCD",tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+        const TH2D* const TL_eff_elnu_QCD = static_cast<TH2D*>(tHd);
+	tF->Close();
+        tF = TFile::Open("histo/NPL_munu.root");
+        tF ->GetObject("TL_eff_QCD",tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+        const TH2D* const TL_eff_munu_QCD = static_cast<TH2D*>(tHd);
+        tF->Close();
+        tF = TFile::Open("histo/NPL_elnu.root");
+        tF ->GetObject("dt_LnT_cms",tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+        const TH2D* const dt_LnT_elnu_cms = static_cast<TH2D*>(tHd);
+        tF->Close();
+        tF = TFile::Open("histo/NPL_munu.root");
+        tF ->GetObject("dt_LnT_cms",tHd);
+        tHd->SetDirectory(nullptr);// make it stay even if file closed
+        const TH2D* const dt_LnT_munu_cms = static_cast<TH2D*>(tHd);
+        tF->Close();
+	// NPL file reading is done
 //	std::cout<<"Auxiliary files processed"       <<std::endl;
 
 	// Open data files even if unused
