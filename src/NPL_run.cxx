@@ -1252,11 +1252,11 @@ inline auto sf(
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (sf)");
 		}
-		switch(ch){
-			case elnu:{result *= TRIG_SF_ELNU;break;}
-			case munu:{result *= TRIG_SF_MUNU;break;}
-		}
-		if( MC) result *= npl * pile(PuWd,PuUd,PuDd)(npv)[puW];
+                if(MC){
+                switch(ch){
+                        case elnu:{result *= TRIG_SF_ELNU * lhepdf[0] * pile(PuWd,PuUd,PuDd)(npv)[puW];break;}
+                        case munu:{result *= TRIG_SF_MUNU * lhepdf[0] * pile(PuWd,PuUd,PuDd)(npv)[puW];break;}
+                }}
                 if(FP_NORMAL == std::fpclassify(b)) b_w = b;// if btag_w != nan
 		//std::cout<<"pile up is "<<pile(PuWd,PuUd,PuDd)(npv)[puW]
 		//	 <<" lhepdf is "<<lhepdf[0]<<std::endl;
@@ -1270,7 +1270,7 @@ inline auto sf(
 		<<" lhePDF " << lhepdf[0]
 		<<" genW   " << genw     <<std::endl;
 
-		result *=  b_w * mostSF * lhepdf[0] *genw;
+		result *=  b_w * mostSF *genw;
 // only for debugging purpose of munu wjt ->
 		if(result < 0)std::cout
 		<<"final sf is "<<result

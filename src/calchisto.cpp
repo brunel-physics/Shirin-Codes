@@ -1184,11 +1184,12 @@ inline auto sf(
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (sf)");
 		}
+		if(MC){
 		switch(ch){
-			case elnu:{result *= TRIG_SF_ELNU;break;}
-			case munu:{result *= TRIG_SF_MUNU;break;}
-		}
-		if( MC) result *= /*npl * */ pile(PuWd,PuUd,PuDd)(npv)[puW];
+			case elnu:{result *= TRIG_SF_ELNU * lhepdf[0] * pile(PuWd,PuUd,PuDd)(npv)[puW];break;}
+			case munu:{result *= TRIG_SF_MUNU * lhepdf[0] * pile(PuWd,PuUd,PuDd)(npv)[puW];break;}
+		}}
+		//if( MC) result *= /*npl * */ pile(PuWd,PuUd,PuDd)(npv)[puW];
                 if(FP_NORMAL == std::fpclassify(b)) b_w = b;// if btag_w != nan
 		//std::cout<<"pile up is "<<pile(PuWd,PuUd,PuDd)(npv)[puW]
 		//	 <<" lhepdf is "<<lhepdf[0]<<std::endl;
@@ -1202,7 +1203,7 @@ inline auto sf(
 		<<" lhePDF " << lhepdf[0]
 		<<" genW   " << genw     <<std::endl;
 
-		result *=  b_w * mostSF * lhepdf[0] *genw;
+		result *=  b_w * mostSF *genw;
 // only for debugging purpose of munu wjt ->
 		if(result < 0)std::cout
 		<<"final sf is "<<result
@@ -1404,28 +1405,31 @@ void calchisto(const channel ch,const dataSource ds){
 	// No penalty for opening and leaving unused
 	// Can even open multiple times at once in parallel
 	// Open MC data source EVEN IF UNUSED
-	std::string temp_header="/data/disk0/nanoAOD_2017/",
+	std::string temp_header,
+		    temp_header0="/data/disk0/nanoAOD_2017/",
+		    temp_header1="/nfs/data/eepgssg/",
+		    temp_header3="/data/disk3/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
-	case  tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}/**/
-	case   ww:{temp_opener=temp_header+ "WWToLNuQQ"       +temp_footer;break;}
-	case   wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
-	case   zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
-	case  wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
-	case  ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
-        case  ttl:{temp_opener="/data/disk1/nanoAOD_2017_new/TT_2l2nu_nanoAODv5"+temp_footer;break;}
-        case  ttj:{temp_opener=temp_header+"TTToHadronic"     +temp_footer;break;}
-        case   st:{temp_opener="/data/disk1/nanoAOD_2017_new/ST_tchannel_top_nanoAODv5"+temp_footer;break;}
-        case  stb:{temp_opener="/data/disk1/nanoAOD_2017_new/ST_tchannel_antitop_nanoAODv5"+temp_footer;break;}
-        case  stw:{temp_opener=temp_header+"ST_tW"            +temp_footer;break;}
-        case stbw:{temp_opener=temp_header+"ST_tbarW"         +temp_footer;break;}
-        case wzll:{temp_opener=temp_header+"WZTo2L2Q"         +temp_footer;break;}
-        case wjqq:{temp_opener=temp_header+"WPlusJetsToQQ"    +temp_footer;break;}
-	case  tz1:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
-	case  tz2:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
-	case  met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
-	case  cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
-//	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
+	case  tzq:{temp_opener=temp_header3+ "tZqlvqq"                      +temp_footer;break;}
+	case   ww:{temp_opener=temp_header0+ "WWToLNuQQ"                    +temp_footer;break;}
+	case   wz:{temp_opener=temp_header0+ "WZTo1L1Nu2Q"                  +temp_footer;break;}
+	case   zz:{temp_opener=temp_header0+ "ZZTo2L2Q"                     +temp_footer;break;}
+	case  wjt:{temp_opener=temp_header3+ "WPlusJets_NanoAODv5"          +temp_footer;break;}
+	case  ttb:{temp_opener=temp_header0+ "TTToSemileptonic"             +temp_footer;break;}
+	case  ttl:{temp_opener=temp_header1+ "TT_2l2nu_nanoAODv5"           +temp_footer;break;}
+	case  ttj:{temp_opener=temp_header0+ "TTToHadronic"                 +temp_footer;break;}
+	case   st:{temp_opener=temp_header1+ "ST_tchannel_top_nanoAODv5"    +temp_footer;break;}
+	case  stb:{temp_opener=temp_header1+ "ST_tchannel_antitop_nanoAODv5"+temp_footer;break;}
+	case  stw:{temp_opener=temp_header0+ "ST_tW"                        +temp_footer;break;}
+	case stbw:{temp_opener=temp_header0+ "ST_tbarW"                     +temp_footer;break;}
+	case wzll:{temp_opener=temp_header0+ "WZTo2L2Q"                     +temp_footer;break;}
+	case wjqq:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
+	case  tz1:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
+	case  tz2:{temp_opener=temp_header0+ "ttZToQQ_ext"                  +temp_footer;break;}
+	case  met:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
+	case  cms:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
+	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
 	// Open chains of exptData EVEN IF UNUSED

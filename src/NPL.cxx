@@ -509,10 +509,11 @@ inline auto sf(const  dataSource ds,
 			default :throw std::invalid_argument(
 				"Unimplemented ds (sf)");
 		}
+		if(MC){
 		switch(ch){
 			case elnu:{result *= TRIG_SF_ELNU;break;}
 			case munu:{result *= TRIG_SF_MUNU;break;}
-		}
+		}}
 		result *=  mostSF;
 		if(0<debug) std::cout<<"sf finish"<<std::endl;
 		return result;
@@ -744,7 +745,7 @@ void NPL(const channel ch,const dataSource ds){
 	// All require files for lepton SF are read
 
         std::string temp_header0 = "/data/disk0/nanoAOD_2017/",
-                    temp_header1 = "/data/disk1/nanoAOD_2017_new/",
+                    temp_header1 = "/nfs/data/eepgssg/",//"/data/disk1/nanoAOD_2017_new/",
                     temp_header3 = "/data/disk3/nanoAOD_2017/",
 		    temp_header, temp_opener, temp_footer="/*.root";/**/
 	switch(ds){// CMS must do some OPENABLE file ; reject later
@@ -1033,13 +1034,13 @@ void NPL(const channel ch,const dataSource ds){
 	("tight_Lepton_" + temp_header).c_str(),
 	("tight Lepton " + temp_footer).c_str(),
 	ptBinsSize,ptBins.data(),20,-2.5,2.5},
-	"lep__pt","lep_eta")
+	"lep__pt","lep_eta","sf")
 	;
 	auto h_loose = loose_lep.Histo2D({ // histo for eff tight to loose , loose
 	("loose_Lepton_" + temp_header).c_str(),
 	("loose Lepton " + temp_footer).c_str(),
 	ptBinsSize,ptBins.data(),20,-2.5,2.5},
-	"lep__pt","lep_eta")
+	"lep__pt","lep_eta","sf")
 	;
 	auto
 	h_eff_TL_ratio = static_cast<TH2D*>(h_tight->Clone());
@@ -1058,7 +1059,7 @@ void NPL(const channel ch,const dataSource ds){
 	("prompt_LnT_"    + temp_header).c_str(),
 	("prompt LnT MC " + temp_footer).c_str(),
 	ptBinsSize,ptBins.data(),20,-2.5,2.5},
-	"lep__pt","lep_eta")
+	"lep__pt","lep_eta","sf")
 	;
 
 	TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
