@@ -20,6 +20,7 @@
 #include "json.hpp"
 #include "calchisto.hpp"
 #include "eval_complex.hpp"
+#include "Addhists.hpp"
 #include "roccor.Run2.v3/RoccoR.cc"
 /*
 #if !defined(__FMA__) && defined(__AVX2__)

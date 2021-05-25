@@ -65,22 +65,19 @@ if(!(ds == cms || ds == met)){
 	tHdcm->SetDirectory(nullptr);// make it stay even if file closed
 	tF ->Close();
 }}// for and if
-if(!(ds == cms || ds == met)){// now that it has gone through each file,
 // try to associate pointeres correctly and store them
 const TH2D* const prompt_LnT = static_cast<TH2D*>(Tpr  );
 const TH2D* const TL_eff_QCD = static_cast<TH2D*>(Tln  );
+const TH2D* const dt_LnT_cms = static_cast<TH2D*>(tHdcm);
 TFile hf(("histo/NPL_" + NPLc + ".root").c_str(),"RECREATE");
 hf.WriteTObject(prompt_LnT  );hf.Flush();sync();
 hf.WriteTObject(TL_eff_QCD  );hf.Flush();sync();
-}else{
-const TH2D* const dt_LnT_cms = static_cast<TH2D*>(tHdcm);
-TFile hf(("histo/NPL_" + NPLc + ".root").c_str(),"RECREATE");
 hf.WriteTObject(dt_LnT_cms  );hf.Flush();sync();
-}// if
+
 }// void
 
-int main ( int argc , char *argv[] ){
+/*int main ( int argc , char *argv[] ){
 	Addhists(elnu);
 	Addhists(munu);
 	return 0;
-}
+}*/
