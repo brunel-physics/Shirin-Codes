@@ -1436,6 +1436,10 @@ void NPL_run(const channel ch,const dataSource ds){
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
 	// NPL results
 	// NEED To Split them accordinly:
+	switch (ch){
+		case elnu:{Addhists(elnu);break;}
+		case munu:{Addhists(munu);break;}
+	}
         tF = TFile::Open("histo/NPL_elnu.root");
 	tF ->GetObject("prompt_LnT",tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
