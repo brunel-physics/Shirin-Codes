@@ -24,13 +24,14 @@ default  :throw std::invalid_argument(
 }
 TFile *tF;
 TH2D  *tHdpr, *tHdln, *tHdcm;// for taking from files
+TH2   *tHprc, *tHlnc;        // for clones
 TH2D    *Tpr,           *Tln;// totals go here
 std::string temp_header = "histo/NPL_",
 	    temp_footer =      ".root",
 	    temp_opener ;
 
 for(dataSource ds:dataSourceAll){// to go through all ds get the files open
-
+if(ds == met)continue;
 switch (ds){
 case  tzq:{NPLds =  "tzq";break;}
 case   ww:{NPLds =   "ww";break;}
@@ -58,22 +59,26 @@ if(debug >0)std::cout<< "NPLc and NPLds are "<<NPLc<<" "<<NPLds<<std::endl;
 if(debug >0)std::cout<<"temp_opener: "<<temp_opener<<std::endl;
 //tF = TFile::Open(("histo/NPL_"+ NPLc + "_" + NPLds +".root").c_str());
 tF = TFile::Open(temp_opener.c_str());
-if(debug > 0) std::cout<<"opening file failed"<<std::endl;
+if(debug > 0) std::cout<<"opened file"<<std::endl;
 if(!(ds == cms || ds == met)){
 	tF ->GetObject(("prompt_LnT_"  + NPLc + "_" + NPLds).c_str(),tHdpr);
-	if(debug > 0) std::cout<<"Get Objct 1st failed"<<std::endl;
+	if(debug > 0) std::cout<<"Get 1st Objct"<<std::endl;
 	tHdpr->SetDirectory(nullptr);// make it stay even if file closed
 	tF ->GetObject(("TL_eff_"      + NPLc + "_" + NPLds).c_str(),tHdln);
-	if(debug > 0) std::cout<<"Get objct 2nd failed"<<std::endl;
+	if(debug > 0) std::cout<<"Get 2nd objct"<<std::endl;
 	tHdln->SetDirectory(nullptr);// make it stay even if file closed
-	Tpr->Add(tHdpr);
-	if(debug > 0) std::cout<<"add 1st objct failed"<<std::endl;
+
+	tHprc = static_cast<TH2D*> (tHdpr->Clone());
+	tHlnc = static_cast<TH2D*> (tHdln->Clone());
+	if(ds == tzq) tF->Close();continue; //
+	Tpr->Add(tHprc);
+	if(debug > 0) std::cout<<"added 1st objct"<<std::endl;
 	Tpr->Scale(1/Tpr->Integral());// freqeuncy probability in each bin
-	if(debug > 0) std::cout<<"1st renormalization failed"<<std::endl;
-	Tln->Add(tHdln);
-        if(debug > 0) std::cout<<"add 2nd objct failed"<<std::endl;
+	if(debug > 0) std::cout<<"1st renormalization"<<std::endl;
+	Tln->Add(tHlnc);
+        if(debug > 0) std::cout<<"added 2nd objct"<<std::endl;
 	Tln->Scale(1/Tln->Integral());// frequency probability in each bin
-        if(debug > 0) std::cout<<"2nd renormalization failed"<<std::endl;
+        if(debug > 0) std::cout<<"2nd renormalization"<<std::endl;
 	tF ->Close();
 }else{
 	tF ->GetObject(("N_data_LnT_"  + NPLc + "_" + NPLds).c_str(),tHdcm);
