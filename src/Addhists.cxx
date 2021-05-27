@@ -67,10 +67,16 @@ if(!(ds == cms || ds == met)){
 	tF ->GetObject(("TL_eff_"      + NPLc + "_" + NPLds).c_str(),tHdln);
 	if(debug > 0) std::cout<<"Get 2nd objct"<<std::endl;
 	tHdln->SetDirectory(nullptr);// make it stay even if file closed
-
+	if(debug > 0) std::cout<<"passed null pointer"<<std::endl;
 	tHprc = static_cast<TH2D*> (tHdpr->Clone());
+	if(debug > 0) std::cout<<"1st cloned"<<std::endl;
 	tHlnc = static_cast<TH2D*> (tHdln->Clone());
-	if(ds == tzq) tF->Close();continue; //
+        if(debug > 0) std::cout<<"2nd cloned"<<std::endl;
+	if(ds == tzq){
+		Tpr = static_cast<TH2D*> (tHdpr->Clone());
+		Tln = static_cast<TH2D*> (tHdln->Clone());
+		tF->Close();continue;
+	} //
 	Tpr->Add(tHprc);
 	if(debug > 0) std::cout<<"added 1st objct"<<std::endl;
 	Tpr->Scale(1/Tpr->Integral());// freqeuncy probability in each bin
