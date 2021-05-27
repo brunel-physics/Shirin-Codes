@@ -89,6 +89,9 @@ void addhists(const channel ch){
 	if(0<debug) std::cout<<"all objects added"<<std::endl;
 	TFile hf(("aux/NPL/NPL_" + NPLc + ".root").c_str(),"RECREATE");
 	if(0<debug) std::cout<<"file created"<<std::endl;
+	tpr->SetName("prompt_LnT");
+	tln->SetName("TL_eff_QCD");
+	dcm->SetName("dt_LnT_cms");
 	hf.WriteTObject(tpr);hf.Flush();sync();
 	hf.WriteTObject(tln);hf.Flush();sync();
 	hf.WriteTObject(dcm);hf.Flush();sync();
