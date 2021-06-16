@@ -763,7 +763,7 @@ void NPL(const channel ch,const dataSource ds){
 	case stbw:{temp_opener=temp_header0+ "ST_tbarW"                     +temp_footer;break;}
 	case wzll:{temp_opener=temp_header0+ "WZTo2L2Q"                     +temp_footer;break;}
 	case wjqq:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
-	case  tz1:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
+	case  tz1:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
 	case  tz2:{temp_opener=temp_header0+ "ttZToQQ_ext"                  +temp_footer;break;}
 	case  cms:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
 	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");

@@ -1132,8 +1132,8 @@ auto npl(
 ){// result taken from the NPL.cxx
 	return [=](const double  pt
 	          ,const double eta){
-	int TLPt_Bin, TLEtaBin, cmsPt_Bin, cmsEtaBin, QCDPt_Bin, QCDEtaBin,
-	    npl_QCD, npl_cms;
+	int   TLPt_Bin, TLEtaBin, cmsPt_Bin, cmsEtaBin, QCDPt_Bin, QCDEtaBin;
+	float npl_QCD, npl_cms;
 	float TLeff = 1., npl;
 	if(debug > 0)std::cout<<"NPL function"<<std::endl;
 	switch(ch){
@@ -1174,6 +1174,7 @@ auto npl(
 	// Data-driven method means that the the MC
 	// should take into account the data result
 	npl = TLeff/(1 - TLeff) * (npl_cms - npl_QCD);
+	std::cout<<"TLeff, npl_cms, npl_QCD are "<< TLeff<<" "<<npl_cms<<" "<<npl_QCD<<" "<<std::endl;
 	}
 	else{npl = 1;}
 	/*if(debug > 0)*/ std::cout << "NPL result " << npl << std::endl;
@@ -1436,32 +1437,32 @@ void NPL_run(const channel ch,const dataSource ds){
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
 	// NPL results
 	// NEED To Split them accordinly:
-        tF = TFile::Open("histo/NPL_elnu.root");
+        tF = TFile::Open("aux/NPL/NPL_elnu.root");
 	tF ->GetObject("prompt_LnT",tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
 	const TH2D* const pr_LnT_elnu_QCD = static_cast<TH2D*>(tHd);
 	tF ->Close();
-	tF = TFile::Open("histo/NPL_munu.root");
+	tF = TFile::Open("aux/NPL/NPL_munu.root");
 	tF ->GetObject("prompt_LnT",tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
         const TH2D* const pr_LnT_munu_QCD = static_cast<TH2D*>(tHd);
 	tF ->Close();
-	tF = TFile::Open("histo/NPL_elnu.root");
+	tF = TFile::Open("aux/NPL/NPL_elnu.root");
         tF ->GetObject("TL_eff_QCD",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
         const TH2D* const TL_eff_elnu_QCD = static_cast<TH2D*>(tHd);
 	tF->Close();
-        tF = TFile::Open("histo/NPL_munu.root");
+        tF = TFile::Open("aux/NPL/NPL_munu.root");
         tF ->GetObject("TL_eff_QCD",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
         const TH2D* const TL_eff_munu_QCD = static_cast<TH2D*>(tHd);
         tF->Close();
-        tF = TFile::Open("histo/NPL_elnu.root");
+        tF = TFile::Open("aux/NPL/NPL_elnu.root");
         tF ->GetObject("dt_LnT_cms",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
         const TH2D* const dt_LnT_elnu_cms = static_cast<TH2D*>(tHd);
         tF->Close();
-        tF = TFile::Open("histo/NPL_munu.root");
+        tF = TFile::Open("aux/NPL/NPL_munu.root");
         tF ->GetObject("dt_LnT_cms",tHd);
         tHd->SetDirectory(nullptr);// make it stay even if file closed
         const TH2D* const dt_LnT_munu_cms = static_cast<TH2D*>(tHd);
@@ -1474,28 +1475,29 @@ void NPL_run(const channel ch,const dataSource ds){
 	// No penalty for opening and leaving unused
 	// Can even open multiple times at once in parallel
 	// Open MC data source EVEN IF UNUSED
-	std::string temp_header="/data/disk0/nanoAOD_2017/",
-	temp_opener,temp_footer="/*.root";/**/
-	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
-	case  tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}/**/
-	case   ww:{temp_opener=temp_header+ "WWToLNuQQ"       +temp_footer;break;}
-	case   wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
-	case   zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
-	case  wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
-	case  ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
-        case  ttl:{temp_opener="/data/disk1/nanoAOD_2017_new/TT_2l2nu_nanoAODv5"+temp_footer;break;}
-        case  ttj:{temp_opener=temp_header+"TTToHadronic"     +temp_footer;break;}
-        case   st:{temp_opener="/data/disk1/nanoAOD_2017_new/ST_tchannel_top_nanoAODv5"+temp_footer;break;}
-        case  stb:{temp_opener="/data/disk1/nanoAOD_2017_new/ST_tchannel_antitop_nanoAODv5"+temp_footer;break;}
-        case  stw:{temp_opener=temp_header+"ST_tW"            +temp_footer;break;}
-        case stbw:{temp_opener=temp_header+"ST_tbarW"         +temp_footer;break;}
-        case wzll:{temp_opener=temp_header+"WZTo2L2Q"         +temp_footer;break;}
-        case wjqq:{temp_opener=temp_header+"WPlusJetsToQQ"    +temp_footer;break;}
-	case  tz1:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
-	case  tz2:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
-	case  met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
-	case  cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
-//	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
+        std::string temp_header0 = "/data/disk0/nanoAOD_2017/",
+                    temp_header1 = "/nfs/data/eepgssg/",//"/data/disk1/nanoAOD_2017_new/",
+                    temp_header3 = "/data/disk3/nanoAOD_2017/",
+		    temp_header, temp_opener, temp_footer="/*.root";/**/
+	switch(ds){// CMS must do some OPENABLE file ; reject later
+	case  tzq:{temp_opener=temp_header3+ "tZqlvqq"                      +temp_footer;break;}
+	case   ww:{temp_opener=temp_header0+ "WWToLNuQQ"                    +temp_footer;break;}
+	case   wz:{temp_opener=temp_header0+ "WZTo1L1Nu2Q"                  +temp_footer;break;}
+	case   zz:{temp_opener=temp_header0+ "ZZTo2L2Q"                     +temp_footer;break;}
+	case  wjt:{temp_opener=temp_header3+ "WPlusJets_NanoAODv5"          +temp_footer;break;}
+	case  ttb:{temp_opener=temp_header0+ "TTToSemileptonic"             +temp_footer;break;}
+	case  ttl:{temp_opener=temp_header1+ "TT_2l2nu_nanoAODv5"           +temp_footer;break;}
+	case  ttj:{temp_opener=temp_header0+ "TTToHadronic"                 +temp_footer;break;}
+	case   st:{temp_opener=temp_header1+ "ST_tchannel_top_nanoAODv5"    +temp_footer;break;}
+	case  stb:{temp_opener=temp_header1+ "ST_tchannel_antitop_nanoAODv5"+temp_footer;break;}
+	case  stw:{temp_opener=temp_header0+ "ST_tW"                        +temp_footer;break;}
+	case stbw:{temp_opener=temp_header0+ "ST_tbarW"                     +temp_footer;break;}
+	case wzll:{temp_opener=temp_header0+ "WZTo2L2Q"                     +temp_footer;break;}
+	case wjqq:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
+	case  tz1:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
+	case  tz2:{temp_opener=temp_header0+ "ttZToQQ_ext"                  +temp_footer;break;}
+	case  cms:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
+	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
 	// Open chains of exptData EVEN IF UNUSED
@@ -1916,7 +1918,7 @@ void NPL_run(const channel ch,const dataSource ds){
         auto h_cmet_phi = finalDF.Histo1D({
         ("cmet_phi_"+temp_header).c_str(),
         ("cmet_phi "+temp_header).c_str(),
-        50,0,300},"cmet_phi","nw_cmet_phi");
+        50,0,8},"cmet_phi","nw_cmet_phi");
         h_cmet_phi->GetXaxis()->SetTitle("corrected MET #phi /rad");
 	h_cmet_phi->GetYaxis()->SetTitle("Event");
         h_cmet_phi->SetLineStyle(kSolid);
@@ -2059,7 +2061,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	auto h_npl = finalDF.Histo1D({
 	("npl_" + temp_header).c_str(),
 	("npl " + temp_header).c_str(),
-	500,-0.1,0.1},
+	500,-30,30},
 	"npl_est");
 	h_npl->GetXaxis()->SetTitle("NPL");
 	h_npl->GetYaxis()->SetTitle("Event");

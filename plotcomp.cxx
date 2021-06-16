@@ -134,17 +134,18 @@ int plotcomp(){
 	                              hobj->SetDirectory(nullptr);
 	if( cms == ds || met == ds ){ if(met == ds) 	 continue;
 				      stac .Draw("hist");
-		                      stac .SetMaximum(max*1.2);// now plot is set, plot CMS on it
+		                      //stac .SetMaximum(max*1.2);// now plot is set, plot CMS on it
 		                      hobj->SetLineColor(  colour);
 		                      hobj->SetMarkerColor(colour);
 		                      hobj->SetMarkerStyle(20);
 		                      hobj->SetMarkerSize(1.0);
 		                      legS .AddEntry(hobj,lgN.c_str(),"lep");
-		                      hobj->Draw("same");
+		                      hobj->Draw("E0 SAME");
 		                      legS .Draw();
 		                      rp = (TH1D*)(hobj->Clone());
 	}else{                        hobj->SetFillColor( colour);
 		                      stac .Add(hobj            );
+				      stac .SetMaximum(max*1.2);// now plot is set, plot CMS on it
 		                      legS .AddEntry(hobj,lgN.c_str(),"f");
 	}// else
 	}// dataSource

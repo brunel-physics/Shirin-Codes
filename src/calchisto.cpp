@@ -1425,7 +1425,7 @@ void calchisto(const channel ch,const dataSource ds){
 	case stbw:{temp_opener=temp_header0+ "ST_tbarW"                     +temp_footer;break;}
 	case wzll:{temp_opener=temp_header0+ "WZTo2L2Q"                     +temp_footer;break;}
 	case wjqq:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
-	case  tz1:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
+	case  tz1:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
 	case  tz2:{temp_opener=temp_header0+ "ttZToQQ_ext"                  +temp_footer;break;}
 	case  met:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
 	case  cms:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
@@ -1850,7 +1850,7 @@ void calchisto(const channel ch,const dataSource ds){
         auto h_cmet_phi = finalDF.Histo1D({
         ("cmet_phi_"+temp_header).c_str(),
         ("cmet_phi "+temp_header).c_str(),
-        50,0,300},"cmet_phi","nw_cmet_phi");
+        50,0,8},"cmet_phi","nw_cmet_phi");
         h_cmet_phi->GetXaxis()->SetTitle("corrected MET #phi /rad");
 	h_cmet_phi->GetYaxis()->SetTitle("Event");
         h_cmet_phi->SetLineStyle(kSolid);

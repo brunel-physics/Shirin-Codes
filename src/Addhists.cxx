@@ -73,8 +73,8 @@ void addhists(const channel ch){
 		if(!hpr) throw std::runtime_error("prompt not found");
 		tpr->Add(hpr);
 		if(0<debug) std::cout << "added prompt" << std::endl;
-		tpr->Scale(1/tpr->Integral());// frequency probability in each bin
-		if(0<debug) std::cout << "normalised prompt" << std::endl;
+		//tpr->Scale(1/tpr->Integral());// frequency probability in each bin
+		//if(0<debug) std::cout << "normalised prompt" << std::endl;
 //		hpr->SetDirectory(nullptr);// make it stay even if file closed
 		tf.GetObject((    "TL_eff_" + NPLc + "_" + NPLds).c_str(),hln);
 		if(!hln) throw std::runtime_error("TL eff not found");

@@ -171,7 +171,7 @@ int plotall(){
 		legS .AddEntry(hobj,lgN.c_str(),"f");
 	}else{// CMS is last, so we plot at this time!
 //		canv .cd();// pick me to draw?
-		stac .Draw("hist");// TODO: histe
+		stac .Draw("HIST");// TODO: histe
 		stac .GetXaxis()->SetTitle(allNamesArray[i][2].c_str());
 		stac .GetYaxis()->SetTitle("Event");
 		stac .SetMaximum(max*1.2);// now plot is set, plot CMS on it
@@ -180,7 +180,7 @@ int plotall(){
 		hobj->SetMarkerStyle(20);
 		hobj->SetMarkerSize(1.0);
 		legS .AddEntry(hobj,lgN.c_str(),"lep");
-		hobj->Draw("same");
+		hobj->Draw("E0 SAME");
 		legS .Draw();
 		rp = (TH1D*)(hobj->Clone());
 	}}// else & dataSource
