@@ -1,3 +1,6 @@
+// this script will add all the plots produced for the NPL_run on top of each other , makes new TRoot files in histo/
+// to be later on used NPL_run_elnu.root NPL_run_munu.root, so plotall.cxx and plotcomp.cxx and plotmc.cxx can cfreate plots for those
+
 //clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/addhistsCalc src/AddhistsCalc.cxx `root-config --libs` -lm
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 
@@ -35,9 +38,9 @@ namespace{
              *flpeta, *flpphi, *flpmas,
              *fb__pt, *fb_eta, *fb_phi,
              *fb_mas;      // finals go here
-}
+} // name space
 
-void addhistsCalc(const channel ch){
+void AddhistsCalc(const channel ch){
 	// do tzq first so that tpr & tln are not null
 	if(munu == ch) NPLc = "munu";
 		temp_opener = temp_header + NPLc + "_" + NPLds + temp_footer;
@@ -336,7 +339,7 @@ void addhistsCalc(const channel ch){
 }// void
 
 int main ( int argc , char *argv[] ){
-	addhistsCalc(elnu);
-	addhistsCalc(munu);
+	AddhistsCalc(elnu);
+	AddhistsCalc(munu);
 	return 0;
 }

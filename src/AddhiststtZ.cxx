@@ -9,7 +9,7 @@ namespace{
 	std::string
 	NPLc = "elnu",
 	NPLds = "tz1",
-	temp_header = "histo/NPL_run_",
+	temp_header = "histo/",
 	temp_footer = ".root",
 	temp_opener
 	;
