@@ -13,7 +13,7 @@ namespace{
 	temp_footer = ".root",
 	temp_opener
 	;
-	TH2D *hbtagw, *hlp_sf, *htpt_w,
+	TH1D *hbtagw, *hlp_sf, *htpt_w,
  	     *hcmtet, *hcmtpt, *hcmtph,
 	     *hmteta, *hmt_pt, /**hmetph*/
 	     *ht__pt, *ht_mas, *hWinvm,
@@ -24,7 +24,7 @@ namespace{
 	     *hlpeta, *hlpphi, *hlpmas,
 	     *hb__pt, *hb_eta, *hb_phi,
 	     *hb_mas;// for taking from files
-	TH2D *fbtagw, *flp_sf, *ftpt_w,
+	TH1D *fbtagw, *flp_sf, *ftpt_w,
              *fcmtet, *fcmtpt, *fcmtph,
              *fmteta, *fmt_pt, /**hmetph*/
              *ft__pt, *ft_mas, *fWinvm,
@@ -44,7 +44,7 @@ void addhiststtZ(const channel ch){
 		std::cout << "Opening file " << temp_opener << std::endl;
 		TFile zq(temp_opener.c_str());
 		if( ! zq.IsOpen()) throw std::runtime_error("File is not opened");
-
+		std::cout<<"file is open"<<std::endl;
 		zq.GetObject(("btag_w_" + NPLc + "_" + NPLds).c_str(),hbtagw);
 		hbtagw->SetDirectory(nullptr);// make it stay even if file closed
 
@@ -173,10 +173,11 @@ void addhiststtZ(const channel ch){
 		if(0<debug) std::cout << "Opening file " << temp_opener << std::endl;
 		TFile tf(temp_opener.c_str());
 		if( ! tf.IsOpen()) throw std::runtime_error("File is not opened");
-
+		std::cout<<"0"<<std::endl;
 		tf.GetObject(("btag_w_" + NPLc + "_" + NPLds).c_str(),hbtagw);
+		std::cout<<"0.5"<<std::endl;
 		fbtagw->Add(hbtagw);
-
+                std::cout<<"1"<<std::endl;
 		tf.GetObject(("mostSF_" + NPLc + "_" + NPLds).c_str(),hlp_sf);
 		flp_sf->Add(hlp_sf);
 

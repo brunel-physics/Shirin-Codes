@@ -16,7 +16,7 @@ namespace{
 	temp_footer = ".root",
 	temp_opener
 	;
-	TH2D *hbtagw, *hlp_sf, *htpt_w,
+	TH1D *hbtagw, *hlp_sf, *htpt_w,
  	     *hcmtet, *hcmtpt, *hcmtph,
 	     *hmteta, *hmt_pt, /**hmetph*/
 	     *ht__pt, *ht_mas, *hWinvm,
@@ -27,7 +27,7 @@ namespace{
 	     *hlpeta, *hlpphi, *hlpmas,
 	     *hb__pt, *hb_eta, *hb_phi,
 	     *hb_mas;// for taking from files
-	TH2D *fbtagw, *flp_sf, *ftpt_w,
+	TH1D *fbtagw, *flp_sf, *ftpt_w,
              *fcmtet, *fcmtpt, *fcmtph,
              *fmteta, *fmt_pt, /**hmetph*/
              *ft__pt, *ft_mas, *fWinvm,
@@ -45,99 +45,100 @@ void AddhistsCalc(const channel ch){
 	if(munu == ch) NPLc = "munu";
 		temp_opener = temp_header + NPLc + "_" + NPLds + temp_footer;
 		std::cout << "Opening file " << temp_opener << std::endl;
+		std::cout<<"temp opener is "<<temp_opener.c_str()<<std::endl;
 		TFile zq(temp_opener.c_str());
 		if( ! zq.IsOpen()) throw std::runtime_error("File is not opened");
-
+		if(debug > 0)std::cout<<"0"<<std::endl;
 		zq.GetObject(("btag_w_" + NPLc + "_" + NPLds).c_str(),hbtagw);
 		hbtagw->SetDirectory(nullptr);// make it stay even if file closed
-
+		if(debug > 0)std::cout<<"1"<<std::endl;
 		zq.GetObject(("mostSF_" + NPLc + "_" + NPLds).c_str(),hlp_sf);
 		hlp_sf->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"2"<<std::endl;
 		zq.GetObject(( "ttbSF_" + NPLc + "_" + NPLds).c_str(),htpt_w);
 		htpt_w->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"3"<<std::endl;
 		zq.GetObject(("cmet_sEt_" + NPLc + "_" + NPLds).c_str(),hcmtet);
 		hcmtet->SetDirectory(nullptr);// make it stay even if file close
-
+                if(debug > 0)std::cout<<"4"<<std::endl;
 		zq.GetObject(("cmet__pt_" + NPLc + "_" + NPLds).c_str(),hcmtpt);
 		hcmtpt->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"5"<<std::endl;
 		zq.GetObject(("cmet_phi_" + NPLc + "_" + NPLds).c_str(),hcmtph);
 		hcmtph->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"6"<<std::endl;
 		zq.GetObject(("met_sEt_" + NPLc + "_" + NPLds).c_str(),hmteta);
 		hmteta->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"7"<<std::endl;
 		zq.GetObject(("met__pt_" + NPLc + "_" + NPLds).c_str(),hmt_pt);
 		hmt_pt->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"8"<<std::endl;
 		zq.GetObject(("ttop_pt_" + NPLc + "_" + NPLds).c_str(),ht__pt);
 		ht__pt->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"9"<<std::endl;
 		zq.GetObject(("tTm_" + NPLc + "_" + NPLds).c_str(),ht_mas);
 		ht_mas->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"10"<<std::endl;
 		zq.GetObject(("W_invariant_mass_" + NPLc + "_" + NPLds).c_str(),hWinvm);
 		hWinvm->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"11"<<std::endl;
 		zq.GetObject(("ev_w_" + NPLc + "_" + NPLds).c_str(),hev_sf);
 		hev_sf->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"12"<<std::endl;
 		zq.GetObject(("zmas_" + NPLc + "_" + NPLds).c_str(),hz_mas);
 		hz_mas->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"13"<<std::endl;
 		zq.GetObject(("Z_W_Delta_Phi_" + NPLc + "_" + NPLds).c_str(),hzwdph);
 		hzwdph->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"14"<<std::endl;
 		zq.GetObject(("Z_MET_Delta_Phi_" + NPLc + "_" + NPLds).c_str(),hzmdph);
 		hzmdph->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"15"<<std::endl;
 		zq.GetObject(("WZ_DeltaR_" + NPLc + "_" + NPLds).c_str(),hwz_dr);
 		hwz_dr->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"16"<<std::endl;
 		zq.GetObject(("Z_pair_jets_Delta_Phi_" + NPLc + "_" + NPLds).c_str(),hzjdph);
 		hzjdph->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"17"<<std::endl;
 		zq.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),h__npl);
 		h__npl->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"18"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_fin_jets__pt").c_str(),hjt_pt);
 		hjt_pt->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"19"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_fin_jets_eta").c_str(),hjteta);
 		hjteta->SetDirectory(nullptr);// make it stay even if file close
-
+                if(debug > 0)std::cout<<"20"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_fin_jets_phi").c_str(),hjtphi);
 		hjtphi->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"21"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_fin_jets_mas").c_str(),hjtmas);
 		hjtmas->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"22"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_lep__pt").c_str(),hlp_pt);
 		hlp_pt->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"23"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_lep_eta").c_str(),hlpeta);
 		hlpeta->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"24"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_lep_phi").c_str(),hlpphi);
 		hlpphi->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"25"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_lep_mas").c_str(),hlpmas);
 		hlpmas->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"26"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_bjet__pt").c_str(),hb__pt);
 		hb__pt->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"27"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_bjet_eta").c_str(),hb_eta);
 		hb_eta->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"28"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_bjet_phi").c_str(),hb_phi);
 		hb_phi->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"29"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_bjet_mas").c_str(),hb_mas);
 		hb_mas->SetDirectory(nullptr);// make it stay even if file closed
-
+                if(debug > 0)std::cout<<"30"<<std::endl;
 		zq.Close();
 	/*NPLds = "cms"; // now do the odd one out
 		temp_opener = temp_header + NPLc + "_" + NPLds + temp_footer;
@@ -179,7 +180,7 @@ void AddhistsCalc(const channel ch){
 
 		tF.GetObject(("btag_w_" + NPLc + "_" + NPLds).c_str(),hbtagw);
 		fbtagw->Add(hbtagw);
-
+		if(debug > 0)std::cout<<"1"<<std::endl;
 		tF.GetObject(("mostSF_" + NPLc + "_" + NPLds).c_str(),hlp_sf);
 		flp_sf->Add(hlp_sf);
 
