@@ -12,7 +12,16 @@
 #include <iterator>// just for std::size
 
 #include "src/tdrstyle.C"
-#include "src/calchisto.hpp"
+//#include "src/calchisto.hpp"
+
+
+enum      channel      {elnu,munu};
+constexpr channel
+          channelAll[]={elnu,munu};
+
+enum      dataSource	  {tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+constexpr dataSource
+          dataSourceAll[]={tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 
 std::string allNamesArray[][3] = {// histogram id, histogram title, x axis string
 //	 {"cmet_sEt_",   "Corrected MET " "sum E_{T} ","Sum E_{T} (GeV)"}
@@ -56,8 +65,7 @@ int plotall(){
 		case   zz:{opener +=  "_zz";break;}
 		case   st:{opener +=  "_st";break;}
                 case  stb:{opener +=  "stb";break;}
-		case  tz1:{opener +=  "ttz";break;}
-                case  tz2:{opener +=  "ttz";break;}
+		case  ttz:{opener +=  "ttz";break;}
 		case  ttb:{opener +=  "ttb";break;}
                 case  ttl:{opener +=  "ttl";break;}
                 case  ttj:{opener +=  "ttj";break;}
@@ -144,8 +152,7 @@ int plotall(){
 		case   zz:{opener += "_zz" ;lgN = "ZZ "           ;colour =  4 ;break;}// blue
                 case   st:{opener += "_st" ;lgN = "Single T"      ;colour =  95;break;}//
                 case  stb:{opener += "stb" ;lgN = "Single #bar{T}";colour =  85;break;}//
-		case  tz1:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5 ;break;}// yellow
-                case  tz2:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5 ;break;}// yellow
+		case  ttz:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5 ;break;}// yellow
 		case  ttb:{opener += "ttb" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
                 case  ttl:{opener += "ttl" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
                 case  ttj:{opener += "ttj" ;lgN = "t#bar{b}"      ;colour =  7 ;break;}// cyan

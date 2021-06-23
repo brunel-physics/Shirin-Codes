@@ -7,6 +7,14 @@
 #include "src/tdrstyle.C"
 #include "src/calchisto.hpp"
 
+enum      channel      {elnu,munu};
+constexpr channel
+          channelAll[]={elnu,munu};
+
+enum      dataSource	  {tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+constexpr dataSource
+          dataSourceAll[]={tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+
 int plotmc(){
 	gROOT->SetBatch(kTRUE);// no open canvas window
 	setTDRStyle();
@@ -31,8 +39,7 @@ int plotmc(){
 		case  wz:{opener += "_wz";break;}
 		case  zz:{opener += "_zz";break;}
 		case ttb:{opener += "ttb";break;}
-		case tz1:{opener += "ttz";break;}
-                case tz2:{opener += "ttz";break;}
+		case ttz:{opener += "ttz";break;}
                 case wjt:{opener += "wjt";break;}
 		case met:{opener += "met";break;}
 		case cms:{opener += "cms";break;}
@@ -77,8 +84,7 @@ int plotmc(){
 		case  wz:{opener += "_wz";lgN = "WZ"   ;colour = 3 ;break;}// green
 		case  zz:{opener += "_zz";lgN = "ZZ"   ;colour = 4 ;break;}// blue
 		case ttb:{opener += "ttb";lgN ="ttb"   ;colour = 7 ;break;}// cyan
-		case tz1:{opener += "ttz";lgN ="ttZ"   ;colour = 5 ;break;}// yellow
-                case tz2:{opener += "ttz";lgN ="ttZ"   ;colour = 5 ;break;}// yellow
+		case ttz:{opener += "ttz";lgN ="ttZ"   ;colour = 5 ;break;}// yellow
                 case wjt:{opener += "wjt";lgN ="W+jets";colour = 46;break;}//
 		case met:{opener += "met";lgN ="MET"   ;colour = 9 ;break;}// violet
 		case cms:{opener += "cms";lgN ="CMS"   ;colour = 1 ;break;}// black
