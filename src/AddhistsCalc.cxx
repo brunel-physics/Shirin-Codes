@@ -18,7 +18,7 @@ namespace{
 	;
 	TH1D *hbtagw, *hlp_sf, *htpt_w,
  	     *hcmtet, *hcmtpt, *hcmtph,
-	     *hmteta, *hmt_pt, /**hmetph*/
+	     *hmteta, *hmt_pt, *htWinm,
 	     *ht__pt, *ht_mas, *hWinvm,
 	     *hev_sf, *hz_mas, *hzwdph,
 	     *hzmdph, *hwz_dr, *hzjdph,
@@ -29,7 +29,7 @@ namespace{
 	     *hb_mas;// for taking from files
 	TH1D *fbtagw, *flp_sf, *ftpt_w,
              *fcmtet, *fcmtpt, *fcmtph,
-             *fmteta, *fmt_pt, /**hmetph*/
+             *fmteta, *fmt_pt, *ftWinm,
              *ft__pt, *ft_mas, *fWinvm,
              *fev_sf, *fz_mas, *fzwdph,
              *fzmdph, *fwz_dr, *fzjdph,
@@ -81,6 +81,8 @@ void AddhistsCalc(const channel ch){
                 if(debug > 0)std::cout<<"10"<<std::endl;
 		zq.GetObject(("W_invariant_mass_" + NPLc + "_" + NPLds).c_str(),fWinvm);
 		fWinvm->SetDirectory(nullptr);// make it stay even if file closed
+                zq.GetObject(("tWm_" + NPLc + "_" + NPLds).c_str(),ftWinm);
+                ftWinm->SetDirectory(nullptr);
                 if(debug > 0)std::cout<<"11"<<std::endl;
 		zq.GetObject(("ev_w_" + NPLc + "_" + NPLds).c_str(),fev_sf);
 		fev_sf->SetDirectory(nullptr);// make it stay even if file closed
@@ -211,6 +213,9 @@ void AddhistsCalc(const channel ch){
 		tF.GetObject(("W_invariant_mass_" + NPLc + "_" + NPLds).c_str(),hWinvm);
 		fWinvm->Add(hWinvm);
 
+                tF.GetObject(("tWm_" + NPLc + "_" + NPLds).c_str(),htWinm);
+                ftWinm->SetDirectory(nullptr);
+
 		tF.GetObject(("ev_w_" + NPLc + "_" + NPLds).c_str(),hev_sf);
 		fev_sf->Add(hev_sf);
 
@@ -285,6 +290,7 @@ void AddhistsCalc(const channel ch){
 	ft__pt->SetName(( "ttop_pt_" + NPLc +"_NPL").c_str());
 	ft_mas->SetName((     "tTm_" + NPLc +"_NPL").c_str());
 	fWinvm->SetName(("W_invariant_mass_" + NPLc +"_NPL").c_str());
+        ftWinm->SetName((     "tWm_" + NPLc +"_ttz").c_str());
 	fev_sf->SetName((     "ev_w" + NPLc +"_NPL").c_str());
 	fz_mas->SetName((    "zmas_" + NPLc +"_NPL").c_str());
 	fzwdph->SetName((  "Z_W_Delta_Phi" + NPLc +"_NPL").c_str());
@@ -316,6 +322,7 @@ void AddhistsCalc(const channel ch){
 	hf.WriteTObject(ft__pt);hf.Flush();sync();
 	hf.WriteTObject(ft_mas);hf.Flush();sync();
 	hf.WriteTObject(fWinvm);hf.Flush();sync();
+        hf.WriteTObject(ftWinm);hf.Flush();sync();
 	hf.WriteTObject(fev_sf);hf.Flush();sync();
 	hf.WriteTObject(fz_mas);hf.Flush();sync();
 	hf.WriteTObject(fzwdph);hf.Flush();sync();
