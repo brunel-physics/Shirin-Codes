@@ -153,10 +153,10 @@ void AddhistsCalc(const channel ch){
 		if(tzq == ds || met == ds || cms == ds)continue;
 		switch (ds){// only needs to be done for tz1 and tz2 for calchisto.cpp
 		case  tzq:{NPLds =  "tzq";break;}
-		case   ww:{NPLds =   "ww";break;}
-		case   wz:{NPLds =   "wz";break;}
-		case   zz:{NPLds =   "zz";break;}
-		case   st:{NPLds =   "st";break;}
+		case   ww:{NPLds =  "_ww";break;}
+		case   wz:{NPLds =  "_wz";break;}
+		case   zz:{NPLds =  "_zz";break;}
+		case   st:{NPLds =  "_st";break;}
 		case  stb:{NPLds =  "stb";break;}
 		case  stw:{NPLds =  "stw";break;}
 		case stbw:{NPLds = "stbw";break;}
@@ -272,7 +272,7 @@ void AddhistsCalc(const channel ch){
 	}// for
 	// try to associate pointers correctly and store them
 	if(0<debug) std::cout<<"all objects added"<<std::endl;
-	TFile hf(("histo/NPL_run_" + NPLc + ".root").c_str(),"RECREATE");
+	TFile hf(("histo/NPL_run_" + NPLc + "_.root").c_str(),"RECREATE");
 	if(0<debug) std::cout<<"file created"<<std::endl;
 	fbtagw->SetName(("btag_w_"   + NPLc +"_NPL.root").c_str());
 	flp_sf->SetName(("mostSF_"   + NPLc +"_NPL.root").c_str());

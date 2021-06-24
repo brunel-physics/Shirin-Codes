@@ -19,9 +19,10 @@ enum      channel      {elnu,munu};
 constexpr channel
           channelAll[]={elnu,munu};
 
-enum      dataSource	  {tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+enum      dataSource	  {tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 constexpr dataSource
-          dataSourceAll[]={tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+          dataSourceAll[]={tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+int debug = 1;
 
 std::string allNamesArray[][3] = {// histogram id, histogram title, x axis string
 //	 {"cmet_sEt_",   "Corrected MET " "sum E_{T} ","Sum E_{T} (GeV)"}
@@ -76,10 +77,10 @@ int plotall(){
                 case stbw:{opener += "stbw";break;}
                 case wjqq:{opener += "wjqq";break;}
                 case wzll:{opener += "wzll";break;}
-
-
+		case  npl:{opener  ="NPL_run_" + chN;break;}
 
 	}
+	if(debug > 0) std::cout<<ds<<std::endl;
 	hFd[std::make_pair(ch,ds)]
 		= new TFile(("histo/" + opener + ".root").c_str());
 	}}// now we have a histogram file dictionary of all the files miahahaha
@@ -163,13 +164,17 @@ int plotall(){
                 case stbw:{opener += "stbw";lgN = "#bar{t}W "     ;colour =  65;break;}//
                 case wjqq:{opener += "wjqq";lgN = "W+Jets QQ "    ;colour =  55;break;}//
                 case wzll:{opener += "wzll";lgN = "WZ LLQQ "      ;colour =  35;break;}//
+		case  npl:{opener +=  "NPL";lgN = "NPL"           ;colour =  40;break;}
 
 	}
 	std::string hobjN = allNamesArray[i][0] + opener;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),        hobj);
 	//std::cout<< "ds and ch "<<ds<< " "<<ch<<std::endl;
+	if(debug > 0)std::cout<<"passed make pair "<<hobjN<<std::endl;
 	                                      hobj->SetDirectory(nullptr);
+        if(debug > 0)std::cout<<"passed setDir"<<std::endl;
 	if(hobj->GetMaximum() > max) max =    hobj->GetMaximum(         );
+	if(debug > 0)std::cout<<"passed get max"<<std::endl;
 	// note that MET is already skipped above
 	// WARNING: We require CMS to be the last thing in dataSourceAll !
 	if( cms != ds ){
