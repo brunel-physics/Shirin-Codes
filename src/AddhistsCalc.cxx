@@ -42,7 +42,7 @@ namespace{
 
 void AddhistsCalc(const channel ch){
 	// do tzq first so that tpr & tln are not null
-	if(munu == ch) NPLc = "munu";
+	if(munu == ch) {NPLc = "munu"; NPLds = "tzq";}
 		temp_opener = temp_header + NPLc + "_" + NPLds + temp_footer;
 		std::cout << "Opening file " << temp_opener << std::endl;
 		std::cout<<"temp opener is "<<temp_opener.c_str()<<std::endl;
@@ -290,13 +290,13 @@ void AddhistsCalc(const channel ch){
 	ft__pt->SetName(( "ttop_pt_" + NPLc +"_NPL").c_str());
 	ft_mas->SetName((     "tTm_" + NPLc +"_NPL").c_str());
 	fWinvm->SetName(("W_invariant_mass_" + NPLc +"_NPL").c_str());
-        ftWinm->SetName((     "tWm_" + NPLc +"_ttz").c_str());
-	fev_sf->SetName((     "ev_w" + NPLc +"_NPL").c_str());
+        ftWinm->SetName((     "tWm_" + NPLc +"_NPL").c_str());
+	fev_sf->SetName((     "ev_w_"+ NPLc +"_NPL").c_str());
 	fz_mas->SetName((    "zmas_" + NPLc +"_NPL").c_str());
-	fzwdph->SetName((  "Z_W_Delta_Phi" + NPLc +"_NPL").c_str());
-	fzmdph->SetName(("Z_MET_Delta_Phi" + NPLc +"_NPL").c_str());
-	fwz_dr->SetName(("WZ_DeltaR" + NPLc +"_NPL").c_str());
-	fzjdph->SetName(("Z_pair_jets_Delta_Phi" + NPLc +"_NPL").c_str());
+	fzwdph->SetName((  "Z_W_Delta_Phi_" + NPLc +"_NPL").c_str());
+	fzmdph->SetName(("Z_MET_Delta_Phi_" + NPLc +"_NPL").c_str());
+	fwz_dr->SetName(("WZ_DeltaR_" + NPLc +"_NPL").c_str());
+	fzjdph->SetName(("Z_pair_jets_Delta_Phi_" + NPLc +"_NPL").c_str());
 	f__npl->SetName(("npl_" + NPLc +"_NPL").c_str());
 	fjt_pt->SetName((NPLc +"_NPL_" + "fin_jets__pt").c_str());
 	fjteta->SetName((NPLc +"_NPL_" + "fin_jets_eta").c_str());

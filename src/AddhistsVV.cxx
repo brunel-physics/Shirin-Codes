@@ -1,4 +1,4 @@
-//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/addhiststtZ src/AddhiststtZ.cxx `root-config --libs` -lm
+//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/addhistsVV src/AddhistsVV.cxx `root-config --libs` -lm
 #include <ROOT/RDataFrame.hxx>//#include <ROOT/RCsvDS.hxx>
 
 #include "calchisto.hpp"
@@ -8,7 +8,7 @@ int debug = 1;
 namespace{
 	std::string
 	NPLc = "elnu",
-	NPLds = "tz1",
+	NPLds = "_ww",
 	temp_header = "histo/",
 	temp_footer = ".root",
 	temp_opener
@@ -37,9 +37,9 @@ namespace{
              *fb_mas;      // finals go here
 }
 
-void addhiststtZ(const channel ch){
+void addhistsVV(const channel ch){
 	// do tzq first so that tpr & tln are not null
-	if(munu == ch) {NPLc = "munu";NPLds= "tz1";}
+	if(munu == ch) {NPLc = "munu";NPLds = "_ww";}
 		temp_opener = temp_header + NPLc + "_" + NPLds + temp_footer;
 		std::cout << "Opening file " << temp_opener << std::endl;
 		TFile zq(temp_opener.c_str());
@@ -148,14 +148,14 @@ void addhiststtZ(const channel ch){
 		if(!dcm) throw std::runtime_error("N_data_LnT not found");
 		dcm->SetDirectory(nullptr);// make it stay even if file closed
 		dc.Close();*/
-	for(dataSource ds:{tz1,tz2}){// to go through all ds get the files open
-		if(tz1 == ds)continue;
+	for(dataSource ds:{ww,wz,zz,wzll}){// to go through all ds get the files open
+		if(ww == ds)continue;
 		switch (ds){// only needs to be done for tz1 and tz2 for calchisto.cpp
 		case  tzq:{NPLds =  "tzq";break;}
-		case   ww:{NPLds =   "ww";break;}
-		case   wz:{NPLds =   "wz";break;}
-		case   zz:{NPLds =   "zz";break;}
-		case   st:{NPLds =   "st";break;}
+		case   ww:{NPLds =   "_ww";break;}
+		case   wz:{NPLds =   "_wz";break;}
+		case   zz:{NPLds =   "_zz";break;}
+		case   st:{NPLds =   "_st";break;}
 		case  stb:{NPLds =  "stb";break;}
 		case  stw:{NPLds =  "stw";break;}
 		case stbw:{NPLds = "stbw";break;}
@@ -276,39 +276,39 @@ void addhiststtZ(const channel ch){
 	}// for
 	// try to associate pointers correctly and store them
 	if(0<debug) std::cout<<"all objects added"<<std::endl;
-	TFile hf(("histo/" + NPLc + "_ttz.root").c_str(),"RECREATE");
+	TFile hf(("histo/" + NPLc + "__vv.root").c_str(),"RECREATE");
 	if(0<debug) std::cout<<"file created"<<std::endl;
-	fbtagw->SetName(("btag_w_"   + NPLc +"_ttz").c_str());
-	flp_sf->SetName(("mostSF_"   + NPLc +"_ttz").c_str());
-	ftpt_w->SetName(( "ttbSF_"   + NPLc +"_ttz").c_str());
-	fcmtet->SetName(("cmet_sEt_" + NPLc +"_ttz").c_str());
-	fcmtpt->SetName(("cmet__pt_" + NPLc +"_ttz").c_str());
-	fcmtph->SetName(("cmet_phi_" + NPLc +"_ttz").c_str());
-	fmteta->SetName(( "met_sEt_" + NPLc +"_ttz").c_str());
-	fmt_pt->SetName(( "met__pt_" + NPLc +"_ttz").c_str());
-	ft__pt->SetName(( "ttop_pt_" + NPLc +"_ttz").c_str());
-	ft_mas->SetName((     "tTm_" + NPLc +"_ttz").c_str());
-	fWinvm->SetName(("W_invariant_mass_" + NPLc +"_ttz").c_str());
-        ftWinm->SetName((     "tWm_" + NPLc +"_ttz").c_str());
-	fev_sf->SetName((     "ev_w_"+ NPLc +"_ttz").c_str());
-	fz_mas->SetName((    "zmas_" + NPLc +"_ttz").c_str());
-	fzwdph->SetName((  "Z_W_Delta_Phi_" + NPLc +"_ttz").c_str());
-	fzmdph->SetName(("Z_MET_Delta_Phi_" + NPLc +"_ttz").c_str());
-	fwz_dr->SetName(("WZ_DeltaR_"+ NPLc +"_ttz").c_str());
-	fzjdph->SetName(("Z_pair_jets_Delta_Phi_" + NPLc +"_ttz").c_str());
-	f__npl->SetName(("npl_" + NPLc +"_ttz").c_str());
-	fjt_pt->SetName((NPLc +"_ttz_" + "fin_jets__pt").c_str());
-	fjteta->SetName((NPLc +"_ttz_" + "fin_jets_eta").c_str());
-	fjtphi->SetName((NPLc +"_ttz_" + "fin_jets_phi").c_str());
-	fjtmas->SetName((NPLc +"_ttz_" + "fin_jets_mas").c_str());
-	flp_pt->SetName((NPLc +"_ttz_" + "lep__pt").c_str());
-	flpeta->SetName((NPLc +"_ttz_" + "lep_eta").c_str());
-	flpphi->SetName((NPLc +"_ttz_" + "lep_phi").c_str());
-	flpmas->SetName((NPLc +"_ttz_" + "lep_mas").c_str());
-	fb__pt->SetName((NPLc +"_ttz_" + "bjet__pt").c_str());
-	fb_eta->SetName((NPLc +"_ttz_" + "bjet_eta").c_str());
-	fb_phi->SetName((NPLc +"_ttz_" + "bjet_phi").c_str());
-	fb_mas->SetName((NPLc +"_ttz_" + "bjet_mas").c_str());
+	fbtagw->SetName(("btag_w_"   + NPLc +"__vv").c_str());
+	flp_sf->SetName(("mostSF_"   + NPLc +"__vv").c_str());
+	ftpt_w->SetName(( "ttbSF_"   + NPLc +"__vv").c_str());
+	fcmtet->SetName(("cmet_sEt_" + NPLc +"__vv").c_str());
+	fcmtpt->SetName(("cmet__pt_" + NPLc +"__vv").c_str());
+	fcmtph->SetName(("cmet_phi_" + NPLc +"__vv").c_str());
+	fmteta->SetName(( "met_sEt_" + NPLc +"__vv").c_str());
+	fmt_pt->SetName(( "met__pt_" + NPLc +"__vv").c_str());
+	ft__pt->SetName(( "ttop_pt_" + NPLc +"__vv").c_str());
+	ft_mas->SetName((     "tTm_" + NPLc +"__vv").c_str());
+	fWinvm->SetName(("W_invariant_mass_" + NPLc +"__vv").c_str());
+        ftWinm->SetName((     "tWm_" + NPLc +"__vv").c_str());
+	fev_sf->SetName((     "ev_w_"+ NPLc +"__vv").c_str());
+	fz_mas->SetName((    "zmas_" + NPLc +"__vv").c_str());
+	fzwdph->SetName((  "Z_W_Delta_Phi_" + NPLc +"__vv").c_str());
+	fzmdph->SetName(("Z_MET_Delta_Phi_" + NPLc +"__vv").c_str());
+	fwz_dr->SetName(("WZ_DeltaR_"+ NPLc +"__vv").c_str());
+	fzjdph->SetName(("Z_pair_jets_Delta_Phi_" + NPLc +"__vv").c_str());
+	f__npl->SetName(("npl_" + NPLc +"__vv").c_str());
+	fjt_pt->SetName((NPLc +"__vv_" + "fin_jets__pt").c_str());
+	fjteta->SetName((NPLc +"__vv_" + "fin_jets_eta").c_str());
+	fjtphi->SetName((NPLc +"__vv_" + "fin_jets_phi").c_str());
+	fjtmas->SetName((NPLc +"__vv_" + "fin_jets_mas").c_str());
+	flp_pt->SetName((NPLc +"__vv_" + "lep__pt").c_str());
+	flpeta->SetName((NPLc +"__vv_" + "lep_eta").c_str());
+	flpphi->SetName((NPLc +"__vv_" + "lep_phi").c_str());
+	flpmas->SetName((NPLc +"__vv_" + "lep_mas").c_str());
+	fb__pt->SetName((NPLc +"__vv_" + "bjet__pt").c_str());
+	fb_eta->SetName((NPLc +"__vv_" + "bjet_eta").c_str());
+	fb_phi->SetName((NPLc +"__vv_" + "bjet_phi").c_str());
+	fb_mas->SetName((NPLc +"__vv_" + "bjet_mas").c_str());
 
 	hf.WriteTObject(fbtagw);hf.Flush();sync();
 	hf.WriteTObject(flp_sf);hf.Flush();sync();
@@ -346,7 +346,7 @@ void addhiststtZ(const channel ch){
 }// void
 
 int main ( int argc , char *argv[] ){
-	addhiststtZ(elnu);
-	addhiststtZ(munu);
+	addhistsVV(elnu);
+	addhistsVV(munu);
 	return 0;
 }

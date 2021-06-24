@@ -19,9 +19,9 @@ enum      channel      {elnu,munu};
 constexpr channel
           channelAll[]={elnu,munu};
 
-enum      dataSource	  {tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+enum      dataSource	  {tzq,ttz,met,wj,vv,st,tw,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 constexpr dataSource
-          dataSourceAll[]={tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+          dataSourceAll[]={tzq,ttz,met,wj,vv,st,tw,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 int debug = 1;
 
 std::string allNamesArray[][3] = {// histogram id, histogram title, x axis string
@@ -50,7 +50,7 @@ int plotall(){
 	TH1D   *hobj;
 	// now we open ALL the files
 	std::map<std::pair<channel,dataSource>,TFile*> hFd;
-	for(channel ch:{elnu}){//channelAll){
+	for(channel ch:channelAll){
 	//for(channel ch:channelAll){
 	std::string chN;
 	switch     (ch){
@@ -60,24 +60,16 @@ int plotall(){
 	for(dataSource ds:dataSourceAll){
 	std::string  opener  =  chN ;
 	switch  (ds){
-		case  tzq:{opener +=  "tzq";break;}
-		case   ww:{opener +=  "_ww";break;}
-		case   wz:{opener +=  "_wz";break;}
-		case   zz:{opener +=  "_zz";break;}
-		case   st:{opener +=  "_st";break;}
-                case  stb:{opener +=  "stb";break;}
-		case  ttz:{opener +=  "ttz";break;}
-		case  ttb:{opener +=  "ttb";break;}
-                case  ttl:{opener +=  "ttl";break;}
-                case  ttj:{opener +=  "ttj";break;}
-                case  wjt:{opener +=  "wjt";break;}
-		case  met:{opener +=  "met";break;}
-		case  cms:{opener +=  "cms";break;}
-                case  stw:{opener +=  "stw";break;}
-                case stbw:{opener += "stbw";break;}
-                case wjqq:{opener += "wjqq";break;}
-                case wzll:{opener += "wzll";break;}
-		case  npl:{opener  ="NPL_run_" + chN;break;}
+		case    tzq:{opener +=  "tzq";break;}
+		case     vv:{opener +=  "_vv";break;}
+		case     st:{opener +=  "_ST";break;}
+		case    ttz:{opener +=  "ttz";break;}
+		case  ttbar:{opener +="ttbar";break;}
+                case     wj:{opener +=  "_Wj";break;}
+		case    met:{opener +=  "met";break;}
+		case    cms:{opener +=  "cms";break;}
+                case     tw:{opener +=  "_tW";break;}
+		case    npl:{opener  ="NPL_run_" + chN;break;}
 
 	}
 	if(debug > 0) std::cout<<ds<<std::endl;
@@ -86,7 +78,7 @@ int plotall(){
 	}}// now we have a histogram file dictionary of all the files miahahaha
 
 	for(size_t i=0; i < std::size(allNamesArray) ;++i){
-	for(channel ch:{elnu}){//channelAll){
+	for(channel ch:channelAll){
 	std::string chN,chF,lgN; // chf : channel title
 	switch     (ch){
 		case elnu:  {chN ="elnu";chF =  "e#nu"; break;}
@@ -147,24 +139,16 @@ int plotall(){
 	std::string  opener  = chN + "_";
 	int colour;
 	switch  (ds){
-		case  tzq:{opener += "tzq" ;lgN = "tZq"           ;colour =  6 ;break;}// magenta
-		case   ww:{opener += "_ww" ;lgN = "WW "           ;colour =  2 ;break;}// red
-		case   wz:{opener += "_wz" ;lgN = "WZ "           ;colour =  3 ;break;}// green
-		case   zz:{opener += "_zz" ;lgN = "ZZ "           ;colour =  4 ;break;}// blue
-                case   st:{opener += "_st" ;lgN = "Single T"      ;colour =  95;break;}//
-                case  stb:{opener += "stb" ;lgN = "Single #bar{T}";colour =  85;break;}//
-		case  ttz:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5 ;break;}// yellow
-		case  ttb:{opener += "ttb" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
-                case  ttl:{opener += "ttl" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
-                case  ttj:{opener += "ttj" ;lgN = "t#bar{b}"      ;colour =  7 ;break;}// cyan
-                case  wjt:{opener += "wjt" ;lgN = "W+Jets"        ;colour =  46;break;}//
-		case  met:{opener += "met" ;lgN = "MET"           ;colour =  9 ;break;}// violet
-		case  cms:{opener += "cms" ;lgN = "data"          ;colour =  1 ;break;}// black
-                case  stw:{opener += "stw" ;lgN = "tW"            ;colour =  75;break;}//
-                case stbw:{opener += "stbw";lgN = "#bar{t}W "     ;colour =  65;break;}//
-                case wjqq:{opener += "wjqq";lgN = "W+Jets QQ "    ;colour =  55;break;}//
-                case wzll:{opener += "wzll";lgN = "WZ LLQQ "      ;colour =  35;break;}//
-		case  npl:{opener +=  "NPL";lgN = "NPL"           ;colour =  40;break;}
+		case    tzq:{opener += "tzq" ;lgN = "tZq"           ;colour =  6 ;break;}// magenta
+		case     vv:{opener += "_vv" ;lgN = "VV "           ;colour =  2 ;break;}// red
+                case     st:{opener += "_ST" ;lgN = "Single t"      ;colour =  95;break;}//
+		case    ttz:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5 ;break;}// yellow
+		case  ttbar:{opener += "ttb" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
+                case     wj:{opener += "_Wj" ;lgN = "W+Jets"        ;colour =  55;break;}//
+		case    met:{opener += "met" ;lgN = "MET"           ;colour =  9 ;break;}// violet
+		case    cms:{opener += "cms" ;lgN = "data"          ;colour =  1 ;break;}// black
+                case     tw:{opener += "_tW" ;lgN = "tW"            ;colour =  75;break;}//
+		case    npl:{opener +=  "NPL";lgN = "NPL"           ;colour =  40;break;}
 
 	}
 	std::string hobjN = allNamesArray[i][0] + opener;
@@ -197,7 +181,7 @@ int plotall(){
 		rp = (TH1D*)(hobj->Clone());
 	}}// else & dataSource
         rp->Divide((TH1D*)stac.GetStack()->Last());
-        TPad *padr = new TPad("pad", "pad", 0.01, 0.01, 0.99, 0.3275);// padr = pad ratio
+        TPad *padr = new TPad("pad", "pad", 0.01, 0.01, 0.99, 0.2800);// padr = pad ratio
         padr->SetTopMargin(0);
         padr->SetFillColor(0);
         padr->SetBorderMode(0);

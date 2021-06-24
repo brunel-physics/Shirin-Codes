@@ -5,15 +5,15 @@
 #include <TROOT.h>
 #include <TStyle.h>
 #include "src/tdrstyle.C"
-#include "src/calchisto.hpp"
+//#include "src/calchisto.hpp"
 
 enum      channel      {elnu,munu};
 constexpr channel
           channelAll[]={elnu,munu};
 
-enum      dataSource	  {tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+enum      dataSource	  {tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 constexpr dataSource
-          dataSourceAll[]={tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+          dataSourceAll[]={tzq,zz,ttz,ww,wz,met,wjt,st,stb,stw,stbw,wzll,wjqq,cms,ttb,ttl,ttj,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 
 int plotmc(){
 	gROOT->SetBatch(kTRUE);// no open canvas window
@@ -43,6 +43,7 @@ int plotmc(){
                 case wjt:{opener += "wjt";break;}
 		case met:{opener += "met";break;}
 		case cms:{opener += "cms";break;}
+		case  npl:{opener ="NPL_run_" + chN;std::cout<<"opener is "<<opener<<std::endl;break;}
 	}
 	hFd[std::make_pair(ch,ds)]
 		= new TFile(("histo/" + opener + ".root").c_str());
@@ -88,16 +89,15 @@ int plotmc(){
                 case wjt:{opener += "wjt";lgN ="W+jets";colour = 46;break;}//
 		case met:{opener += "met";lgN ="MET"   ;colour = 9 ;break;}// violet
 		case cms:{opener += "cms";lgN ="CMS"   ;colour = 1 ;break;}// black
+		case  npl:{opener +=  "NPL";lgN = "NPL"           ;colour =  40;break;}
 	}
 	std::string    hobjN = sf + "_" + opener ;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),hobj);
 	                              hobj->SetDirectory(nullptr);
 	if( cms == ds || met == ds )  hobj->SetLineColor( colour);
-	else                          if(ds == zjt)continue;
 				      hobj->SetFillColor( colour);
 	stac .Add(                    hobj);
 	if( cms == ds || met == ds )legS .AddEntry(hobj,lgN.c_str(),"l");
-	else			    if(ds == zjt)continue;
 				    legS .AddEntry(hobj,lgN.c_str(),"f");
 	}// dataSource
 	canv .cd();// pick me to draw?
