@@ -15,7 +15,7 @@ namespace{
 	;
 	TH1D *hbtagw, *hlp_sf, *htpt_w,
  	     *hcmtet, *hcmtpt, *hcmtph,
-	     *hmteta, *hmt_pt, /**hmetph*/
+	     *hmteta, *hmt_pt, *htWinm,
 	     *ht__pt, *ht_mas, *hWinvm,
 	     *hev_sf, *hz_mas, *hzwdph,
 	     *hzmdph, *hwz_dr, *hzjdph,
@@ -26,7 +26,7 @@ namespace{
 	     *hb_mas;// for taking from files
 	TH1D *fbtagw, *flp_sf, *ftpt_w,
              *fcmtet, *fcmtpt, *fcmtph,
-             *fmteta, *fmt_pt, /**hmetph*/
+             *fmteta, *fmt_pt, *ftWinm,
              *ft__pt, *ft_mas, *fWinvm,
              *fev_sf, *fz_mas, *fzwdph,
              *fzmdph, *fwz_dr, *fzjdph,
@@ -77,6 +77,9 @@ void addhiststtZ(const channel ch){
 
 		zq.GetObject(("W_invariant_mass_" + NPLc + "_" + NPLds).c_str(),fWinvm);
 		fWinvm->SetDirectory(nullptr);// make it stay even if file closed
+
+                zq.GetObject(("tWm_" + NPLc + "_" + NPLds).c_str(),ftWinm);
+                ftWinm->SetDirectory(nullptr);
 
 		zq.GetObject(("ev_w_" + NPLc + "_" + NPLds).c_str(),fev_sf);
 		fev_sf->SetDirectory(nullptr);// make it stay even if file closed
@@ -209,6 +212,9 @@ void addhiststtZ(const channel ch){
 		tf.GetObject(("W_invariant_mass_" + NPLc + "_" + NPLds).c_str(),hWinvm);
 		fWinvm->Add(hWinvm);
 
+                tf.GetObject(("tWm_" + NPLc + "_" + NPLds).c_str(),htWinm);
+                ftWinm->SetDirectory(nullptr);
+
 		tf.GetObject(("ev_w_" + NPLc + "_" + NPLds).c_str(),hev_sf);
 		fev_sf->Add(hev_sf);
 
@@ -272,36 +278,37 @@ void addhiststtZ(const channel ch){
 	if(0<debug) std::cout<<"all objects added"<<std::endl;
 	TFile hf(("histo/" + NPLc + "_ttz.root").c_str(),"RECREATE");
 	if(0<debug) std::cout<<"file created"<<std::endl;
-	fbtagw->SetName(("btag_w_"   + NPLc +"_ttz.root").c_str());
-	flp_sf->SetName(("mostSF_"   + NPLc +"_ttz.root").c_str());
-	ftpt_w->SetName(( "ttbSF_"   + NPLc +"_ttz.root").c_str());
-	fcmtet->SetName(("cmet_sEt_" + NPLc +"_ttz.root").c_str());
-	fcmtpt->SetName(("cmet__pt_" + NPLc +"_ttz.root").c_str());
-	fcmtph->SetName(("cmet_phi_" + NPLc +"_ttz.root").c_str());
-	fmteta->SetName(( "met_sEt_" + NPLc +"_ttz.root").c_str());
-	fmt_pt->SetName(( "met__pt_" + NPLc +"_ttz.root").c_str());
-	ft__pt->SetName(( "ttop_pt_" + NPLc +"_ttz.root").c_str());
-	ft_mas->SetName((     "tTm_" + NPLc +"_ttz.root").c_str());
-	fWinvm->SetName(("W_invariant_mass_" + NPLc +"_ttz.root").c_str());
-	fev_sf->SetName((     "ev_w" + NPLc +"_ttz.root").c_str());
-	fz_mas->SetName((    "zmas_" + NPLc +"_ttz.root").c_str());
-	fzwdph->SetName((  "Z_W_Delta_Phi" + NPLc +"_ttz.root").c_str());
-	fzmdph->SetName(("Z_MET_Delta_Phi" + NPLc +"_ttz.root").c_str());
-	fwz_dr->SetName(("WZ_DeltaR" + NPLc +"_ttz.root").c_str());
-	fzjdph->SetName(("Z_pair_jets_Delta_Phi" + NPLc +"_ttz.root").c_str());
-	f__npl->SetName(("npl_" + NPLc +"_ttz.root").c_str());
-	fjt_pt->SetName((NPLc +"_ttz_" + "fin_jets__pt.root").c_str());
-	fjteta->SetName((NPLc +"_ttz_" + "fin_jets_eta.root").c_str());
-	fjtphi->SetName((NPLc +"_ttz_" + "fin_jets_phi.root").c_str());
-	fjtmas->SetName((NPLc +"_ttz_" + "fin_jets_mas.root").c_str());
-	flp_pt->SetName((NPLc +"_ttz_" + "lep__pt.root").c_str());
-	flpeta->SetName((NPLc +"_ttz_" + "lep_eta.root").c_str());
-	flpphi->SetName((NPLc +"_ttz_" + "lep_phi.root").c_str());
-	flpmas->SetName((NPLc +"_ttz_" + "lep_mas.root").c_str());
-	fb__pt->SetName((NPLc +"_ttz_" + "bjet__pt.root").c_str());
-	fb_eta->SetName((NPLc +"_ttz_" + "bjet_eta.root").c_str());
-	fb_phi->SetName((NPLc +"_ttz_" + "bjet_phi.root").c_str());
-	fb_mas->SetName((NPLc +"_ttz_" + "bjet_mas.root").c_str());
+	fbtagw->SetName(("btag_w_"   + NPLc +"_ttz").c_str());
+	flp_sf->SetName(("mostSF_"   + NPLc +"_ttz").c_str());
+	ftpt_w->SetName(( "ttbSF_"   + NPLc +"_ttz").c_str());
+	fcmtet->SetName(("cmet_sEt_" + NPLc +"_ttz").c_str());
+	fcmtpt->SetName(("cmet__pt_" + NPLc +"_ttz").c_str());
+	fcmtph->SetName(("cmet_phi_" + NPLc +"_ttz").c_str());
+	fmteta->SetName(( "met_sEt_" + NPLc +"_ttz").c_str());
+	fmt_pt->SetName(( "met__pt_" + NPLc +"_ttz").c_str());
+	ft__pt->SetName(( "ttop_pt_" + NPLc +"_ttz").c_str());
+	ft_mas->SetName((     "tTm_" + NPLc +"_ttz").c_str());
+	fWinvm->SetName(("W_invariant_mass_" + NPLc +"_ttz").c_str());
+        ftWinm->SetName((     "tWm_" + NPLc +"_ttz").c_str());
+	fev_sf->SetName((     "ev_w" + NPLc +"_ttz").c_str());
+	fz_mas->SetName((    "zmas_" + NPLc +"_ttz").c_str());
+	fzwdph->SetName((  "Z_W_Delta_Phi" + NPLc +"_ttz").c_str());
+	fzmdph->SetName(("Z_MET_Delta_Phi" + NPLc +"_ttz").c_str());
+	fwz_dr->SetName(("WZ_DeltaR" + NPLc +"_ttz").c_str());
+	fzjdph->SetName(("Z_pair_jets_Delta_Phi" + NPLc +"_ttz").c_str());
+	f__npl->SetName(("npl_" + NPLc +"_ttz").c_str());
+	fjt_pt->SetName((NPLc +"_ttz_" + "fin_jets__pt").c_str());
+	fjteta->SetName((NPLc +"_ttz_" + "fin_jets_eta").c_str());
+	fjtphi->SetName((NPLc +"_ttz_" + "fin_jets_phi").c_str());
+	fjtmas->SetName((NPLc +"_ttz_" + "fin_jets_mas").c_str());
+	flp_pt->SetName((NPLc +"_ttz_" + "lep__pt").c_str());
+	flpeta->SetName((NPLc +"_ttz_" + "lep_eta").c_str());
+	flpphi->SetName((NPLc +"_ttz_" + "lep_phi").c_str());
+	flpmas->SetName((NPLc +"_ttz_" + "lep_mas").c_str());
+	fb__pt->SetName((NPLc +"_ttz_" + "bjet__pt").c_str());
+	fb_eta->SetName((NPLc +"_ttz_" + "bjet_eta").c_str());
+	fb_phi->SetName((NPLc +"_ttz_" + "bjet_phi").c_str());
+	fb_mas->SetName((NPLc +"_ttz_" + "bjet_mas").c_str());
 
 	hf.WriteTObject(fbtagw);hf.Flush();sync();
 	hf.WriteTObject(flp_sf);hf.Flush();sync();
@@ -314,6 +321,7 @@ void addhiststtZ(const channel ch){
 	hf.WriteTObject(ft__pt);hf.Flush();sync();
 	hf.WriteTObject(ft_mas);hf.Flush();sync();
 	hf.WriteTObject(fWinvm);hf.Flush();sync();
+        hf.WriteTObject(ftWinm);hf.Flush();sync();
 	hf.WriteTObject(fev_sf);hf.Flush();sync();
 	hf.WriteTObject(fz_mas);hf.Flush();sync();
 	hf.WriteTObject(fzwdph);hf.Flush();sync();
