@@ -139,16 +139,16 @@ int plotall(){
 	std::string  opener  = chN + "_";
 	int colour;
 	switch  (ds){
-		case    tzq:{opener += "tzq" ;lgN = "tZq"           ;colour =  6 ;break;}// magenta
-		case     vv:{opener += "_vv" ;lgN = "VV "           ;colour =  2 ;break;}// red
-                case     st:{opener += "_ST" ;lgN = "Single t"      ;colour =  95;break;}//
-		case    ttz:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5 ;break;}// yellow
-		case  ttbar:{opener += "ttb" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
-                case     wj:{opener += "_Wj" ;lgN = "W+Jets"        ;colour =  55;break;}//
-		case    met:{opener += "met" ;lgN = "MET"           ;colour =  9 ;break;}// violet
-		case    cms:{opener += "cms" ;lgN = "data"          ;colour =  1 ;break;}// black
-                case     tw:{opener += "_tW" ;lgN = "tW"            ;colour =  75;break;}//
-		case    npl:{opener +=  "NPL";lgN = "NPL"           ;colour =  40;break;}
+		case    tzq:{opener += "tzq" ;lgN = "tZq"            ;colour =  6 ;break;}// magenta
+		case     vv:{opener += "_vv" ;lgN = "VV "            ;colour =  2 ;break;}// red
+                case     st:{opener += "_ST" ;lgN = "Single t"       ;colour =  95;break;}//
+		case    ttz:{opener += "ttz" ;lgN = "t#bar{t}Z"      ;colour =  5 ;break;}// yellow
+		case  ttbar:{opener += "ttb" ;lgN = "t#bar{t}"       ;colour =  7 ;break;}// cyan
+                case     wj:{opener += "_Wj" ;lgN = "W/#gamma+Jets"  ;colour =  55;break;}//
+		case    met:{opener += "met" ;lgN = "MET"            ;colour =  9 ;break;}// violet
+		case    cms:{opener += "cms" ;lgN = "data"           ;colour =  1 ;break;}// black
+                case     tw:{opener += "_tW" ;lgN = "tW"             ;colour =  75;break;}//
+		case    npl:{opener +=  "NPL";lgN = "NPL"            ;colour =  40;break;}
 
 	}
 	std::string hobjN = allNamesArray[i][0] + opener;

@@ -79,22 +79,27 @@ namespace{
   constexpr double    ak4RconeBy2 =  .2;
 //constexpr double    ak8RconeBy2 =  .4;
 
-  constexpr double          TZQ_W =   .00128;
-  constexpr double       WWLNQQ_W =   .21740;
-  constexpr double       WZLNQQ_W =   .02335;
-  constexpr double        TTBLV_W =   .13791;
-  constexpr double        TZQQ1_W =   .02826;// ttz
-  constexpr double        TZQQ2_W =   .00237;// ttz
-  constexpr double       ZZLLQQ_W =   .00485;
-  constexpr double	    WJT_W = 73.26469;
-  constexpr double           ST_W =   .03837;
-  constexpr double          STB_W =   .04433;
-  constexpr double        TTBLL_W =   .05303;
-  constexpr double        TTBJJ_W =   .12066;
-  constexpr double          STW_W =   .18247;
-  constexpr double         STBW_W =   .18750;
-  constexpr double         WJQQ_W =   .17827;
-  constexpr double         WZLL_W =   .00844;
+  constexpr double          TZQ_W =     .00128;
+  constexpr double       WWLNQQ_W =     .21740;
+  constexpr double       WZLNQQ_W =     .02335;
+  constexpr double        TTBLV_W =     .13791;
+  constexpr double        TZQQ1_W =     .02826;// ttz
+  constexpr double        TZQQ2_W =     .00237;// ttz
+  constexpr double       ZZLLQQ_W =     .00485;
+  constexpr double	    WJT_W =   73.26469;
+  constexpr double           ST_W =     .03837;
+  constexpr double          STB_W =     .04433;
+  constexpr double        TTBLL_W =     .05303;
+  constexpr double        TTBJJ_W =     .12066;
+  constexpr double          STW_W =     .18247;
+  constexpr double         STBW_W =     .18750;
+  constexpr double         WJQQ_W =     .17827;
+  constexpr double         WZLL_W =     .00844;
+  constexpr double         ZJT1_W = 2076.88350;
+  constexpr double         ZJT2_W =    9.84902;
+  constexpr double         ZJT3_W =    1.48894;
+  constexpr double         ZJQQ_W =    2.89992;
+
 
   constexpr double      TZQ_GEN_W =  0.25890;
   constexpr double       WW_GEN_W =  0.99621;
@@ -112,7 +117,10 @@ namespace{
   constexpr double     STBW_GEN_W =  0.99235;
   constexpr double     WZLL_GEN_W =  0.60420;
   constexpr double     WJQQ_GEN_W =  0.99345;
-
+  constexpr double     ZJT1_GEN_W =  0.99915;
+  constexpr double     ZJT2_GEN_W =  0.67768;
+  constexpr double     ZJT3_GEN_W =  0.67776;
+  constexpr double     ZJQQ_GEN_W =  0.99881;
 
 
 // Method Explained in TriggerSF.cxx
@@ -1130,6 +1138,10 @@ auto genWSF(const dataSource  ds){
 		case stbw:{frac =STBW_GEN_W;break;}
 		case wjqq:{frac =WJQQ_GEN_W;break;}
 		case wzll:{frac =WZLL_GEN_W;break;}
+		case zjt1:{frac =ZJT1_GEN_W;break;}
+                case zjt2:{frac =ZJT2_GEN_W;break;}
+                case zjt3:{frac =ZJT3_GEN_W;break;}
+                case zjqq:{frac =ZJQQ_GEN_W;break;}
 		case  ttl:{frac = TTL_GEN_W;break;}
 		case  ttj:{frac = TTJ_GEN_W;break;}
                 case  wjt:{frac = WJT_GEN_W;break;}
@@ -1174,6 +1186,10 @@ inline auto sf(
 			case stbw:{result =   STBW_W;break;}
 			case wjqq:{result =   WJQQ_W;break;}
 			case wzll:{result =   WZLL_W;break;}
+			case zjt1:{result =   ZJT1_W;break;}
+                        case zjt2:{result =   ZJT2_W;break;}
+                        case zjt3:{result =   ZJT3_W;break;}
+                        case zjqq:{result =   ZJQQ_W;break;}
 			case  ttb:{result =  TTBLV_W;break;}
 			case  ttl:{result =  TTBLL_W;break;}
 			case  ttj:{result =  TTBJJ_W;break;}
@@ -1425,6 +1441,10 @@ void calchisto(const channel ch,const dataSource ds){
 	case stbw:{temp_opener=temp_header0+ "ST_tbarW"                     +temp_footer;break;}
 	case wzll:{temp_opener=temp_header0+ "WZTo2L2Q"                     +temp_footer;break;}
 	case wjqq:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
+	case zjt1:{temp_opener=temp_header3+ "ZPlusJets_M10To50_NanoAODv5"  +temp_footer;break;}
+        case zjt2:{temp_opener=temp_header3+ "ZPlusJets_M50_NanoAODv5"      +temp_footer;break;}
+        case zjt3:{temp_opener=temp_header3+ "ZPlusJets_M50_ext_NanoAODv5"  +temp_footer;break;}
+        case zjqq:{temp_opener=temp_header3+ "DYToQQ" 			    +temp_footer;break;}
 	case  tz1:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
 	case  tz2:{temp_opener=temp_header0+ "ttZToQQ_ext"                  +temp_footer;break;}
 	case  met:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
@@ -1469,6 +1489,10 @@ void calchisto(const channel ch,const dataSource ds){
 			case stbw:
 			case wjqq:
 			case wzll:
+			case zjt1:
+			case zjt2:
+			case zjt3:
+			case zjqq:
 			case  ttb:
 			case  ttl:
 			case  ttj:
@@ -1554,6 +1578,10 @@ void calchisto(const channel ch,const dataSource ds){
 		case stbw:{temp_header+="stbw";temp_footer+="STBW";break;}
 		case wjqq:{temp_header+="wjqq";temp_footer+="wjqq";break;}
 		case wzll:{temp_header+="wzll";temp_footer+="WZLL";break;}
+		case zjt1:{temp_header+="ZJT1";temp_footer+="ZJT1";break;}
+		case zjt2:{temp_header+="ZJT2";temp_footer+="ZJT2";break;}
+		case zjt3:{temp_header+="ZJT3";temp_footer+="ZJT3";break;}
+		case zjqq:{temp_header+="ZJQQ";temp_footer+="ZJQQ";break;}
 		case  wjt:{temp_header+= "wjt";temp_footer+="Wjt" ;break;}
 		case  ttb:{temp_header+= "ttb";temp_footer+="ttb" ;break;}
                 case  ttl:{temp_header+= "ttl";temp_footer+="ttl" ;break;}

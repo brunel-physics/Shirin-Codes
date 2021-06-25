@@ -20,7 +20,7 @@ namespace{
 
 void addhists(const channel ch){
 	// do tzq first so that tpr & tln are not null
-	if(munu == ch) NPLc = "munu";
+	if(munu == ch) {NPLc = "munu"; NPLds = "tzq";}
 		temp_opener = temp_header + NPLc + "_" + NPLds + temp_footer;
 		std::cout << "Opening file " << temp_opener << std::endl;
 		TFile zq(temp_opener.c_str());

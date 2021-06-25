@@ -41,8 +41,13 @@ void GenWeightSF(const channel ch,const dataSource ds){
         case stbw:{temp_opener=temp_header+"ST_tbarW"         +temp_footer;break;}
 	case wzll:{temp_opener=temp_header+"WZTo2L2Q"         +temp_footer;break;}
 	case wjqq:{temp_opener=temp_header+"WPlusJetsToQQ"    +temp_footer;break;}
+	case zjt1:{temp_opener="/data/disk3/nanoAOD_2017/ZPlusJets_M10To50_NanoAODv5"+temp_footer;break;}
+	case zjt2:{temp_opener="/data/disk3/nanoAOD_2017/ZPlusJets_M50_NanoAODv5"+temp_footer;break;}
+	case zjt3:{temp_opener="/data/disk3/nanoAOD_2017/ZPlusJets_M50_ext_NanoAODv5"+temp_footer;break;}
+	case zjqq:{temp_opener="/data/disk3/nanoAOD_2017/DYToQQ"+temp_footer;break;}
 	case  met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
 	case  cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
+
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
 	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
@@ -88,6 +93,10 @@ void GenWeightSF(const channel ch,const dataSource ds){
 			case  stw:
 			case stbw:
 			case wzll:
+			case zjt1:
+			case zjt2:
+			case zjt3:
+			case zjqq:
 			case wjqq:{           return mc__df;break;}
                         case  met:{           return bothdf;break;}
                         case  cms:{switch(ch){// MC is already false
@@ -152,6 +161,10 @@ int main ( int argc , char *argv[] ){
         else if ( "stbw" ==  dsN ){ d = stbw  ;}
         else if ( "wzll" ==  dsN ){ d = wzll  ;}
         else if ( "wjqq" ==  dsN ){ d = wjqq  ;}
+        else if ( "zjt1" ==  dsN ){ d = zjt1  ;}
+        else if ( "zjt2" ==  dsN ){ d = zjt2  ;}
+        else if ( "zjt3" ==  dsN ){ d = zjt3  ;}
+        else if ( "zjqq" ==  dsN ){ d = zjqq  ;}
         else if ( "cms"  ==  dsN ){ d = cms   ;}
         else { std::cout << "Error: data source " << dsN
                 << " not recognised" << std::endl ;

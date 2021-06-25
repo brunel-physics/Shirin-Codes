@@ -118,7 +118,7 @@ int plotcomp(){
                 case     st:{opener += "_ST" ;lgN = "Single t"      ;colour =  95;break;}//
 		case    ttz:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5 ;break;}// yellow
 		case  ttbar:{opener += "ttb" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
-                case     wj:{opener += "_Wj" ;lgN = "W+Jets"        ;colour =  55;break;}//
+                case     wj:{opener += "_Wj" ;lgN = "W/#gamma+Jets" ;colour =  55;break;}//
 		case    met:{opener += "met" ;lgN = "MET"           ;colour =  9 ;break;}// violet
 		case    cms:{opener += "cms" ;lgN = "data"          ;colour =  1 ;break;}// black
                 case     tw:{opener += "_tW" ;lgN = "tW"            ;colour =  75;break;}//

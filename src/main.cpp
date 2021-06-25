@@ -45,6 +45,10 @@ int main(int argc,char* argv[]){
                 else if("stbw"   == dsN){ds = stbw;}
                 else if("wjqq"   == dsN){ds = wjqq;}
                 else if("wzll"   == dsN){ds = wzll;}
+                else if("zjt1"   == dsN){ds = zjt1;}
+                else if("zjt2"   == dsN){ds = zjt2;}
+                else if("zjt3"   == dsN){ds = zjt3;}
+                else if("zjqq"   == dsN){ds = zjqq;}
 		else if( "ttb"   == dsN){ds =  ttb;}
                 else if( "ttl"   == dsN){ds =  ttl;}
                 else if( "ttj"   == dsN){ds =  ttj;}
