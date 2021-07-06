@@ -30,6 +30,7 @@ void GenWeightSF(const channel ch,const dataSource ds){
 	case   wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
 	case   zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
 	case  wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
+        case  wjx:{temp_opener="/nfs/data/eepgssg/WJetsToLNu_ext_NanoAODv5"+temp_footer;break;}
 	case  ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
 	case  tz1:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
 	case  tz2:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
@@ -42,8 +43,8 @@ void GenWeightSF(const channel ch,const dataSource ds){
 	case wzll:{temp_opener=temp_header+"WZTo2L2Q"         +temp_footer;break;}
 	case wjqq:{temp_opener=temp_header+"WPlusJetsToQQ"    +temp_footer;break;}
 	case zjt1:{temp_opener="/data/disk3/nanoAOD_2017/ZPlusJets_M10To50_NanoAODv5"+temp_footer;break;}
-	case zjt2:{temp_opener="/data/disk3/nanoAOD_2017/ZPlusJets_M50_NanoAODv5"+temp_footer;break;}
-	case zjt3:{temp_opener="/data/disk3/nanoAOD_2017/ZPlusJets_M50_ext_NanoAODv5"+temp_footer;break;}
+	case zjt2:{temp_opener="/nfs/data/eepgssg/ZPlusJets_M50_NanoAODv5"+temp_footer;break;}
+	case zjt3:{temp_opener="/nfs/data/eepgssg/ZPlusJets_M50_ext_NanoAODv5"+temp_footer;break;}
 	case zjqq:{temp_opener="/data/disk3/nanoAOD_2017/DYToQQ"+temp_footer;break;}
 	case  met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
 	case  cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
@@ -86,6 +87,7 @@ void GenWeightSF(const channel ch,const dataSource ds){
 			case  ttj:
 			case  ttl:
                         case  wjt:
+			case  wjx:
                         case  tz1:
                         case  tz2:
 			case   st:
@@ -152,6 +154,7 @@ int main ( int argc , char *argv[] ){
         else if ( "tz1"  ==  dsN ){ d = tz1   ;}
         else if ( "tz2"  ==  dsN ){ d = tz2   ;}
         else if ( "wjt"  ==  dsN ){ d = wjt   ;}
+        else if ( "wjx"  ==  dsN ){ d = wjx   ;}
         else if ( "ww"   ==  dsN ){ d = ww    ;}
         else if ( "wz"   ==  dsN ){ d = wz    ;}
         else if ( "zz"   ==  dsN ){ d = zz    ;}

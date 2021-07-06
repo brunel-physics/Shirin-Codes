@@ -54,10 +54,15 @@ void addhists(const channel ch){
 		case stbw:{NPLds = "stbw";break;}
 		case wjqq:{NPLds = "wjqq";break;}
 		case wzll:{NPLds = "wzll";break;}
+                case zjt1:{NPLds = "ZJT1";break;}
+                case zjt2:{NPLds = "ZJT2";break;}
+                case zjt3:{NPLds = "ZJT3";break;}
+                case zjqq:{NPLds = "ZJQQ";break;}
 		case  ttb:{NPLds =  "ttb";break;}
 		case  ttl:{NPLds =  "ttl";break;}
 		case  ttj:{NPLds =  "ttj";break;}
 		case  wjt:{NPLds =  "wjt";break;}
+		case  wjx:{NPLds =  "wjx";break;}
 		case  tz1:{NPLds =  "tz1";break;}
 		case  tz2:{NPLds =  "tz2";break;}
 		case  met:{NPLds =  "met";break;}
@@ -66,7 +71,7 @@ void addhists(const channel ch){
 			"Unimplemented ds (NPL file reading)");
 		}
 		temp_opener = temp_header + NPLc + "_" + NPLds + temp_footer;
-		if(0<debug) std::cout << "Opening file " << temp_opener << std::endl;
+		std::cout << "Opening file " << temp_opener << std::endl;
 		TFile tf(temp_opener.c_str());
 		if( ! tf.IsOpen()) throw std::runtime_error("File is not opened");
 		tf.GetObject(("prompt_LnT_" + NPLc + "_" + NPLds).c_str(),hpr);
@@ -85,6 +90,7 @@ void addhists(const channel ch){
 //		hln->SetDirectory(nullptr);// make it stay even if file closed
 		tf.Close();
 	}// for
+	//tln->Scale(1/tln->Integral());// frequency probability in each bin
 	// try to associate pointers correctly and store them
 	if(0<debug) std::cout<<"all objects added"<<std::endl;
 	TFile hf(("aux/NPL/NPL_" + NPLc + ".root").c_str(),"RECREATE");

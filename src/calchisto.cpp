@@ -87,6 +87,7 @@ namespace{
   constexpr double        TZQQ2_W =     .00237;// ttz
   constexpr double       ZZLLQQ_W =     .00485;
   constexpr double	    WJT_W =   73.26469;
+  constexpr double          WJX_W =   49.26469;
   constexpr double           ST_W =     .03837;
   constexpr double          STB_W =     .04433;
   constexpr double        TTBLL_W =     .05303;
@@ -96,8 +97,8 @@ namespace{
   constexpr double         WJQQ_W =     .17827;
   constexpr double         WZLL_W =     .00844;
   constexpr double         ZJT1_W = 2076.88350;
-  constexpr double         ZJT2_W =    9.84902;
-  constexpr double         ZJT3_W =    1.48894;
+  constexpr double         ZJT2_W =    4.55855;
+  constexpr double         ZJT3_W =    4.51678;
   constexpr double         ZJQQ_W =    2.89992;
 
 
@@ -109,6 +110,7 @@ namespace{
   constexpr double     TTZ2_GEN_W =  0.47492;
   constexpr double       ZZ_GEN_W =  0.99880;
   constexpr double      WJT_GEN_W =  0.99103;
+  constexpr double      WJX_GEN_W =  0.99911;
   constexpr double       ST_GEN_W =  1.00000;
   constexpr double      STB_GEN_W =  1.00000;
   constexpr double      TTL_GEN_W =  0.99190;
@@ -118,8 +120,8 @@ namespace{
   constexpr double     WZLL_GEN_W =  0.60420;
   constexpr double     WJQQ_GEN_W =  0.99345;
   constexpr double     ZJT1_GEN_W =  0.99915;
-  constexpr double     ZJT2_GEN_W =  0.67768;
-  constexpr double     ZJT3_GEN_W =  0.67776;
+  constexpr double     ZJT2_GEN_W =  0.99912;
+  constexpr double     ZJT3_GEN_W =  0.99912;
   constexpr double     ZJQQ_GEN_W =  0.99881;
 
 
@@ -1145,6 +1147,7 @@ auto genWSF(const dataSource  ds){
 		case  ttl:{frac = TTL_GEN_W;break;}
 		case  ttj:{frac = TTJ_GEN_W;break;}
                 case  wjt:{frac = WJT_GEN_W;break;}
+                case  wjx:{frac = WJX_GEN_W;break;}
                 case  ttb:{frac = TTB_GEN_W;break;}
                 case  tz1:{frac =TTZ1_GEN_W;break;}
                 case  tz2:{frac =TTZ2_GEN_W;break;}
@@ -1180,6 +1183,7 @@ inline auto sf(
 			case   wz:{result = WZLNQQ_W;break;}
 			case   zz:{result = ZZLLQQ_W;break;}
 			case  wjt:{result =    WJT_W;break;}
+                        case  wjx:{result =    WJX_W;break;}
 			case   st:{result =     ST_W;break;}
 			case  stb:{result =    STB_W;break;}
 			case  stw:{result =    STW_W;break;}
@@ -1221,12 +1225,12 @@ inline auto sf(
 
 		result *=  b_w * mostSF *genw;
 // only for debugging purpose of munu wjt ->
-		if(result < 0)std::cout
+		/*if(result < 0)std::cout
 		<<"final sf is "<<result
                 <<" b_w "    << b
                 <<" mostSF " << mostSF
                 <<" lhePDF " << lhepdf[0]
-                <<" genW   " << genw     <<std::endl;
+                <<" genW   " << genw     <<std::endl;*/
 
 		return result;//result;
 	};
@@ -1423,7 +1427,7 @@ void calchisto(const channel ch,const dataSource ds){
 	// Open MC data source EVEN IF UNUSED
 	std::string temp_header,
 		    temp_header0="/data/disk0/nanoAOD_2017/",
-		    temp_header1="/nfs/data/eepgssg/",
+		    temp_header1="/nfs/data/eepgssg/",// old disk1
 		    temp_header3="/data/disk3/nanoAOD_2017/",
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
@@ -1432,6 +1436,7 @@ void calchisto(const channel ch,const dataSource ds){
 	case   wz:{temp_opener=temp_header0+ "WZTo1L1Nu2Q"                  +temp_footer;break;}
 	case   zz:{temp_opener=temp_header0+ "ZZTo2L2Q"                     +temp_footer;break;}
 	case  wjt:{temp_opener=temp_header3+ "WPlusJets_NanoAODv5"          +temp_footer;break;}
+	case  wjx:{temp_opener=temp_header1+ "WJetsToLNu_ext_NanoAODv5"     +temp_footer;break;}// ext of WPlusJets
 	case  ttb:{temp_opener=temp_header0+ "TTToSemileptonic"             +temp_footer;break;}
 	case  ttl:{temp_opener=temp_header1+ "TT_2l2nu_nanoAODv5"           +temp_footer;break;}
 	case  ttj:{temp_opener=temp_header0+ "TTToHadronic"                 +temp_footer;break;}
@@ -1442,8 +1447,8 @@ void calchisto(const channel ch,const dataSource ds){
 	case wzll:{temp_opener=temp_header0+ "WZTo2L2Q"                     +temp_footer;break;}
 	case wjqq:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
 	case zjt1:{temp_opener=temp_header3+ "ZPlusJets_M10To50_NanoAODv5"  +temp_footer;break;}
-        case zjt2:{temp_opener=temp_header3+ "ZPlusJets_M50_NanoAODv5"      +temp_footer;break;}
-        case zjt3:{temp_opener=temp_header3+ "ZPlusJets_M50_ext_NanoAODv5"  +temp_footer;break;}
+        case zjt2:{temp_opener=temp_header1+ "ZPlusJets_M50_NanoAODv5"      +temp_footer;break;}
+        case zjt3:{temp_opener=temp_header1+ "ZPlusJets_M50_ext_NanoAODv5"  +temp_footer;break;}
         case zjqq:{temp_opener=temp_header3+ "DYToQQ" 			    +temp_footer;break;}
 	case  tz1:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
 	case  tz2:{temp_opener=temp_header0+ "ttZToQQ_ext"                  +temp_footer;break;}
@@ -1497,6 +1502,7 @@ void calchisto(const channel ch,const dataSource ds){
 			case  ttl:
 			case  ttj:
 			case  wjt:
+			case  wjx:
 			case  tz1:
 			case  tz2:{           return mc__df;break;}
 			case  met:{           return bothdf;break;}
@@ -1578,11 +1584,12 @@ void calchisto(const channel ch,const dataSource ds){
 		case stbw:{temp_header+="stbw";temp_footer+="STBW";break;}
 		case wjqq:{temp_header+="wjqq";temp_footer+="wjqq";break;}
 		case wzll:{temp_header+="wzll";temp_footer+="WZLL";break;}
-		case zjt1:{temp_header+="ZJT1";temp_footer+="ZJT1";break;}
-		case zjt2:{temp_header+="ZJT2";temp_footer+="ZJT2";break;}
-		case zjt3:{temp_header+="ZJT3";temp_footer+="ZJT3";break;}
-		case zjqq:{temp_header+="ZJQQ";temp_footer+="ZJQQ";break;}
+		case zjt1:{temp_header+="zjt1";temp_footer+="ZJT1";break;}
+		case zjt2:{temp_header+="zjt2";temp_footer+="ZJT2";break;}
+		case zjt3:{temp_header+="zjt3";temp_footer+="ZJT3";break;}
+		case zjqq:{temp_header+="zjqq";temp_footer+="ZJQQ";break;}
 		case  wjt:{temp_header+= "wjt";temp_footer+="Wjt" ;break;}
+                case  wjx:{temp_header+= "wjx";temp_footer+="Wjx" ;break;}
 		case  ttb:{temp_header+= "ttb";temp_footer+="ttb" ;break;}
                 case  ttl:{temp_header+= "ttl";temp_footer+="ttl" ;break;}
                 case  ttj:{temp_header+= "ttj";temp_footer+="ttj" ;break;}

@@ -1,7 +1,7 @@
 // This script is designed to compute the NPL estimation of the data. The main NPL calculation is in calchisto.cpp
 
 // Compiler:
-//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/npl src/NPL.cxx `root-config --libs` -lm
+//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/npl_test src/NPL.cxx `root-config --libs` -lm
 
 // TODO: SPLIT the data entries for all the MCs
 // TODO: APPLY all SFs for luminosity and etc accordingly.
@@ -40,7 +40,7 @@ inline auto Npl
 #include "eval_complex.hpp"
 #include "roccor.Run2.v3/RoccoR.cc"
 
-enum dataSource  {tzq,ww,wz,zz,ttb,ttj,ttl,tz1,tz2,st,stb,wjt,stw,stbw,wjqq,wzll,cms};
+enum dataSource  {tzq,ww,wz,zz,ttb,ttj,ttl,tz1,tz2,st,stb,wjt,wjx,stw,stbw,wjqq,wzll,zjt1,zjt2,zjt3,zjqq,cms};
 enum channel     {elnu,munu};
 
 /*
@@ -101,22 +101,27 @@ namespace{
   constexpr unsigned    BJETS_MIN = 1     ;
   constexpr unsigned    BJETS_MAX = 3     ;
 
-  constexpr double          TZQ_W =   .00128;
-  constexpr double       WWLNQQ_W =   .21740;
-  constexpr double       WZLNQQ_W =   .02335;
-  constexpr double        TTBLV_W =   .13791;
-  constexpr double        TZQQ1_W =   .02826;// ttz
-  constexpr double        TZQQ2_W =   .00237;// ttz
-  constexpr double       ZZLLQQ_W =   .00485;
-  constexpr double	    WJT_W = 73.26469;
-  constexpr double           ST_W =   .03837;
-  constexpr double          STB_W =   .04433;
-  constexpr double        TTBLL_W =   .05303;
-  constexpr double        TTBJJ_W =   .12066;
-  constexpr double          STW_W =   .18247;
-  constexpr double         STBW_W =   .18750;
-  constexpr double         WJQQ_W =   .17827;
-  constexpr double         WZLL_W =   .00844;
+  constexpr double          TZQ_W =     .00128;
+  constexpr double       WWLNQQ_W =     .21740;
+  constexpr double       WZLNQQ_W =     .02335;
+  constexpr double        TTBLV_W =     .13791;
+  constexpr double        TZQQ1_W =     .02826;// ttz
+  constexpr double        TZQQ2_W =     .00237;// ttz
+  constexpr double       ZZLLQQ_W =     .00485;
+  constexpr double	    WJT_W =   73.26469;
+  constexpr double          WJX_W =   49.26469;
+  constexpr double           ST_W =     .03837;
+  constexpr double          STB_W =     .04433;
+  constexpr double        TTBLL_W =     .05303;
+  constexpr double        TTBJJ_W =     .12066;
+  constexpr double          STW_W =     .18247;
+  constexpr double         STBW_W =     .18750;
+  constexpr double         WJQQ_W =     .17827;
+  constexpr double         WZLL_W =     .00844;
+  constexpr double         ZJT1_W = 2076.88350;
+  constexpr double         ZJT2_W =    4.55855;
+  constexpr double         ZJT3_W =    4.51678;
+  constexpr double         ZJQQ_W =    2.89992;
 
   constexpr double      TZQ_GEN_W =  0.25890;
   constexpr double       WW_GEN_W =  0.99621;
@@ -126,6 +131,7 @@ namespace{
   constexpr double     TTZ2_GEN_W =  0.47492;
   constexpr double       ZZ_GEN_W =  0.99880;
   constexpr double      WJT_GEN_W =  0.99103;
+  constexpr double      WJX_GEN_W =  0.99911;
   constexpr double       ST_GEN_W =  1.00000;
   constexpr double      STB_GEN_W =  1.00000;
   constexpr double      TTL_GEN_W =  0.99190;
@@ -134,6 +140,10 @@ namespace{
   constexpr double     STBW_GEN_W =  0.99235;
   constexpr double     WZLL_GEN_W =  0.60420;
   constexpr double     WJQQ_GEN_W =  0.99345;
+  constexpr double     ZJT1_GEN_W =  0.99915;
+  constexpr double     ZJT2_GEN_W =  0.99912;
+  constexpr double     ZJT3_GEN_W =  0.99912;
+  constexpr double     ZJQQ_GEN_W =  0.99881;
 
   constexpr float    TRIG_SF_ELNU = 1.070511816990938379014537410816376133957408282644307576982;
   constexpr float    TRIG_SF_MUNU = 1.089437304676686344318303492342796025659913489719426417037;
@@ -467,9 +477,14 @@ auto genWSF(const dataSource  ds){
 		case stbw:{frac =STBW_GEN_W;break;}
 		case wjqq:{frac =WJQQ_GEN_W;break;}
 		case wzll:{frac =WZLL_GEN_W;break;}
+		case zjt1:{frac =ZJT1_GEN_W;break;}
+                case zjt2:{frac =ZJT2_GEN_W;break;}
+                case zjt3:{frac =ZJT3_GEN_W;break;}
+                case zjqq:{frac =ZJQQ_GEN_W;break;}
 		case  ttl:{frac = TTL_GEN_W;break;}
 		case  ttj:{frac = TTJ_GEN_W;break;}
                 case  wjt:{frac = WJT_GEN_W;break;}
+		case  wjx:{frac = WJX_GEN_W;break;}
                 case  ttb:{frac = TTB_GEN_W;break;}
                 case  tz1:{frac =TTZ1_GEN_W;break;}
                 case  tz2:{frac =TTZ2_GEN_W;break;}
@@ -494,12 +509,17 @@ inline auto sf(const  dataSource ds,
 			case   wz:{result = WZLNQQ_W;break;}
 			case   zz:{result = ZZLLQQ_W;break;}
 			case  wjt:{result =    WJT_W;break;}
+			case  wjx:{result =    WJX_W;break;}
 			case   st:{result =     ST_W;break;}
 			case  stb:{result =    STB_W;break;}
 			case  stw:{result =    STW_W;break;}
 			case stbw:{result =   STBW_W;break;}
 			case wjqq:{result =   WJQQ_W;break;}
 			case wzll:{result =   WZLL_W;break;}
+			case zjt1:{result =   ZJT1_W;break;}
+                        case zjt2:{result =   ZJT2_W;break;}
+                        case zjt3:{result =   ZJT3_W;break;}
+                        case zjqq:{result =   ZJQQ_W;break;}
 			case  ttb:{result =  TTBLV_W;break;}
 			case  ttl:{result =  TTBLL_W;break;}
 			case  ttj:{result =  TTBJJ_W;break;}
@@ -754,6 +774,7 @@ void NPL(const channel ch,const dataSource ds){
 	case   wz:{temp_opener=temp_header0+ "WZTo1L1Nu2Q"                  +temp_footer;break;}
 	case   zz:{temp_opener=temp_header0+ "ZZTo2L2Q"                     +temp_footer;break;}
 	case  wjt:{temp_opener=temp_header3+ "WPlusJets_NanoAODv5"          +temp_footer;break;}
+	case  wjx:{temp_opener=temp_header1+ "WJetsToLNu_ext_NanoAODv5"     +temp_footer;break;}
 	case  ttb:{temp_opener=temp_header0+ "TTToSemileptonic"             +temp_footer;break;}
 	case  ttl:{temp_opener=temp_header1+ "TT_2l2nu_nanoAODv5"           +temp_footer;break;}
 	case  ttj:{temp_opener=temp_header0+ "TTToHadronic"                 +temp_footer;break;}
@@ -763,6 +784,10 @@ void NPL(const channel ch,const dataSource ds){
 	case stbw:{temp_opener=temp_header0+ "ST_tbarW"                     +temp_footer;break;}
 	case wzll:{temp_opener=temp_header0+ "WZTo2L2Q"                     +temp_footer;break;}
 	case wjqq:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
+	case zjt1:{temp_opener=temp_header3+ "ZPlusJets_M10To50_NanoAODv5"  +temp_footer;break;}
+        case zjt2:{temp_opener=temp_header1+ "ZPlusJets_M50_NanoAODv5"      +temp_footer;break;}
+        case zjt3:{temp_opener=temp_header1+ "ZPlusJets_M50_ext_NanoAODv5"  +temp_footer;break;}
+        case zjqq:{temp_opener=temp_header3+ "DYToQQ" 			    +temp_footer;break;}
 	case  tz1:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
 	case  tz2:{temp_opener=temp_header0+ "ttZToQQ_ext"                  +temp_footer;break;}
 	case  cms:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
@@ -813,6 +838,7 @@ void NPL(const channel ch,const dataSource ds){
 			case   wz:
 			case   zz:
 			case  wjt:
+			case  wjx:
 			case  ttb:
 			case  ttl:
 			case  ttj:
@@ -822,6 +848,10 @@ void NPL(const channel ch,const dataSource ds){
 			case stbw:
 			case wzll:
 			case wjqq:
+			case zjt1:
+			case zjt2:
+			case zjt3:
+			case zjqq:
 			case  tz1:
 			case  tz2:{           return mc__df;break;}
 			case  cms:{switch(ch){// MC is already false
@@ -1013,7 +1043,12 @@ void NPL(const channel ch,const dataSource ds){
 		case stbw:{temp_header+="stbw";temp_footer+="STBW";break;}
 		case wjqq:{temp_header+="wjqq";temp_footer+="wjqq";break;}
 		case wzll:{temp_header+="wzll";temp_footer+="WZLL";break;}
+		case zjt1:{temp_header+="ZJT1";temp_footer+="ZJT1";break;}
+		case zjt2:{temp_header+="ZJT2";temp_footer+="ZJT2";break;}
+		case zjt3:{temp_header+="ZJT3";temp_footer+="ZJT3";break;}
+		case zjqq:{temp_header+="ZJQQ";temp_footer+="ZJQQ";break;}
 		case  wjt:{temp_header+= "wjt";temp_footer+="Wjt" ;break;}
+                case  wjx:{temp_header+= "wjx";temp_footer+="Wjx" ;break;}
 		case  ttb:{temp_header+= "ttb";temp_footer+="ttb" ;break;}
                 case  ttl:{temp_header+= "ttl";temp_footer+="ttl" ;break;}
                 case  ttj:{temp_header+= "ttj";temp_footer+="ttj" ;break;}
@@ -1034,13 +1069,13 @@ void NPL(const channel ch,const dataSource ds){
 	("tight_Lepton_" + temp_header).c_str(),
 	("tight Lepton " + temp_footer).c_str(),
 	ptBinsSize,ptBins.data(),20,-2.5,2.5},
-	"lep__pt","lep_eta","sf")
+	"lep__pt","lep_eta")
 	;
 	auto h_loose = loose_lep.Histo2D({ // histo for eff tight to loose , loose
 	("loose_Lepton_" + temp_header).c_str(),
 	("loose Lepton " + temp_footer).c_str(),
 	ptBinsSize,ptBins.data(),20,-2.5,2.5},
-	"lep__pt","lep_eta","sf")
+	"lep__pt","lep_eta")
 	;
 	auto
 	h_eff_TL_ratio = static_cast<TH2D*>(h_tight->Clone());
@@ -1059,7 +1094,7 @@ void NPL(const channel ch,const dataSource ds){
 	("prompt_LnT_"    + temp_header).c_str(),
 	("prompt LnT MC " + temp_footer).c_str(),
 	ptBinsSize,ptBins.data(),20,-2.5,2.5},
-	"lep__pt","lep_eta","sf")
+	"lep__pt","lep_eta")
 	;
 
 	TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
@@ -1113,6 +1148,7 @@ int main ( int argc , char *argv[] ){
         else if ( "tz1"  ==  dsN ){ d = tz1   ;}
         else if ( "tz2"  ==  dsN ){ d = tz2   ;}
         else if ( "wjt"  ==  dsN ){ d = wjt   ;}
+        else if ( "wjx"  ==  dsN ){ d = wjx   ;}
         else if ( "ww"   ==  dsN ){ d = ww    ;}
         else if ( "wz"   ==  dsN ){ d = wz    ;}
         else if ( "zz"   ==  dsN ){ d = zz    ;}
@@ -1122,6 +1158,10 @@ int main ( int argc , char *argv[] ){
         else if ( "stbw" ==  dsN ){ d = stbw  ;}
         else if ( "wzll" ==  dsN ){ d = wzll  ;}
         else if ( "wjqq" ==  dsN ){ d = wjqq  ;}
+	else if ( "zjt1" ==  dsN ){ d = zjt1  ;}
+        else if ( "zjt2" ==  dsN ){ d = zjt2  ;}
+        else if ( "zjt3" ==  dsN ){ d = zjt3  ;}
+        else if ( "zjqq" ==  dsN ){ d = zjqq  ;}
 	else if ( "cms"  ==  dsN ){d  = cms   ;}
 	else { std::cout << "Error: data source " << dsN
 		<< " not recognised" << std::endl ;

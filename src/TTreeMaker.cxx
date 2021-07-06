@@ -1,10 +1,4 @@
-// This code has originally been calchisto.cpp and the loose not tight selection cut has been applied for the NPL_run.
-// This code is designed to run stand alone and not part of the eta, furtheremore only MC datasets will be considered for running
-
-// Compiler:
-//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/npl_run src/NPL_run.cxx build/eval_complex.o `root-config --libs` -lm
-
-
+//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/ttree src/TTreeMaker.cxx build/eval_complex.o `root-config --libs` -lm
 // TODO:: extend cmet to include MET and CMS (passing the same value), it is needed for them to be on the same  stack
 // TODO:: Shape uncertainties -> implement lhepdfWeight for up and down based on the formula
 // TODO:: change filter to include deltaphi cuts
@@ -86,13 +80,13 @@ namespace{
   constexpr double    ak4RconeBy2 =  .2;
 //constexpr double    ak8RconeBy2 =  .4;
 
-  constexpr double          TZQ_W =   .00128;
-  constexpr double       WWLNQQ_W =   .21740;
-  constexpr double       WZLNQQ_W =   .02335;
-  constexpr double        TTBLV_W =   .13791;
-  constexpr double        TZQQ1_W =   .02826;// ttz
-  constexpr double        TZQQ2_W =   .00237;// ttz
-  constexpr double       ZZLLQQ_W =   .00485;
+  constexpr double          TZQ_W =     .00128;
+  constexpr double       WWLNQQ_W =     .21740;
+  constexpr double       WZLNQQ_W =     .02335;
+  constexpr double        TTBLV_W =     .13791;
+  constexpr double        TZQQ1_W =     .02826;// ttz
+  constexpr double        TZQQ2_W =     .00237;// ttz
+  constexpr double       ZZLLQQ_W =     .00485;
   constexpr double	    WJT_W =   73.26469;
   constexpr double          WJX_W =   49.26469;
   constexpr double           ST_W =     .03837;
@@ -107,6 +101,7 @@ namespace{
   constexpr double         ZJT2_W =    4.55855;
   constexpr double         ZJT3_W =    4.51678;
   constexpr double         ZJQQ_W =    2.89992;
+
 
   constexpr double      TZQ_GEN_W =  0.25890;
   constexpr double       WW_GEN_W =  0.99621;
@@ -129,7 +124,6 @@ namespace{
   constexpr double     ZJT2_GEN_W =  0.99912;
   constexpr double     ZJT3_GEN_W =  0.99912;
   constexpr double     ZJQQ_GEN_W =  0.99881;
-
 
 
 // Method Explained in TriggerSF.cxx
@@ -188,64 +182,6 @@ inline auto lep_sel(const channel ch){
 			default  :throw std::invalid_argument(
 				"Unimplemented ch (lep_sel)");
 		}
-	};
-}
-inline auto not_tight(const channel ch){
-	if(0<debug) std::cout<<"not tight"<<std::endl;
-	return [=](
-		 const  bools& isPFs
-		,const floats& pts
-		,const floats& etas
-		,const   ints& elids
-		,const  bools& muids
-		,const floats& isos
-		,const floats& dxy
-		,const floats& dz
-	){
-		const auto abs_etas = abs(etas);
-		switch(ch){
-			case elnu:return ( true
-				&&     isPFs
-				&&	 pts  >  EL__PT_MIN
-				&& ((abs_etas <  EL_ETA_MAX
-				&&        dz  <  ENDCAP_DZ__TIGHT
-				&&        dxy <  ENDCAP_DXY_TIGHT
-				&&   abs_etas >  ENDCAP_ETA_MIN)
-				||  (abs_etas <  BARREL_ETA_MAX
-				&&        dxy <  BARREL_DXY_TIGHT
-				&&        dz  <  BARREL_DZ__TIGHT))
-				&&	elids <  EL_TIGHT_ID // Make it not tightable
-			);
-			case munu:return ( true
-				&&   muids
-				&&   isPFs
-				&&     pts  >  MU__PT_MIN
-				&& abs_etas <  MU_ETA_MAX
-				&&     isos >  MU_TIGHT_ISO // Make it not tightable
-			);
-			default  :throw std::invalid_argument(
-				"Unimplemented ch (lep_sel)");
-		}
-	};
-}
-inline auto not_tight_cut(const channel ch){
-	if(0<debug) std::cout<<"not tight cut"<<std::endl;
-	return [=](const   ints& mask
-		  ,const   ints& elids
-		  ,const floats& isos
-	){
-// TODO: In the case we want 1 loose lepton, comment the 4 NOTE lines below
-		bool result;
-		 if(false) ;
-		 else if(ch==elnu){
-			ints   temp = elids[mask];
-			result = temp.size() == 1;// Choosing 1 Tight Lepton
-		}else if(ch==munu){
-			floats temp = isos[mask];
-			result = temp.size() == 1;
-		}else{throw std::invalid_argument(
-			"Unimplemented ch (not_tight_cut)");}
-		return result;
 	};
 }
 inline auto lep_tight_cut(const channel ch){
@@ -1142,8 +1078,8 @@ auto npl(
 ){// result taken from the NPL.cxx
 	return [=](const double  pt
 	          ,const double eta){
-	int   TLPt_Bin, TLEtaBin, cmsPt_Bin, cmsEtaBin, QCDPt_Bin, QCDEtaBin;
-	float npl_QCD, npl_cms;
+	int TLPt_Bin, TLEtaBin, cmsPt_Bin, cmsEtaBin, QCDPt_Bin, QCDEtaBin,
+	    npl_QCD, npl_cms;
 	float TLeff = 1., npl;
 	if(debug > 0)std::cout<<"NPL function"<<std::endl;
 	switch(ch){
@@ -1172,14 +1108,18 @@ auto npl(
 	default :throw std::invalid_argument(
 		"Unimplemented ch (npl)");
 	}// case
+	if(TLeff < 0 || npl_cms < 0 || npl_QCD < 0){
+	}
 	// To APPLY NPL formula : (eff/(1-eff))*(LnT_data - LnT_prompt)
 	if(0. < TLeff && TLeff < 1.){
-	// Data-driven method means that the the MC
-	// should take into account the data result
-	npl = TLeff/(1 - TLeff) * (npl_cms - npl_QCD);
-	if(debug > 0)std::cout<<"TLeff, npl_cms, npl_QCD are "<< TLeff<<" "<<npl_cms<<" "<<npl_QCD<<" "<<std::endl;
+	if(!MC){
+		npl =  npl_cms * TLeff/(1 - TLeff);
+	} else{
+		npl = -npl_QCD * TLeff/(1 - TLeff);
+	}}else{
+		npl = 1.;
 	}
-	if(debug > 0)std::cout << "NPL result " << npl << std::endl;
+	if(debug > 0) std::cout << "NPL result " << npl << std::endl;
 	return  npl;};
 }
 auto genWSF(const dataSource  ds){
@@ -1229,7 +1169,6 @@ inline auto sf(
 	return [=](
 		 const double  b
 		,const double  mostSF
-		,const  float  npl
 		,const floats  lhepdf // LHEPdfWeight 0 index (central value)
 		,const    int  npv
 		,const double  genw
@@ -1265,11 +1204,12 @@ inline auto sf(
 //			default :throw std::invalid_argument(
 //				"Unimplemented ds (sf)");
 		}
-                if(MC){
-                switch(ch){
-                        case elnu:{result *= TRIG_SF_ELNU * lhepdf[0] * pile(PuWd,PuUd,PuDd)(npv)[puW];break;}
-                        case munu:{result *= TRIG_SF_MUNU * lhepdf[0] * pile(PuWd,PuUd,PuDd)(npv)[puW];break;}
-                }}
+		if(MC){
+		switch(ch){
+			case elnu:{result *= TRIG_SF_ELNU * lhepdf[0] * pile(PuWd,PuUd,PuDd)(npv)[puW];break;}
+			case munu:{result *= TRIG_SF_MUNU * lhepdf[0] * pile(PuWd,PuUd,PuDd)(npv)[puW];break;}
+		}}
+		//if( MC) result *= /*npl * */ pile(PuWd,PuUd,PuDd)(npv)[puW];
                 if(FP_NORMAL == std::fpclassify(b)) b_w = b;// if btag_w != nan
 		//std::cout<<"pile up is "<<pile(PuWd,PuUd,PuDd)(npv)[puW]
 		//	 <<" lhepdf is "<<lhepdf[0]<<std::endl;
@@ -1281,20 +1221,16 @@ inline auto sf(
 		<<" few_SF " << result// <<std::endl;
 		<<" mostSF " << mostSF
 		<<" lhePDF " << lhepdf[0]
-		<<" genW   " << genw
-		<<" npl    " << npl
-		<<std::endl;
+		<<" genW   " << genw     <<std::endl;
 
-		result *=  b_w * mostSF *genw *npl;
+		result *=  b_w * mostSF *genw;
 // only for debugging purpose of munu wjt ->
-		if(result < 0 && debug > 5)std::cout
+		/*if(result < 0)std::cout
 		<<"final sf is "<<result
                 <<" b_w "    << b
                 <<" mostSF " << mostSF
                 <<" lhePDF " << lhepdf[0]
-                <<" genW   " << genw
-		<<" npl    " << npl
-		<<std::endl;
+                <<" genW   " << genw     <<std::endl;*/
 
 		return result;//result;
 	};
@@ -1316,7 +1252,7 @@ auto finalScaling(
 ){
 	return rdf
 	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd)
-	      ,{"btag_w","mostSF","npl_est","LHEPdfWeight","PV_npvs","genW"})
+	      ,{"btag_w","mostSF","LHEPdfWeight","PV_npvs","genW"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
@@ -1344,6 +1280,7 @@ auto finalScaling(
 	. Alias("nw_lep_nu_invmass","sf")
 	. Alias("nw_ttop__pt"      ,"sf")
 	. Alias("nw_ttop_mas"      ,"sf")
+	. Alias("EvtWeight"	   ,"sf") // required for BDT
 	;
 }
 auto runLBfilter(
@@ -1362,7 +1299,7 @@ auto runLBfilter(
 	};
 }
 }// namespace
-void NPL_run(const channel ch,const dataSource ds){
+void TTreeMaker(const channel ch,const dataSource ds){
 	//ROOT::EnableImplicitMT(4);// SYNC WITH CONDOR JOBS!
 	// Open LB file even if Monte Carlo will NOT use it
 	nlohmann::json JSONdict;
@@ -1452,38 +1389,36 @@ void NPL_run(const channel ch,const dataSource ds){
 	tF	= nullptr; tHf = nullptr; tHd = nullptr; t1d = nullptr;
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
 	// NPL results
-	// NEED To Split them accordinly:
-        tF = TFile::Open("aux/NPL/NPL_elnu.root");
-	tF ->GetObject("prompt_LnT",tHd);
+	tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
+	tF ->GetObject("prompt_LnT_elnu_QCD",tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
 	const TH2D* const pr_LnT_elnu_QCD = static_cast<TH2D*>(tHd);
 	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_munu.root");
-	tF ->GetObject("prompt_LnT",tHd);
+	tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
+	tF ->GetObject("TL_eff_elnu_QCD",tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const pr_LnT_munu_QCD = static_cast<TH2D*>(tHd);
+	const TH2D* const TL_eff_elnu_QCD = static_cast<TH2D*>(tHd);
 	tF ->Close();
-	tF = TFile::Open("aux/NPL/NPL_elnu.root");
-        tF ->GetObject("TL_eff_QCD",tHd);
-        tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const TL_eff_elnu_QCD = static_cast<TH2D*>(tHd);
-	tF->Close();
-        tF = TFile::Open("aux/NPL/NPL_munu.root");
-        tF ->GetObject("TL_eff_QCD",tHd);
-        tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const TL_eff_munu_QCD = static_cast<TH2D*>(tHd);
-        tF->Close();
-        tF = TFile::Open("aux/NPL/NPL_elnu.root");
-        tF ->GetObject("dt_LnT_cms",tHd);
-        tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const dt_LnT_elnu_cms = static_cast<TH2D*>(tHd);
-        tF->Close();
-        tF = TFile::Open("aux/NPL/NPL_munu.root");
-        tF ->GetObject("dt_LnT_cms",tHd);
-        tHd->SetDirectory(nullptr);// make it stay even if file closed
-        const TH2D* const dt_LnT_munu_cms = static_cast<TH2D*>(tHd);
-        tF->Close();
-	// NPL file reading is done
+	tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
+	tF ->GetObject("prompt_LnT_munu_QCD",tHd);
+	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	const TH2D* const pr_LnT_munu_QCD = static_cast<TH2D*>(tHd);
+	tF ->Close();
+	tF = TFile::Open("aux/NPL/NPL_munu_QCD.root");
+	tF ->GetObject("TL_eff_munu_QCD",tHd);
+	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	const TH2D* const TL_eff_munu_QCD = static_cast<TH2D*>(tHd);
+	tF ->Close();
+	tF = TFile::Open("aux/NPL/NPL_elnu_cms.root");
+	tF ->GetObject("N_data_LnT_elnu_cms",tHd);
+	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	const TH2D* const dt_LnT_elnu_cms = static_cast<TH2D*>(tHd);
+	tF ->Close();
+	tF = TFile::Open("aux/NPL/NPL_munu_cms.root");
+	tF ->GetObject("N_data_LnT_munu_cms",tHd);
+	tHd->SetDirectory(nullptr);// make it stay even if file closed
+	const TH2D* const dt_LnT_munu_cms = static_cast<TH2D*>(tHd);
+	tF ->Close();
 //	std::cout<<"Auxiliary files processed"       <<std::endl;
 
 	// Open data files even if unused
@@ -1491,17 +1426,18 @@ void NPL_run(const channel ch,const dataSource ds){
 	// No penalty for opening and leaving unused
 	// Can even open multiple times at once in parallel
 	// Open MC data source EVEN IF UNUSED
-        std::string temp_header0 = "/data/disk0/nanoAOD_2017/",
-                    temp_header1 = "/nfs/data/eepgssg/",//"/data/disk1/nanoAOD_2017_new/",
-                    temp_header3 = "/data/disk3/nanoAOD_2017/",
-		    temp_header, temp_opener, temp_footer="/*.root";/**/
-	switch(ds){// CMS must do some OPENABLE file ; reject later
+	std::string temp_header,
+		    temp_header0="/data/disk0/nanoAOD_2017/",
+		    temp_header1="/nfs/data/eepgssg/",// old disk1
+		    temp_header3="/data/disk3/nanoAOD_2017/",
+	temp_opener,temp_footer="/*.root";/**/
+	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
 	case  tzq:{temp_opener=temp_header3+ "tZqlvqq"                      +temp_footer;break;}
 	case   ww:{temp_opener=temp_header0+ "WWToLNuQQ"                    +temp_footer;break;}
 	case   wz:{temp_opener=temp_header0+ "WZTo1L1Nu2Q"                  +temp_footer;break;}
 	case   zz:{temp_opener=temp_header0+ "ZZTo2L2Q"                     +temp_footer;break;}
 	case  wjt:{temp_opener=temp_header3+ "WPlusJets_NanoAODv5"          +temp_footer;break;}
-        case  wjx:{temp_opener=temp_header1+ "WJetsToLNu_ext_NanoAODv5"     +temp_footer;break;}
+	case  wjx:{temp_opener=temp_header1+ "WJetsToLNu_ext_NanoAODv5"     +temp_footer;break;}// ext of WPlusJets
 	case  ttb:{temp_opener=temp_header0+ "TTToSemileptonic"             +temp_footer;break;}
 	case  ttl:{temp_opener=temp_header1+ "TT_2l2nu_nanoAODv5"           +temp_footer;break;}
 	case  ttj:{temp_opener=temp_header0+ "TTToHadronic"                 +temp_footer;break;}
@@ -1517,6 +1453,7 @@ void NPL_run(const channel ch,const dataSource ds){
         case zjqq:{temp_opener=temp_header3+ "DYToQQ" 			    +temp_footer;break;}
 	case  tz1:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
 	case  tz2:{temp_opener=temp_header0+ "ttZToQQ_ext"                  +temp_footer;break;}
+	case  met:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
 	case  cms:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
 	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
 	}
@@ -1559,9 +1496,9 @@ void NPL_run(const channel ch,const dataSource ds){
 			case wjqq:
 			case wzll:
 			case zjt1:
-		        case zjt2:
-		        case zjt3:
-		        case zjqq:
+			case zjt2:
+			case zjt3:
+			case zjqq:
 			case  ttb:
 			case  ttl:
 			case  ttj:
@@ -1594,7 +1531,7 @@ void NPL_run(const channel ch,const dataSource ds){
 		 ,"HLT_IsoMu27"
 		},"Triggers Filter")
 	// lepton selection first
-	.Define("loose_leps",not_tight(ch),{
+	.Define("loose_leps",lep_sel(ch),{
 	        temp_header+"isPFcand"
 	       ,temp_header+"pt"
 	       ,temp_header+"eta"
@@ -1604,7 +1541,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	       ,temp_header+"dxy"
 	       ,temp_header+"dz"
 	       })
-	.Filter(not_tight_cut(ch),{"loose_leps",
+	.Filter(lep_tight_cut(ch),{"loose_leps",
 	        "Electron_cutBased",// edit function for  tight -> loose
 	        "Muon_pfRelIso04_all"},"lepton cut")// left with 1 tight lepton
 	// B for Bare, Before muon RoccoR; only pt mass scales, eta phi untouched
@@ -1648,10 +1585,10 @@ void NPL_run(const channel ch,const dataSource ds){
 		case stbw:{temp_header+="stbw";temp_footer+="STBW";break;}
 		case wjqq:{temp_header+="wjqq";temp_footer+="wjqq";break;}
 		case wzll:{temp_header+="wzll";temp_footer+="WZLL";break;}
-		case zjt1:{temp_header+="ZJT1";temp_footer+="ZJT1";break;}
-		case zjt2:{temp_header+="ZJT2";temp_footer+="ZJT2";break;}
-		case zjt3:{temp_header+="ZJT3";temp_footer+="ZJT3";break;}
-		case zjqq:{temp_header+="ZJQQ";temp_footer+="ZJQQ";break;}
+		case zjt1:{temp_header+="zjt1";temp_footer+="ZJT1";break;}
+		case zjt2:{temp_header+="zjt2";temp_footer+="ZJT2";break;}
+		case zjt3:{temp_header+="zjt3";temp_footer+="ZJT3";break;}
+		case zjqq:{temp_header+="zjqq";temp_footer+="ZJQQ";break;}
 		case  wjt:{temp_header+= "wjt";temp_footer+="Wjt" ;break;}
                 case  wjx:{temp_header+= "wjx";temp_footer+="Wjx" ;break;}
 		case  ttb:{temp_header+= "ttb";temp_footer+="ttb" ;break;}
@@ -1664,6 +1601,7 @@ void NPL_run(const channel ch,const dataSource ds){
 //		default :throw std::invalid_argument(
 //			"Unimplemented ds (hist titles)");
 	}
+	temp_opener = "Histoffile_" + temp_header + ".root"; // for the snap shot
 	// Histogram names sorted, now branch into MC vs exptData
 	if(MC){
 	auto jecs_bjets// JEC == Jet Energy Correction, only for MC
@@ -1794,7 +1732,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-	.Define("npl_est", npl(ch, MC // Non prompt lepton estimation
+	/*.Define("npl_est", npl(ch, MC // Non prompt lepton estimation
 			 , TL_eff_elnu_QCD // Tight To Loose ratio
 			 , TL_eff_munu_QCD
 			 , pr_LnT_elnu_QCD // prompt loose not tight
@@ -1802,11 +1740,14 @@ void NPL_run(const channel ch,const dataSource ds){
 			 , dt_LnT_elnu_cms // data loose not tight
 			 , dt_LnT_munu_cms
 			),{"lep__pt","lep_eta"})
+	*/
 	.Define("mostSF" , "lepSF * ttbSF")
 	;
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
 	;
+	auto SnapRDF = finalDF.Snapshot("Events",temp_opener);// SNAPPED!
+
 	auto finalDF_W // W mass cut for histograms
 	   = finalDF
 	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut");
@@ -1824,7 +1765,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	// Copied to below, skip MC-only, ADD MET_sumEt!
 	// Assuming temp_header and footer and all are set per (hist titles)!
 // MC only
-		auto
+/*		auto
 	h_is_btag_numer_PtVsEta =
 	     reco.Histo2D({
 	(        "is_numer_" + temp_header).c_str(),
@@ -1879,7 +1820,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	h_p_ei->GetXaxis()->SetTitle("\\prod_{i} e_{i}");
 	h_p_ei->GetYaxis()->SetTitle("Event");
 	h_p_ei->SetLineStyle(kSolid);
-*/
+
 	auto h_p_ej = finalDF.Histo1D({
 	("p_ej_"+temp_header).c_str(),
 	("p_ej "+temp_header).c_str(),
@@ -2092,7 +2033,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	auto h_npl = finalDF.Histo1D({
 	("npl_" + temp_header).c_str(),
 	("npl " + temp_header).c_str(),
-	500,-30,30},
+	500,-0.1,0.1},
 	"npl_est");
 	h_npl->GetXaxis()->SetTitle("NPL");
 	h_npl->GetYaxis()->SetTitle("Event");
@@ -2168,7 +2109,7 @@ void NPL_run(const channel ch,const dataSource ds){
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/NPL_run_"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
 // MC only
 		hf.WriteTObject(h_sfi                  .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_sfj                  .GetPtr());hf.Flush();sync();
@@ -2249,7 +2190,8 @@ void NPL_run(const channel ch,const dataSource ds){
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
 		hf.WriteTObject(h.GetPtr());hf.Flush();sync();
-	}} else {
+
+	}*/} else {
 	auto expt_bjets
 	   = init_selection
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
@@ -2281,7 +2223,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-	.Define("npl_est",npl(ch , MC // Non prompt lepton estimation
+	/*.Define("npl_est",npl(ch , MC // Non prompt lepton estimation
 	                 , TL_eff_elnu_QCD // Tight To Loose ratio
 	                 , TL_eff_munu_QCD
 	                 , pr_LnT_elnu_QCD // prompt loose not tight
@@ -2289,15 +2231,17 @@ void NPL_run(const channel ch,const dataSource ds){
 	                 , dt_LnT_elnu_cms // data loose not tight
 	                 , dt_LnT_munu_cms
 	                ),{"lep__pt","lep_eta"})
+	*/
 	.Define("genW",genWSF(ds),{"MET_pt"})
 	. Alias("mostSF" , "lepSF")
 	;
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,// unused but send pile
 	     not_btag_eff )
 	;
+	auto SnapRDF = finalDF.Snapshot("Events",temp_opener); // SNAPPED!!
 	// Copied from earlier, delete MC-only!
 	// Assuming temp_header and footer and all are set per (hist titles)!
-	auto h_met_sEt = finalDF.Histo1D({
+/*	auto h_met_sEt = finalDF.Histo1D({
 	("met_sEt_"+temp_header).c_str(),
 	("met_sEt "+temp_header).c_str(),
 	100,0,600},"MET_sumEt");
@@ -2397,7 +2341,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	finalDF.Report() ->Print();
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/NPL_run_"+temp_header+".root").c_str(),"RECREATE");
+	TFile hf(("histo/"+temp_header+".root").c_str(),"RECREATE");
 	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();
@@ -2446,15 +2390,16 @@ void NPL_run(const channel ch,const dataSource ds){
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
 		hf.WriteTObject(h.GetPtr());hf.Flush();sync();
-	}}
-	std::cout<<"NPL_run successfully completed"<<std::endl;
+	}} // for & else
+*/} // else
+	std::cout<<"TTreeMaker successfully completed"<<std::endl;
 }
 int main ( int argc , char *argv[] ){
         if ( argc < 2 ) {
                 std::cout << "Error: no command provided" << std::endl ;
                 return 1 ;
         }
-	if ( argc < 3 ) {
+        if ( argc < 3 ) {
                    std::cout
                 << "Error: NPL_run needs channel and data source"
                 << std::endl
@@ -2464,7 +2409,7 @@ int main ( int argc , char *argv[] ){
                 return 2 ;
         }
 	channel c ; dataSource d ;
-             if ( const auto chN = std::string_view( argv[1] ) ; false ) ;
+        	if ( const auto chN = std::string_view( argv[1] ) ; false ) ;
         else if ( "elnu"  == chN ) c = elnu ;
         else if ( "munu"  == chN ) c = munu ;
         else { std::cout << "Error: channel " << chN
@@ -2498,6 +2443,7 @@ int main ( int argc , char *argv[] ){
                 << " not recognised" << std::endl ;
                 return 4 ;
         }
-                NPL_run(c,d) ;
+                TTreeMaker(c,d) ;
                 return 0 ;
 }
+

@@ -10,9 +10,9 @@ enum      channel      {elnu,munu};
 constexpr channel
           channelAll[]={elnu,munu};
 
-enum      dataSource	  {tzq,vv,ttz,met,wj,st,tw,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+enum      dataSource	  {tzq,vv,ttz,met,wj,st,tw,dy,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 constexpr dataSource
-          dataSourceAll[]={tzq,vv,ttz,met,wj,st,tw,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+          dataSourceAll[]={tzq,vv,ttz,met,wj,st,tw,dy,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 
 enum      PtEtaPhiM	 {pt,eta,phi,m};
 constexpr PtEtaPhiM
@@ -43,6 +43,7 @@ int plotcomp(){
 		case    ttz:{opener +=   "ttz" ;break;}
 		case  ttbar:{opener += "ttbar" ;break;}
                 case     wj:{opener +=   "_Wj" ;break;}
+                case     dy:{opener +=   "_DY" ;break;}
 		case    met:{opener +=   "met" ;break;}
 		case    cms:{opener +=   "cms" ;break;}
                 case     tw:{opener +=   "_tW" ;break;}
@@ -80,8 +81,8 @@ int plotcomp(){
 		case elnu:  {chN ="elnu";chF =  "#e#nu";break;}
 		case munu:  {chN ="munu";chF = "#mu#nu";break;}
 	}
-	std::string                title = chN + " " + particle;
-	if("fin_jets" == particle) title = chN + " jets";
+	std::string                title = chF + " " + particle;
+	if("fin_jets" == particle) title = chF + " jets";
 	std::string  stname =(chN+"_"+particle + kstring).c_str() ;
 	canv.SetName(stname.c_str());canv.SetTitle(stname.c_str());
 	THStack stac(stname.c_str(),(title + tkstr).c_str());
@@ -118,7 +119,8 @@ int plotcomp(){
                 case     st:{opener += "_ST" ;lgN = "Single t"      ;colour =  95;break;}//
 		case    ttz:{opener += "ttz" ;lgN = "t#bar{t}Z"     ;colour =  5 ;break;}// yellow
 		case  ttbar:{opener += "ttb" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
-                case     wj:{opener += "_Wj" ;lgN = "W/#gamma+Jets" ;colour =  55;break;}//
+                case     wj:{opener += "_Wj" ;lgN = "W+Jets"        ;colour =  55;break;}//
+                case     dy:{opener += "_DY" ;lgN = "Z/#gamma+Jets" ;colour =  79;break;}//
 		case    met:{opener += "met" ;lgN = "MET"           ;colour =  9 ;break;}// violet
 		case    cms:{opener += "cms" ;lgN = "data"          ;colour =  1 ;break;}// black
                 case     tw:{opener += "_tW" ;lgN = "tW"            ;colour =  75;break;}//

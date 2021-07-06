@@ -148,14 +148,14 @@ void addhistsWj(const channel ch){
 		if(!dcm) throw std::runtime_error("N_data_LnT not found");
 		dcm->SetDirectory(nullptr);// make it stay even if file closed
 		dc.Close();*/
-	for(dataSource ds:{wjt,wjqq}){// to go through all ds get the files open
+	for(dataSource ds:{wjt,wjx,wjqq}){// to go through all ds get the files open
 		if(wjt == ds)continue;
 		switch (ds){// only needs to be done for tz1 and tz2 for calchisto.cpp
 		case  tzq:{NPLds =  "tzq";break;}
-		case   ww:{NPLds =   "_ww";break;}
-		case   wz:{NPLds =   "_wz";break;}
-		case   zz:{NPLds =   "_zz";break;}
-		case   st:{NPLds =   "_st";break;}
+		case   ww:{NPLds =  "_ww";break;}
+		case   wz:{NPLds =  "_wz";break;}
+		case   zz:{NPLds =  "_zz";break;}
+		case   st:{NPLds =  "_st";break;}
 		case  stb:{NPLds =  "stb";break;}
 		case  stw:{NPLds =  "stw";break;}
 		case stbw:{NPLds = "stbw";break;}
@@ -165,6 +165,7 @@ void addhistsWj(const channel ch){
 		case  ttl:{NPLds =  "ttl";break;}
 		case  ttj:{NPLds =  "ttj";break;}
 		case  wjt:{NPLds =  "wjt";break;}
+		case  wjx:{NPLds =  "wjx";break;}
 		case  tz1:{NPLds =  "tz1";break;}
 		case  tz2:{NPLds =  "tz2";break;}
 		case  met:{NPLds =  "met";break;}
@@ -213,7 +214,7 @@ void addhistsWj(const channel ch){
 		fWinvm->Add(hWinvm);
 
                 tf.GetObject(("tWm_" + NPLc + "_" + NPLds).c_str(),htWinm);
-                ftWinm->SetDirectory(nullptr);
+                ftWinm->Add(htWinm);
 
 		tf.GetObject(("ev_w_" + NPLc + "_" + NPLds).c_str(),hev_sf);
 		fev_sf->Add(hev_sf);

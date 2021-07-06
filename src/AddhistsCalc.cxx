@@ -164,10 +164,15 @@ void AddhistsCalc(const channel ch){
 		case stbw:{NPLds = "stbw";break;}
 		case wjqq:{NPLds = "wjqq";break;}
 		case wzll:{NPLds = "wzll";break;}
+                case zjt1:{NPLds = "ZJT1";break;}
+                case zjt2:{NPLds = "ZJT2";break;}
+                case zjt3:{NPLds = "ZJT3";break;}
+                case zjqq:{NPLds = "ZJQQ";break;}
 		case  ttb:{NPLds =  "ttb";break;}
 		case  ttl:{NPLds =  "ttl";break;}
 		case  ttj:{NPLds =  "ttj";break;}
 		case  wjt:{NPLds =  "wjt";break;}
+                case  wjx:{NPLds =  "wjx";break;}
 		case  tz1:{NPLds =  "tz1";break;}
 		case  tz2:{NPLds =  "tz2";break;}
 		case  met:{NPLds =  "met";break;}
@@ -214,7 +219,7 @@ void AddhistsCalc(const channel ch){
 		fWinvm->Add(hWinvm);
 
                 tF.GetObject(("tWm_" + NPLc + "_" + NPLds).c_str(),htWinm);
-                ftWinm->SetDirectory(nullptr);
+                ftWinm->Add(htWinm);
 
 		tF.GetObject(("ev_w_" + NPLc + "_" + NPLds).c_str(),hev_sf);
 		fev_sf->Add(hev_sf);

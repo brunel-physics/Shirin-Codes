@@ -213,7 +213,7 @@ void addhistsVV(const channel ch){
 		fWinvm->Add(hWinvm);
 
                 tf.GetObject(("tWm_" + NPLc + "_" + NPLds).c_str(),htWinm);
-                ftWinm->SetDirectory(nullptr);
+                ftWinm->Add(ftWinm);
 
 		tf.GetObject(("ev_w_" + NPLc + "_" + NPLds).c_str(),hev_sf);
 		fev_sf->Add(hev_sf);
