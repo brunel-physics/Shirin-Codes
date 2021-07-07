@@ -1566,9 +1566,9 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	;
 	// now we make the histogram names and titles
 	switch(ch){// laugh at muon-neutrino below
-		case elnu:{temp_header = "elnu_";
+		case elnu:{temp_header = "elnu";
 		           temp_footer = "electron-neutrino";break;}
-		case munu:{temp_header = "munu_";
+		case munu:{temp_header = "munu";
 		           temp_footer = "muon"  "-neutrino";break;}
 //		default  :throw std::invalid_argument(
 //			"Unimplemented ch (hist titles)");
@@ -1576,10 +1576,10 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	temp_footer = "pt vs eta in " + temp_footer + " channel for ";
 	switch(ds){
 		case  tzq:{temp_header+= "tzq";temp_footer+="tZq" ;break;}
-		case   ww:{temp_header+= "_ww";temp_footer+=" WW" ;break;}
-		case   wz:{temp_header+= "_wz";temp_footer+=" WZ" ;break;}
-		case   zz:{temp_header+= "_zz";temp_footer+=" ZZ" ;break;}
-		case   st:{temp_header+= "_st";temp_footer+=" ST" ;break;}
+		case   ww:{temp_header+=  "ww";temp_footer+=" WW" ;break;}
+		case   wz:{temp_header+=  "wz";temp_footer+=" WZ" ;break;}
+		case   zz:{temp_header+=  "zz";temp_footer+=" ZZ" ;break;}
+		case   st:{temp_header+=  "st";temp_footer+=" ST" ;break;}
 		case  stb:{temp_header+= "stb";temp_footer+="STB" ;break;}
 		case  stw:{temp_header+= "stw";temp_footer+="STW" ;break;}
 		case stbw:{temp_header+="stbw";temp_footer+="STBW";break;}
@@ -1601,7 +1601,7 @@ void TTreeMaker(const channel ch,const dataSource ds){
 //		default :throw std::invalid_argument(
 //			"Unimplemented ds (hist titles)");
 	}
-	temp_opener = "Histoffile_" + temp_header + ".root"; // for the snap shot
+	temp_opener = "BDTInput/Histoffile_" + temp_header + ".root"; // for the snap shot
 	// Histogram names sorted, now branch into MC vs exptData
 	if(MC){
 	auto jecs_bjets// JEC == Jet Energy Correction, only for MC
@@ -1747,6 +1747,10 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	     has_btag_eff )
 	;
 	auto SnapRDF = finalDF.Snapshot("Events",temp_opener);// SNAPPED!
+
+        auto sumW = finalDF.Sum("sf");
+        std::cout<< "SumW is "<< *sumW <<std::endl;// overal normalisation output
+
 
 	auto finalDF_W // W mass cut for histograms
 	   = finalDF
