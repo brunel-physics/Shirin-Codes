@@ -1282,6 +1282,7 @@ auto finalScaling(
 	. Alias("nw_lep_nu_invmass","sf")
 	. Alias("nw_ttop__pt"      ,"sf")
 	. Alias("nw_ttop_mas"      ,"sf")
+	. Alias(	"EvtWeight","sf")
 	;
 }
 auto runLBfilter(
@@ -1567,9 +1568,9 @@ void uncertainty(const channel ch,const dataSource ds){
 	;
 	// now we make the histogram names and titles
 	switch(ch){// laugh at muon-neutrino below
-		case elnu:{temp_header = "elnu_";
+		case elnu:{temp_header = "elnu";
 		           temp_footer = "electron-neutrino";break;}
-		case munu:{temp_header = "munu_";
+		case munu:{temp_header = "munu";
 		           temp_footer = "muon"  "-neutrino";break;}
 //		default  :throw std::invalid_argument(
 //			"Unimplemented ch (hist titles)");
@@ -1577,10 +1578,10 @@ void uncertainty(const channel ch,const dataSource ds){
 	temp_footer = "pt vs eta in " + temp_footer + " channel for ";
 	switch(ds){
 		case  tzq:{temp_header+= "tzq";temp_footer+="tZq" ;break;}
-		case   ww:{temp_header+= "_ww";temp_footer+=" WW" ;break;}
-		case   wz:{temp_header+= "_wz";temp_footer+=" WZ" ;break;}
-		case   zz:{temp_header+= "_zz";temp_footer+=" ZZ" ;break;}
-		case   st:{temp_header+= "_st";temp_footer+=" ST" ;break;}
+		case   ww:{temp_header+=  "ww";temp_footer+=" WW" ;break;}
+		case   wz:{temp_header+=  "wz";temp_footer+=" WZ" ;break;}
+		case   zz:{temp_header+=  "zz";temp_footer+=" ZZ" ;break;}
+		case   st:{temp_header+=  "st";temp_footer+=" ST" ;break;}
 		case  stb:{temp_header+= "stb";temp_footer+="STB" ;break;}
 		case  stw:{temp_header+= "stw";temp_footer+="STW" ;break;}
 		case stbw:{temp_header+="stbw";temp_footer+="STBW";break;}
@@ -1602,6 +1603,9 @@ void uncertainty(const channel ch,const dataSource ds){
 //		default :throw std::invalid_argument(
 //			"Unimplemented ds (hist titles)");
 	}
+	temp_opener = "BDTInput/Histoffile_"+ temp_header +
+		      "__uncertaintyUp|Down"+".root";// needs to be adjusted
+	//for each uncertainty run!
 	// Histogram names sorted, now branch into MC vs exptData
 	if(MC){
 	auto jecs_bjets// JEC == Jet Energy Correction, only for MC
@@ -1745,8 +1749,12 @@ void uncertainty(const channel ch,const dataSource ds){
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
 	;
-	auto sumW = finalDF.Sum("sf");
-	std::cout<< "SumW is "<< *sumW <<std::endl;
+
+        auto SnapRDF = finalDF.Snapshot("Events",temp_opener);// SNAPPED!
+
+        auto sumW = finalDF.Sum("sf");
+        std::cout<< "SumW is "<< *sumW <<std::endl;// overal normalisation output
+	// it is the same for the uncertainties!
 
 	auto finalDF_W // W mass cut for histograms
 	   = finalDF
@@ -1761,7 +1769,7 @@ void uncertainty(const channel ch,const dataSource ds){
 	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut");
 
 	finalDF_WZ.Report() ->Print(); // taking reports and stats of all filters
-	
+
 	// Copied to below, skip MC-only, ADD MET_sumEt!
 	// Assuming temp_header and footer and all are set per (hist titles)!
 // MC only
@@ -2109,7 +2117,7 @@ void uncertainty(const channel ch,const dataSource ds){
 
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/uncert"+temp_header+".root").c_str(),"RECREATE");
+	//TFile hf(("histo/uncert"+temp_header+".root").c_str(),"RECREATE");
 // MC only
 /*		hf.WriteTObject(h_sfi                  .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_sfj                  .GetPtr());hf.Flush();sync();
@@ -2157,7 +2165,7 @@ void uncertainty(const channel ch,const dataSource ds){
         hf.WriteTObject(h_ttop_pt_wz     .GetPtr());hf.Flush();sync();
 */
 	// the following two for loops stack correctly
-	for(std::string particle:{"fin_jets","lep","bjet"})
+/*	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
 //		if( e == k ) continue;
 		std::string  kstring  = "_";
@@ -2338,8 +2346,8 @@ void uncertainty(const channel ch,const dataSource ds){
 	finalDF.Report() ->Print();
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
-	TFile hf(("histo/uncert_"+temp_header+".root").c_str(),"RECREATE");
-/*	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
+/*	TFile hf(("histo/uncert_"+temp_header+".root").c_str(),"RECREATE");
+	hf.WriteTObject(h_met_sEt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_met__pt        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_T        .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_trans_w        .GetPtr());hf.Flush();sync();
@@ -2352,7 +2360,7 @@ void uncertainty(const channel ch,const dataSource ds){
 	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
-*/
+
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -2387,7 +2395,9 @@ void uncertainty(const channel ch,const dataSource ds){
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
 		hf.WriteTObject(h.GetPtr());hf.Flush();sync();
-	}}
+
+	}*/}
+
 	std::cout<<"uncertainty successfully completed"<<std::endl;
 }
 int main ( int argc , char *argv[] ){
