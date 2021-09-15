@@ -1,4 +1,4 @@
-//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/uncert src/uncertainty.cxx build/eval_complex.o `root-config --libs` -lm
+//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/uncertBtagUp src/uncertainty.cxx build/eval_complex.o `root-config --libs` -lm
 
 // TODO:: extend cmet to include MET and CMS (passing the same value), it is needed for them to be on the same  stack
 // TODO:: Shape uncertainties -> implement lhepdfWeight for up and down based on the formula
@@ -130,9 +130,24 @@ namespace{
 // Method Explained in TriggerSF.cxx
 // FYI:: TRIG_SF_ELNU = (3772592/11448047)/(1646471/5348563)
 // FYI:: TRIG_SF_MUNU = (1564742/28076084)/( 488760/9554142)
-  constexpr float    TRIG_SF_ELNU = 1.070511816990938379014537410816376133957408282644307576982;
+/*  constexpr float    TRIG_SF_ELNU = 1.070511816990938379014537410816376133957408282644307576982;
   constexpr float    TRIG_SF_MUNU = 1.089437304676686344318303492342796025659913489719426417037;
 
+  constexpr float    TRIG_SF_ELNU_UP = 1.071477;
+  constexpr float    TRIG_SF_ELNU_DN = 1.071887;
+
+  constexpr float    TRIG_SF_MUNU_UP = 1.088873;
+  constexpr float    TRIG_SF_MUNU_DN = 1.090023;
+*/
+
+  constexpr float    TRIG_SF_ELNU = 0.934133;
+  constexpr float    TRIG_SF_MUNU = 0.934133;
+
+  constexpr float    TRIG_SF_ELNU_UP = 0.933291;
+  constexpr float    TRIG_SF_ELNU_DN = 0.932934;
+
+  constexpr float    TRIG_SF_MUNU_UP = 0.918381;
+  constexpr float    TRIG_SF_MUNU_DN = 0.917428;
 // This Pi is more accurate than binary256; good for eternity
 template <typename T> constexpr T  PI = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899);
 template <typename T> constexpr T TPI = PI<T> * 2;
@@ -504,7 +519,7 @@ auto btagCSVv2(const bool check_CSVv2){
 		b= 0 == CSVv2 // 0 loose for non-btag jets
 		&& "incl" == measureType && 0 != jetFlav;
 	}
-	if(b && "central" ==  sysType ){
+	if(b && "up" ==  sysType ){
 
 	for(size_t i=0; i < pt.size() ;++i){
 	if(check_CSVv2){
@@ -953,7 +968,8 @@ auto elEffGiver(
 		 PtBin   = tight_94x->GetYaxis()-> FindBin(pt );
 		dict[Smr]= tight_94x->GetBinContent(EtaBin,PtBin);
 //	}
-	// TODO: GetBinError
+	// TODO: GetBinError, needs to be changed in case of uncertainties
+	// from getbincontent to get bin error
 	if(5<debug)std::cout<<dict[Eff]<<" eff , smr "<<dict[Smr]<<std::endl;
 	// TODO: Eff == 0 cross check
 	if(FP_NORMAL != std::fpclassify(dict[Eff])) dict[Eff] = 1.;
@@ -986,10 +1002,10 @@ auto muEffGiver(
 	dict[Id_Y] = id_Y->GetBinContent(PtBin,EtaBin);
 	 PtBin     = id_A->GetXaxis()->FindBin(pt );
 	EtaBin     = id_A->GetYaxis()->FindBin(ata);
-	dict[Id_A] = id_A->GetBinError  (PtBin,EtaBin);
+	dict[Id_A] = id_A->GetBinContent(PtBin,EtaBin);
 	 PtBin     = id_T->GetXaxis()->FindBin(pt );
 	EtaBin     = id_T->GetYaxis()->FindBin(ata);
-	dict[Id_T] = id_T->GetBinError  (PtBin,EtaBin);
+	dict[Id_T] = id_T->GetBinContent(PtBin,EtaBin);
 
 	 PtBin     = isoN->GetXaxis()->FindBin(pt );
 	EtaBin     = isoN->GetYaxis()->FindBin(ata);
@@ -999,10 +1015,10 @@ auto muEffGiver(
 	dict[IsoY] = isoY->GetBinContent(PtBin,EtaBin);
 	 PtBin     = isoA->GetXaxis()->FindBin(pt );
 	EtaBin     = isoA->GetYaxis()->FindBin(ata);
-	dict[IsoA] = isoA->GetBinError  (PtBin,EtaBin);
+	dict[IsoA] = isoA->GetBinContent(PtBin,EtaBin);
 	 PtBin     = isoT->GetXaxis()->FindBin(pt );
 	EtaBin     = isoT->GetYaxis()->FindBin(ata);
-	dict[IsoT] = isoT->GetBinError  (PtBin,EtaBin);
+	dict[IsoT] = isoT->GetBinContent(PtBin,EtaBin);
 
 	if(5<debug)std::cout<<dict[IsoA]
 	           <<"\t:\t"<<dict[IsoT]<<std::endl;
@@ -1174,6 +1190,7 @@ inline auto sf(
 		,const floats  lhepdf // LHEPdfWeight 0 index (central value)
 		,const    int  npv
 		,const double  genw
+		,const floats  psw
 	){
 		// TODO: trigger efficiency
 		double result;
@@ -1254,7 +1271,7 @@ auto finalScaling(
 ){
 	return rdf
 	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd)
-	      ,{"btag_w","mostSF","npl_est","LHEPdfWeight","PV_npvs","genW"})
+	      ,{"btag_w","mostSF","npl_est","LHEPdfWeight","PV_npvs","genW","PSWeight"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
@@ -1302,7 +1319,7 @@ auto runLBfilter(
 }
 }// namespace
 void uncertainty(const channel ch,const dataSource ds){
-	//ROOT::EnableImplicitMT(4);// SYNC WITH CONDOR JOBS!
+	ROOT::EnableImplicitMT(4);// SYNC WITH CONDOR JOBS!
 	// Open LB file even if Monte Carlo will NOT use it
 	nlohmann::json JSONdict;
 	std::ifstream(// open this JSON file once as a stream
@@ -1526,8 +1543,8 @@ void uncertainty(const channel ch,const dataSource ds){
 //			"Unimplemented ch (init)");
 	}
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(100000);// remember to enable MT when NOT range
-	auto init_selection = dfr// remove one letter to do all
+	//auto dfr = df.Range(100000);// remember to enable MT when NOT range
+	auto init_selection = df// remove one letter to do all
 	.Filter(Triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
 		 ,"HLT_IsoMu27"
@@ -1604,7 +1621,8 @@ void uncertainty(const channel ch,const dataSource ds){
 //			"Unimplemented ds (hist titles)");
 	}
 	temp_opener = "BDTInput/Histoffile_"+ temp_header +
-		      "__uncertaintyUp|Down"+".root";// needs to be adjusted
+/*		      "__uncertaintyUp|Down"+".root";// needs to be adjusted */
+              	      "__uncertaintyBtagUp"+".root";// needs to be adjusted
 	//for each uncertainty run!
 	// Histogram names sorted, now branch into MC vs exptData
 	if(MC){

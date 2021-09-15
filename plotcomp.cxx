@@ -78,7 +78,7 @@ int plotcomp(){
 	for(channel ch:channelAll){
 	std::string chN, chF; //chF channel title
 	switch     (ch){
-		case elnu:  {chN ="elnu";chF =  "#e#nu";break;}
+		case elnu:  {chN ="elnu";chF =   "e#nu";break;}
 		case munu:  {chN ="munu";chF = "#mu#nu";break;}
 	}
 	std::string                title = chF + " " + particle;

@@ -9,6 +9,7 @@
 #include <THStack.h>
 #include <TROOT.h>
 #include <TStyle.h>
+#include <TF1.h>
 #include <iterator>// just for std::size
 
 #include "src/tdrstyle.C"
@@ -19,9 +20,9 @@ enum      channel      {elnu,munu};
 constexpr channel
           channelAll[]={elnu,munu};
 
-enum      dataSource	  {tzq,ttz,met,wj,vv,st,tw,dy,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+enum      dataSource	  {tzq,ttz,met,wj,vv,st,tw,dy,ttbar,npl,cms};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 constexpr dataSource
-          dataSourceAll[]={tzq,ttz,met,wj,vv,st,tw,dy,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+          dataSourceAll[]={tzq,ttz,met,wj,vv,st,tw,dy,ttbar,npl,cms};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 int debug = 1;
 
 std::string allNamesArray[][3] = {// histogram id, histogram title, x axis string
@@ -164,11 +165,14 @@ int plotall(){
 	// note that MET is already skipped above
 	// WARNING: We require CMS to be the last thing in dataSourceAll !
 	if( cms != ds ){
+		//hobj->Scale(1./hobj->Integral("width"));
 		hobj->SetFillColor(colour);
 		stac .Add(hobj);
 		legS .AddEntry(hobj,lgN.c_str(),"f");
 	}else{// CMS is last, so we plot at this time!
 //		canv .cd();// pick me to draw?
+		TH1F *ls = new TH1F(*((TH1F *)(stac.GetStack()->Last())));
+		ls->Scale(1./ls->Integral("width"));
 		stac .Draw("HIST");// TODO: histe
 		stac .GetXaxis()->SetTitle(allNamesArray[i][2].c_str());
 		stac .GetYaxis()->SetTitle("Event");
@@ -179,6 +183,7 @@ int plotall(){
 		hobj->SetMarkerSize(1.0);
 		legS .AddEntry(hobj,lgN.c_str(),"lep");
 		hobj->Draw("E0 SAME");
+		ls->Draw("SAME");
 		legS .Draw();
 		rp = (TH1D*)(hobj->Clone());
 	}}// else & dataSource
