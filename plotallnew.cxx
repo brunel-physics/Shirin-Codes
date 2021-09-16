@@ -122,20 +122,20 @@ int plotallnew(){
 //	std::cout<< "ds and ch "<<ds<< " "<<ch<<std::endl;
 	if( 0  < debug)std::cout<<"passed make pair "<<hobjN<<std::endl;
 	                                      hobj->SetDirectory(nullptr);
-	if( 0  < debug)std::cout<<"passed setDir"<<std::endl;
-	if(max < hobj->GetMaximum()) max =    hobj->GetMaximum(         );
+	//if( 0  < debug)std::cout<<"passed setDir"<<std::endl;
+	//if(max < hobj->GetMaximum()) max =    hobj->GetMaximum(         );
 	if( 0  < debug)std::cout<<"passed get max"<<std::endl;
 	// note that MET is already skipped above
 	// WARNING: We require CMS to be the last thing in dataSourceAll !
 	if( cms != ds ){
-		hobj->Scale(1./hobj->Integral("width"));
+		hobj->Scale(1./(9*hobj->Integral("width")));
 		hobj->SetFillColor(colour);
+        	if(max < hobj->GetMaximum()) max =    hobj->GetMaximum(         );
+        	if( 0  < debug)std::cout<<"passed get max"<<std::endl;
 		stac .Add(hobj);
 		legS .AddEntry(hobj,lgN.c_str(),"f");
 	}else{// CMS is last, so we plot at this time!
 //		canv .cd();// pick me to draw?
-		TH1D *lsht = static_cast<TH1D*>(stac.GetStack()->Last());
-//		lsht->Scale(1./ls->Integral("width"));
 		stac .Draw("hist");// TODO: histe
 		stac .GetXaxis()->SetTitle(allNamesArray[i][2].c_str());
 		stac .GetYaxis()->SetTitle("Event");
@@ -146,8 +146,9 @@ int plotallnew(){
 		hobj->SetMarkerStyle(20);
 		hobj->SetMarkerSize(1.0);
 		legS .AddEntry(hobj,lgN.c_str(),"lep");
+                hobj->Scale(1./hobj->Integral("width"));
 		hobj->Draw("e0 same");
-		lsht->Draw("same");
+		//lsht->Draw("same");
 		legS .Draw();
 	}}// else & dataSource
 //	canv.cd();
