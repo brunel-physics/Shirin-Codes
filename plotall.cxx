@@ -1,3 +1,4 @@
+
 // TODO:: Change title name to be like e.g ev Jet pt -> v , greek nu
 // TODO:: legend should be only ds
 // TODO:: change the mass unit \\text{W m_{T} (GeV/}c^{2}) doesn't work!
@@ -160,19 +161,19 @@ int plotall(){
 	if(debug > 0)std::cout<<"passed make pair "<<hobjN<<std::endl;
 	                                      hobj->SetDirectory(nullptr);
         if(debug > 0)std::cout<<"passed setDir"<<std::endl;
-	if(hobj->GetMaximum() > max) max =    hobj->GetMaximum(         );
+	//if(hobj->GetMaximum() > max) max =    hobj->GetMaximum(         );
 	if(debug > 0)std::cout<<"passed get max"<<std::endl;
 	// note that MET is already skipped above
 	// WARNING: We require CMS to be the last thing in dataSourceAll !
 	if( cms != ds ){
-		//hobj->Scale(1./hobj->Integral("width"));
+		hobj->Scale(1./(9*hobj->Integral()));
 		hobj->SetFillColor(colour);
 		stac .Add(hobj);
 		legS .AddEntry(hobj,lgN.c_str(),"f");
 	}else{// CMS is last, so we plot at this time!
 //		canv .cd();// pick me to draw?
-		TH1F *ls = new TH1F(*((TH1F *)(stac.GetStack()->Last())));
-		ls->Scale(1./ls->Integral("width"));
+		TH1F *lsh = new TH1F(*((TH1F *)(stac.GetStack()->Last())));
+		max = lsh ->GetMaximum();
 		stac .Draw("HIST");// TODO: histe
 		stac .GetXaxis()->SetTitle(allNamesArray[i][2].c_str());
 		stac .GetYaxis()->SetTitle("Event");
@@ -182,8 +183,8 @@ int plotall(){
 		hobj->SetMarkerStyle(20);
 		hobj->SetMarkerSize(1.0);
 		legS .AddEntry(hobj,lgN.c_str(),"lep");
+                hobj->Scale(1./hobj->Integral());
 		hobj->Draw("E0 SAME");
-		ls->Draw("SAME");
 		legS .Draw();
 		rp = (TH1D*)(hobj->Clone());
 	}}// else & dataSource
