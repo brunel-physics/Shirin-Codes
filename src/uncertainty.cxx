@@ -81,27 +81,28 @@ namespace{
   constexpr double    ak4RconeBy2 =  .2;
 //constexpr double    ak8RconeBy2 =  .4;
 
-  constexpr double          TZQ_W =     .00128;
-  constexpr double       WWLNQQ_W =     .21740;
-  constexpr double       WZLNQQ_W =     .02335;
-  constexpr double        TTBLV_W =     .13791;
-  constexpr double        TZQQ1_W =     .02826;// ttz
-  constexpr double        TZQQ2_W =     .00237;// ttz
-  constexpr double       ZZLLQQ_W =     .00485;
-  constexpr double	    WJT_W =   73.26469;
-  constexpr double          WJX_W =   49.26469;
-  constexpr double           ST_W =     .03837;
-  constexpr double          STB_W =     .04433;
-  constexpr double        TTBLL_W =     .05303;
-  constexpr double        TTBJJ_W =     .12066;
-  constexpr double          STW_W =     .18247;
-  constexpr double         STBW_W =     .18750;
-  constexpr double         WJQQ_W =     .17827;
-  constexpr double         WZLL_W =     .00844;
-  constexpr double         ZJT1_W = 2076.88350;
-  constexpr double         ZJT2_W =    4.55855;
-  constexpr double         ZJT3_W =    4.51678;
-  constexpr double         ZJQQ_W =    2.89992;
+  constexpr double          TZQ_W =     .001282195145961;
+  constexpr double       WWLNQQ_W =     .217397888077438;
+  constexpr double       WZLNQQ_W =     .023346822887722;
+  constexpr double        TTBLV_W =     .259370470379861;
+  constexpr double        TZQQ1_W =     .002187451145511;// ttz
+  constexpr double        TZQQ2_W =     .002187451145511;// ttz
+  constexpr double       ZZLLQQ_W =     .004846009977230;
+  constexpr double          WJT_W =   29.974592904578200;
+  constexpr double          WJX_W =   29.974592904578200;
+  constexpr double           ST_W =     .038369181101617;
+  constexpr double          STB_W =     .044328810546237;
+  constexpr double        TTBLL_W =     .412954209347437;
+  constexpr double        TTBJJ_W =     .219342829890331;
+  constexpr double          STW_W =     .182471143106780;
+  constexpr double         STBW_W =     .187503857835408;
+  constexpr double         WJQQ_W =     .178271715682156;
+  constexpr double         WZLL_W =     .008440656577925;
+  constexpr double         ZJT1_W =    2.910413728735610;
+  constexpr double         ZJT2_W =    3.116229887088770;
+  constexpr double         ZJT3_W =    3.116229887088770;
+  constexpr double         ZJQQ_W =    2.899922521490860;
+
 
 
   constexpr double      TZQ_GEN_W =  0.25890;

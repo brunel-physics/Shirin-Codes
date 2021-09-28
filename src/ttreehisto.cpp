@@ -1,4 +1,3 @@
-//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/ttree src/TTreeMaker.cxx build/eval_complex.o `root-config --libs` -lm
 // TODO:: extend cmet to include MET and CMS (passing the same value), it is needed for them to be on the same  stack
 // TODO:: Shape uncertainties -> implement lhepdfWeight for up and down based on the formula
 // TODO:: change filter to include deltaphi cuts
@@ -81,13 +80,13 @@ namespace{
 //constexpr double    ak8RconeBy2 =  .4;
 
   constexpr double          TZQ_W =     .001282195145961;
-  constexpr double	 WWLNQQ_W =     .217397888077438;
-  constexpr double	 WZLNQQ_W =     .023346822887722;
+  constexpr double       WWLNQQ_W =     .217397888077438;
+  constexpr double       WZLNQQ_W =     .023346822887722;
   constexpr double        TTBLV_W =     .259370470379861;
   constexpr double        TZQQ1_W =     .002187451145511;// ttz
   constexpr double        TZQQ2_W =     .002187451145511;// ttz
-  constexpr double	 ZZLLQQ_W =     .004846009977230;
-  constexpr double          WJT_W =   29.974592904578200;
+  constexpr double       ZZLLQQ_W =     .004846009977230;
+  constexpr double	    WJT_W =   29.974592904578200;
   constexpr double          WJX_W =   29.974592904578200;
   constexpr double           ST_W =     .038369181101617;
   constexpr double          STB_W =     .044328810546237;
@@ -101,8 +100,6 @@ namespace{
   constexpr double         ZJT2_W =    3.116229887088770;
   constexpr double         ZJT3_W =    3.116229887088770;
   constexpr double         ZJQQ_W =    2.899922521490860;
-
-
 
 
   constexpr double      TZQ_GEN_W =  0.25890;
@@ -149,191 +146,7 @@ constexpr muSf
 constexpr elSf
           elSfAll[]={Eff,Smr};
 */
-inline auto lep_sel(const channel ch){
-	return [=](
-		 const  bools& isPFs
-		,const floats& pts
-		,const floats& etas
-		,const   ints& elids
-		,const  bools& muids
-		,const floats& isos
-		,const floats& dxy
-		,const floats& dz
-	){
-		const auto abs_etas = abs(etas);
-		switch(ch){
-			case elnu:return ( true
-				&&     isPFs
-				&&       pts  >   EL__PT_MIN
-				&& ((abs_etas <   EL_ETA_MAX
-				&&        dz  <=  ENDCAP_DZ__TIGHT
-				&&        dxy <=  ENDCAP_DXY_TIGHT
-				&&   abs_etas >   ENDCAP_ETA_MIN)
-				||  (abs_etas <   BARREL_ETA_MAX
-				&&        dxy <=  BARREL_DXY_TIGHT
-				&&        dz  <=  BARREL_DZ__TIGHT))
-				&&      elids >=  EL_LOOSE_ID
-			);
-			case munu:return ( true
-				&&   muids
-				&&   isPFs
-				&&     pts  >     MU__PT_MIN
-				&& abs_etas <     MU_ETA_MAX
-				&&     isos <=    MU_LOOSE_ISO
-			);
-			default  :throw std::invalid_argument(
-				"Unimplemented ch (lep_sel)");
-		}
-	};
-}
-inline auto lep_tight_cut(const channel ch){
-	return [=](const   ints& mask
-		  ,const   ints& elids
-		  ,const floats& isos
-	){
-// TODO: In the case we want 1 loose lepton, comment the 4 NOTE lines below
-		bool result;
-		 if(false) ;
-		 else if(ch==elnu){
-			ints   temp = elids[mask];
-			result = temp.size() == 1;// Choosing 1 Tight Lepton
-			result = result &&    temp [0] >= EL_TIGHT_ID ;// NOTE
-		}else if(ch==munu){
-			floats temp = isos[mask];
-			result = temp.size() == 1;
-			result = result &&    temp [0] <= MU_TIGHT_ISO;// NOTE
-		}else{throw std::invalid_argument(
-			"Unimplemented ch (lep_tight_cut)");}
-		return result;
-	};
-}
-inline auto Triggers(const channel ch){
-	return [=](
-		 const bool el// HLT_Ele32_WPTight_Gsf_L1DoubleEG
-		,const bool mu// HLT_IsoMu27
-	){
-		switch(ch){
-		case elnu:return el;
-		case munu:return mu;
-	}};
-}
-
-template <typename T>
-constexpr auto fastPrincipalRangeReductor(const T diff_phi){
-	// This function just reduces input from [-2pi,+2pi] to [-pi,+pi]
-	// Domain correctness is the user's responsibility(eg.subtract phis)
-	// A more general function is easier: just std::remainder
-	if(    diff_phi >  PI<T>) return diff_phi - TPI<T>;
-	if(    diff_phi < -PI<T>) return diff_phi + TPI<T>;
-	return diff_phi;
-}
-template <typename T> constexpr auto delta_phi(const T dp)
-	{return fastPrincipalRangeReductor(dp);}
-
-inline auto deltaR(
-	const double eta1,const double phi1,
-	const double eta2,const double phi2)
-	{return std::hypot(eta1-eta2,delta_phi(phi1-phi2));}//hypot from geometry
-
-template<typename T,typename U>
-[[gnu::const]] bool all_equal(const T& t, const U& u){return t == u;}
-template<typename T,typename U,typename... Types>
-[[gnu::const]] bool all_equal(const T& t, const U& u, Types const&... args)
-	{return t == u && all_equal(u, args...);}
-auto jet_lep_min_deltaR(
-	 const doubles &jet_etas
-	,const doubles &jet_phis
-	,const double   lep_eta
-	,const double   lep_phi
-){
-	if(!all_equal(jet_etas.size(),jet_phis.size()))
-		throw std::logic_error(
-		      "Collections must be the same size (jet-lep dR)");
-	if(jet_phis.empty())
-		throw std::logic_error(
-		      "Collections must not be empty for (jet-lep dR)");
-	//if(0<debug) std::cout<<"jet_lep_min_dR"<<std::endl;
-	doubles min_dRs; min_dRs.reserve(jet_etas.size());
-	std::transform(
-		jet_etas.cbegin(),
-		jet_etas.  cend(),
-		jet_phis.cbegin(),
-		std::back_inserter(min_dRs),
-		[=](double jet_eta, double jet_phi){
-			return deltaR(jet_eta,jet_phi,lep_eta,lep_phi);});
-	return min_dRs;
-}
-inline auto tight_jet_id(
-	 const doubles& jet_lep_min_dRs
-	,const  floats& pts
-	,const  floats& etas
-	,const    ints& ids
-){
-	//if(0<debug) std::cout<<"tight_jet_id"<<std::endl;
-	return ( JET_PT__MIN <  pts             )
-	&&     (  abs(etas)  <  JET_ETA_MAX     )
-	&&     ( JET_ISO     <  jet_lep_min_dRs )
-	&&     (      2      <= ids             );
-}
-inline auto jetCutter(const unsigned jmin,const unsigned jmax){
-	if(3<debug) std::cout<<"jet cut "<< jmin <<" "<< jmax <<std::endl;
-	return[=](const ints& jetmask){
-		const auto nj = std:: count_if(
-			jetmask.cbegin(),
-			jetmask.  cend(),
-			[](int i){return i;});// 0 is false
-		return jmin <= nj && nj <= jmax;
-	};
-}
-inline auto lep_gpt(const channel ch){
-	return [=](
-		 const floats &pt
-		,const ints &mask
-		,const ints &eidx
-		,const ints &midx
-	){
-	int i;
-	switch(ch){
-		case elnu:{i = eidx[mask][0];break;}
-		case munu:{i = midx[mask][0];break;}
-	}
-	if(-1!=i) return static_cast<double>(pt[i]); else return -1.;
-	};
-}
-auto roccorSF(
-	 RoccoR          &rc
-	,const channel    ch
-	,const bool       MC
-){
-	return [=](
-		 const double     pt,const double eta
-		,const double    phi,const   int  Q
-		,const double gen_pt,const   int  nl
-	){
-	if(0 < debug)std::cout<< "roccor SF"<<std::endl;
-		double roc = 1.;
-		switch(ch){
-		case elnu:{break;}
-		case munu:{if(MC){
-			if(0. < gen_pt){
-				roc = rc.kSpreadMC(Q,pt,eta,phi,gen_pt,0,0);
-			}else{
-				auto u = gRandom->Rndm();
-				roc = rc. kSmearMC(Q,pt,eta,phi,nl,u,0,0);
-			}
-		}else{
-				roc = rc. kScaleDT(Q,pt,eta,phi,0,0);
-		}break;}}// not MC, case munu, switch
-		if(0 < debug) std::cout << "roc " << roc << std::endl;
-		return roc;
-	};
-}
-/*
-template<typename T>// allow us to return w/o knowing data type
-auto retVar(const T& v){return[&](){return v;};}
-*/
-// Jet Energy Resolution and Jet Energy Smearing
-auto jet_smear_pt_resol(
+resol(
 	 const floats &pt,const floats &eta
 	,const float  rho
 ){
@@ -1171,6 +984,7 @@ inline auto sf(
 	return [=](
 		 const double  b
 		,const double  mostSF
+		,const  float  npl
 		,const floats  lhepdf // LHEPdfWeight 0 index (central value)
 		,const    int  npv
 		,const double  genw
@@ -1254,7 +1068,7 @@ auto finalScaling(
 ){
 	return rdf
 	.Define("sf",sf(ds,ch,PuWd,PuUd,PuDd)
-	      ,{"btag_w","mostSF","LHEPdfWeight","PV_npvs","genW"})
+	      ,{"btag_w","mostSF","npl_est","LHEPdfWeight","PV_npvs","genW"})
 	. Alias("nw_lep__pt"       ,"sf")// is just one value, == sf
 	. Alias("nw_lep_eta"       ,"sf")
 	. Alias("nw_lep_phi"       ,"sf")
@@ -1282,7 +1096,6 @@ auto finalScaling(
 	. Alias("nw_lep_nu_invmass","sf")
 	. Alias("nw_ttop__pt"      ,"sf")
 	. Alias("nw_ttop_mas"      ,"sf")
-	. Alias("EvtWeight"	   ,"sf") // required for BDT
 	;
 }
 auto runLBfilter(
@@ -1301,8 +1114,8 @@ auto runLBfilter(
 	};
 }
 }// namespace
-void TTreeMaker(const channel ch,const dataSource ds){
-	ROOT::EnableImplicitMT(4);// SYNC WITH CONDOR JOBS!
+void calchisto(const channel ch,const dataSource ds){
+	//ROOT::EnableImplicitMT(4);// SYNC WITH CONDOR JOBS!
 	// Open LB file even if Monte Carlo will NOT use it
 	nlohmann::json JSONdict;
 	std::ifstream(// open this JSON file once as a stream
@@ -1526,7 +1339,7 @@ void TTreeMaker(const channel ch,const dataSource ds){
 //			"Unimplemented ch (init)");
 	}
 	// make test runs faster by restriction. Real run should not
-	//auto dfr = df.Range(100000);// remember to enable MT when NOT range
+	auto dfr = df.Range(100000);// remember to enable MT when NOT range
 	auto init_selection = df// remove one letter to do all
 	.Filter(Triggers(ch),
 		{ "HLT_Ele32_WPTight_Gsf_L1DoubleEG"
@@ -1568,9 +1381,9 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	;
 	// now we make the histogram names and titles
 	switch(ch){// laugh at muon-neutrino below
-		case elnu:{temp_header = "elnu";
+		case elnu:{temp_header = "elnu_";
 		           temp_footer = "electron-neutrino";break;}
-		case munu:{temp_header = "munu";
+		case munu:{temp_header = "munu_";
 		           temp_footer = "muon"  "-neutrino";break;}
 //		default  :throw std::invalid_argument(
 //			"Unimplemented ch (hist titles)");
@@ -1578,10 +1391,10 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	temp_footer = "pt vs eta in " + temp_footer + " channel for ";
 	switch(ds){
 		case  tzq:{temp_header+= "tzq";temp_footer+="tZq" ;break;}
-		case   ww:{temp_header+=  "ww";temp_footer+=" WW" ;break;}
-		case   wz:{temp_header+=  "wz";temp_footer+=" WZ" ;break;}
-		case   zz:{temp_header+=  "zz";temp_footer+=" ZZ" ;break;}
-		case   st:{temp_header+=  "st";temp_footer+=" ST" ;break;}
+		case   ww:{temp_header+= "_ww";temp_footer+=" WW" ;break;}
+		case   wz:{temp_header+= "_wz";temp_footer+=" WZ" ;break;}
+		case   zz:{temp_header+= "_zz";temp_footer+=" ZZ" ;break;}
+		case   st:{temp_header+= "_st";temp_footer+=" ST" ;break;}
 		case  stb:{temp_header+= "stb";temp_footer+="STB" ;break;}
 		case  stw:{temp_header+= "stw";temp_footer+="STW" ;break;}
 		case stbw:{temp_header+="stbw";temp_footer+="STBW";break;}
@@ -1603,7 +1416,6 @@ void TTreeMaker(const channel ch,const dataSource ds){
 //		default :throw std::invalid_argument(
 //			"Unimplemented ds (hist titles)");
 	}
-	temp_opener = "BDTInput/Histoffile_" + temp_header + ".root"; // for the snap shot
 	// Histogram names sorted, now branch into MC vs exptData
 	if(MC){
 	auto jecs_bjets// JEC == Jet Energy Correction, only for MC
@@ -1734,7 +1546,7 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-	/*.Define("npl_est", npl(ch, MC // Non prompt lepton estimation
+	.Define("npl_est", npl(ch, MC // Non prompt lepton estimation
 			 , TL_eff_elnu_QCD // Tight To Loose ratio
 			 , TL_eff_munu_QCD
 			 , pr_LnT_elnu_QCD // prompt loose not tight
@@ -1742,18 +1554,11 @@ void TTreeMaker(const channel ch,const dataSource ds){
 			 , dt_LnT_elnu_cms // data loose not tight
 			 , dt_LnT_munu_cms
 			),{"lep__pt","lep_eta"})
-	*/
 	.Define("mostSF" , "lepSF * ttbSF")
 	;
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
 	;
-	auto SnapRDF = finalDF.Snapshot("Events",temp_opener);// SNAPPED!
-
-        auto sumW = finalDF.Sum("sf");
-        std::cout<< "SumW is "<< *sumW <<std::endl;// overal normalisation output
-
-
 	auto finalDF_W // W mass cut for histograms
 	   = finalDF
 	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut");
@@ -1771,7 +1576,7 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	// Copied to below, skip MC-only, ADD MET_sumEt!
 	// Assuming temp_header and footer and all are set per (hist titles)!
 // MC only
-/*		auto
+		auto
 	h_is_btag_numer_PtVsEta =
 	     reco.Histo2D({
 	(        "is_numer_" + temp_header).c_str(),
@@ -1826,7 +1631,7 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	h_p_ei->GetXaxis()->SetTitle("\\prod_{i} e_{i}");
 	h_p_ei->GetYaxis()->SetTitle("Event");
 	h_p_ei->SetLineStyle(kSolid);
-
+*/
 	auto h_p_ej = finalDF.Histo1D({
 	("p_ej_"+temp_header).c_str(),
 	("p_ej "+temp_header).c_str(),
@@ -2196,8 +2001,7 @@ void TTreeMaker(const channel ch,const dataSource ds){
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
 		hf.WriteTObject(h.GetPtr());hf.Flush();sync();
-
-	}*/} else {
+	}} else {
 	auto expt_bjets
 	   = init_selection
 	.Filter(runLBfilter(runLBdict),{"run","luminosityBlock"},
@@ -2229,7 +2033,7 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	                 , id_N,id_Y,id_A,id_T
 	                 , isoN,isoY,isoA,isoT
 	                ),{"lep__pt","lep_eta"})
-	/*.Define("npl_est",npl(ch , MC // Non prompt lepton estimation
+	.Define("npl_est",npl(ch , MC // Non prompt lepton estimation
 	                 , TL_eff_elnu_QCD // Tight To Loose ratio
 	                 , TL_eff_munu_QCD
 	                 , pr_LnT_elnu_QCD // prompt loose not tight
@@ -2237,17 +2041,15 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	                 , dt_LnT_elnu_cms // data loose not tight
 	                 , dt_LnT_munu_cms
 	                ),{"lep__pt","lep_eta"})
-	*/
 	.Define("genW",genWSF(ds),{"MET_pt"})
 	. Alias("mostSF" , "lepSF")
 	;
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,// unused but send pile
 	     not_btag_eff )
 	;
-	auto SnapRDF = finalDF.Snapshot("Events",temp_opener); // SNAPPED!!
 	// Copied from earlier, delete MC-only!
 	// Assuming temp_header and footer and all are set per (hist titles)!
-/*	auto h_met_sEt = finalDF.Histo1D({
+	auto h_met_sEt = finalDF.Histo1D({
 	("met_sEt_"+temp_header).c_str(),
 	("met_sEt "+temp_header).c_str(),
 	100,0,600},"MET_sumEt");
@@ -2396,60 +2198,6 @@ void TTreeMaker(const channel ch,const dataSource ds){
 		h->GetXaxis()->SetTitle(xAxisStr.c_str());
 		h->GetYaxis()->SetTitle("Event");
 		hf.WriteTObject(h.GetPtr());hf.Flush();sync();
-	}} // for & else
-*/} // else
-	std::cout<<"TTreeMaker successfully completed"<<std::endl;
+	}}
+	std::cout<<"calchisto successfully completed"<<std::endl;
 }
-int main ( int argc , char *argv[] ){
-        if ( argc < 2 ) {
-                std::cout << "Error: no command provided" << std::endl ;
-                return 1 ;
-        }
-        if ( argc < 3 ) {
-                   std::cout
-                << "Error: NPL_run needs channel and data source"
-                << std::endl
-                << "e.g.   NPL_run elnu DY"
-                << std::endl
-                ;
-                return 2 ;
-        }
-	channel c ; dataSource d ;
-        	if ( const auto chN = std::string_view( argv[1] ) ; false ) ;
-        else if ( "elnu"  == chN ) c = elnu ;
-        else if ( "munu"  == chN ) c = munu ;
-        else { std::cout << "Error: channel " << chN
-                << " not recognised" << std::endl ;
-                return 3 ;
-        }
-             if ( const auto dsN = std::string_view( argv[2] ) ; false ) ;
-        else if ( "tzq"  ==  dsN ){ d = tzq   ;}
-        else if ( "ttb"  ==  dsN ){ d = ttb   ;}
-        else if ( "ttl"  ==  dsN ){ d = ttl   ;}
-        else if ( "ttj"  ==  dsN ){ d = ttj   ;}
-        else if ( "tz1"  ==  dsN ){ d = tz1   ;}
-        else if ( "tz2"  ==  dsN ){ d = tz2   ;}
-        else if ( "wjt"  ==  dsN ){ d = wjt   ;}
-        else if ( "wjx"  ==  dsN ){ d = wjx   ;}
-        else if ( "ww"   ==  dsN ){ d = ww    ;}
-        else if ( "wz"   ==  dsN ){ d = wz    ;}
-        else if ( "zz"   ==  dsN ){ d = zz    ;}
-        else if ( "st"   ==  dsN ){ d = st    ;}
-        else if ( "stb"  ==  dsN ){ d = stb   ;}
-        else if ( "stw"  ==  dsN ){ d = stw   ;}
-        else if ( "stbw" ==  dsN ){ d = stbw  ;}
-        else if ( "wzll" ==  dsN ){ d = wzll  ;}
-        else if ( "wjqq" ==  dsN ){ d = wjqq  ;}
-        else if ( "zjt1" ==  dsN ){ d = zjt1  ;}
-        else if ( "zjt2" ==  dsN ){ d = zjt2  ;}
-        else if ( "zjt3" ==  dsN ){ d = zjt3  ;}
-        else if ( "zjqq" ==  dsN ){ d = zjqq  ;}
-        else if ( "cms"  ==  dsN ){ d = cms   ;}
-        else { std::cout << "Error: data source " << dsN
-                << " not recognised" << std::endl ;
-                return 4 ;
-        }
-                TTreeMaker(c,d) ;
-                return 0 ;
-}
-
