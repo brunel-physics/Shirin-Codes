@@ -29,8 +29,7 @@ constexpr PtEtaPhiM
 
 
 void ttreehisto(const channel ch,const dataSource ds){
-
-
+        ROOT::EnableImplicitMT(4);// SYNC WITH CONDOR JOBS!
 	// Open data files even if unused
 	// then automatically choose which one to read from
 	// No penalty for opening and leaving unused
@@ -38,41 +37,40 @@ void ttreehisto(const channel ch,const dataSource ds){
 	// Open MC data source EVEN IF UNUSED
 std::string chN,dsN,
 	    temp_header="BDTInput/Histoffile_",
-            temp_opener,temp_footer="/*.root";/**/
+            temp_opener,temp_footer=".root";
 
 switch(ds){
-	case  tzq:{dsN = "tzq";}
-	case   ww:{dsN =  "ww";}
-	case   wz:{dsN =  "wz";}
-	case   zz:{dsN =  "zz";}
-	case   st:{dsN =  "st";}
-	case  stb:{dsN = "stb";}
-	case  stw:{dsN = "stw";}
-	case stbw:{dsN ="stbw";}
-	case wjqq:{dsN ="wjqq";}
-	case wzll:{dsN ="wzll";}
-	case zjt1:{dsN ="zjt1";}
-	case zjt2:{dsN ="zjt2";}
-	case zjt3:{dsN ="zjt3";}
-	case zjqq:{dsN ="zjqq";}
-	case  ttb:{dsN = "ttb";}
-	case  ttl:{dsN = "ttl";}
-	case  ttj:{dsN = "ttj";}
-	case  wjt:{dsN = "wjt";}
-	case  wjx:{dsN = "wjx";}
-	case  tz1:{dsN = "tz1";}
-	case  tz2:{dsN = "tz2";}
-	case  cms:{dsN = "cms";}
+	case  tzq:{dsN = "tzq";break;}
+	case   ww:{dsN =  "ww";break;}
+	case   wz:{dsN =  "wz";break;}
+	case   zz:{dsN =  "zz";break;}
+	case   st:{dsN =  "st";break;}
+	case  stb:{dsN = "stb";break;}
+	case  stw:{dsN = "stw";break;}
+	case stbw:{dsN ="stbw";break;}
+	case wjqq:{dsN ="wjqq";break;}
+	case wzll:{dsN ="wzll";break;}
+	case zjt1:{dsN ="zjt1";break;}
+	case zjt2:{dsN ="zjt2";break;}
+	case zjt3:{dsN ="zjt3";break;}
+	case zjqq:{dsN ="zjqq";break;}
+	case  ttb:{dsN = "ttb";break;}
+	case  ttl:{dsN = "ttl";break;}
+	case  ttj:{dsN = "ttj";break;}
+	case  wjt:{dsN = "wjt";break;}
+	case  wjx:{dsN = "wjx";break;}
+	case  tz1:{dsN = "tz1";break;}
+	case  tz2:{dsN = "tz2";break;}
+	case  cms:{dsN = "cms";break;}
 } // end switch
 
-if(ch == elnu){chN = "elnu";
-	temp_opener= temp_header + chN + dsN + temp_footer;
-}else{  chN = munu;
-	temp_opener= temp_header + chN + dsN + temp_footer;
+if(ch == elnu)chN = "elnu";
+else{	      chN = "munu";
 }// end if
-
+temp_opener= temp_header + chN + dsN + temp_footer;
+std::cout<< "chN and dsN are "<<chN<<" "<<dsN<<std::endl;
 ROOT::RDataFrame finalDF("Events",temp_opener);// Monte Carlo
-
+std::cout<<"opened file is "<< temp_opener<<std::endl;
 
 // now we make the histogram names and titles
 switch(ch){
@@ -349,7 +347,7 @@ if(ds != cms){
 	h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
 	h_z_daughters_Dph->SetLineStyle(kSolid);
 
-	auto h_npl = finalDF.Histo1D({
+/*	auto h_npl = finalDF.Histo1D({
 	("npl_" + temp_header).c_str(),
 	("npl " + temp_header).c_str(),
 	500,-0.1,0.1},
@@ -357,7 +355,7 @@ if(ds != cms){
 	h_npl->GetXaxis()->SetTitle("NPL");
 	h_npl->GetYaxis()->SetTitle("Event");
 	h_npl->SetLineStyle(kSolid);
-
+*/
 	auto h_tWmVsZmass = finalDF.Histo2D({
 	("tWmVsZmass_" + temp_header).c_str(),
 	("tWmVsZmass " + temp_header).c_str(),
@@ -409,7 +407,7 @@ if(ds != cms){
         hf.WriteTObject(h_WZ_deltaR      .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
 
-	hf.WriteTObject(h_npl            .GetPtr());hf.Flush();sync();
+	//hf.WriteTObject(h_npl            .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
         //hf.WriteTObject(h_ttop_mas_w     .GetPtr());hf.Flush();sync();
         //hf.WriteTObject(h_ttop_mas_z     .GetPtr());hf.Flush();sync();
