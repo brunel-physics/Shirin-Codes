@@ -79,8 +79,8 @@ namespace{
   constexpr  float   MU_TIGHT_ISO = .15f;
 
 //constexpr  float    MET__PT_MIN = 40.f;
-  constexpr  float    MET_EL_PT   = 20.f;//80.f;// TODO: Need new values
-  constexpr  float    MET_MU_PT   = 25.f;//40.f;
+  constexpr  float    MET_EL_PT   = 30.f;//80.f;// TODO: Need new values
+  constexpr  float    MET_MU_PT   = 45.f;//40.f;
 
   constexpr double     Z_MASS     =  91.1876;
   constexpr double     Z_MASS_CUT =  20.    ;
@@ -101,27 +101,29 @@ namespace{
   constexpr unsigned    BJETS_MIN = 1     ;
   constexpr unsigned    BJETS_MAX = 3     ;
 
-  constexpr double          TZQ_W =     .00128;
-  constexpr double       WWLNQQ_W =     .21740;
-  constexpr double       WZLNQQ_W =     .02335;
-  constexpr double        TTBLV_W =     .13791;
-  constexpr double        TZQQ1_W =     .02826;// ttz
-  constexpr double        TZQQ2_W =     .00237;// ttz
-  constexpr double       ZZLLQQ_W =     .00485;
-  constexpr double	    WJT_W =   73.26469;
-  constexpr double          WJX_W =   49.26469;
-  constexpr double           ST_W =     .03837;
-  constexpr double          STB_W =     .04433;
-  constexpr double        TTBLL_W =     .05303;
-  constexpr double        TTBJJ_W =     .12066;
-  constexpr double          STW_W =     .18247;
-  constexpr double         STBW_W =     .18750;
-  constexpr double         WJQQ_W =     .17827;
-  constexpr double         WZLL_W =     .00844;
-  constexpr double         ZJT1_W = 2076.88350;
-  constexpr double         ZJT2_W =    4.55855;
-  constexpr double         ZJT3_W =    4.51678;
-  constexpr double         ZJQQ_W =    2.89992;
+
+  constexpr double          TZQ_W =     .001282195145961;
+  constexpr double	 WWLNQQ_W =     .217397888077438;
+  constexpr double	 WZLNQQ_W =     .023346822887722;
+  constexpr double        TTBLV_W =     .259370470379861;
+  constexpr double        TZQQ1_W =     .002187451145511;// ttz
+  constexpr double        TZQQ2_W =     .002187451145511;// ttz
+  constexpr double	 ZZLLQQ_W =     .004846009977230;
+  constexpr double          WJT_W =   29.974592904578200;
+  constexpr double          WJX_W =   29.974592904578200;
+  constexpr double           ST_W =     .038369181101617;
+  constexpr double          STB_W =     .044328810546237;
+  constexpr double        TTBLL_W =     .412954209347437;
+  constexpr double        TTBJJ_W =     .219342829890331;
+  constexpr double          STW_W =     .182471143106780;
+  constexpr double         STBW_W =     .187503857835408;
+  constexpr double         WJQQ_W =     .178271715682156;
+  constexpr double         WZLL_W =     .008440656577925;
+  constexpr double         ZJT1_W =    2.910413728735610;
+  constexpr double         ZJT2_W =    3.116229887088770;
+  constexpr double         ZJT3_W =    3.116229887088770;
+  constexpr double         ZJQQ_W =    2.899922521490860;
+
 
   constexpr double      TZQ_GEN_W =  0.25890;
   constexpr double       WW_GEN_W =  0.99621;
@@ -698,6 +700,21 @@ auto lepEffGiver(
 	if(0<debug) std::cout<<"lepeffgiver finish"<<std::endl;
 	return id * iso * eff * smr;};
 }
+inline auto met_pt_cut(const channel ch){
+        float lower_bound;
+        switch(ch){
+                case elnu:{lower_bound = MET_EL_PT;break;}
+                case munu:{lower_bound = MET_MU_PT;break;}
+                default  :throw std::invalid_argument(
+                        "Unimplemented ch (met_pt_cut)");
+        }
+	return [=](const float   met_pt)->bool
+           {return lower_bound > met_pt;};
+}
+
+inline auto easy_mass_cut(const double theo,const double cut){
+        return [=](const double ours){return std::abs(ours-theo)<cut;};
+}
 } // namespace
 void NPL(const channel ch,const dataSource ds){
 	nlohmann::json JSONdict;
@@ -938,7 +955,8 @@ void NPL(const channel ch,const dataSource ds){
 	.Define("tw_lep_mas",transverse_w_mass,
 	       {"tw_lep__pt",
 	        "tw_lep_phi","MET_pt","MET_phi"})
-	.Filter("tw_lep_mas < 60 || tw_lep_mas > 100","Transverse W mass cut for loose QCD region,loose QCD")
+	.Filter(met_pt_cut(ch),{"met__pt"},"MET Pt cut")
+	//.Filter("tw_lep_mas < 60 || tw_lep_mas > 100","Transverse W mass cut for loose QCD region,loose QCD")
 	;
 	//QCD Region tight cut
 	auto tight_lep = offlep // Signal region selection and filter
@@ -982,7 +1000,8 @@ void NPL(const channel ch,const dataSource ds){
 	       {"tw_lep__pt",
 	        "tw_lep_phi","MET_pt","MET_phi"})
 	.Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
-	.Filter("tw_lep_mas > 100 || tw_lep_mas < 60","Transverse W mass cut for tight QCD region, tight in QCD")
+	.Filter(met_pt_cut(ch),{"met__pt"},"MET Pt cut")
+	//.Filter("tw_lep_mas > 100 || tw_lep_mas < 60","Transverse W mass cut for tight QCD region, tight in QCD")
 	;// loose not tight lepton in signal region
 
 	auto loose_not_tight_lep = offlep // Signal region selection and filter
@@ -1026,7 +1045,7 @@ void NPL(const channel ch,const dataSource ds){
 	       {"tw_lep__pt",
 	        "tw_lep_phi","MET_pt","MET_phi"})
 	.Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
-	.Filter("tw_lep_mas < 100 || tw_lep_mas > 60","Transverse W mass cut for L!N region, L!N signal")
+	//.Filter("tw_lep_mas < 100 || tw_lep_mas > 60","Transverse W mass cut for L!N region, L!N signal")
 	;// making sure it is orthogonal to signal region by applying loose not tight cut
 	switch(ch){
 		case elnu:{temp_header="elnu_";temp_footer="elnu_";break;}
@@ -1064,7 +1083,6 @@ void NPL(const channel ch,const dataSource ds){
 	= {0.,20.,30.,40.,45.,50.,55.,60.,65.,75.,85.,100.,150.,500.};
 	const int ptBinsSize = ptBins.size() - 1;
 
-	if(MC){
 	auto h_tight = tight_lep.Histo2D({ // histo for eff tight to loose , tight
 	("tight_Lepton_" + temp_header).c_str(),
 	("tight Lepton " + temp_footer).c_str(),
@@ -1085,6 +1103,7 @@ void NPL(const channel ch,const dataSource ds){
 	("TL_eff_" + temp_header).c_str(),
 	("TL_eff " + temp_header).c_str())
 	;
+	if(MC){
 	auto prompt_loose_lep = loose_not_tight_lep //prompt for MC in signal
 	.Filter(lep_gpsf(ch),{"GenPart_statusFlags","loose_leps"
 	                              ,"Electron_genPartIdx"
@@ -1104,16 +1123,17 @@ void NPL(const channel ch,const dataSource ds){
 	}
 	else{
 	// N_L!T_data
-	auto h_LT_data = loose_not_tight_lep.Histo2D({
+/*	auto h_LT_data = loose_not_tight_lep.Histo2D({
 	("N_data_LnT_" + temp_header).c_str(),
 	("N data LnT " + temp_footer).c_str(),
 	ptBinsSize,ptBins.data(),20,-2.5,2.5},
 	"lep__pt","lep_eta")
 	; // L!T data
+*/
 	TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
 	// CMS only
 	hf.WriteTObject(h_LT_data           .GetPtr());hf.Flush();sync();
-
+//        hf.WriteTObject(h_eff_TL_ratio               );hf.Flush();sync();
 	}
 	std::cout<<"NPL successfully finished"<<std::endl;
 } //void

@@ -166,7 +166,7 @@ int plotall(){
 	// note that MET is already skipped above
 	// WARNING: We require CMS to be the last thing in dataSourceAll !
 	if( cms != ds ){
-		hobj->Scale(1./(9*hobj->Integral()));
+		//hobj->Scale(1./(9*hobj->Integral()));
 		hobj->SetFillColor(colour);
 		stac .Add(hobj);
 		legS .AddEntry(hobj,lgN.c_str(),"f");
@@ -183,7 +183,7 @@ int plotall(){
 		hobj->SetMarkerStyle(20);
 		hobj->SetMarkerSize(1.0);
 		legS .AddEntry(hobj,lgN.c_str(),"lep");
-                hobj->Scale(1./hobj->Integral());
+                //hobj->Scale(1./hobj->Integral());
 		hobj->Draw("E0 SAME");
 		legS .Draw();
 		rp = (TH1D*)(hobj->Clone());

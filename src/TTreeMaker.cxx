@@ -83,7 +83,7 @@ namespace{
   constexpr double          TZQ_W =     .001282195145961;
   constexpr double	 WWLNQQ_W =     .217397888077438;
   constexpr double	 WZLNQQ_W =     .023346822887722;
-  constexpr double        TTBLV_W =     .259370470379861;
+  constexpr double        TTBLV_W =     .116716711670938;
   constexpr double        TZQQ1_W =     .002187451145511;// ttz
   constexpr double        TZQQ2_W =     .002187451145511;// ttz
   constexpr double	 ZZLLQQ_W =     .004846009977230;
@@ -91,8 +91,8 @@ namespace{
   constexpr double          WJX_W =   29.974592904578200;
   constexpr double           ST_W =     .038369181101617;
   constexpr double          STB_W =     .044328810546237;
-  constexpr double        TTBLL_W =     .412954209347437;
-  constexpr double        TTBJJ_W =     .219342829890331;
+  constexpr double        TTBLL_W =     .037165878841269;
+  constexpr double        TTBJJ_W =     .100897701749552;
   constexpr double          STW_W =     .182471143106780;
   constexpr double         STBW_W =     .187503857835408;
   constexpr double         WJQQ_W =     .178271715682156;

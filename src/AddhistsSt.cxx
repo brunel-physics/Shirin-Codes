@@ -9,7 +9,7 @@ namespace{
 	std::string
 	NPLc = "elnu",
 	NPLds = "_st",
-	temp_header = "histo/",
+	temp_header = "histo/BDT_",
 	temp_footer = ".root",
 	temp_opener
 	;
@@ -99,9 +99,9 @@ void addhistsSt(const channel ch){
 		zq.GetObject(("Z_pair_jets_Delta_Phi_" + NPLc + "_" + NPLds).c_str(),fzjdph);
 		fzjdph->SetDirectory(nullptr);// make it stay even if file closed
 
-		zq.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),f__npl);
+/*		zq.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),f__npl);
 		f__npl->SetDirectory(nullptr);// make it stay even if file closed
-
+*/
 		zq.GetObject((NPLc + "_" + NPLds + "_fin_jets__pt").c_str(),fjt_pt);
 		fjt_pt->SetDirectory(nullptr);// make it stay even if file closed
 
@@ -233,9 +233,9 @@ void addhistsSt(const channel ch){
 		tf.GetObject(("Z_pair_jets_Delta_Phi_" + NPLc + "_" + NPLds).c_str(),hzjdph);
 		fzjdph->Add(hzjdph);
 
-		tf.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),h__npl);
+/*		tf.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),h__npl);
 		f__npl->Add(h__npl);
-
+*/
 		tf.GetObject((NPLc + "_" + NPLds + "_fin_jets__pt").c_str(),hjt_pt);
 		fjt_pt->Add(hjt_pt);
 
@@ -296,7 +296,7 @@ void addhistsSt(const channel ch){
 	fzmdph->SetName(("Z_MET_Delta_Phi_" + NPLc +"__ST").c_str());
 	fwz_dr->SetName(("WZ_DeltaR_"+ NPLc +"__ST").c_str());
 	fzjdph->SetName(("Z_pair_jets_Delta_Phi_" + NPLc +"__ST").c_str());
-	f__npl->SetName(("npl_" + NPLc +"__ST").c_str());
+//	f__npl->SetName(("npl_" + NPLc +"__ST").c_str());
 	fjt_pt->SetName((NPLc +"__ST_" + "fin_jets__pt").c_str());
 	fjteta->SetName((NPLc +"__ST_" + "fin_jets_eta").c_str());
 	fjtphi->SetName((NPLc +"__ST_" + "fin_jets_phi").c_str());
@@ -328,7 +328,7 @@ void addhistsSt(const channel ch){
 	hf.WriteTObject(fzmdph);hf.Flush();sync();
 	hf.WriteTObject(fwz_dr);hf.Flush();sync();
 	hf.WriteTObject(fzjdph);hf.Flush();sync();
-	hf.WriteTObject(f__npl);hf.Flush();sync();
+//	hf.WriteTObject(f__npl);hf.Flush();sync();
 	hf.WriteTObject(fjt_pt);hf.Flush();sync();
 	hf.WriteTObject(fjteta);hf.Flush();sync();
 	hf.WriteTObject(fjtphi);hf.Flush();sync();

@@ -128,7 +128,7 @@ int plotcomp(){
 	}
 	std::string    hobjN = opener + "_" + particle + kstring ;
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),hobj);
-	if(hobj->GetMaximum() > max)  max =   hobj->GetMaximum( );
+	//if(hobj->GetMaximum() > max)  max =   hobj->GetMaximum( );
 	                              hobj->SetDirectory(nullptr);
 	if( cms == ds || met == ds ){ if(met == ds) 	 continue;
 				      stac .Draw("hist");
@@ -143,6 +143,8 @@ int plotcomp(){
 		                      rp = (TH1D*)(hobj->Clone());
 	}else{                        hobj->SetFillColor( colour);
 		                      stac .Add(hobj            );
+                                      TH1F *lsh = new TH1F(*((TH1F *)(stac.GetStack()->Last())));
+                                      max = lsh ->GetMaximum();
 				      stac .SetMaximum(max*1.2);// now plot is set, plot CMS on it
 		                      legS .AddEntry(hobj,lgN.c_str(),"f");
 	}// else

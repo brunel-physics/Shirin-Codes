@@ -26,6 +26,52 @@ enum      PtEtaPhiM	 {pt,eta,phi,m};
 constexpr PtEtaPhiM
           PtEtaPhiMall[]={pt,eta,phi,m};
 
+using doubles = ROOT::VecOps::RVec<double>;
+using  floats = ROOT::VecOps::RVec<float>;
+using    ints = ROOT::VecOps::RVec<int>;
+using   bools = ROOT::VecOps::RVec<bool>;
+using strings = ROOT::VecOps::RVec<std::string>;
+
+  constexpr  float   MU__PT_MIN   = 29.f;
+  constexpr  float   MU_ETA_MAX   = 2.4f;
+  constexpr  float   MU_LOOSE_ISO = .25f;
+  constexpr  float   MU_TIGHT_ISO = .15f;
+
+//constexpr  float    MET__PT_MIN = 40.f;
+  constexpr  float    MET_EL_PT   = 30.f;//80.f;// TODO: Need new values
+  constexpr  float    MET_MU_PT   = 45.f;//40.f;
+
+  constexpr double     Z_MASS     =  91.1876;
+  constexpr double     Z_MASS_CUT =  20.    ;
+  constexpr double     W_MASS     =  80.385 ;
+  constexpr double     W_MASS_CUT =  20.    ;
+  constexpr double   TOP_MASS     = 172.5   ;
+//constexpr double   TOP_MASS_CUT =  20.    ;
+  constexpr double DELTA___R_ZL   = 1.6;
+  constexpr double DELTA_PHI_ZW   = 2. ;
+  constexpr double DELTA_PHI_ZMET = 2. ;
+
+
+inline auto met_pt_cut(const channel ch){
+	float lower_bound;
+	switch(ch){
+		case elnu:{lower_bound = MET_EL_PT;break;}
+		case munu:{lower_bound = MET_MU_PT;break;}
+		default  :throw std::invalid_argument(
+			"Unimplemented ch (met_pt_cut)");
+	}
+	return [=](const float   met_pt)->bool
+	   {return lower_bound < met_pt;};
+}
+
+inline auto easy_mass_cut(const double theo,const double cut){
+	return [=](const double ours){return std::abs(ours-theo)<cut;};
+}
+/*auto deltaphi_cut(const double    x){
+      return  [=](const doubles& dps){
+		return  std::any(dps >= x);
+	};
+}*/
 
 
 void ttreehisto(const channel ch,const dataSource ds){
@@ -72,6 +118,16 @@ std::cout<< "chN and dsN are "<<chN<<" "<<dsN<<std::endl;
 ROOT::RDataFrame finalDF("Events",temp_opener);// Monte Carlo
 std::cout<<"opened file is "<< temp_opener<<std::endl;
 
+//auto finalDF
+//	= DF
+//	.Filter(met_pt_cut(ch),{"met__pt"},"MET Pt cut")
+//	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
+//	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut")
+//	.Filter(      deltaphi_cut(DELTA_PHI_ZW),
+//	       {   "zw_Dph"},"delta phi ZW cut")
+//	.Filter(      deltaphi_cut(DELTA_PHI_ZMET),
+//	       { "zmet_Dph"},"Z met cut ")
+	;
 // now we make the histogram names and titles
 switch(ch){
 	case elnu:{temp_header = "elnu_";

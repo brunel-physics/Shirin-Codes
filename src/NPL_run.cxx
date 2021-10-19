@@ -362,6 +362,32 @@ inline auto lep_gpt(const channel ch){
 	if(-1!=i) return static_cast<double>(pt[i]); else return -1.;
 	};
 }
+inline auto lep_gpsf(const channel ch){
+        if(0<debug) std::cout<<"lep gpsf "<<std::endl;
+        return [=](
+                 const ints &gpsf
+                ,const ints &mask
+                ,const ints &eidx
+                ,const ints &midx
+        ){
+        ints i;
+        switch(ch){
+                if(0<debug) std::cout<<"lep gpsf in switch"<<std::endl;
+                case elnu:{i = eidx[mask];break;}
+                case munu:{i = midx[mask];break;}
+        }
+        // GenPart_statusFlafs is stored as bits. it first should be sorted
+        // by The idx and then masked correctly (to the tight lepton or loose ones)
+        // The zero bit shows whether the particle is prompt or not. Thus we check
+        // whether the remainer of the gpsf % 2 is 1 or not.
+        // * the -1!=i is responsible for the indexcies which are not related to a
+        // lepton or jet level therefore could be taken out.
+        if(0<debug) std::cout<<"lep gpsf before Take"<<std::endl;
+        ints g = Take(gpsf,i[-1!=i]) & (1 << 0);
+        if(0<debug) std::cout<<"lep gpsf finish"<<std::endl;
+        return Any(g == 1);
+        };
+}
 auto roccorSF(
 	 RoccoR          &rc
 	,const channel    ch
