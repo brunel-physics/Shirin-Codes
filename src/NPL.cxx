@@ -1,7 +1,7 @@
 // This script is designed to compute the NPL estimation of the data. The main NPL calculation is in calchisto.cpp
 
 // Compiler:
-//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/npl_test src/NPL.cxx `root-config --libs` -lm
+//clang++ -Isrc -std=c++17 -march=native -pipe -O3 -Wall -Wextra -Wpedantic -o build/npl src/NPL.cxx `root-config --libs` -lm
 
 // TODO: SPLIT the data entries for all the MCs
 // TODO: APPLY all SFs for luminosity and etc accordingly.
@@ -717,6 +717,7 @@ inline auto easy_mass_cut(const double theo,const double cut){
 }
 } // namespace
 void NPL(const channel ch,const dataSource ds){
+	ROOT::EnableImplicitMT(4);// SYNC WITH CONDOR JOBS!
 	nlohmann::json JSONdict;
 	std::ifstream(// open this JSON file once as a stream
 	"aux/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt")
@@ -888,7 +889,7 @@ void NPL(const channel ch,const dataSource ds){
 			"Unimplemented ch (init)");
 	}
 	// make test runs faster by restriction. Real run should not
-	auto dfr = df.Range(10000);// remember to enable MT when NOT range
+	//auto dfr = df.Range(10000);// remember to enable MT when NOT range
 	auto origi = df// toggle one letter to do all
 	;
 	auto lumclean = origi
@@ -955,7 +956,7 @@ void NPL(const channel ch,const dataSource ds){
 	.Define("tw_lep_mas",transverse_w_mass,
 	       {"tw_lep__pt",
 	        "tw_lep_phi","MET_pt","MET_phi"})
-	.Filter(met_pt_cut(ch),{"met__pt"},"MET Pt cut")
+	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	//.Filter("tw_lep_mas < 60 || tw_lep_mas > 100","Transverse W mass cut for loose QCD region,loose QCD")
 	;
 	//QCD Region tight cut
@@ -1000,7 +1001,7 @@ void NPL(const channel ch,const dataSource ds){
 	       {"tw_lep__pt",
 	        "tw_lep_phi","MET_pt","MET_phi"})
 	.Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
-	.Filter(met_pt_cut(ch),{"met__pt"},"MET Pt cut")
+	.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")
 	//.Filter("tw_lep_mas > 100 || tw_lep_mas < 60","Transverse W mass cut for tight QCD region, tight in QCD")
 	;// loose not tight lepton in signal region
 
@@ -1132,8 +1133,8 @@ void NPL(const channel ch,const dataSource ds){
 */
 	TFile hf(("histo/NPL_"+temp_header+".root").c_str(),"RECREATE");
 	// CMS only
-	hf.WriteTObject(h_LT_data           .GetPtr());hf.Flush();sync();
-//        hf.WriteTObject(h_eff_TL_ratio               );hf.Flush();sync();
+//	hf.WriteTObject(h_LT_data           .GetPtr());hf.Flush();sync();
+        hf.WriteTObject(h_eff_TL_ratio               );hf.Flush();sync();
 	}
 	std::cout<<"NPL successfully finished"<<std::endl;
 } //void
