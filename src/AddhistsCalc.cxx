@@ -11,7 +11,7 @@ int debug = 1;
 namespace{
 	std::string
 	NPLc = "elnu",
-	NPLds = "cms",
+	NPLds = "tzq",
 	temp_header = "histo/BDT_NPL_",
 	temp_footer = ".root",
 	temp_opener
@@ -42,7 +42,7 @@ namespace{
 
 void AddhistsCalc(const channel ch){
 	// do tzq first so that tpr & tln are not null
-	if(munu == ch) {NPLc = "munu"; NPLds = "cms";}
+	if(munu == ch) {NPLc = "munu"; NPLds = "tzq";}
 		temp_opener = temp_header + NPLc + "_" + NPLds + temp_footer;
 		std::cout << "Opening file " << temp_opener << std::endl;
 		std::cout<<"temp opener is "<<temp_opener.c_str()<<std::endl;
@@ -102,8 +102,8 @@ void AddhistsCalc(const channel ch){
 		zq.GetObject(("Z_pair_jets_Delta_Phi_" + NPLc + "_" + NPLds).c_str(),fzjdph);
 		fzjdph->SetDirectory(nullptr);// make it stay even if file closed
                 if(debug > 0)std::cout<<"17"<<std::endl;
-		zq.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),f__npl);
-		f__npl->SetDirectory(nullptr);// make it stay even if file closed
+		//zq.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),f__npl);
+		//f__npl->SetDirectory(nullptr);// make it stay even if file closed
                 if(debug > 0)std::cout<<"18"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_fin_jets__pt").c_str(),fjt_pt);
 		fjt_pt->SetDirectory(nullptr);// make it stay even if file closed
@@ -152,7 +152,8 @@ void AddhistsCalc(const channel ch){
 		dcm->SetDirectory(nullptr);// make it stay even if file closed
 		dc.Close();*/
 	for(dataSource ds:dataSourceAll){// to go through all ds get the files open
-		if(met == ds || cms == ds)continue;
+		if(tzq == ds || met == ds || zjt1 == ds || cms == ds)continue;
+		if(munu == ch && wjqq == ds)continue;
 		switch (ds){// only needs to be done for tz1 and tz2 for calchisto.cpp
 		case  tzq:{NPLds =  "tzq";break;}
 		case   ww:{NPLds =  "_ww";break;}
@@ -164,10 +165,10 @@ void AddhistsCalc(const channel ch){
 		case stbw:{NPLds = "stbw";break;}
 		case wjqq:{NPLds = "wjqq";break;}
 		case wzll:{NPLds = "wzll";break;}
-                case zjt1:{NPLds = "ZJT1";break;}
-                case zjt2:{NPLds = "ZJT2";break;}
-                case zjt3:{NPLds = "ZJT3";break;}
-                case zjqq:{NPLds = "ZJQQ";break;}
+                case zjt1:{NPLds = "zjt1";break;}
+                case zjt2:{NPLds = "zjt2";break;}
+                case zjt3:{NPLds = "zjt3";break;}
+                case zjqq:{NPLds = "zjqq";break;}
 		case  ttb:{NPLds =  "ttb";break;}
 		case  ttl:{NPLds =  "ttl";break;}
 		case  ttj:{NPLds =  "ttj";break;}
@@ -184,8 +185,8 @@ void AddhistsCalc(const channel ch){
 		if(0<debug) std::cout << "Opening file " << temp_opener << std::endl;
 		TFile tF(temp_opener.c_str());
 		if( ! tF.IsOpen()) throw std::runtime_error("File is not opened");
-
-		tF.GetObject(("btag_w_" + NPLc + "_" + NPLds).c_str(),hbtagw);
+		if(cms == ds){
+/*		tF.GetObject(("btag_w_" + NPLc + "_" + NPLds).c_str(),hbtagw);
 		fbtagw->Add(hbtagw,-1);
 		if(debug > 0)std::cout<<"1"<<std::endl;
 		tF.GetObject(("mostSF_" + NPLc + "_" + NPLds).c_str(),hlp_sf);
@@ -202,7 +203,7 @@ void AddhistsCalc(const channel ch){
 
 		tF.GetObject(("cmet_phi_" + NPLc + "_" + NPLds).c_str(),hcmtph);
 		fcmtph->Add(hcmtph,-1);
-
+*/
 		tF.GetObject(("met_sEt_" + NPLc + "_" + NPLds).c_str(),hmteta);
 		fmteta->Add(hmteta,-1);
 
@@ -239,8 +240,8 @@ void AddhistsCalc(const channel ch){
 		tF.GetObject(("Z_pair_jets_Delta_Phi_" + NPLc + "_" + NPLds).c_str(),hzjdph);
 		fzjdph->Add(hzjdph,-1);
 
-		tF.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),h__npl);
-		f__npl->Add(h__npl,-1);
+		//tF.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),h__npl);
+		//f__npl->Add(h__npl,-1);
 
 		tF.GetObject((NPLc + "_" + NPLds + "_fin_jets__pt").c_str(),hjt_pt);
 		fjt_pt->Add(hjt_pt,-1);
@@ -279,6 +280,103 @@ void AddhistsCalc(const channel ch){
 		fb_mas->Add(hb_mas,-1);
 
 		tF.Close();
+		}// if ds == cms
+		else{
+		tF.GetObject(("btag_w_" + NPLc + "_" + NPLds).c_str(),hbtagw);
+		fbtagw->Add(hbtagw);
+		if(debug > 0)std::cout<<"1"<<std::endl;
+		tF.GetObject(("mostSF_" + NPLc + "_" + NPLds).c_str(),hlp_sf);
+		flp_sf->Add(hlp_sf);
+
+		tF.GetObject(( "ttbSF_" + NPLc + "_" + NPLds).c_str(),htpt_w);
+		ftpt_w->Add(htpt_w);
+
+		tF.GetObject(("cmet_sEt_" + NPLc + "_" + NPLds).c_str(),hcmtet);
+		fcmtet->Add(hcmtet);
+
+		tF.GetObject(("cmet__pt_" + NPLc + "_" + NPLds).c_str(),hcmtpt);
+		fcmtpt->Add(hcmtpt);
+
+		tF.GetObject(("cmet_phi_" + NPLc + "_" + NPLds).c_str(),hcmtph);
+		fcmtph->Add(hcmtph);
+
+		tF.GetObject(("met_sEt_" + NPLc + "_" + NPLds).c_str(),hmteta);
+		fmteta->Add(hmteta);
+
+		tF.GetObject(("met__pt_" + NPLc + "_" + NPLds).c_str(),hmt_pt);
+		fmt_pt->Add(hmt_pt);
+
+		tF.GetObject(("ttop_pt_" + NPLc + "_" + NPLds).c_str(),ht__pt);
+		ft__pt->Add(ht__pt);
+
+		tF.GetObject(("tTm_" + NPLc + "_" + NPLds).c_str(),ht_mas);
+		ft_mas->Add(ht_mas);
+
+		tF.GetObject(("W_invariant_mass_" + NPLc + "_" + NPLds).c_str(),hWinvm);
+		fWinvm->Add(hWinvm);
+
+                tF.GetObject(("tWm_" + NPLc + "_" + NPLds).c_str(),htWinm);
+                ftWinm->Add(htWinm);
+
+		tF.GetObject(("ev_w_" + NPLc + "_" + NPLds).c_str(),hev_sf);
+		fev_sf->Add(hev_sf);
+
+		tF.GetObject(("zmas_" + NPLc + "_" + NPLds).c_str(),hz_mas);
+		fz_mas->Add(hz_mas);
+
+		tF.GetObject(("Z_W_Delta_Phi_" + NPLc + "_" + NPLds).c_str(),hzwdph);
+		fzwdph->Add(hzwdph);
+
+		tF.GetObject(("Z_MET_Delta_Phi_" + NPLc + "_" + NPLds).c_str(),hzmdph);
+		fzmdph->Add(hzmdph);
+
+		tF.GetObject(("WZ_DeltaR_" + NPLc + "_" + NPLds).c_str(),hwz_dr);
+		fwz_dr->Add(hwz_dr);
+
+		tF.GetObject(("Z_pair_jets_Delta_Phi_" + NPLc + "_" + NPLds).c_str(),hzjdph);
+		fzjdph->Add(hzjdph);
+
+		//tF.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),h__npl);
+		//f__npl->Add(h__npl);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_fin_jets__pt").c_str(),hjt_pt);
+		fjt_pt->Add(hjt_pt);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_fin_jets_eta").c_str(),hjteta);
+		fjteta->Add(hjteta);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_fin_jets_phi").c_str(),hjtphi);
+		fjtphi->Add(hjtphi);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_fin_jets_mas").c_str(),hjtmas);
+		fjtmas->Add(hjtmas);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_lep__pt").c_str(),hlp_pt);
+		flp_pt->Add(hlp_pt);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_lep_eta").c_str(),hlpeta);
+		flpeta->Add(hlpeta);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_lep_phi").c_str(),hlpphi);
+		flpphi->Add(hlpphi);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_lep_mas").c_str(),hlpmas);
+		flpmas->Add(hlpmas);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_bjet__pt").c_str(),hb__pt);
+		fb__pt->Add(hb__pt);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_bjet_eta").c_str(),hb_eta);
+		fb_eta->Add(hb_eta);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_bjet_phi").c_str(),hb_phi);
+		fb_phi->Add(hb_phi);
+
+		tF.GetObject((NPLc + "_" + NPLds + "_bjet_mas").c_str(),hb_mas);
+		fb_mas->Add(hb_mas);
+
+		tF.Close();
+		}// if ds != cms
 	}// for
 	// try to associate pointers correctly and store them
 	if(0<debug) std::cout<<"all objects added"<<std::endl;
@@ -302,7 +400,7 @@ void AddhistsCalc(const channel ch){
 	fzmdph->SetName(("Z_MET_Delta_Phi_" + NPLc +"_NPL").c_str());
 	fwz_dr->SetName(("WZ_DeltaR_" + NPLc +"_NPL").c_str());
 	fzjdph->SetName(("Z_pair_jets_Delta_Phi_" + NPLc +"_NPL").c_str());
-	f__npl->SetName(("npl_" + NPLc +"_NPL").c_str());
+	//f__npl->SetName(("npl_" + NPLc +"_NPL").c_str());
 	fjt_pt->SetName((NPLc +"_NPL_" + "fin_jets__pt").c_str());
 	fjteta->SetName((NPLc +"_NPL_" + "fin_jets_eta").c_str());
 	fjtphi->SetName((NPLc +"_NPL_" + "fin_jets_phi").c_str());
@@ -334,7 +432,7 @@ void AddhistsCalc(const channel ch){
 	hf.WriteTObject(fzmdph);hf.Flush();sync();
 	hf.WriteTObject(fwz_dr);hf.Flush();sync();
 	hf.WriteTObject(fzjdph);hf.Flush();sync();
-	hf.WriteTObject(f__npl);hf.Flush();sync();
+	//hf.WriteTObject(f__npl);hf.Flush();sync();
 	hf.WriteTObject(fjt_pt);hf.Flush();sync();
 	hf.WriteTObject(fjteta);hf.Flush();sync();
 	hf.WriteTObject(fjtphi);hf.Flush();sync();

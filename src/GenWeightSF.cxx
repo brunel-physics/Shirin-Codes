@@ -26,9 +26,9 @@ void GenWeightSF(const channel ch,const dataSource ds){
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
 	case  tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}/**/
-	case   ww:{temp_opener=temp_header+ "WWToLNuQQ"       +temp_footer;break;}
-	case   wz:{temp_opener=temp_header+ "WZTo1L1Nu2Q"     +temp_footer;break;}
-	case   zz:{temp_opener=temp_header+ "ZZTo2L2Q"        +temp_footer;break;}
+	case   ww:{temp_opener="/nfs/data/eepgssg/WW"         +temp_footer;break;}
+	case   wz:{temp_opener="/nfs/data/eepgssg/WZ"         +temp_footer;break;}
+	case   zz:{temp_opener="/nfs/data/eepgssg/ZZ"         +temp_footer;break;}
 	case  wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
         case  wjx:{temp_opener="/nfs/data/eepgssg/WJetsToLNu_ext_NanoAODv5"+temp_footer;break;}
 	case  ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}

@@ -81,12 +81,12 @@ namespace{
 //constexpr double    ak8RconeBy2 =  .4;
 
   constexpr double          TZQ_W =     .001282195145961;
-  constexpr double	 WWLNQQ_W =     .217397888077438;
-  constexpr double	 WZLNQQ_W =     .023346822887722;
+  constexpr double	 WWLNQQ_W =     .405352552232679;//.217397888077438;
+  constexpr double	 WZLNQQ_W =     .291755752005152;//.023346822887722;
   constexpr double        TTBLV_W =     .116716711670938;
   constexpr double        TZQQ1_W =     .002187451145511;// ttz
   constexpr double        TZQQ2_W =     .002187451145511;// ttz
-  constexpr double	 ZZLLQQ_W =     .004846009977230;
+  constexpr double	 ZZLLQQ_W =     .259214393712483;//.004846009977230;
   constexpr double          WJT_W =   29.974592904578200;
   constexpr double          WJX_W =   29.974592904578200;
   constexpr double           ST_W =     .038369181101617;
@@ -106,12 +106,12 @@ namespace{
 
 
   constexpr double      TZQ_GEN_W =  0.25890;
-  constexpr double       WW_GEN_W =  0.99621;
-  constexpr double       WZ_GEN_W =  0.59451;
+  constexpr double       WW_GEN_W =  1.;//0.99621;
+  constexpr double       WZ_GEN_W =  1.;//0.59451;
   constexpr double      TTB_GEN_W =  0.99191;
   constexpr double     TTZ1_GEN_W =  0.47505;
   constexpr double     TTZ2_GEN_W =  0.47492;
-  constexpr double       ZZ_GEN_W =  0.99880;
+  constexpr double       ZZ_GEN_W =  1.;//0.99880;
   constexpr double      WJT_GEN_W =  0.99103;
   constexpr double      WJX_GEN_W =  0.99911;
   constexpr double       ST_GEN_W =  1.00000;
@@ -1068,7 +1068,7 @@ inline auto pile(
 	return dict;};
 }
 // Non-prompt-lepton estimation
-auto npl(
+/*auto npl(
 	 const channel                   ch
 	,const bool                      MC
 	,const TH2D* const &TL_eff_elnu_QCD // Tight to loose efficiency elnu
@@ -1124,6 +1124,7 @@ auto npl(
 	if(debug > 0) std::cout << "NPL result " << npl << std::endl;
 	return  npl;};
 }
+*/
 auto genWSF(const dataSource  ds){
   	if(0<debug) std::cout<<"genWSF"<<std::endl;
         return [=](
@@ -1391,7 +1392,7 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	tF	= nullptr; tHf = nullptr; tHd = nullptr; t1d = nullptr;
 	RoccoR rc("src/roccor.Run2.v3/RoccoR2017.txt");
 	// NPL results
-	tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
+/*	tF = TFile::Open("aux/NPL/NPL_elnu_QCD.root");
 	tF ->GetObject("prompt_LnT_elnu_QCD",tHd);
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
 	const TH2D* const pr_LnT_elnu_QCD = static_cast<TH2D*>(tHd);
@@ -1421,6 +1422,7 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	tHd->SetDirectory(nullptr);// make it stay even if file closed
 	const TH2D* const dt_LnT_munu_cms = static_cast<TH2D*>(tHd);
 	tF ->Close();
+*/
 //	std::cout<<"Auxiliary files processed"       <<std::endl;
 
 	// Open data files even if unused
@@ -1435,9 +1437,9 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	temp_opener,temp_footer="/*.root";/**/
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
 	case  tzq:{temp_opener=temp_header3+ "tZqlvqq"                      +temp_footer;break;}
-	case   ww:{temp_opener=temp_header0+ "WWToLNuQQ"                    +temp_footer;break;}
-	case   wz:{temp_opener=temp_header0+ "WZTo1L1Nu2Q"                  +temp_footer;break;}
-	case   zz:{temp_opener=temp_header0+ "ZZTo2L2Q"                     +temp_footer;break;}
+	case   ww:{temp_opener=temp_header1+ "WW/WW_v7"                     +temp_footer;break;}
+	case   wz:{temp_opener=temp_header1+ "WZ"                           +temp_footer;break;}
+	case   zz:{temp_opener=temp_header1+ "ZZ"                           +temp_footer;break;}
 	case  wjt:{temp_opener=temp_header3+ "WPlusJets_NanoAODv5"          +temp_footer;break;}
 	case  wjx:{temp_opener=temp_header1+ "WJetsToLNu_ext_NanoAODv5"     +temp_footer;break;}// ext of WPlusJets
 	case  ttb:{temp_opener=temp_header0+ "TTToSemileptonic"             +temp_footer;break;}
