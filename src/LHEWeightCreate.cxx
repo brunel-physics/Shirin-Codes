@@ -47,14 +47,15 @@ switch (ds){
 ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
 // define dummy variable
 auto dfr = mc__df
-	 .Define("LHEPDFWeight",dummy,{"Jet_pt"})
+	 .Define("LHEPdfWeight",dummy,{"Jet_pt"})
 	 ;
 switch (ds){
-	case   ww:{temp_opener="nfs/data/eepgssg/WW/WW_v7/file.root";break;}
-        case   wz:{temp_opener="nfs/data/eepgssg/WZ/WZ_v7/file.root";break;}
-        case   zz:{temp_opener="nfs/data/eepgssg/ZZ/ZZ_v7/file.root";break;}
+	case   ww:{temp_opener="/nfs/data/eepgssg/WW/WW_v7/file.root";break;}
+        case   wz:{temp_opener="/nfs/data/eepgssg/WZ/WZ_v7/file.root";break;}
+        case   zz:{temp_opener="/nfs/data/eepgssg/ZZ/ZZ_v7/file.root";break;}
         default :throw std::invalid_argument("Unimplemented ds(temp_open)");
 }
+std::cout<<"temp_opener is "<<temp_opener<<std::endl;
 //snap shot in the nfs/data/eepgssg/WW/WW_ dir WZ and ZZ respectively too
 auto SnapRDF = dfr.Snapshot("Events",temp_opener);// SNAPPED!
 }// void

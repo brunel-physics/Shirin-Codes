@@ -51,6 +51,8 @@ using strings = ROOT::VecOps::RVec<std::string>;
   constexpr double DELTA_PHI_ZW   = 2. ;
   constexpr double DELTA_PHI_ZMET = 2. ;
 
+  constexpr unsigned     JETS_MIN =  4   ;
+  constexpr unsigned     JETS_MAX =  6   ;
 
 inline auto met_pt_cut(const channel ch){
 	float lower_bound;
@@ -72,7 +74,22 @@ inline auto easy_mass_cut(const double theo,const double cut){
 		return  std::any(dps >= x);
 	};
 }*/
-
+inline auto blinding(
+	 const doubles bjets
+	,const doubles tjets){// This is the jet multiplicity technique,
+	// suggested by Dr Duncan Leggat.
+	// We take the number of bjets and remaining tight jets based on
+	// the number of existing final jets. Therefore, we expect either
+	// 3 bjets at final state or , 1 bjet and two other jets.
+	return (bjets.size() != 3 && tjets.size() <= JETS_MAX) || // the fourth jet
+	       (bjets.size() != 1 && tjets.size() <= JETS_MAX)  ; // is the recoiled jet
+	// from t-channel process
+}
+auto numbjet(
+	const doubles bjets){// this function returns the number of bjets in events
+	int nbjet = bjets.size();
+	return nbjet;
+}
 
 void ttreehisto(const channel ch,const dataSource ds){
         ROOT::EnableImplicitMT(4);// SYNC WITH CONDOR JOBS!
@@ -115,11 +132,12 @@ else{	      chN = "munu";
 }// end if
 temp_opener= temp_header + chN + dsN + temp_footer;
 std::cout<< "chN and dsN are "<<chN<<" "<<dsN<<std::endl;
-ROOT::RDataFrame finalDF("Events",temp_opener);// Monte Carlo
+ROOT::RDataFrame /*final*/DF("Events",temp_opener);// Monte Carlo
 std::cout<<"opened file is "<< temp_opener<<std::endl;
 
-//auto finalDF
-//	= DF
+auto finalDF
+	= DF
+	.Define("nbjet",numbjet,{"bjet__pt"})
 //	.Filter(met_pt_cut(ch),{"met__pt"},"MET Pt cut")
 //	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
 //	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut")
@@ -283,6 +301,16 @@ if(ds != cms){
 	h_cmet_dpy->GetXaxis()->SetTitle("MET correction p_{y} (GeV/c)");
 	h_cmet_dpy->GetYaxis()->SetTitle("Event");
 	h_cmet_dpy->SetLineStyle(kSolid);
+
+        auto h_nbjet = finalDF.Histo1D({
+        ("nbjet_"+temp_header).c_str(),
+        ("nbjet "+temp_header).c_str(),
+        7,0,7},"nbjet");
+        h_nbjet->GetXaxis()->SetTitle("Number of bjets");
+        h_nbjet->GetYaxis()->SetTitle("Event");
+        h_nbjet->SetLineStyle(kSolid);
+
+
 // end MC only
 
 	auto h_met_sEt = finalDF.Histo1D({
@@ -507,9 +535,10 @@ if(ds != cms){
 		h->GetYaxis()->SetTitle("Event");
 		hf.WriteTObject(h.GetPtr());hf.Flush();sync();
 }}else{
-
-
-	auto h_met_sEt = finalDF.Histo1D({
+	auto blindfinalDF = finalDF
+			  .Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
+			  ;
+	auto h_met_sEt = blindfinalDF.Histo1D({
 	("met_sEt_"+temp_header).c_str(),
 	("met_sEt "+temp_header).c_str(),
 	100,0,600},"MET_sumEt");
@@ -517,7 +546,7 @@ if(ds != cms){
 	h_met_sEt->GetYaxis()->SetTitle("Event");
 	h_met_sEt->SetLineStyle(kSolid);
 
-	auto h_met__pt = finalDF.Histo1D({
+	auto h_met__pt = blindfinalDF.Histo1D({
 	("met__pt_"+temp_header).c_str(),
 	("met__pt "+temp_header).c_str(),
 	50,0,300},"MET_pt");
@@ -525,7 +554,7 @@ if(ds != cms){
 	h_met__pt->GetYaxis()->SetTitle("Event");
 	h_met__pt->SetLineStyle(kSolid);
 
-	auto h_trans_T = finalDF.Histo1D({
+	auto h_trans_T = blindfinalDF.Histo1D({
 	(          "tTm_"     + temp_header).c_str(),
 	("Transverse T mass " + temp_header).c_str(),
 	50,0,250},
@@ -534,7 +563,7 @@ if(ds != cms){
 	h_trans_T->GetYaxis()->SetTitle("Event");
 	h_trans_T->SetLineStyle(kSolid);
 
-	auto h_trans_w = finalDF.Histo1D({
+	auto h_trans_w = blindfinalDF.Histo1D({
 	(          "tWm_"     + temp_header).c_str(),
 	("Transverse W mass " + temp_header).c_str(),
 	50,0,160},
@@ -543,7 +572,7 @@ if(ds != cms){
 	h_trans_w->GetYaxis()->SetTitle("Event");
 	h_trans_w->SetLineStyle(kSolid);
 
-	auto h_Winvmas = finalDF.Histo1D({
+	auto h_Winvmas = blindfinalDF.Histo1D({
 	("W_invariant_mass_" + temp_header).c_str(),
 	("W invariant mass " + temp_header).c_str(),
 	50,0,160},
@@ -552,7 +581,7 @@ if(ds != cms){
 	h_Winvmas->GetYaxis()->SetTitle("Event");
 	h_Winvmas->SetLineStyle(kSolid);
 
-	auto h_ev_w = finalDF.Histo1D({
+	auto h_ev_w = blindfinalDF.Histo1D({
 	(   "ev_w_"     +temp_header).c_str(),
 	("Event weight "+temp_header).c_str(),
 	50,-1,3},"sf");
@@ -560,7 +589,7 @@ if(ds != cms){
 	h_ev_w->GetYaxis()->SetTitle("Event" );
 	h_ev_w->SetLineStyle(kSolid);
 
-	auto h_z_mas = finalDF.Histo1D({
+	auto h_z_mas = blindfinalDF.Histo1D({
 	(        "zmas_"  + temp_header).c_str(),
 	("Recon. Z mass " + temp_header).c_str(),
 	50,0,150},
@@ -569,7 +598,7 @@ if(ds != cms){
 	h_z_mas->GetYaxis()->SetTitle("Event");
 	h_z_mas->SetLineStyle(kSolid);
 
-	auto h_zw_Dph = finalDF.Histo1D({
+	auto h_zw_Dph = blindfinalDF.Histo1D({
 	("Z_W_Delta_Phi_" + temp_header).c_str(),
 	("Z W Delta Phi " + temp_header).c_str(),
 	50,0,3.2},
@@ -578,7 +607,7 @@ if(ds != cms){
 	h_zw_Dph->GetYaxis()->SetTitle("Event");
 	h_zw_Dph->SetLineStyle(kSolid);
 
-	auto h_zmet_Dph = finalDF.Histo1D({
+	auto h_zmet_Dph = blindfinalDF.Histo1D({
 	("Z_MET_Delta_Phi_" + temp_header).c_str(),
 	("Z MET Delta Phi " + temp_header).c_str(),
 	50,0,3.2},
@@ -587,7 +616,7 @@ if(ds != cms){
 	h_zmet_Dph->GetYaxis()->SetTitle("Event");
 	h_zmet_Dph->SetLineStyle(kSolid);
 
-	auto h_z_daughters_Dph = finalDF.Histo1D({
+	auto h_z_daughters_Dph = blindfinalDF.Histo1D({
 	("Z_pair_jets_Delta_Phi_" + temp_header).c_str(),
 	("Z pair jets Delta Phi " + temp_header).c_str(),
 	50,0,7},
@@ -596,17 +625,28 @@ if(ds != cms){
 	h_z_daughters_Dph->GetYaxis()->SetTitle("Event");
 	h_z_daughters_Dph->SetLineStyle(kSolid);
 
-	auto h_tWmVsZmass = finalDF.Histo2D({
+	auto h_tWmVsZmass = blindfinalDF.Histo2D({
 	("tWmVsZmass_" + temp_header).c_str(),
 	("tWmVsZmass " + temp_header).c_str(),
 	50,0,160,50,0,160},
 	"tw_lep_mas","z_mas");
 	h_tWmVsZmass->GetXaxis()->SetTitle("\\text{  tWm  GeV/}c^{2}");
 	h_tWmVsZmass->GetYaxis()->SetTitle("\\text{Z mass GeV/}c^{2}");
+
+
+        auto h_nbjet = blindfinalDF.Histo1D({
+        ("nbjet_"+temp_header).c_str(),
+        ("nbjet "+temp_header).c_str(),
+        7,0,7},"nbjet");
+        h_nbjet->GetXaxis()->SetTitle("Number of bjets");
+        h_nbjet->GetYaxis()->SetTitle("Event");
+        h_nbjet->SetLineStyle(kSolid);
+
+
 	// No SetLineStyle here
 
 	//Reporting the filter
-	finalDF.Report() ->Print();
+	blindfinalDF.Report() ->Print();
 	// write histograms to a root file
 	// ASSUMES temp_header is correct!
 	TFile hf(("histo/BDT_"+temp_header+".root").c_str(),"RECREATE");
@@ -647,7 +687,7 @@ if(ds != cms){
 		temp_footer = particle    + kstring;
 		temp_opener = temp_header + "_" + temp_footer;
 		auto
-		h = finalDF.Histo1D(
+		h = blindfinalDF.Histo1D(
 		{temp_opener.c_str()
 		,temp_opener.c_str()
 		,50,xmin,xmax}

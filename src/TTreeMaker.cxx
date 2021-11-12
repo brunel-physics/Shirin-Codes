@@ -800,7 +800,7 @@ auto allReconstruction(T &rdf){
 	.Define("ttop_mas","recoTtop. M ()")
 	.Filter("ttop_mas > 1.","tTm tiny mass filter")
 	.Filter("All(fin_jets__pt > 35)", "after cjer jet pt cut")
-	.Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
+//	.Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
 	;
 }
 // Btagging for eff i and eff j
@@ -1438,8 +1438,8 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
 	case  tzq:{temp_opener=temp_header3+ "tZqlvqq"                      +temp_footer;break;}
 	case   ww:{temp_opener=temp_header1+ "WW/WW_v7"                     +temp_footer;break;}
-	case   wz:{temp_opener=temp_header1+ "WZ"                           +temp_footer;break;}
-	case   zz:{temp_opener=temp_header1+ "ZZ"                           +temp_footer;break;}
+	case   wz:{temp_opener=temp_header1+ "WZ/WZ_v7"                     +temp_footer;break;}
+	case   zz:{temp_opener=temp_header1+ "ZZ/ZZ_v7"                     +temp_footer;break;}
 	case  wjt:{temp_opener=temp_header3+ "WPlusJets_NanoAODv5"          +temp_footer;break;}
 	case  wjx:{temp_opener=temp_header1+ "WJetsToLNu_ext_NanoAODv5"     +temp_footer;break;}// ext of WPlusJets
 	case  ttb:{temp_opener=temp_header0+ "TTToSemileptonic"             +temp_footer;break;}
