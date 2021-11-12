@@ -23,7 +23,8 @@ namespace{
 	     *hjtphi, *hjtmas, *hlp_pt,
 	     *hlpeta, *hlpphi, *hlpmas,
 	     *hb__pt, *hb_eta, *hb_phi,
-	     *hb_mas;// for taking from files
+	     *hb_mas, *hnbjet
+	     ;// for taking from files
 	TH1D *fbtagw, *flp_sf, *ftpt_w,
              *fcmtet, *fcmtpt, *fcmtph,
              *fmteta, *fmt_pt, *ftWinm,
@@ -34,7 +35,8 @@ namespace{
              *fjtphi, *fjtmas, *flp_pt,
              *flpeta, *flpphi, *flpmas,
              *fb__pt, *fb_eta, *fb_phi,
-             *fb_mas;      // finals go here
+             *fb_mas, *fnbjet
+	     ;      // finals go here
 }
 
 void addhiststW(const channel ch){
@@ -102,6 +104,9 @@ void addhiststW(const channel ch){
 /*		zq.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),f__npl);
 		f__npl->SetDirectory(nullptr);// make it stay even if file closed
 */
+                zq.GetObject(("nbjet_" + NPLc + "_" + NPLds).c_str(),fnbjet);
+                fnbjet->SetDirectory(nullptr);// make it stay even if file closed
+
 		zq.GetObject((NPLc + "_" + NPLds + "_fin_jets__pt").c_str(),fjt_pt);
 		fjt_pt->SetDirectory(nullptr);// make it stay even if file closed
 
@@ -236,6 +241,9 @@ void addhiststW(const channel ch){
 /*		tf.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),h__npl);
 		f__npl->Add(h__npl);
 */
+                tf.GetObject(("nbjet_" + NPLc + "_" + NPLds).c_str(),hnbjet);
+                fnbjet->Add(hnbjet);
+
 		tf.GetObject((NPLc + "_" + NPLds + "_fin_jets__pt").c_str(),hjt_pt);
 		fjt_pt->Add(hjt_pt);
 
@@ -297,6 +305,8 @@ void addhiststW(const channel ch){
 	fwz_dr->SetName(("WZ_DeltaR_"+ NPLc +"__tW").c_str());
 	fzjdph->SetName(("Z_pair_jets_Delta_Phi_" + NPLc +"__tW").c_str());
 //	f__npl->SetName(("npl_" + NPLc +"__tW").c_str());
+        fnbjet->SetName(("nbjet_" + NPLc +"__tW").c_str());
+
 	fjt_pt->SetName((NPLc +"__tW_" + "fin_jets__pt").c_str());
 	fjteta->SetName((NPLc +"__tW_" + "fin_jets_eta").c_str());
 	fjtphi->SetName((NPLc +"__tW_" + "fin_jets_phi").c_str());
@@ -309,6 +319,7 @@ void addhiststW(const channel ch){
 	fb_eta->SetName((NPLc +"__tW_" + "bjet_eta").c_str());
 	fb_phi->SetName((NPLc +"__tW_" + "bjet_phi").c_str());
 	fb_mas->SetName((NPLc +"__tW_" + "bjet_mas").c_str());
+
 
 	hf.WriteTObject(fbtagw);hf.Flush();sync();
 	hf.WriteTObject(flp_sf);hf.Flush();sync();
@@ -341,6 +352,8 @@ void addhiststW(const channel ch){
 	hf.WriteTObject(fb_eta);hf.Flush();sync();
 	hf.WriteTObject(fb_phi);hf.Flush();sync();
 	hf.WriteTObject(fb_mas);hf.Flush();sync();
+        hf.WriteTObject(fnbjet);hf.Flush();sync();
+
 
 	if(0<debug) std::cout<<"all objects stored on file"<<std::endl;
 }// void

@@ -42,6 +42,7 @@ std::string allNamesArray[][3] = {// histogram id, histogram title, x axis strin
 	,{      "Z_MET_Delta_Phi_",      "Z MET #Delta#phi ",    "Z & MET #Delta#phi (rad)"}
 	,{"Z_pair_jets_Delta_Phi_","Z pair jets #Delta#phi ","Z pair jets #Delta#phi (rad)"}
 	,{"ev_w_", "Event Weight ","Weight"}
+	,{"nbjet_","Events","Number of bjets"}
 };
 
 int plotall(){

@@ -469,6 +469,7 @@ if(ds != cms){
                 hf.WriteTObject(h_cmet_phi             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet_dpx             .GetPtr());hf.Flush();sync();
 		hf.WriteTObject(h_cmet_dpy             .GetPtr());hf.Flush();sync();
+                hf.WriteTObject(h_nbjet                .GetPtr());hf.Flush();sync();
 
 		//hf.WriteTObject(h_is_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();
 		//hf.WriteTObject(h_no_btag_numer_PtVsEta.GetPtr());hf.Flush();sync();
@@ -663,6 +664,8 @@ if(ds != cms){
 	hf.WriteTObject(h_zmet_Dph       .GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_z_daughters_Dph.GetPtr());hf.Flush();sync();
 	hf.WriteTObject(h_tWmVsZmass     .GetPtr());hf.Flush();sync();
+        hf.WriteTObject(h_nbjet          .GetPtr());hf.Flush();sync();
+
 
 	// the following two for loops stack correctly
 	for(std::string particle:{"fin_jets","lep","bjet"})

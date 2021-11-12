@@ -26,7 +26,8 @@ namespace{
 	     *hjtphi, *hjtmas, *hlp_pt,
 	     *hlpeta, *hlpphi, *hlpmas,
 	     *hb__pt, *hb_eta, *hb_phi,
-	     *hb_mas;// for taking from files
+	     *hb_mas, *hnbjet
+	     ;// for taking from files
 	TH1D *fbtagw, *flp_sf, *ftpt_w,
              *fcmtet, *fcmtpt, *fcmtph,
              *fmteta, *fmt_pt, *ftWinm,
@@ -37,7 +38,8 @@ namespace{
              *fjtphi, *fjtmas, *flp_pt,
              *flpeta, *flpphi, *flpmas,
              *fb__pt, *fb_eta, *fb_phi,
-             *fb_mas;      // finals go here
+             *fb_mas, *fnbjet
+	     ;      // finals go here
 } // name space
 
 void AddhistsCalc(const channel ch){
@@ -104,6 +106,8 @@ void AddhistsCalc(const channel ch){
                 if(debug > 0)std::cout<<"17"<<std::endl;
 		//zq.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),f__npl);
 		//f__npl->SetDirectory(nullptr);// make it stay even if file closed
+                zq.GetObject(("nbjet_" + NPLc + "_" + NPLds).c_str(),fnbjet);
+                fnbjet->SetDirectory(nullptr);// make it stay even if file closed
                 if(debug > 0)std::cout<<"18"<<std::endl;
 		zq.GetObject((NPLc + "_" + NPLds + "_fin_jets__pt").c_str(),fjt_pt);
 		fjt_pt->SetDirectory(nullptr);// make it stay even if file closed
@@ -242,6 +246,9 @@ void AddhistsCalc(const channel ch){
 
 		//tF.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),h__npl);
 		//f__npl->Add(h__npl,-1);
+                tF.GetObject(("nbjet_" + NPLc + "_" + NPLds).c_str(),hnbjet);
+                fnbjet->Add(hnbjet,-1);
+
 
 		tF.GetObject((NPLc + "_" + NPLds + "_fin_jets__pt").c_str(),hjt_pt);
 		fjt_pt->Add(hjt_pt,-1);
@@ -338,6 +345,8 @@ void AddhistsCalc(const channel ch){
 
 		//tF.GetObject(("npl_" + NPLc + "_" + NPLds).c_str(),h__npl);
 		//f__npl->Add(h__npl);
+                tF.GetObject(("nbjet_" + NPLc + "_" + NPLds).c_str(),hnbjet);
+                fnbjet->Add(hnbjet);
 
 		tF.GetObject((NPLc + "_" + NPLds + "_fin_jets__pt").c_str(),hjt_pt);
 		fjt_pt->Add(hjt_pt);
@@ -401,6 +410,8 @@ void AddhistsCalc(const channel ch){
 	fwz_dr->SetName(("WZ_DeltaR_" + NPLc +"_NPL").c_str());
 	fzjdph->SetName(("Z_pair_jets_Delta_Phi_" + NPLc +"_NPL").c_str());
 	//f__npl->SetName(("npl_" + NPLc +"_NPL").c_str());
+        fnbjet->SetName(("nbjet_" + NPLc +"_NPL").c_str());
+
 	fjt_pt->SetName((NPLc +"_NPL_" + "fin_jets__pt").c_str());
 	fjteta->SetName((NPLc +"_NPL_" + "fin_jets_eta").c_str());
 	fjtphi->SetName((NPLc +"_NPL_" + "fin_jets_phi").c_str());
@@ -445,10 +456,11 @@ void AddhistsCalc(const channel ch){
 	hf.WriteTObject(fb_eta);hf.Flush();sync();
 	hf.WriteTObject(fb_phi);hf.Flush();sync();
 	hf.WriteTObject(fb_mas);hf.Flush();sync();
+        hf.WriteTObject(fnbjet);hf.Flush();sync();
+
 
 	if(0<debug) std::cout<<"all objects stored on file"<<std::endl;
 }// void
-
 int main ( int argc , char *argv[] ){
 	AddhistsCalc(elnu);
 	AddhistsCalc(munu);
