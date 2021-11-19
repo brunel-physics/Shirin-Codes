@@ -141,7 +141,8 @@ std::cout<<"opened file is "<< temp_opener<<std::endl;
 
 auto finalDF
 	= DF
-	.Define("nbjet",numbjet,{"btagB"})
+//	.Define("nbjet",numbjet,{"btagB"})
+	.Define("nbjet","Sum(btagB)")
 //	.Filter(met_pt_cut(ch),{"met__pt"},"MET Pt cut")
 //	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
 //	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut")
