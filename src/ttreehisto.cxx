@@ -86,9 +86,13 @@ inline auto blinding(
 	// from t-channel process
 }
 auto numbjet(
-	const doubles bjets){// this function returns the number of bjets in events
-	int nbjet = bjets.size();
-	return nbjet;
+	const ints   btag){// this function returns the number of bjets in events
+	//auto nbjet = (btag == 1);
+	//int num = nbjet.size();
+	int num;
+	std::cout<< "btag is "<< btag<<std::endl;
+	for(int i =0; i<< btag.size(); i++){if(btag[i] == 1 ) num++;}
+	return num;
 }
 
 void ttreehisto(const channel ch,const dataSource ds){
@@ -137,7 +141,7 @@ std::cout<<"opened file is "<< temp_opener<<std::endl;
 
 auto finalDF
 	= DF
-	.Define("nbjet",numbjet,{"bjet__pt"})
+	.Define("nbjet",numbjet,{"btagB"})
 //	.Filter(met_pt_cut(ch),{"met__pt"},"MET Pt cut")
 //	.Filter(easy_mass_cut(W_MASS,W_MASS_CUT),{"tw_lep_mas"},"W mass cut")
 //	.Filter( easy_mass_cut(Z_MASS,Z_MASS_CUT),{"z_mas"},"z mass cut")

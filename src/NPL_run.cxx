@@ -1737,7 +1737,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	// jets selected, now bjets and btagging preliminaries
 	.Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
 	.Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
-	.Filter(jetCutter(BJETS_MIN,BJETS_MAX),{"btagB"},"b jet cut")
+	//.Filter(jetCutter(BJETS_MIN,BJETS_MAX),{"btagB"},"b jet cut")
 	.Define("tJpF"             ,"Jet_partonFlavour [tight_jets]")
 	.Define("is_btag_numer"    ,isBquark   ,{"tJpF","btagB"})
 	.Define("is_btag_denom"    ,isBquark   ,{"tJpF","btagP"})
@@ -2302,7 +2302,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	.Define("fin_jets_mas","static_cast<ROOT::RVec<double>>(Jet_mass[tight_jets])")
 	.Define("btagP"            ,btagP  ,{"fin_jets_eta"})// suPer vs suBset
 	.Define("btagB"            ,btagB  ,{"btagP","tJ_btagCSVv2"})
-	.Filter(jetCutter(BJETS_MIN,BJETS_MAX),{"btagB"},"b jet cut")
+	//.Filter(jetCutter(BJETS_MIN,BJETS_MAX),{"btagB"},"b jet cut")
         //.Filter(met_pt_cut(ch),{"MET_pt"},"MET Pt cut")// TODO: Re-enable!
 	// TODO: Always check that the previous 3 lines are copies of earlier
 	;

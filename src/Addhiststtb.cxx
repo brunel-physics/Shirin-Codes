@@ -286,7 +286,7 @@ void addhiststtb(const channel ch){
 	}// for
 	// try to associate pointers correctly and store them
 	if(0<debug) std::cout<<"all objects added"<<std::endl;
-	TFile hf(("histo/" + NPLc + "_ttbar.root").c_str(),"RECREATE");
+	TFile hf(("histo/BDT_" + NPLc + "_ttbar.root").c_str(),"RECREATE");
 	if(0<debug) std::cout<<"file created"<<std::endl;
 	fbtagw->SetName(("btag_w_"   + NPLc +"_ttb").c_str());
 	flp_sf->SetName(("mostSF_"   + NPLc +"_ttb").c_str());

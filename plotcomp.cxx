@@ -10,9 +10,9 @@ enum      channel      {elnu,munu};
 constexpr channel
           channelAll[]={elnu,munu};
 
-enum      dataSource	  {tzq,vv,ttz,met,wj,st,tw,dy,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+enum      dataSource	  {tzq,vv,ttz,wj,st,tw,dy,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 constexpr dataSource
-          dataSourceAll[]={tzq,vv,ttz,met,wj,st,tw,dy,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+          dataSourceAll[]={tzq,vv,ttz,wj,st,tw,dy,cms,ttbar,npl};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 
 enum      PtEtaPhiM	 {pt,eta,phi,m};
 constexpr PtEtaPhiM
@@ -44,13 +44,13 @@ int plotcomp(){
 		case  ttbar:{opener += "ttbar" ;break;}
                 case     wj:{opener +=   "_Wj" ;break;}
                 case     dy:{opener +=   "_DY" ;break;}
-		case    met:{opener +=   "met" ;break;}
+		//case    met:{opener +=   "met" ;break;}
 		case    cms:{opener +=   "cms" ;break;}
                 case     tw:{opener +=   "_tW" ;break;}
 		case    npl:{opener  ="NPL_run_" + chN;break;}
 	}
 	hFd[std::make_pair(ch,ds)]
-		= new TFile(("histo/" + opener + ".root").c_str());
+		= new TFile(("histo/BDT_" + opener + ".root").c_str());
 	}}// now we have a histogram file dictionary of all the files miahahaha
 	for(std::string particle:{"fin_jets","lep","bjet"}){
 	for(PtEtaPhiM k:PtEtaPhiMall){
@@ -121,7 +121,7 @@ int plotcomp(){
 		case  ttbar:{opener += "ttb" ;lgN = "t#bar{t}"      ;colour =  7 ;break;}// cyan
                 case     wj:{opener += "_Wj" ;lgN = "W+Jets"        ;colour =  55;break;}//
                 case     dy:{opener += "_DY" ;lgN = "Z/#gamma+Jets" ;colour =  79;break;}//
-		case    met:{opener += "met" ;lgN = "MET"           ;colour =  9 ;break;}// violet
+		//case    met:{opener += "met" ;lgN = "MET"           ;colour =  9 ;break;}// violet
 		case    cms:{opener += "cms" ;lgN = "data"          ;colour =  1 ;break;}// black
                 case     tw:{opener += "_tW" ;lgN = "tW"            ;colour =  75;break;}//
 		case    npl:{opener +=  "NPL";lgN = "NPL"           ;colour =  40;break;}
@@ -130,7 +130,7 @@ int plotcomp(){
 	hFd[std::make_pair(ch,ds)]->GetObject(hobjN.c_str(),hobj);
 	//if(hobj->GetMaximum() > max)  max =   hobj->GetMaximum( );
 	                              hobj->SetDirectory(nullptr);
-	if( cms == ds || met == ds ){ if(met == ds) 	 continue;
+	if( cms == ds /*|| met == ds*/ ){ //if(met == ds) 	 continue;
 				      stac .Draw("hist");
 		                      //stac .SetMaximum(max*1.2);// now plot is set, plot CMS on it
 		                      hobj->SetLineColor(  colour);

@@ -78,7 +78,7 @@ int plotall(){
 	}
 	if(debug > 0) std::cout<<ds<<std::endl;
 	hFd[std::make_pair(ch,ds)]
-		= new TFile(("histo/" + opener + ".root").c_str());
+		= new TFile(("histo/BDT_" + opener + ".root").c_str());
 	}}// now we have a histogram file dictionary of all the files miahahaha
 
 	for(size_t i=0; i < std::size(allNamesArray) ;++i){
