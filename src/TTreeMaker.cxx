@@ -64,7 +64,7 @@ namespace{
   constexpr float     JET_ETA_MAX =  4.7f;
   constexpr float     JET_PT__MIN = 30.0f;
   constexpr double        JET_ISO =   .4 ;
-  constexpr unsigned     JETS_MIN =  4   ;
+  constexpr unsigned     JETS_MIN =  3   ;
   constexpr unsigned     JETS_MAX =  6   ;
 
   constexpr double   BJET_ETA_MAX = 2.4   ;
@@ -72,6 +72,7 @@ namespace{
 //constexpr double DBTAG_DISC_MIN =  .4941; // DeepBTagCSV
   constexpr unsigned    BJETS_MIN = 1     ;
   constexpr unsigned    BJETS_MAX = 3     ;
+
 
 //constexpr double DELTA___R_ZL   = 1.6;
 //constexpr double DELTA_PHI_ZW   = 2. ;
@@ -1468,12 +1469,15 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	TChain bothMET("Events");
 	temp_footer = "/*.root" ;/* safety redefinition now saving us */
 	temp_header =
-		"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_Run";
+		//"/data/disk3/nanoAOD_2017/SingleElectron_NanoAOD25Oct2019_Run";// oct 2019
+		"/nfs/data/eepgssg/SingleElectron";
 	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
 		elnuCMS.Add(temp_opener. c_str());
 	}
-	temp_header="/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_Run";
+	temp_header=
+		//"/data/disk3/nanoAOD_2017/SingleMuon_NanoAOD25Oct2019_Run";// oct 2019
+		"/nfs/data/eepgssg/SingleMuon";
 	for(std::string c:{"B","C","D","E","F"}){// guaranteed sequential
 		temp_opener=temp_header+ c +temp_footer;
 		munuCMS.Add(temp_opener. c_str());
@@ -1750,7 +1754,7 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,
 	     has_btag_eff )
 	;
-	auto SnapRDF = finalDF.Snapshot("Events",temp_opener);// SNAPPED!
+	auto SnapRDF = finalDF.Snapshot("Events",temp_opener,mc__columns);// SNAPPED!
 
         auto sumW = finalDF.Sum("sf");
         std::cout<< "SumW is "<< *sumW <<std::endl;// overal normalisation output
@@ -2246,7 +2250,8 @@ void TTreeMaker(const channel ch,const dataSource ds){
 	auto finalDF = finalScaling(ch,ds,PuWd,PuUd,PuDd,// unused but send pile
 	     not_btag_eff )
 	;
-	auto SnapRDF = finalDF.Snapshot("Events",temp_opener); // SNAPPED!!
+	auto SnapRDF = finalDF.Snapshot("Events",temp_opener,cms_columns); // SNAPPED!!
+	finalDF.Report() ->Print();
 	// Copied from earlier, delete MC-only!
 	// Assuming temp_header and footer and all are set per (hist titles)!
 /*	auto h_met_sEt = finalDF.Histo1D({

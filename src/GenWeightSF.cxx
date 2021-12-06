@@ -15,6 +15,12 @@ using    ints = ROOT::VecOps::RVec<int>;
 using   bools = ROOT::VecOps::RVec<bool>;
 using strings = ROOT::VecOps::RVec<std::string>;
 
+auto w(const int weig){
+	std::cout<<"weight is "<<weig<<std::endl;
+	return 1;
+}
+
+
 void GenWeightSF(const channel ch,const dataSource ds){
 
 	// Open data files even if unused
@@ -22,14 +28,43 @@ void GenWeightSF(const channel ch,const dataSource ds){
 	// No penalty for opening and leaving unused
 	// Can even open multiple times at once in parallel
 	// Open MC data source EVEN IF UNUSED
-	std::string temp_header="/data/disk0/nanoAOD_2017/",
-	temp_opener,temp_footer="/*.root";/**/
-	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
-	case  tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}/**/
+	std::string temp_header,
+		    temp_header0="/data/disk0/nanoAOD_2017/",
+                    temp_header1="/nfs/data/eepgssg/",// old disk1
+                    temp_header3="/data/disk3/nanoAOD_2017/",
+        temp_opener,temp_footer="/*.root";/**/
+        switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
+        case  tzq:{temp_opener=temp_header3+ "tZqlvqq"                      +temp_footer;break;}
+        case   ww:{temp_opener=temp_header1+ "WW/WW_v7"                     +temp_footer;break;}
+        case   wz:{temp_opener=temp_header1+ "WZ/WZ_v7"                     +temp_footer;break;}
+        case   zz:{temp_opener=temp_header1+ "ZZ/ZZ_v7"                     +temp_footer;break;}
+        case  wjt:{temp_opener=temp_header3+ "WPlusJets_NanoAODv5"          +temp_footer;break;}
+        case  wjx:{temp_opener=temp_header1+ "WJetsToLNu_ext_NanoAODv5"     +temp_footer;break;}// ext of WPlusJets
+        case  ttb:{temp_opener=temp_header0+ "TTToSemileptonic"             +temp_footer;break;}
+        case  ttl:{temp_opener=temp_header1+ "TT_2l2nu_nanoAODv5"           +temp_footer;break;}
+        case  ttj:{temp_opener=temp_header0+ "TTToHadronic"                 +temp_footer;break;}
+        case   st:{temp_opener=temp_header1+ "ST_tchannel_top_nanoAODv5"    +temp_footer;break;}
+        case  stb:{temp_opener=temp_header1+ "ST_tchannel_antitop_nanoAODv5"+temp_footer;break;}
+        case  stw:{temp_opener=temp_header0+ "ST_tW"                        +temp_footer;break;}
+        case stbw:{temp_opener=temp_header0+ "ST_tbarW"                     +temp_footer;break;}
+        case wzll:{temp_opener=temp_header0+ "WZTo2L2Q"                     +temp_footer;break;}
+        case wjqq:{temp_opener=temp_header0+ "WPlusJetsToQQ"                +temp_footer;break;}
+        case zjt1:{temp_opener=temp_header3+ "ZPlusJets_M10To50_NanoAODv5"  +temp_footer;break;}
+        case zjt2:{temp_opener=temp_header1+ "ZPlusJets_M50_NanoAODv5"      +temp_footer;break;}
+        case zjt3:{temp_opener=temp_header1+ "ZPlusJets_M50_ext_NanoAODv5"  +temp_footer;break;}
+        case zjqq:{temp_opener=temp_header3+ "DYToQQ"                       +temp_footer;break;}
+        case  tz1:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
+        case  tz2:{temp_opener=temp_header0+ "ttZToQQ_ext"                  +temp_footer;break;}
+        case  met:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
+        case  cms:{temp_opener=temp_header0+ "ttZToQQ"                      +temp_footer;break;}
+        default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
+}
+/*	switch(ds){// CMS and MET MUST do some OPENABLE file ; reject later
+	case  tzq:{temp_opener="/data/disk3/nanoAOD_2017/tZqlvqq/*.root"  ;break;}
 	case   ww:{temp_opener="/nfs/data/eepgssg/WW"         +temp_footer;break;}
 	case   wz:{temp_opener="/nfs/data/eepgssg/WZ"         +temp_footer;break;}
 	case   zz:{temp_opener="/nfs/data/eepgssg/ZZ"         +temp_footer;break;}
-	case  wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}/**/
+	case  wjt:{temp_opener="/data/disk3/nanoAOD_2017/WPlusJets_NanoAODv5/*.root";break;}
         case  wjx:{temp_opener="/nfs/data/eepgssg/WJetsToLNu_ext_NanoAODv5"+temp_footer;break;}
 	case  ttb:{temp_opener=temp_header+"TTToSemileptonic" +temp_footer;break;}
 	case  tz1:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
@@ -49,8 +84,11 @@ void GenWeightSF(const channel ch,const dataSource ds){
 	case  met:{temp_opener=temp_header+"ttZToQQ_ext"      +temp_footer;break;}
 	case  cms:{temp_opener=temp_header+"ttZToQQ"          +temp_footer;break;}
 
+*/
 //	default :throw std::invalid_argument("Unimplemented ds (rdfopen)");
-	}
+
+
+//	}
 	ROOT::RDataFrame mc__df("Events",temp_opener);// Monte Carlo
 	// Open chains of exptData EVEN IF UNUSED
 	TChain elnuCMS("Events");
@@ -119,6 +157,9 @@ void GenWeightSF(const channel ch,const dataSource ds){
         }
 	// make test runs faster by restriction. Real run should not
         auto dfr = df.Range(100000);// remember to enable MT when NOT range
+	auto weight =  df.Define("wei",w,{"genWeight"});
+	auto h1 = weight.Histo1D({"n","n",-1000,1000,10},"wei");
+	std::cout<<"gen w is "<<h1.GetPtr()<<std::endl;
         auto genWpos = df// remove one letter to do all
 	.Filter("genWeight >= 0", "genPosCount")
 	;

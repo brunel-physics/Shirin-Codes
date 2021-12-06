@@ -141,7 +141,8 @@ int plotcomp(){
 		                      hobj->Draw("E0 SAME");
 		                      legS .Draw();
 		                      rp = (TH1D*)(hobj->Clone());
-	}else{                        hobj->SetFillColor( colour);
+	}else{                        hobj->Scale(2.0);
+				      hobj->SetFillColor( colour);
 		                      stac .Add(hobj            );
                                       TH1F *lsh = new TH1F(*((TH1F *)(stac.GetStack()->Last())));
                                       max = lsh ->GetMaximum();

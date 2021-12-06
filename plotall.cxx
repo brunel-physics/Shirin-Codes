@@ -21,9 +21,9 @@ enum      channel      {elnu,munu};
 constexpr channel
           channelAll[]={elnu,munu};
 
-enum      dataSource	  {tzq,ttz,met,wj,vv,st,tw,dy,ttbar,npl,cms};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+enum      dataSource	  {tzq,ttz,met,wj,/*ww,wz,zz*/vv,st,tw,dy,ttbar,npl,cms};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 constexpr dataSource
-          dataSourceAll[]={tzq,ttz,met,wj,vv,st,tw,dy,ttbar,npl,cms};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
+          dataSourceAll[]={tzq,ttz,met,wj,/*ww,wz,zz*/vv,st,tw,dy,ttbar,npl,cms};//,wjt,met,st,stb,stw,stbw,ttl,ttj,ttb,cms};
 int debug = 1;
 
 std::string allNamesArray[][3] = {// histogram id, histogram title, x axis string
@@ -65,6 +65,9 @@ int plotall(){
 	switch  (ds){
 		case    tzq:{opener +=  "tzq";break;}
 		case     vv:{opener +=  "_vv";break;}
+//		case     ww:{opener += "_ww";break;}
+//                case     wz:{opener += "_wz";break;}
+//                case     zz:{opener += "_zz";break;}
 		case     st:{opener +=  "_ST";break;}
 		case    ttz:{opener +=  "ttz";break;}
 		case  ttbar:{opener +="ttbar";break;}
@@ -77,8 +80,13 @@ int plotall(){
 
 	}
 	if(debug > 0) std::cout<<ds<<std::endl;
+//	if(ds != cms){
 	hFd[std::make_pair(ch,ds)]
 		= new TFile(("histo/BDT_" + opener + ".root").c_str());
+//	}else{
+//        hFd[std::make_pair(ch,ds)]
+//                = new TFile(("histo/" + opener + ".root").c_str());
+//	}// if
 	}}// now we have a histogram file dictionary of all the files miahahaha
 
 	for(size_t i=0; i < std::size(allNamesArray) ;++i){
@@ -145,6 +153,9 @@ int plotall(){
 	switch  (ds){
 		case    tzq:{opener += "tzq" ;lgN = "tZq"            ;colour =  6 ;break;}// magenta
 		case     vv:{opener += "_vv" ;lgN = "VV "            ;colour =  2 ;break;}// red
+//                case     ww:{opener +="_ww" ;lgN = "ww "            ;colour =  30 ;break;}
+//                case     wz:{opener +="_wz" ;lgN = "wz "            ;colour =  28 ;break;}
+//                case     zz:{opener +="_zz" ;lgN = "zz "            ;colour =  46 ;break;}
                 case     st:{opener += "_ST" ;lgN = "Single t"       ;colour =  95;break;}//
 		case    ttz:{opener += "ttz" ;lgN = "t#bar{t}Z"      ;colour =  5 ;break;}// yellow
 		case  ttbar:{opener += "ttb" ;lgN = "t#bar{t}"       ;colour =  7 ;break;}// cyan
@@ -168,6 +179,7 @@ int plotall(){
 	// WARNING: We require CMS to be the last thing in dataSourceAll !
 	if( cms != ds ){
 		//hobj->Scale(1./(9*hobj->Integral()));
+		hobj->Scale(2.0);
 		hobj->SetFillColor(colour);
 		stac .Add(hobj);
 		legS .AddEntry(hobj,lgN.c_str(),"f");

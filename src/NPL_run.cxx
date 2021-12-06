@@ -32,6 +32,7 @@ using   bools = ROOT::VecOps::RVec<bool>;
 using strings = ROOT::VecOps::RVec<std::string>;
 
 namespace{
+
   constexpr    int debug = 0;
 //constexpr    int EL_MAX_NUM      = 1       ;
   constexpr  float EL__PT_MIN      = 35.f    ;
@@ -69,7 +70,7 @@ namespace{
   constexpr float     JET_ETA_MAX =  4.7f;
   constexpr float     JET_PT__MIN = 30.0f;
   constexpr double        JET_ISO =   .4 ;
-  constexpr unsigned     JETS_MIN =  4   ;
+  constexpr unsigned     JETS_MIN =  3   ;
   constexpr unsigned     JETS_MAX =  6   ;
 
   constexpr double   BJET_ETA_MAX = 2.4   ;
@@ -1370,6 +1371,7 @@ auto finalScaling(
 	. Alias("nw_lep_nu_invmass","sf")
 	. Alias("nw_ttop__pt"      ,"sf")
 	. Alias("nw_ttop_mas"      ,"sf")
+	. Alias("EvtWeight"        ,"sf")
 	;
 }
 auto runLBfilter(
@@ -2282,7 +2284,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	}*/
 
         temp_opener = "BDTInput/Histoffile_NPL_" + temp_header + ".root"; // for the snap shot
-        auto SnapRDF = finalDF.Snapshot("Events",temp_opener);// SNAPPED!
+        auto SnapRDF = finalDF.Snapshot("Events",temp_opener,mc__columns);// SNAPPED!
 
 
 	} else {
@@ -2487,7 +2489,7 @@ void NPL_run(const channel ch,const dataSource ds){
 	}*/ // for loop
 
         temp_opener = "BDTInput/Histoffile_NPL_" + temp_header + ".root"; // for the snap shot
-        auto SnapRDF = finalDF.Snapshot("Events",temp_opener);// SNAPPED!
+        auto SnapRDF = finalDF.Snapshot("Events",temp_opener,cms_columns);// SNAPPED!
 	}// if mc
 	std::cout<<"NPL_run successfully completed"<<std::endl;
 }// void

@@ -54,6 +54,11 @@ using strings = ROOT::VecOps::RVec<std::string>;
   constexpr unsigned     JETS_MIN =  4   ;
   constexpr unsigned     JETS_MAX =  6   ;
 
+  constexpr unsigned	BJETS_MIN =  3;
+  constexpr unsigned    BJETS_MAX =  6;
+
+
+
 inline auto met_pt_cut(const channel ch){
 	float lower_bound;
 	switch(ch){
@@ -75,14 +80,13 @@ inline auto easy_mass_cut(const double theo,const double cut){
 	};
 }*/
 inline auto blinding(
-	 const doubles bjets
-	,const doubles tjets){// This is the jet multiplicity technique,
+	 const int bjets){// This is the jet multiplicity technique,
 	// suggested by Dr Duncan Leggat.
 	// We take the number of bjets and remaining tight jets based on
 	// the number of existing final jets. Therefore, we expect either
 	// 3 bjets at final state or , 1 bjet and two other jets.
-	return (bjets.size() != 3 && tjets.size() <= JETS_MAX) || // the fourth jet
-	       (bjets.size() != 1 && tjets.size() <= JETS_MAX)  ; // is the recoiled jet
+	return (bjets != 3 /*&& tjets <= JETS_MAX*/) || // the fourth jet
+	       (bjets != 1 /*&& tjets <= JETS_MAX*/)  ; // is the recoiled jet
 	// from t-channel process
 }
 auto numbjet(
@@ -141,6 +145,7 @@ std::cout<<"opened file is "<< temp_opener<<std::endl;
 
 auto finalDF
 	= DF
+	.Filter(jetCutter(BJETS_MIN,BJETS_MAX),{"btagB"},"b jet cut")
 //	.Define("nbjet",numbjet,{"btagB"})
 	.Define("nbjet","Sum(btagB)")
 //	.Filter(met_pt_cut(ch),{"met__pt"},"MET Pt cut")
@@ -542,7 +547,8 @@ if(ds != cms){
 		hf.WriteTObject(h.GetPtr());hf.Flush();sync();
 }}else{
 	auto blindfinalDF = finalDF
-			  .Filter(blinding,{"bjet__pt","fin_jets__pt"},"blinding:jet multiplicity")
+			  .Filter(blinding,{"nbjet"},"blinding:jet multiplicity")
+		          .Filter(jetCutter(BJETS_MIN,BJETS_MAX),{"btagB"},"b jet cut")
 			  ;
 	auto h_met_sEt = blindfinalDF.Histo1D({
 	("met_sEt_"+temp_header).c_str(),
